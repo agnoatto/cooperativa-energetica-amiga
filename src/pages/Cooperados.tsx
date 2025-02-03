@@ -7,9 +7,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Edit, Trash } from "lucide-react";
+import { Plus, Edit, Trash, FileDown } from "lucide-react";
 import { useState } from "react";
 import { CooperadoForm } from "@/components/cooperados/CooperadoForm";
+import { jsPDF } from "jspdf";
+import { toast } from "sonner";
 
 const Cooperados = () => {
   const [showForm, setShowForm] = useState(false);
@@ -23,6 +25,28 @@ const Cooperados = () => {
   const handleCloseForm = () => {
     setShowForm(false);
     setSelectedCooperado(null);
+  };
+
+  const generatePDF = (cooperado: any) => {
+    const doc = new jsPDF();
+    
+    // Configuração da fonte para suportar caracteres especiais
+    doc.setFont("helvetica");
+    
+    // Título
+    doc.setFontSize(20);
+    doc.text("Dados do Cooperado", 105, 20, { align: "center" });
+    
+    // Informações do cooperado
+    doc.setFontSize(12);
+    doc.text(`Nome: ${cooperado.nome}`, 20, 40);
+    doc.text(`CPF/CNPJ: ${cooperado.documento}`, 20, 50);
+    doc.text(`Telefone: ${cooperado.telefone}`, 20, 60);
+    doc.text(`Email: ${cooperado.email}`, 20, 70);
+    
+    // Salvar o PDF
+    doc.save(`cooperado-${cooperado.nome}.pdf`);
+    toast.success("PDF gerado com sucesso!");
   };
 
   return (
@@ -72,6 +96,18 @@ const Cooperados = () => {
                 </Button>
                 <Button variant="outline" size="icon">
                   <Trash className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => generatePDF({
+                    nome: "João Silva",
+                    documento: "123.456.789-00",
+                    telefone: "(11) 99999-9999",
+                    email: "joao@example.com"
+                  })}
+                >
+                  <FileDown className="h-4 w-4" />
                 </Button>
               </TableCell>
             </TableRow>
