@@ -18,7 +18,15 @@ const Cooperados = () => {
   const [selectedCooperado, setSelectedCooperado] = useState<any>(null);
 
   const handleEdit = (cooperado: any) => {
-    setSelectedCooperado(cooperado);
+    // Remove a formatação dos campos antes de passar para o formulário
+    const formattedCooperado = {
+      nome: cooperado.nome,
+      documento: cooperado.documento.replace(/\D/g, ''), // Remove caracteres não numéricos
+      telefone: cooperado.telefone.replace(/\D/g, ''), // Remove caracteres não numéricos
+      email: cooperado.email
+    };
+    
+    setSelectedCooperado(formattedCooperado);
     setShowForm(true);
   };
 
@@ -87,8 +95,8 @@ const Cooperados = () => {
                   size="icon"
                   onClick={() => handleEdit({
                     nome: "João Silva",
-                    documento: "12345678900",
-                    telefone: "11999999999",
+                    documento: "123.456.789-00",
+                    telefone: "(11) 99999-9999",
                     email: "joao@example.com"
                   })}
                 >
