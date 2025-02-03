@@ -13,6 +13,17 @@ import { CooperadoForm } from "@/components/cooperados/CooperadoForm";
 
 const Cooperados = () => {
   const [showForm, setShowForm] = useState(false);
+  const [selectedCooperado, setSelectedCooperado] = useState<any>(null);
+
+  const handleEdit = (cooperado: any) => {
+    setSelectedCooperado(cooperado);
+    setShowForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setSelectedCooperado(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -23,7 +34,11 @@ const Cooperados = () => {
         </Button>
       </div>
 
-      {showForm && <CooperadoForm onClose={() => setShowForm(false)} />}
+      <CooperadoForm 
+        open={showForm} 
+        onOpenChange={handleCloseForm}
+        initialData={selectedCooperado}
+      />
 
       <div className="rounded-md border">
         <Table>
@@ -43,7 +58,16 @@ const Cooperados = () => {
               <TableCell>(11) 99999-9999</TableCell>
               <TableCell>2</TableCell>
               <TableCell className="text-right space-x-2">
-                <Button variant="outline" size="icon">
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => handleEdit({
+                    nome: "João Silva",
+                    documento: "12345678900",
+                    telefone: "11999999999",
+                    email: "joao@example.com"
+                  })}
+                >
                   <Edit className="h-4 w-4" />
                 </Button>
                 <Button variant="outline" size="icon">
