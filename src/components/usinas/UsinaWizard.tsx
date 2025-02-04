@@ -157,13 +157,12 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
               <InvestidorWizardForm
                 sessionId={sessionId}
                 onNext={(data) => {
-                  const investidor: InvestidorData = {
+                  setInvestidorData({
                     nome_investidor: data.nome_investidor,
                     documento: data.documento,
                     telefone: data.telefone,
                     email: data.email,
-                  };
-                  setInvestidorData(investidor);
+                  });
                   handleNext();
                 }}
               />
@@ -174,7 +173,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
                 sessionId={sessionId}
                 investidorId={sessionId}
                 onNext={(data) => {
-                  const unidade: UnidadeData = {
+                  setUnidadeData({
                     numero_uc: data.numero_uc,
                     logradouro: data.logradouro,
                     numero: data.numero,
@@ -182,8 +181,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
                     cidade: data.cidade,
                     uf: data.uf,
                     cep: data.cep,
-                  };
-                  setUnidadeData(unidade);
+                  });
                   handleNext();
                 }}
               />
