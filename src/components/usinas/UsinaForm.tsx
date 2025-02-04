@@ -28,6 +28,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from "../ui/use-toast";
+import { Separator } from "../ui/separator";
 
 const usinaFormSchema = z.object({
   investidor_id: z.string().min(1, "Investidor é obrigatório"),
@@ -36,6 +37,13 @@ const usinaFormSchema = z.object({
     .number()
     .min(0, "Valor deve ser maior que zero")
     .nonnegative("Valor não pode ser negativo"),
+  dados_pagamento_nome: z.string().optional(),
+  dados_pagamento_documento: z.string().optional(),
+  dados_pagamento_banco: z.string().optional(),
+  dados_pagamento_agencia: z.string().optional(),
+  dados_pagamento_conta: z.string().optional(),
+  dados_pagamento_telefone: z.string().optional(),
+  dados_pagamento_email: z.string().email("Email inválido").optional().or(z.literal("")),
 });
 
 type UsinaFormData = z.infer<typeof usinaFormSchema>;
@@ -60,6 +68,13 @@ export function UsinaForm({
       investidor_id: "",
       unidade_usina_id: "",
       valor_kwh: 0,
+      dados_pagamento_nome: "",
+      dados_pagamento_documento: "",
+      dados_pagamento_banco: "",
+      dados_pagamento_agencia: "",
+      dados_pagamento_conta: "",
+      dados_pagamento_telefone: "",
+      dados_pagamento_email: "",
     },
   });
 
@@ -117,6 +132,13 @@ export function UsinaForm({
         investidor_id: "",
         unidade_usina_id: "",
         valor_kwh: 0,
+        dados_pagamento_nome: "",
+        dados_pagamento_documento: "",
+        dados_pagamento_banco: "",
+        dados_pagamento_agencia: "",
+        dados_pagamento_conta: "",
+        dados_pagamento_telefone: "",
+        dados_pagamento_email: "",
       });
     }
   }, [usinaId, form]);
@@ -124,9 +146,8 @@ export function UsinaForm({
   const onSubmit = async (data: UsinaFormData) => {
     try {
       const submitData = {
-        investidor_id: data.investidor_id,
-        unidade_usina_id: data.unidade_usina_id,
-        valor_kwh: data.valor_kwh,
+        ...data,
+        status: usinaId ? 'active' : 'draft',
         updated_at: new Date().toISOString(),
       };
 
@@ -142,7 +163,6 @@ export function UsinaForm({
       } else {
         const { error } = await supabase.from("usinas").insert({
           ...submitData,
-          status: "draft",
           session_id: crypto.randomUUID(),
         });
         if (error) throw error;
@@ -176,82 +196,192 @@ export function UsinaForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>{usinaId ? "Editar" : "Nova"} Usina</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="investidor_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Investidor</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o investidor" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {investidores?.map((investidor) => (
-                        <SelectItem key={investidor.id} value={investidor.id}>
-                          {investidor.nome_investidor}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="investidor_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Investidor</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o investidor" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {investidores?.map((investidor) => (
+                          <SelectItem key={investidor.id} value={investidor.id}>
+                            {investidor.nome_investidor}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="unidade_usina_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Unidade</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a unidade" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {unidades?.map((unidade) => (
-                        <SelectItem key={unidade.id} value={unidade.id}>
-                          {formatAddress(unidade)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="unidade_usina_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Unidade</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a unidade" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {unidades?.map((unidade) => (
+                          <SelectItem key={unidade.id} value={unidade.id}>
+                            {formatAddress(unidade)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="valor_kwh"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Valor do kWh</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="number" step="0.01" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="valor_kwh"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Valor do kWh</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="number" step="0.01" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <Separator />
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Dados de Pagamento</h3>
+              
+              <FormField
+                control={form.control}
+                name="dados_pagamento_nome"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="dados_pagamento_documento"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Documento</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="dados_pagamento_banco"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Banco</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="dados_pagamento_agencia"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Agência</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="dados_pagamento_conta"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Conta</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="dados_pagamento_telefone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="dados_pagamento_email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="email" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
             <Button type="submit">Salvar</Button>
           </form>
