@@ -9,14 +9,13 @@ import {
 } from "@/components/ui/table";
 import { Plus, Edit, Trash } from "lucide-react";
 import { useState } from "react";
-import { UsinaForm } from "@/components/usinas/UsinaForm";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { UsinaWizard } from "@/components/usinas/UsinaWizard";
 
 const Usinas = () => {
-  const [selectedUsinaId, setSelectedUsinaId] = useState<string | undefined>();
-  const [isFormOpen, setIsFormOpen] = useState(false);
-
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  
   const { data: usinas, refetch } = useQuery({
     queryKey: ['usinas'],
     queryFn: async () => {
@@ -32,11 +31,6 @@ const Usinas = () => {
       return data;
     },
   });
-
-  const handleEdit = (usinaId: string) => {
-    setSelectedUsinaId(usinaId);
-    setIsFormOpen(true);
-  };
 
   const handleDelete = async (usinaId: string) => {
     try {
@@ -56,10 +50,7 @@ const Usinas = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Usinas</h1>
-        <Button onClick={() => {
-          setSelectedUsinaId(undefined);
-          setIsFormOpen(true);
-        }}>
+        <Button onClick={() => setIsWizardOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Nova Usina
         </Button>
       </div>
@@ -84,7 +75,6 @@ const Usinas = () => {
                   <Button 
                     variant="outline" 
                     size="icon"
-                    onClick={() => handleEdit(usina.id)}
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -102,10 +92,9 @@ const Usinas = () => {
         </Table>
       </div>
 
-      <UsinaForm
-        open={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        usinaId={selectedUsinaId}
+      <UsinaWizard
+        open={isWizardOpen}
+        onOpenChange={setIsWizardOpen}
         onSuccess={refetch}
       />
     </div>
