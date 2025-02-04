@@ -23,7 +23,15 @@ const UnidadesUsina = () => {
       const { data, error } = await supabase
         .from("unidades_usina")
         .select(`
-          *,
+          id,
+          numero_uc,
+          logradouro,
+          numero,
+          complemento,
+          cidade,
+          uf,
+          cep,
+          titular_id,
           cooperado:cooperados(nome),
           investidor:investidores(nome_investidor)
         `);
