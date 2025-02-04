@@ -7,11 +7,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Edit, Trash, FileDown } from "lucide-react";
+import { Plus, Edit, Trash } from "lucide-react";
 import { useState, useEffect } from "react";
 import { CooperadoForm } from "@/components/cooperados/CooperadoForm";
 import { UnidadeBeneficiariaForm } from "@/components/cooperados/UnidadeBeneficiariaForm";
-import { jsPDF } from "jspdf";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -165,17 +164,20 @@ const Cooperados = () => {
                   {cooperado.profile.email}
                 </TableCell>
                 <TableCell>
-                  {unidades.filter(u => u.cooperado_id === cooperado.id).length}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedCooperadoId(cooperado.id);
-                      setShowUnidadeForm(true);
-                    }}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <span>{unidades.filter(u => u.cooperado_id === cooperado.id).length}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setSelectedCooperadoId(cooperado.id);
+                        setShowUnidadeForm(true);
+                      }}
+                      title="Adicionar Unidade Beneficiária"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
                 <TableCell className="text-right space-x-2">
                   <Button 
