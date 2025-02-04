@@ -14,7 +14,7 @@ import { BasicInfoFields } from "./BasicInfoFields";
 import { ResponsavelFields } from "./ResponsavelFields";
 import { ContatoFields } from "./ContatoFields";
 import { cooperadoFormSchema, type CooperadoFormValues } from "./schema";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface CooperadoFormProps {
   open: boolean;
@@ -24,6 +24,8 @@ interface CooperadoFormProps {
 }
 
 export function CooperadoForm({ open, onOpenChange, cooperadoId, onSuccess }: CooperadoFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<CooperadoFormValues>({
     resolver: zodResolver(cooperadoFormSchema),
     defaultValues: {
@@ -46,6 +48,7 @@ export function CooperadoForm({ open, onOpenChange, cooperadoId, onSuccess }: Co
       if (!cooperadoId) return;
 
       try {
+        setIsLoading(true);
         const { data, error } = await supabase
           .from('cooperados')
           .select('*')
@@ -55,6 +58,7 @@ export function CooperadoForm({ open, onOpenChange, cooperadoId, onSuccess }: Co
         if (error) throw error;
 
         if (data) {
+          console.log('Loaded cooperado data:', data);
           form.reset({
             nome: data.nome || "",
             documento: data.documento || "",
@@ -67,7 +71,10 @@ export function CooperadoForm({ open, onOpenChange, cooperadoId, onSuccess }: Co
           });
         }
       } catch (error: any) {
+        console.error('Error loading cooperado:', error);
         toast.error("Erro ao carregar dados do cooperado: " + error.message);
+      } finally {
+        setIsLoading(false);
       }
     }
 
@@ -76,8 +83,18 @@ export function CooperadoForm({ open, onOpenChange, cooperadoId, onSuccess }: Co
     }
   }, [cooperadoId, open, form]);
 
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
+      form.reset();
+    }
+  }, [open, form]);
+
   async function onSubmit(data: CooperadoFormValues) {
     try {
+      setIsLoading(true);
+      console.log('Submitting form with data:', data);
+
       const cooperadoData = {
         nome: data.nome,
         documento: data.documento.replace(/\D/g, ''),
@@ -111,7 +128,10 @@ export function CooperadoForm({ open, onOpenChange, cooperadoId, onSuccess }: Co
       onSuccess?.();
       onOpenChange(false);
     } catch (error: any) {
+      console.error('Error saving cooperado:', error);
       toast.error(`Erro ao ${cooperadoId ? 'atualizar' : 'cadastrar'} cooperado: ` + error.message);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -131,7 +151,12 @@ export function CooperadoForm({ open, onOpenChange, cooperadoId, onSuccess }: Co
             <ContatoFields form={form} />
 
             <div className="flex justify-end gap-2">
-              <Button type="submit">Salvar</Button>
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+              >
+                {isLoading ? "Salvando..." : "Salvar"}
+              </Button>
             </div>
           </form>
         </Form>
