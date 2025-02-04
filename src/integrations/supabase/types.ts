@@ -45,7 +45,11 @@ export type Database = {
           email: string | null
           id: string
           nome: string | null
+          responsavel_cpf: string | null
+          responsavel_nome: string | null
+          responsavel_telefone: string | null
           telefone: string | null
+          tipo_pessoa: string | null
           updated_at: string
         }
         Insert: {
@@ -54,7 +58,11 @@ export type Database = {
           email?: string | null
           id: string
           nome?: string | null
+          responsavel_cpf?: string | null
+          responsavel_nome?: string | null
+          responsavel_telefone?: string | null
           telefone?: string | null
+          tipo_pessoa?: string | null
           updated_at?: string
         }
         Update: {
@@ -63,10 +71,61 @@ export type Database = {
           email?: string | null
           id?: string
           nome?: string | null
+          responsavel_cpf?: string | null
+          responsavel_nome?: string | null
+          responsavel_telefone?: string | null
           telefone?: string | null
+          tipo_pessoa?: string | null
           updated_at?: string
         }
         Relationships: []
+      }
+      unidades_beneficiarias: {
+        Row: {
+          apelido: string | null
+          cooperado_id: string
+          created_at: string
+          data_entrada: string
+          data_saida: string | null
+          endereco: string
+          id: string
+          numero_uc: string
+          percentual_desconto: number
+          updated_at: string
+        }
+        Insert: {
+          apelido?: string | null
+          cooperado_id: string
+          created_at?: string
+          data_entrada: string
+          data_saida?: string | null
+          endereco: string
+          id?: string
+          numero_uc: string
+          percentual_desconto: number
+          updated_at?: string
+        }
+        Update: {
+          apelido?: string | null
+          cooperado_id?: string
+          created_at?: string
+          data_entrada?: string
+          data_saida?: string | null
+          endereco?: string
+          id?: string
+          numero_uc?: string
+          percentual_desconto?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unidades_beneficiarias_cooperado_id_fkey"
+            columns: ["cooperado_id"]
+            isOneToOne: false
+            referencedRelation: "cooperados"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
