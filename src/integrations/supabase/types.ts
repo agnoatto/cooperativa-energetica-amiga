@@ -137,54 +137,33 @@ export type Database = {
       }
       investidores: {
         Row: {
-          beneficiario_agencia: string | null
-          beneficiario_banco: string | null
-          beneficiario_conta: string | null
-          beneficiario_documento: string | null
-          beneficiario_email: string | null
-          beneficiario_nome: string | null
-          beneficiario_telefone: string | null
           created_at: string
           documento: string
           email: string | null
           id: string
-          nome: string
+          nome_investidor: string
           session_id: string | null
           status: string | null
           telefone: string | null
           updated_at: string
         }
         Insert: {
-          beneficiario_agencia?: string | null
-          beneficiario_banco?: string | null
-          beneficiario_conta?: string | null
-          beneficiario_documento?: string | null
-          beneficiario_email?: string | null
-          beneficiario_nome?: string | null
-          beneficiario_telefone?: string | null
           created_at?: string
           documento: string
           email?: string | null
           id?: string
-          nome: string
+          nome_investidor: string
           session_id?: string | null
           status?: string | null
           telefone?: string | null
           updated_at?: string
         }
         Update: {
-          beneficiario_agencia?: string | null
-          beneficiario_banco?: string | null
-          beneficiario_conta?: string | null
-          beneficiario_documento?: string | null
-          beneficiario_email?: string | null
-          beneficiario_nome?: string | null
-          beneficiario_telefone?: string | null
           created_at?: string
           documento?: string
           email?: string | null
           id?: string
-          nome?: string
+          nome_investidor?: string
           session_id?: string | null
           status?: string | null
           telefone?: string | null
@@ -368,6 +347,13 @@ export type Database = {
       usinas: {
         Row: {
           created_at: string
+          dados_pagamento_agencia: string | null
+          dados_pagamento_banco: string | null
+          dados_pagamento_conta: string | null
+          dados_pagamento_documento: string | null
+          dados_pagamento_email: string | null
+          dados_pagamento_nome: string | null
+          dados_pagamento_telefone: string | null
           id: string
           investidor_id: string
           session_id: string | null
@@ -378,6 +364,13 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          dados_pagamento_agencia?: string | null
+          dados_pagamento_banco?: string | null
+          dados_pagamento_conta?: string | null
+          dados_pagamento_documento?: string | null
+          dados_pagamento_email?: string | null
+          dados_pagamento_nome?: string | null
+          dados_pagamento_telefone?: string | null
           id?: string
           investidor_id: string
           session_id?: string | null
@@ -388,6 +381,13 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          dados_pagamento_agencia?: string | null
+          dados_pagamento_banco?: string | null
+          dados_pagamento_conta?: string | null
+          dados_pagamento_documento?: string | null
+          dados_pagamento_email?: string | null
+          dados_pagamento_nome?: string | null
+          dados_pagamento_telefone?: string | null
           id?: string
           investidor_id?: string
           session_id?: string | null
