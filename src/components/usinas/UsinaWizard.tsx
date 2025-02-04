@@ -41,9 +41,9 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
   const { toast } = useToast();
   
   // Form data state
-  const [investidorData, setInvestidorData] = useState<InvestidorData | undefined>();
-  const [unidadeData, setUnidadeData] = useState<UnidadeData | undefined>();
-  const [usinaData, setUsinaData] = useState<UsinaData | undefined>();
+  const [investidorData, setInvestidorData] = useState<InvestidorData | null>(null);
+  const [unidadeData, setUnidadeData] = useState<UnidadeData | null>(null);
+  const [usinaData, setUsinaData] = useState<UsinaData | null>(null);
 
   const steps = [
     { title: "Investidor", description: "Selecione ou crie um investidor" },
@@ -61,9 +61,9 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
 
   const handleCancel = () => {
     setCurrentStep(0);
-    setInvestidorData(undefined);
-    setUnidadeData(undefined);
-    setUsinaData(undefined);
+    setInvestidorData(null);
+    setUnidadeData(null);
+    setUsinaData(null);
     onOpenChange(false);
   };
 
@@ -155,10 +155,14 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
               <InvestidorWizardForm
                 sessionId={sessionId}
                 onNext={(data) => {
-                  if (data.nome_investidor && data.documento) {
-                    setInvestidorData(data);
-                    handleNext();
-                  }
+                  const investidor: InvestidorData = {
+                    nome_investidor: data.nome_investidor,
+                    documento: data.documento,
+                    telefone: data.telefone,
+                    email: data.email,
+                  };
+                  setInvestidorData(investidor);
+                  handleNext();
                 }}
               />
             )}
@@ -168,10 +172,17 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
                 sessionId={sessionId}
                 investidorId={sessionId}
                 onNext={(data) => {
-                  if (data.numero_uc && data.logradouro && data.numero && data.cidade && data.uf && data.cep) {
-                    setUnidadeData(data);
-                    handleNext();
-                  }
+                  const unidade: UnidadeData = {
+                    numero_uc: data.numero_uc,
+                    logradouro: data.logradouro,
+                    numero: data.numero,
+                    complemento: data.complemento,
+                    cidade: data.cidade,
+                    uf: data.uf,
+                    cep: data.cep,
+                  };
+                  setUnidadeData(unidade);
+                  handleNext();
                 }}
               />
             )}
