@@ -80,9 +80,7 @@ const UnidadesUsina = () => {
             {unidades?.map((unidade) => (
               <TableRow key={unidade.id}>
                 <TableCell>{unidade.numero_uc}</TableCell>
-                <TableCell>{un
-
-idade.endereco}</TableCell>
+                <TableCell>{unidade.endereco}</TableCell>
                 <TableCell>{unidade.titular_tipo}</TableCell>
                 <TableCell>
                   {unidade.titular_tipo === "cooperado"
