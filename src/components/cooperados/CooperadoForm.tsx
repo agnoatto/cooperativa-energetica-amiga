@@ -68,8 +68,12 @@ export function CooperadoForm({ open, onOpenChange, initialData, onSuccess }: Co
 
   async function onSubmit(data: CooperadoFormValues) {
     try {
+      // Gerar um UUID para o novo perfil
+      const profileId = crypto.randomUUID();
+
       // Primeiro, criar ou atualizar o perfil
       const profileData = {
+        id: profileId,
         nome: data.nome,
         documento: data.documento.replace(/\D/g, ''),
         telefone: data.telefone.replace(/\D/g, ''),
@@ -92,7 +96,7 @@ export function CooperadoForm({ open, onOpenChange, initialData, onSuccess }: Co
       const { error: cooperadoError } = await supabase
         .from('cooperados')
         .insert({
-          profile_id: profile.id,
+          profile_id: profileId,
         });
 
       if (cooperadoError) throw cooperadoError;
