@@ -40,10 +40,16 @@ export function UsinaForm({ open, onOpenChange, usinaId, onSuccess }: UsinaFormP
     },
   });
 
-  async function onSubmit(data: UsinaFormValues) {
+  async function onSubmit(values: UsinaFormValues) {
     try {
       setIsLoading(true);
-      console.log('Submitting form with data:', data);
+      console.log('Submitting form with data:', values);
+
+      const data = {
+        investidor_id: values.investidor_id,
+        unidade_usina_id: values.unidade_usina_id,
+        valor_kwh: values.valor_kwh,
+      };
 
       if (usinaId) {
         const { error } = await supabase
