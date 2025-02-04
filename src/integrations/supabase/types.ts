@@ -51,6 +51,141 @@ export type Database = {
         }
         Relationships: []
       }
+      geracao_prevista: {
+        Row: {
+          ano: number
+          created_at: string
+          geracao_prevista: number
+          id: string
+          mes: number
+          updated_at: string
+          usina_id: string
+        }
+        Insert: {
+          ano: number
+          created_at?: string
+          geracao_prevista: number
+          id?: string
+          mes: number
+          updated_at?: string
+          usina_id: string
+        }
+        Update: {
+          ano?: number
+          created_at?: string
+          geracao_prevista?: number
+          id?: string
+          mes?: number
+          updated_at?: string
+          usina_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "geracao_prevista_usina_id_fkey"
+            columns: ["usina_id"]
+            isOneToOne: false
+            referencedRelation: "usinas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      historico_titulares_usina: {
+        Row: {
+          data_alteracao: string
+          id: string
+          titular_id: string
+          titular_tipo: string
+          unidade_usina_id: string
+        }
+        Insert: {
+          data_alteracao?: string
+          id?: string
+          titular_id: string
+          titular_tipo: string
+          unidade_usina_id: string
+        }
+        Update: {
+          data_alteracao?: string
+          id?: string
+          titular_id?: string
+          titular_tipo?: string
+          unidade_usina_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_historico_cooperado"
+            columns: ["titular_id"]
+            isOneToOne: false
+            referencedRelation: "cooperados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_historico_investidor"
+            columns: ["titular_id"]
+            isOneToOne: false
+            referencedRelation: "investidores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_titulares_usina_unidade_usina_id_fkey"
+            columns: ["unidade_usina_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_usina"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investidores: {
+        Row: {
+          beneficiario_agencia: string | null
+          beneficiario_banco: string | null
+          beneficiario_conta: string | null
+          beneficiario_documento: string | null
+          beneficiario_email: string | null
+          beneficiario_nome: string | null
+          beneficiario_telefone: string | null
+          created_at: string
+          documento: string
+          email: string | null
+          id: string
+          nome: string
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          beneficiario_agencia?: string | null
+          beneficiario_banco?: string | null
+          beneficiario_conta?: string | null
+          beneficiario_documento?: string | null
+          beneficiario_email?: string | null
+          beneficiario_nome?: string | null
+          beneficiario_telefone?: string | null
+          created_at?: string
+          documento: string
+          email?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          beneficiario_agencia?: string | null
+          beneficiario_banco?: string | null
+          beneficiario_conta?: string | null
+          beneficiario_documento?: string | null
+          beneficiario_email?: string | null
+          beneficiario_nome?: string | null
+          beneficiario_telefone?: string | null
+          created_at?: string
+          documento?: string
+          email?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -77,6 +212,54 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      rateios: {
+        Row: {
+          created_at: string
+          data_fim: string | null
+          data_inicio: string
+          id: string
+          percentual: number
+          unidade_beneficiaria_id: string
+          updated_at: string
+          usina_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_fim?: string | null
+          data_inicio: string
+          id?: string
+          percentual: number
+          unidade_beneficiaria_id: string
+          updated_at?: string
+          usina_id: string
+        }
+        Update: {
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          id?: string
+          percentual?: number
+          unidade_beneficiaria_id?: string
+          updated_at?: string
+          usina_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rateios_unidade_beneficiaria_id_fkey"
+            columns: ["unidade_beneficiaria_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_beneficiarias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rateios_usina_id_fkey"
+            columns: ["usina_id"]
+            isOneToOne: false
+            referencedRelation: "usinas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       unidades_beneficiarias: {
         Row: {
@@ -121,6 +304,93 @@ export type Database = {
             columns: ["cooperado_id"]
             isOneToOne: false
             referencedRelation: "cooperados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      unidades_usina: {
+        Row: {
+          created_at: string
+          endereco: string
+          id: string
+          numero_uc: string
+          titular_id: string
+          titular_tipo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          endereco: string
+          id?: string
+          numero_uc: string
+          titular_id: string
+          titular_tipo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          endereco?: string
+          id?: string
+          numero_uc?: string
+          titular_id?: string
+          titular_tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_titular_cooperado"
+            columns: ["titular_id"]
+            isOneToOne: false
+            referencedRelation: "cooperados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_titular_investidor"
+            columns: ["titular_id"]
+            isOneToOne: false
+            referencedRelation: "investidores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usinas: {
+        Row: {
+          created_at: string
+          id: string
+          investidor_id: string
+          unidade_usina_id: string
+          updated_at: string
+          valor_kwh: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          investidor_id: string
+          unidade_usina_id: string
+          updated_at?: string
+          valor_kwh: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          investidor_id?: string
+          unidade_usina_id?: string
+          updated_at?: string
+          valor_kwh?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usinas_investidor_id_fkey"
+            columns: ["investidor_id"]
+            isOneToOne: false
+            referencedRelation: "investidores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usinas_unidade_usina_id_fkey"
+            columns: ["unidade_usina_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_usina"
             referencedColumns: ["id"]
           },
         ]
