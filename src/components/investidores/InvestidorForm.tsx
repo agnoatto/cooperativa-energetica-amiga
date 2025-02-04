@@ -85,8 +85,8 @@ export function InvestidorForm({ open, onOpenChange, investidorId, onSuccess }: 
     try {
       const submitData = {
         nome_investidor: data.nome_investidor,
-        documento: data.documento.replace(/\D/g, ''), // Remove non-digits
-        telefone: data.telefone ? data.telefone.replace(/\D/g, '') : null, // Remove non-digits
+        documento: data.documento.replace(/\D/g, ''),
+        telefone: data.telefone ? data.telefone.replace(/\D/g, '') : null,
         email: data.email || null,
         updated_at: new Date().toISOString(),
       };
@@ -157,15 +157,13 @@ export function InvestidorForm({ open, onOpenChange, investidorId, onSuccess }: 
                 <FormItem>
                   <FormLabel>CPF/CNPJ</FormLabel>
                   <FormControl>
-                    <Input
-                      as={InputMask}
-                      mask={field.value.length <= 14 ? "999.999.999-99" : "99.999.999/9999-99"}
-                      {...field}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value);
-                      }}
-                    />
+                    <div className="relative">
+                      <InputMask
+                        {...field}
+                        mask={field.value.length <= 14 ? "999.999.999-99" : "99.999.999/9999-99"}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -179,11 +177,13 @@ export function InvestidorForm({ open, onOpenChange, investidorId, onSuccess }: 
                 <FormItem>
                   <FormLabel>Telefone</FormLabel>
                   <FormControl>
-                    <Input
-                      as={InputMask}
-                      mask="(99) 99999-9999"
-                      {...field}
-                    />
+                    <div className="relative">
+                      <InputMask
+                        {...field}
+                        mask="(99) 99999-9999"
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

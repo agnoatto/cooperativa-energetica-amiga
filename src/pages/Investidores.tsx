@@ -75,7 +75,7 @@ const Investidores = () => {
           <TableBody>
             {investidores?.map((investidor) => (
               <TableRow key={investidor.id}>
-                <TableCell>{investidor.nome}</TableCell>
+                <TableCell>{investidor.nome_investidor}</TableCell>
                 <TableCell>{investidor.documento}</TableCell>
                 <TableCell>{investidor.telefone}</TableCell>
                 <TableCell>{investidor.email}</TableCell>

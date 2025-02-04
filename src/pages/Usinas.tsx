@@ -23,7 +23,7 @@ const Usinas = () => {
         .from('usinas')
         .select(`
           *,
-          investidor:investidores(nome),
+          investidor:investidores(nome_investidor),
           unidade:unidades_usina(numero_uc)
         `);
 
@@ -68,7 +68,7 @@ const Usinas = () => {
           <TableBody>
             {usinas?.map((usina) => (
               <TableRow key={usina.id}>
-                <TableCell>{usina.investidor?.nome}</TableCell>
+                <TableCell>{usina.investidor?.nome_investidor}</TableCell>
                 <TableCell>{usina.unidade?.numero_uc}</TableCell>
                 <TableCell>R$ {usina.valor_kwh}</TableCell>
                 <TableCell className="text-right space-x-2">
