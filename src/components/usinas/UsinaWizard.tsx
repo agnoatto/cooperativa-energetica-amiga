@@ -43,6 +43,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
   const [investidorData, setInvestidorData] = useState<InvestidorData | null>(null);
   const [unidadeData, setUnidadeData] = useState<UnidadeData | null>(null);
   const [usinaData, setUsinaData] = useState<UsinaData | null>(null);
+  const [createdInvestidorId, setCreatedInvestidorId] = useState<string | null>(null);
 
   const steps = [
     { title: "Investidor", description: "Selecione ou crie um investidor" },
@@ -63,11 +64,12 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
     setInvestidorData(null);
     setUnidadeData(null);
     setUsinaData(null);
+    setCreatedInvestidorId(null);
     onOpenChange(false);
   };
 
   const handleComplete = async (usinaFormData: UsinaData) => {
-    if (!investidorData || !unidadeData) {
+    if (!investidorData || !unidadeData || !createdInvestidorId) {
       toast({
         title: "Erro",
         description: "Dados incompletos. Por favor, preencha todos os passos.",
@@ -77,24 +79,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
     }
 
     try {
-      // Create investidor with active status
-      const { data: investidor, error: investidorError } = await supabase
-        .from("investidores")
-        .insert({
-          nome_investidor: investidorData.nome_investidor,
-          documento: investidorData.documento.replace(/\D/g, ''),
-          telefone: investidorData.telefone ? investidorData.telefone.replace(/\D/g, '') : null,
-          email: investidorData.email || null,
-          status: 'active',
-          session_id: sessionId,
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (investidorError) throw investidorError;
-
-      // Create unidade with active status
+      // Create unidade with active status using the created investidor id
       const { data: unidade, error: unidadeError } = await supabase
         .from("unidades_usina")
         .insert({
@@ -105,7 +90,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
           cidade: unidadeData.cidade,
           uf: unidadeData.uf,
           cep: unidadeData.cep,
-          titular_id: investidor.id,
+          titular_id: createdInvestidorId, // Use the created investidor id instead of session_id
           status: 'active',
           session_id: sessionId,
           updated_at: new Date().toISOString(),
@@ -119,7 +104,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
       const { error: usinaError } = await supabase
         .from("usinas")
         .insert({
-          investidor_id: investidor.id,
+          investidor_id: createdInvestidorId,
           unidade_usina_id: unidade.id,
           valor_kwh: usinaFormData.valor_kwh,
           status: 'active',
@@ -145,6 +130,37 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
     }
   };
 
+  const handleInvestidorSubmit = async (data: InvestidorData) => {
+    try {
+      const { data: investidor, error: investidorError } = await supabase
+        .from("investidores")
+        .insert({
+          nome_investidor: data.nome_investidor,
+          documento: data.documento.replace(/\D/g, ''),
+          telefone: data.telefone ? data.telefone.replace(/\D/g, '') : null,
+          email: data.email || null,
+          status: 'active',
+          session_id: sessionId,
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (investidorError) throw investidorError;
+      
+      setCreatedInvestidorId(investidor.id);
+      setInvestidorData(data);
+      handleNext();
+    } catch (error: any) {
+      console.error("Error creating investidor:", error);
+      toast({
+        title: "Erro ao criar investidor",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleCancel}>
       <DialogContent className="sm:max-w-[600px]">
@@ -156,32 +172,16 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
             {currentStep === 0 && (
               <InvestidorWizardForm
                 sessionId={sessionId}
-                onNext={(data) => {
-                  setInvestidorData({
-                    nome_investidor: data.nome_investidor,
-                    documento: data.documento,
-                    telefone: data.telefone,
-                    email: data.email,
-                  });
-                  handleNext();
-                }}
+                onNext={handleInvestidorSubmit}
               />
             )}
 
             {currentStep === 1 && investidorData && (
               <UnidadeWizardForm
                 sessionId={sessionId}
-                investidorId={sessionId}
+                investidorId={createdInvestidorId!}
                 onNext={(data) => {
-                  setUnidadeData({
-                    numero_uc: data.numero_uc,
-                    logradouro: data.logradouro,
-                    numero: data.numero,
-                    complemento: data.complemento,
-                    cidade: data.cidade,
-                    uf: data.uf,
-                    cep: data.cep,
-                  });
+                  setUnidadeData(data);
                   handleNext();
                 }}
               />
@@ -190,7 +190,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
             {currentStep === 2 && investidorData && unidadeData && (
               <UsinaWizardForm
                 sessionId={sessionId}
-                investidorId={sessionId}
+                investidorId={createdInvestidorId!}
                 unidadeId={sessionId}
                 onComplete={handleComplete}
               />
