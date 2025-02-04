@@ -295,36 +295,48 @@ export type Database = {
       }
       unidades_usina: {
         Row: {
+          cep: string | null
+          cidade: string | null
+          complemento: string | null
           created_at: string
-          endereco: string
           id: string
+          logradouro: string | null
+          numero: string | null
           numero_uc: string
           session_id: string | null
           status: string | null
           titular_id: string
-          titular_tipo: string
+          uf: string | null
           updated_at: string
         }
         Insert: {
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
           created_at?: string
-          endereco: string
           id?: string
+          logradouro?: string | null
+          numero?: string | null
           numero_uc: string
           session_id?: string | null
           status?: string | null
           titular_id: string
-          titular_tipo: string
+          uf?: string | null
           updated_at?: string
         }
         Update: {
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
           created_at?: string
-          endereco?: string
           id?: string
+          logradouro?: string | null
+          numero?: string | null
           numero_uc?: string
           session_id?: string | null
           status?: string | null
           titular_id?: string
-          titular_tipo?: string
+          uf?: string | null
           updated_at?: string
         }
         Relationships: [

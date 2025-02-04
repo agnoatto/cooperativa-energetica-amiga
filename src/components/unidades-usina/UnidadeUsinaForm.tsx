@@ -31,11 +31,13 @@ import { useToast } from "../ui/use-toast";
 
 const unidadeUsinaFormSchema = z.object({
   numero_uc: z.string().min(1, "Número UC é obrigatório"),
-  endereco: z.string().min(1, "Endereço é obrigatório"),
+  logradouro: z.string().min(1, "Logradouro é obrigatório"),
+  numero: z.string().min(1, "Número é obrigatório"),
+  complemento: z.string().optional(),
+  cidade: z.string().min(1, "Cidade é obrigatória"),
+  uf: z.string().min(2, "UF é obrigatória").max(2, "UF deve ter 2 caracteres"),
+  cep: z.string().min(8, "CEP é obrigatório").max(9, "CEP inválido"),
   titular_id: z.string().min(1, "Titular é obrigatório"),
-  titular_tipo: z.enum(["cooperado", "investidor"] as const, {
-    required_error: "Tipo de titular é obrigatório",
-  }),
 });
 
 type UnidadeUsinaFormData = z.infer<typeof unidadeUsinaFormSchema>;
@@ -58,9 +60,13 @@ export function UnidadeUsinaForm({
     resolver: zodResolver(unidadeUsinaFormSchema),
     defaultValues: {
       numero_uc: "",
-      endereco: "",
+      logradouro: "",
+      numero: "",
+      complemento: "",
+      cidade: "",
+      uf: "",
+      cep: "",
       titular_id: "",
-      titular_tipo: "cooperado",
     },
   });
 
@@ -70,17 +76,6 @@ export function UnidadeUsinaForm({
       const { data, error } = await supabase
         .from("cooperados")
         .select("id, nome");
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: investidores } = useQuery({
-    queryKey: ["investidores"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("investidores")
-        .select("id, nome_investidor");
       if (error) throw error;
       return data;
     },
@@ -99,22 +94,28 @@ export function UnidadeUsinaForm({
             return;
           }
           if (data) {
-            // Garantir que titular_tipo seja do tipo correto
-            const formData: UnidadeUsinaFormData = {
+            form.reset({
               numero_uc: data.numero_uc,
-              endereco: data.endereco,
+              logradouro: data.logradouro || "",
+              numero: data.numero || "",
+              complemento: data.complemento || "",
+              cidade: data.cidade || "",
+              uf: data.uf || "",
+              cep: data.cep || "",
               titular_id: data.titular_id,
-              titular_tipo: data.titular_tipo as "cooperado" | "investidor",
-            };
-            form.reset(formData);
+            });
           }
         });
     } else {
       form.reset({
         numero_uc: "",
-        endereco: "",
+        logradouro: "",
+        numero: "",
+        complemento: "",
+        cidade: "",
+        uf: "",
+        cep: "",
         titular_id: "",
-        titular_tipo: "cooperado",
       });
     }
   }, [unidadeId, form]);
@@ -123,9 +124,13 @@ export function UnidadeUsinaForm({
     try {
       const submitData = {
         numero_uc: data.numero_uc,
-        endereco: data.endereco,
+        logradouro: data.logradouro,
+        numero: data.numero,
+        complemento: data.complemento,
+        cidade: data.cidade,
+        uf: data.uf.toUpperCase(),
+        cep: data.cep,
         titular_id: data.titular_id,
-        titular_tipo: data.titular_tipo,
         updated_at: new Date().toISOString(),
       };
 
@@ -163,8 +168,6 @@ export function UnidadeUsinaForm({
     }
   };
 
-  const titularTipo = form.watch("titular_tipo");
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -192,10 +195,10 @@ export function UnidadeUsinaForm({
 
             <FormField
               control={form.control}
-              name="endereco"
+              name="logradouro"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Endereço</FormLabel>
+                  <FormLabel>Logradouro</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -204,26 +207,75 @@ export function UnidadeUsinaForm({
               )}
             />
 
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="numero"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Número</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="complemento"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Complemento</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="cidade"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cidade</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="uf"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>UF</FormLabel>
+                    <FormControl>
+                      <Input {...field} maxLength={2} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <FormField
               control={form.control}
-              name="titular_tipo"
+              name="cep"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tipo de Titular</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o tipo de titular" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="cooperado">Cooperado</SelectItem>
-                      <SelectItem value="investidor">Investidor</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>CEP</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -245,17 +297,11 @@ export function UnidadeUsinaForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {titularTipo === "cooperado"
-                        ? cooperados?.map((cooperado) => (
-                            <SelectItem key={cooperado.id} value={cooperado.id}>
-                              {cooperado.nome}
-                            </SelectItem>
-                          ))
-                        : investidores?.map((investidor) => (
-                            <SelectItem key={investidor.id} value={investidor.id}>
-                              {investidor.nome_investidor}
-                            </SelectItem>
-                          ))}
+                      {cooperados?.map((cooperado) => (
+                        <SelectItem key={cooperado.id} value={cooperado.id}>
+                          {cooperado.nome}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
