@@ -41,9 +41,8 @@ export function CooperadoForm({ open, onOpenChange, initialData, onSuccess }: Co
 
   async function onSubmit(data: CooperadoFormValues) {
     try {
-      // Primeiro criar o perfil
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
+      const { error } = await supabase
+        .from('cooperados')
         .insert({
           nome: data.nome,
           documento: data.documento.replace(/\D/g, ''),
@@ -53,20 +52,9 @@ export function CooperadoForm({ open, onOpenChange, initialData, onSuccess }: Co
           responsavel_nome: data.responsavel_nome,
           responsavel_cpf: data.responsavel_cpf?.replace(/\D/g, ''),
           responsavel_telefone: data.responsavel_telefone?.replace(/\D/g, ''),
-        })
-        .select()
-        .single();
-
-      if (profileError) throw profileError;
-
-      // Depois criar o cooperado associado ao perfil
-      const { error: cooperadoError } = await supabase
-        .from('cooperados')
-        .insert({
-          profile_id: profileData.id,
         });
 
-      if (cooperadoError) throw cooperadoError;
+      if (error) throw error;
 
       toast.success("Cooperado cadastrado com sucesso!");
       onSuccess?.();

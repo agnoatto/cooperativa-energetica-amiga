@@ -49,7 +49,6 @@ export type Database = {
           tipo_pessoa?: string | null
           updated_at?: string
         }
-        Relationships: []
       }
       profiles: {
         Row: {
@@ -162,10 +161,10 @@ export type Tables<
         PublicSchema["Views"])
     ? (PublicSchema["Tables"] &
         PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
+      Row: infer R
+    }
+    ? R
+    : never
     : never
 
 export type TablesInsert<

@@ -27,19 +27,7 @@ const Cooperados = () => {
       // Buscar cooperados
       const { data: cooperadosData, error: cooperadosError } = await supabase
         .from('cooperados')
-        .select(`
-          id,
-          profile: profiles (
-            nome,
-            documento,
-            telefone,
-            email,
-            tipo_pessoa,
-            responsavel_nome,
-            responsavel_cpf,
-            responsavel_telefone
-          )
-        `);
+        .select('*');
 
       if (cooperadosError) throw cooperadosError;
       setCooperados(cooperadosData);
@@ -62,14 +50,14 @@ const Cooperados = () => {
 
   const handleEdit = (cooperado: any) => {
     setSelectedCooperado({
-      nome: cooperado.profile.nome,
-      documento: cooperado.profile.documento,
-      telefone: cooperado.profile.telefone,
-      email: cooperado.profile.email,
-      tipo_pessoa: cooperado.profile.tipo_pessoa,
-      responsavel_nome: cooperado.profile.responsavel_nome,
-      responsavel_cpf: cooperado.profile.responsavel_cpf,
-      responsavel_telefone: cooperado.profile.responsavel_telefone,
+      nome: cooperado.nome,
+      documento: cooperado.documento,
+      telefone: cooperado.telefone,
+      email: cooperado.email,
+      tipo_pessoa: cooperado.tipo_pessoa,
+      responsavel_nome: cooperado.responsavel_nome,
+      responsavel_cpf: cooperado.responsavel_cpf,
+      responsavel_telefone: cooperado.responsavel_telefone,
     });
     setShowCooperadoForm(true);
   };
@@ -154,14 +142,14 @@ const Cooperados = () => {
           <TableBody>
             {cooperados.map((cooperado) => (
               <TableRow key={cooperado.id}>
-                <TableCell>{cooperado.profile.nome}</TableCell>
-                <TableCell>{formatarDocumento(cooperado.profile.documento)}</TableCell>
+                <TableCell>{cooperado.nome}</TableCell>
+                <TableCell>{cooperado.documento ? formatarDocumento(cooperado.documento) : '-'}</TableCell>
                 <TableCell>
-                  {cooperado.profile.tipo_pessoa === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física'}
+                  {cooperado.tipo_pessoa === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física'}
                 </TableCell>
                 <TableCell>
-                  {cooperado.profile.telefone}<br/>
-                  {cooperado.profile.email}
+                  {cooperado.telefone}<br/>
+                  {cooperado.email}
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center space-x-2">
