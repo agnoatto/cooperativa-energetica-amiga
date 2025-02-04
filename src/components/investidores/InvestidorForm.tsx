@@ -1,3 +1,4 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -75,7 +76,19 @@ export function InvestidorForm({ open, onOpenChange, investidorId, onSuccess }: 
             return;
           }
           if (data) {
-            form.reset(data);
+            form.reset({
+              nome: data.nome,
+              documento: data.documento,
+              telefone: data.telefone || "",
+              email: data.email || "",
+              beneficiario_nome: data.beneficiario_nome || "",
+              beneficiario_documento: data.beneficiario_documento || "",
+              beneficiario_banco: data.beneficiario_banco || "",
+              beneficiario_agencia: data.beneficiario_agencia || "",
+              beneficiario_conta: data.beneficiario_conta || "",
+              beneficiario_telefone: data.beneficiario_telefone || "",
+              beneficiario_email: data.beneficiario_email || "",
+            });
           }
         });
     } else {
@@ -97,17 +110,27 @@ export function InvestidorForm({ open, onOpenChange, investidorId, onSuccess }: 
 
   const onSubmit = async (data: InvestidorFormData) => {
     try {
+      const submitData = {
+        ...data,
+        updated_at: new Date().toISOString(),
+      };
+
       if (investidorId) {
         const { error } = await supabase
           .from("investidores")
-          .update(data)
+          .update(submitData)
           .eq("id", investidorId);
         if (error) throw error;
         toast({
           title: "Investidor atualizado com sucesso!",
         });
       } else {
-        const { error } = await supabase.from("investidores").insert(data);
+        const { error } = await supabase
+          .from("investidores")
+          .insert({
+            ...submitData,
+            created_at: new Date().toISOString(),
+          });
         if (error) throw error;
         toast({
           title: "Investidor criado com sucesso!",

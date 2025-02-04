@@ -112,17 +112,27 @@ export function UsinaForm({
 
   const onSubmit = async (data: UsinaFormData) => {
     try {
+      const submitData = {
+        ...data,
+        updated_at: new Date().toISOString(),
+      };
+
       if (usinaId) {
         const { error } = await supabase
           .from("usinas")
-          .update(data)
+          .update(submitData)
           .eq("id", usinaId);
         if (error) throw error;
         toast({
           title: "Usina atualizada com sucesso!",
         });
       } else {
-        const { error } = await supabase.from("usinas").insert(data);
+        const { error } = await supabase
+          .from("usinas")
+          .insert({
+            ...submitData,
+            created_at: new Date().toISOString(),
+          });
         if (error) throw error;
         toast({
           title: "Usina criada com sucesso!",

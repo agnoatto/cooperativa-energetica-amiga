@@ -1,3 +1,4 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -113,17 +114,27 @@ export function UnidadeUsinaForm({
 
   const onSubmit = async (data: UnidadeUsinaFormData) => {
     try {
+      const submitData = {
+        ...data,
+        updated_at: new Date().toISOString(),
+      };
+
       if (unidadeId) {
         const { error } = await supabase
           .from("unidades_usina")
-          .update(data)
+          .update(submitData)
           .eq("id", unidadeId);
         if (error) throw error;
         toast({
           title: "Unidade atualizada com sucesso!",
         });
       } else {
-        const { error } = await supabase.from("unidades_usina").insert(data);
+        const { error } = await supabase
+          .from("unidades_usina")
+          .insert({
+            ...submitData,
+            created_at: new Date().toISOString(),
+          });
         if (error) throw error;
         toast({
           title: "Unidade criada com sucesso!",
