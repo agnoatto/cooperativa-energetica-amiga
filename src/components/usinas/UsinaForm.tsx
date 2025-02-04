@@ -1,40 +1,59 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
-import { z } from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { useToast } from "../ui/use-toast";
 
 const usinaFormSchema = z.object({
-  investidor_id: z.string().uuid(),
-  unidade_usina_id: z.string().uuid(),
-  valor_kwh: z.coerce.number().positive(),
+  investidor_id: z.string().min(1, "Investidor é obrigatório"),
+  unidade_usina_id: z.string().min(1, "Unidade é obrigatória"),
+  valor_kwh: z.coerce
+    .number()
+    .min(0, "Valor deve ser maior que zero")
+    .nonnegative("Valor não pode ser negativo"),
 });
 
-type UsinaFormValues = z.infer<typeof usinaFormSchema>;
+type UsinaFormData = z.infer<typeof usinaFormSchema>;
 
 interface UsinaFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   usinaId?: string;
-  onSuccess?: () => void;
+  onSuccess: () => void;
 }
 
-export function UsinaForm({ open, onOpenChange, usinaId, onSuccess }: UsinaFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
-
-  const form = useForm<UsinaFormValues>({
+export function UsinaForm({
+  open,
+  onOpenChange,
+  usinaId,
+  onSuccess,
+}: UsinaFormProps) {
+  const { toast } = useToast();
+  const form = useForm<UsinaFormData>({
     resolver: zodResolver(usinaFormSchema),
     defaultValues: {
       investidor_id: "",
@@ -44,101 +63,87 @@ export function UsinaForm({ open, onOpenChange, usinaId, onSuccess }: UsinaFormP
   });
 
   const { data: investidores } = useQuery({
-    queryKey: ['investidores'],
+    queryKey: ["investidores"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('investidores')
-        .select('id, nome');
-      
+        .from("investidores")
+        .select("id, nome");
       if (error) throw error;
       return data;
     },
   });
 
-  const { data: unidadesUsina } = useQuery({
-    queryKey: ['unidades_usina'],
+  const { data: unidades } = useQuery({
+    queryKey: ["unidades_usina"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('unidades_usina')
-        .select('id, numero_uc');
-      
+        .from("unidades_usina")
+        .select("id, numero_uc");
       if (error) throw error;
       return data;
     },
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (usinaId) {
-      const fetchUsina = async () => {
-        const { data, error } = await supabase
-          .from('usinas')
-          .select('*')
-          .eq('id', usinaId)
-          .single();
-
-        if (error) {
-          toast.error("Erro ao carregar usina");
-          return;
-        }
-
-        if (data) {
-          form.reset({
-            investidor_id: data.investidor_id,
-            unidade_usina_id: data.unidade_usina_id,
-            valor_kwh: data.valor_kwh,
-          });
-        }
-      };
-
-      fetchUsina();
+      supabase
+        .from("usinas")
+        .select("*")
+        .eq("id", usinaId)
+        .single()
+        .then(({ data, error }) => {
+          if (error) {
+            console.error("Error fetching usina:", error);
+            return;
+          }
+          if (data) {
+            form.reset(data);
+          }
+        });
+    } else {
+      form.reset({
+        investidor_id: "",
+        unidade_usina_id: "",
+        valor_kwh: 0,
+      });
     }
   }, [usinaId, form]);
 
-  async function onSubmit(values: UsinaFormValues) {
+  const onSubmit = async (data: UsinaFormData) => {
     try {
-      setIsLoading(true);
-      console.log('Submitting form with data:', values);
-
-      const data = {
-        investidor_id: values.investidor_id,
-        unidade_usina_id: values.unidade_usina_id,
-        valor_kwh: values.valor_kwh,
-      };
-
       if (usinaId) {
         const { error } = await supabase
-          .from('usinas')
+          .from("usinas")
           .update(data)
-          .eq('id', usinaId);
-
+          .eq("id", usinaId);
         if (error) throw error;
-        toast.success("Usina atualizada com sucesso!");
+        toast({
+          title: "Usina atualizada com sucesso!",
+        });
       } else {
-        const { error } = await supabase
-          .from('usinas')
-          .insert(data);
-
+        const { error } = await supabase.from("usinas").insert(data);
         if (error) throw error;
-        toast.success("Usina cadastrada com sucesso!");
+        toast({
+          title: "Usina criada com sucesso!",
+        });
       }
-
-      onSuccess?.();
+      onSuccess();
       onOpenChange(false);
     } catch (error: any) {
-      console.error('Error saving usina:', error);
-      toast.error(`Erro ao ${usinaId ? 'atualizar' : 'cadastrar'} usina: ` + error.message);
-    } finally {
-      setIsLoading(false);
+      console.error("Error saving usina:", error);
+      toast({
+        title: "Erro ao salvar usina",
+        description: error.message,
+        variant: "destructive",
+      });
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {usinaId ? "Editar Usina" : "Nova Usina"}
-          </DialogTitle>
+          <DialogTitle>{usinaId ? "Editar" : "Nova"} Usina</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -149,13 +154,13 @@ export function UsinaForm({ open, onOpenChange, usinaId, onSuccess }: UsinaFormP
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Investidor</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
+                  <Select
+                    onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione um investidor" />
+                        <SelectValue placeholder="Selecione o investidor" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -176,18 +181,18 @@ export function UsinaForm({ open, onOpenChange, usinaId, onSuccess }: UsinaFormP
               name="unidade_usina_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Unidade da Usina</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
+                  <FormLabel>Unidade</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma unidade" />
+                        <SelectValue placeholder="Selecione a unidade" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {unidadesUsina?.map((unidade) => (
+                      {unidades?.map((unidade) => (
                         <SelectItem key={unidade.id} value={unidade.id}>
                           {unidade.numero_uc}
                         </SelectItem>
@@ -206,26 +211,14 @@ export function UsinaForm({ open, onOpenChange, usinaId, onSuccess }: UsinaFormP
                 <FormItem>
                   <FormLabel>Valor do kWh</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
-                      step="0.01"
-                      placeholder="0.00" 
-                      {...field}
-                    />
+                    <Input {...field} type="number" step="0.01" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className="flex justify-end gap-2">
-              <Button 
-                type="submit" 
-                disabled={isLoading}
-              >
-                {isLoading ? "Salvando..." : "Salvar"}
-              </Button>
-            </div>
+            <Button type="submit">Salvar</Button>
           </form>
         </Form>
       </DialogContent>
