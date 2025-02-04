@@ -149,6 +149,8 @@ export type Database = {
           email: string | null
           id: string
           nome: string
+          session_id: string | null
+          status: string | null
           telefone: string | null
           updated_at: string
         }
@@ -165,6 +167,8 @@ export type Database = {
           email?: string | null
           id?: string
           nome: string
+          session_id?: string | null
+          status?: string | null
           telefone?: string | null
           updated_at?: string
         }
@@ -181,6 +185,8 @@ export type Database = {
           email?: string | null
           id?: string
           nome?: string
+          session_id?: string | null
+          status?: string | null
           telefone?: string | null
           updated_at?: string
         }
@@ -314,6 +320,8 @@ export type Database = {
           endereco: string
           id: string
           numero_uc: string
+          session_id: string | null
+          status: string | null
           titular_id: string
           titular_tipo: string
           updated_at: string
@@ -323,6 +331,8 @@ export type Database = {
           endereco: string
           id?: string
           numero_uc: string
+          session_id?: string | null
+          status?: string | null
           titular_id: string
           titular_tipo: string
           updated_at?: string
@@ -332,6 +342,8 @@ export type Database = {
           endereco?: string
           id?: string
           numero_uc?: string
+          session_id?: string | null
+          status?: string | null
           titular_id?: string
           titular_tipo?: string
           updated_at?: string
@@ -358,6 +370,8 @@ export type Database = {
           created_at: string
           id: string
           investidor_id: string
+          session_id: string | null
+          status: string | null
           unidade_usina_id: string
           updated_at: string
           valor_kwh: number
@@ -366,6 +380,8 @@ export type Database = {
           created_at?: string
           id?: string
           investidor_id: string
+          session_id?: string | null
+          status?: string | null
           unidade_usina_id: string
           updated_at?: string
           valor_kwh: number
@@ -374,6 +390,8 @@ export type Database = {
           created_at?: string
           id?: string
           investidor_id?: string
+          session_id?: string | null
+          status?: string | null
           unidade_usina_id?: string
           updated_at?: string
           valor_kwh?: number
