@@ -113,7 +113,9 @@ export function UsinaForm({
   const onSubmit = async (data: UsinaFormData) => {
     try {
       const submitData = {
-        ...data,
+        investidor_id: data.investidor_id,
+        unidade_usina_id: data.unidade_usina_id,
+        valor_kwh: data.valor_kwh,
         updated_at: new Date().toISOString(),
       };
 
@@ -131,7 +133,8 @@ export function UsinaForm({
           .from("usinas")
           .insert({
             ...submitData,
-            created_at: new Date().toISOString(),
+            status: 'draft',
+            session_id: crypto.randomUUID(),
           });
         if (error) throw error;
         toast({

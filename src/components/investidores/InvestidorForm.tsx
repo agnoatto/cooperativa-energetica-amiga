@@ -111,7 +111,17 @@ export function InvestidorForm({ open, onOpenChange, investidorId, onSuccess }: 
   const onSubmit = async (data: InvestidorFormData) => {
     try {
       const submitData = {
-        ...data,
+        nome: data.nome,
+        documento: data.documento,
+        telefone: data.telefone || null,
+        email: data.email || null,
+        beneficiario_nome: data.beneficiario_nome || null,
+        beneficiario_documento: data.beneficiario_documento || null,
+        beneficiario_banco: data.beneficiario_banco || null,
+        beneficiario_agencia: data.beneficiario_agencia || null,
+        beneficiario_conta: data.beneficiario_conta || null,
+        beneficiario_telefone: data.beneficiario_telefone || null,
+        beneficiario_email: data.beneficiario_email || null,
         updated_at: new Date().toISOString(),
       };
 
@@ -129,7 +139,8 @@ export function InvestidorForm({ open, onOpenChange, investidorId, onSuccess }: 
           .from("investidores")
           .insert({
             ...submitData,
-            created_at: new Date().toISOString(),
+            status: 'draft',
+            session_id: crypto.randomUUID(),
           });
         if (error) throw error;
         toast({

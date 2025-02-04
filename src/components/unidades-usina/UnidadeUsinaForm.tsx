@@ -33,7 +33,7 @@ const unidadeUsinaFormSchema = z.object({
   numero_uc: z.string().min(1, "Número UC é obrigatório"),
   endereco: z.string().min(1, "Endereço é obrigatório"),
   titular_id: z.string().min(1, "Titular é obrigatório"),
-  titular_tipo: z.enum(["cooperado", "investidor"], {
+  titular_tipo: z.enum(["cooperado", "investidor"] as const, {
     required_error: "Tipo de titular é obrigatório",
   }),
 });
@@ -115,7 +115,10 @@ export function UnidadeUsinaForm({
   const onSubmit = async (data: UnidadeUsinaFormData) => {
     try {
       const submitData = {
-        ...data,
+        numero_uc: data.numero_uc,
+        endereco: data.endereco,
+        titular_id: data.titular_id,
+        titular_tipo: data.titular_tipo,
         updated_at: new Date().toISOString(),
       };
 
@@ -133,7 +136,8 @@ export function UnidadeUsinaForm({
           .from("unidades_usina")
           .insert({
             ...submitData,
-            created_at: new Date().toISOString(),
+            status: 'draft',
+            session_id: crypto.randomUUID(),
           });
         if (error) throw error;
         toast({
