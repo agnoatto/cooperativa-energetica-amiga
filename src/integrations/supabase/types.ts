@@ -12,35 +12,6 @@ export type Database = {
       cooperados: {
         Row: {
           created_at: string
-          id: string
-          profile_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          profile_id: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          profile_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cooperados_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      profiles: {
-        Row: {
-          created_at: string
           documento: string | null
           email: string | null
           id: string
@@ -76,6 +47,33 @@ export type Database = {
           responsavel_telefone?: string | null
           telefone?: string | null
           tipo_pessoa?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          nome: string | null
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome?: string | null
+          telefone?: string | null
           updated_at?: string
         }
         Relationships: []
