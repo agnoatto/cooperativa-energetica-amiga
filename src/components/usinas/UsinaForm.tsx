@@ -68,7 +68,8 @@ export function UsinaForm({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("investidores")
-        .select("id, nome_investidor");
+        .select("id, nome_investidor")
+        .eq("status", "active");
       if (error) throw error;
       return data;
     },
@@ -79,7 +80,17 @@ export function UsinaForm({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("unidades_usina")
-        .select("id, numero_uc");
+        .select(`
+          id,
+          numero_uc,
+          logradouro,
+          numero,
+          complemento,
+          cidade,
+          uf,
+          cep
+        `)
+        .eq("status", "active");
       if (error) throw error;
       return data;
     },
@@ -129,13 +140,11 @@ export function UsinaForm({
           title: "Usina atualizada com sucesso!",
         });
       } else {
-        const { error } = await supabase
-          .from("usinas")
-          .insert({
-            ...submitData,
-            status: 'draft',
-            session_id: crypto.randomUUID(),
-          });
+        const { error } = await supabase.from("usinas").insert({
+          ...submitData,
+          status: "draft",
+          session_id: crypto.randomUUID(),
+        });
         if (error) throw error;
         toast({
           title: "Usina criada com sucesso!",
@@ -151,6 +160,18 @@ export function UsinaForm({
         variant: "destructive",
       });
     }
+  };
+
+  const formatAddress = (unidade: any) => {
+    const parts = [
+      unidade.logradouro,
+      unidade.numero,
+      unidade.complemento,
+      unidade.cidade,
+      unidade.uf,
+      unidade.cep,
+    ].filter(Boolean);
+    return `${unidade.numero_uc} - ${parts.join(", ")}`;
   };
 
   return (
@@ -208,7 +229,7 @@ export function UsinaForm({
                     <SelectContent>
                       {unidades?.map((unidade) => (
                         <SelectItem key={unidade.id} value={unidade.id}>
-                          {unidade.numero_uc}
+                          {formatAddress(unidade)}
                         </SelectItem>
                       ))}
                     </SelectContent>
