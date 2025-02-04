@@ -149,7 +149,16 @@ export function UsinaForm({
         const { error } = await supabase
           .from("usinas")
           .update({
-            ...data,
+            investidor_id: data.investidor_id,
+            unidade_usina_id: data.unidade_usina_id,
+            valor_kwh: data.valor_kwh,
+            dados_pagamento_nome: data.dados_pagamento_nome,
+            dados_pagamento_documento: data.dados_pagamento_documento,
+            dados_pagamento_banco: data.dados_pagamento_banco,
+            dados_pagamento_agencia: data.dados_pagamento_agencia,
+            dados_pagamento_conta: data.dados_pagamento_conta,
+            dados_pagamento_telefone: data.dados_pagamento_telefone,
+            dados_pagamento_email: data.dados_pagamento_email,
             status: 'active',
             updated_at: new Date().toISOString(),
           })
@@ -162,8 +171,17 @@ export function UsinaForm({
         const { error } = await supabase
           .from("usinas")
           .insert({
-            ...data,
-            status: 'draft',
+            investidor_id: data.investidor_id,
+            unidade_usina_id: data.unidade_usina_id,
+            valor_kwh: data.valor_kwh,
+            dados_pagamento_nome: data.dados_pagamento_nome,
+            dados_pagamento_documento: data.dados_pagamento_documento,
+            dados_pagamento_banco: data.dados_pagamento_banco,
+            dados_pagamento_agencia: data.dados_pagamento_agencia,
+            dados_pagamento_conta: data.dados_pagamento_conta,
+            dados_pagamento_telefone: data.dados_pagamento_telefone,
+            dados_pagamento_email: data.dados_pagamento_email,
+            status: 'draft'
           });
         if (error) throw error;
         toast({
