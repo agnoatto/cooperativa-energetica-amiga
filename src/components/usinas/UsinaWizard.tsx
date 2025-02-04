@@ -122,7 +122,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
           cidade: data.cidade,
           uf: data.uf,
           cep: data.cep,
-          titular_id: createdInvestidorId,
+          titular_id: createdInvestidorId, // Using investidor ID as titular_id
           status: 'active',
           session_id: sessionId,
           updated_at: new Date().toISOString(),
