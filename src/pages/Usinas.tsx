@@ -8,14 +8,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, Edit, Trash } from "lucide-react";
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { UsinaWizard } from "@/components/usinas/UsinaWizard";
 
 const Usinas = () => {
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
-  
   const { data: usinas, refetch } = useQuery({
     queryKey: ['usinas'],
     queryFn: async () => {
@@ -50,9 +46,6 @@ const Usinas = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Usinas</h1>
-        <Button onClick={() => setIsWizardOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Nova Usina
-        </Button>
       </div>
 
       <div className="rounded-md border">
@@ -91,12 +84,6 @@ const Usinas = () => {
           </TableBody>
         </Table>
       </div>
-
-      <UsinaWizard
-        open={isWizardOpen}
-        onOpenChange={setIsWizardOpen}
-        onSuccess={refetch}
-      />
     </div>
   );
 }
