@@ -23,7 +23,6 @@ const unidadeFormSchema = z.object({
   cidade: z.string().min(1, "Cidade é obrigatória"),
   uf: z.string().min(1, "UF é obrigatória"),
   cep: z.string().min(1, "CEP é obrigatório"),
-  titular_id: z.string().min(1, "Titular é obrigatório"),
 });
 
 type UnidadeFormData = z.infer<typeof unidadeFormSchema>;
@@ -46,12 +45,13 @@ export function UnidadeWizardForm({ sessionId, investidorId, onNext }: UnidadeWi
       cidade: "",
       uf: "",
       cep: "",
-      titular_id: investidorId,
     },
   });
 
   const onSubmit = async (data: UnidadeFormData) => {
     try {
+      console.log('Submitting unidade with investidor_id:', investidorId);
+      
       const { data: unidade, error } = await supabase
         .from("unidades_usina")
         .insert({
@@ -62,7 +62,7 @@ export function UnidadeWizardForm({ sessionId, investidorId, onNext }: UnidadeWi
           cidade: data.cidade,
           uf: data.uf,
           cep: data.cep,
-          titular_id: data.titular_id,
+          titular_id: investidorId, // Using the investidor's ID as titular_id
           status: 'draft',
           session_id: sessionId,
           updated_at: new Date().toISOString(),
