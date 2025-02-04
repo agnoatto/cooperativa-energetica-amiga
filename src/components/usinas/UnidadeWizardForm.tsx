@@ -54,9 +54,13 @@ export function UnidadeWizardForm({ sessionId, investidorId, onNext }: UnidadeWi
       const { data: unidade, error } = await supabase
         .from("unidades_usina")
         .insert({
-          ...data,
+          numero_uc: data.numero_uc,
+          endereco: data.endereco,
+          titular_id: data.titular_id,
+          titular_tipo: data.titular_tipo,
           status: 'draft',
           session_id: sessionId,
+          updated_at: new Date().toISOString(),
         })
         .select()
         .single();
