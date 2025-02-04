@@ -12,9 +12,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Separator } from "@/components/ui/separator";
-import { BasicInfoFields } from "./form/BasicInfoFields";
-import { ValorKwhField } from "./form/ValorKwhField";
-import { DadosPagamentoFields } from "./form/DadosPagamentoFields";
 import { usinaFormSchema, type UsinaFormData } from "./schema";
 import { useEffect, useState } from "react";
 
@@ -162,21 +159,6 @@ export function UsinaForm({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <BasicInfoFields 
-              form={form} 
-              investidores={investidores || []} 
-              unidades={unidades || []} 
-            />
-            
-            <ValorKwhField form={form} />
-
-            <Separator />
-            
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Dados de Pagamento</h3>
-              <DadosPagamentoFields form={form} />
-            </div>
-
             <Button type="submit" disabled={isLoading}>
               {isLoading ? "Salvando..." : "Salvar"}
             </Button>
