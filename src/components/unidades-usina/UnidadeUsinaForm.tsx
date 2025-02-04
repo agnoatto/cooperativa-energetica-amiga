@@ -99,7 +99,14 @@ export function UnidadeUsinaForm({
             return;
           }
           if (data) {
-            form.reset(data);
+            // Garantir que titular_tipo seja do tipo correto
+            const formData: UnidadeUsinaFormData = {
+              numero_uc: data.numero_uc,
+              endereco: data.endereco,
+              titular_id: data.titular_id,
+              titular_tipo: data.titular_tipo as "cooperado" | "investidor",
+            };
+            form.reset(formData);
           }
         });
     } else {
