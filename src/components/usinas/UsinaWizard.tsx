@@ -3,6 +3,9 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Steps } from "@/components/ui/steps";
 import { supabase } from "@/integrations/supabase/client";
+import { InvestidorWizardForm } from "./InvestidorWizardForm";
+import { UnidadeWizardForm } from "./UnidadeWizardForm";
+import { UsinaWizardForm } from "./UsinaWizardForm";
 
 interface UsinaWizardProps {
   open: boolean;
@@ -13,6 +16,8 @@ interface UsinaWizardProps {
 export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [sessionId] = useState(() => crypto.randomUUID());
+  const [investidorId, setInvestidorId] = useState<string>();
+  const [unidadeId, setUnidadeId] = useState<string>();
 
   const steps = [
     { title: "Investidor", description: "Selecione ou crie um investidor" },
@@ -29,7 +34,6 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
   };
 
   const handleCancel = async () => {
-    // Limpar registros em rascunho
     try {
       await Promise.all([
         supabase
@@ -53,7 +57,14 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
     }
 
     setCurrentStep(0);
+    setInvestidorId(undefined);
+    setUnidadeId(undefined);
     onOpenChange(false);
+  };
+
+  const handleComplete = () => {
+    onSuccess();
+    handleCancel();
   };
 
   return (
@@ -62,7 +73,39 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
         <div className="space-y-6">
           <Steps currentStep={currentStep} steps={steps} />
 
-          <div className="mt-8 flex justify-between">
+          <div className="mt-8">
+            {currentStep === 0 && (
+              <InvestidorWizardForm
+                sessionId={sessionId}
+                onNext={(id) => {
+                  setInvestidorId(id);
+                  handleNext();
+                }}
+              />
+            )}
+
+            {currentStep === 1 && investidorId && (
+              <UnidadeWizardForm
+                sessionId={sessionId}
+                investidorId={investidorId}
+                onNext={(id) => {
+                  setUnidadeId(id);
+                  handleNext();
+                }}
+              />
+            )}
+
+            {currentStep === 2 && investidorId && unidadeId && (
+              <UsinaWizardForm
+                sessionId={sessionId}
+                investidorId={investidorId}
+                unidadeId={unidadeId}
+                onComplete={handleComplete}
+              />
+            )}
+          </div>
+
+          <div className="flex justify-between">
             <Button
               variant="outline"
               onClick={handleBack}
@@ -70,14 +113,9 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
             >
               Voltar
             </Button>
-            <div className="space-x-2">
-              <Button variant="outline" onClick={handleCancel}>
-                Cancelar
-              </Button>
-              <Button onClick={handleNext} disabled={currentStep === steps.length - 1}>
-                Próximo
-              </Button>
-            </div>
+            <Button variant="outline" onClick={handleCancel}>
+              Cancelar
+            </Button>
           </div>
         </div>
       </DialogContent>
