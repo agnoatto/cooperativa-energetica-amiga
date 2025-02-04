@@ -40,7 +40,6 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
   const [sessionId] = useState(() => crypto.randomUUID());
   const { toast } = useToast();
   
-  // Form data state
   const [investidorData, setInvestidorData] = useState<InvestidorData | null>(null);
   const [unidadeData, setUnidadeData] = useState<UnidadeData | null>(null);
   const [usinaData, setUsinaData] = useState<UsinaData | null>(null);
@@ -78,7 +77,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
     }
 
     try {
-      // Create investidor
+      // Create investidor with active status
       const { data: investidor, error: investidorError } = await supabase
         .from("investidores")
         .insert({
@@ -87,6 +86,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
           telefone: investidorData.telefone ? investidorData.telefone.replace(/\D/g, '') : null,
           email: investidorData.email || null,
           status: 'active',
+          session_id: sessionId,
           updated_at: new Date().toISOString(),
         })
         .select()
@@ -94,7 +94,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
 
       if (investidorError) throw investidorError;
 
-      // Create unidade
+      // Create unidade with active status
       const { data: unidade, error: unidadeError } = await supabase
         .from("unidades_usina")
         .insert({
@@ -107,6 +107,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
           cep: unidadeData.cep,
           titular_id: investidor.id,
           status: 'active',
+          session_id: sessionId,
           updated_at: new Date().toISOString(),
         })
         .select()
@@ -114,7 +115,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
 
       if (unidadeError) throw unidadeError;
 
-      // Create usina
+      // Create usina with active status
       const { error: usinaError } = await supabase
         .from("usinas")
         .insert({
@@ -122,6 +123,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
           unidade_usina_id: unidade.id,
           valor_kwh: usinaFormData.valor_kwh,
           status: 'active',
+          session_id: sessionId,
           updated_at: new Date().toISOString(),
         });
 
