@@ -2,9 +2,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Session } from "@supabase/supabase-js";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
@@ -13,8 +16,39 @@ import Usinas from "./pages/Usinas";
 import Faturas from "./pages/Faturas";
 import Pagamentos from "./pages/Pagamentos";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
+
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) {
+    return <div>Carregando...</div>;
+  }
+
+  if (!session) {
+    return <Navigate to="/auth" />;
+  }
+
+  return <>{children}</>;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -22,22 +56,32 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <SidebarProvider>
-          <div className="min-h-screen flex w-full">
-            <AppSidebar />
-            <main className="flex-1 p-6">
-              <SidebarTrigger className="mb-4" />
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/cooperados" element={<Cooperados />} />
-                <Route path="/usinas" element={<Usinas />} />
-                <Route path="/faturas" element={<Faturas />} />
-                <Route path="/pagamentos" element={<Pagamentos />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </main>
-          </div>
-        </SidebarProvider>
+        <Routes>
+          <Route path="/auth" element={<Auth />} />
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <SidebarProvider>
+                  <div className="min-h-screen flex w-full">
+                    <AppSidebar />
+                    <main className="flex-1 p-6">
+                      <SidebarTrigger className="mb-4" />
+                      <Routes>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/cooperados" element={<Cooperados />} />
+                        <Route path="/usinas" element={<Usinas />} />
+                        <Route path="/faturas" element={<Faturas />} />
+                        <Route path="/pagamentos" element={<Pagamentos />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </main>
+                  </div>
+                </SidebarProvider>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
