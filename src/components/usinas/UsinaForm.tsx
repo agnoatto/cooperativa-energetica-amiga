@@ -85,21 +85,23 @@ export function UsinaForm({
   useEffect(() => {
     if (usinaId && open) {
       setIsLoading(true);
-      supabase
-        .from("usinas")
-        .select("*")
-        .eq("id", usinaId)
-        .single()
-        .then(({ data, error }) => {
-          if (error) {
-            console.error("Error fetching usina:", error);
-            return;
-          }
-          if (data) {
-            form.reset(data);
-          }
-        })
-        .finally(() => setIsLoading(false));
+      Promise.resolve(
+        supabase
+          .from("usinas")
+          .select("*")
+          .eq("id", usinaId)
+          .single()
+      ).then(({ data, error }) => {
+        if (error) {
+          console.error("Error fetching usina:", error);
+          return;
+        }
+        if (data) {
+          form.reset(data);
+        }
+      }).finally(() => {
+        setIsLoading(false);
+      });
     } else if (!open) {
       form.reset();
     }
