@@ -12,8 +12,6 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useToast } from "../ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 const usinaFormSchema = z.object({
   valor_kwh: z.coerce
@@ -28,7 +26,7 @@ interface UsinaWizardFormProps {
   sessionId: string;
   investidorId: string;
   unidadeId: string;
-  onComplete: () => void;
+  onComplete: (data: UsinaFormData) => void;
 }
 
 export function UsinaWizardForm({ 
@@ -37,7 +35,6 @@ export function UsinaWizardForm({
   unidadeId, 
   onComplete 
 }: UsinaWizardFormProps) {
-  const { toast } = useToast();
   const form = useForm<UsinaFormData>({
     resolver: zodResolver(usinaFormSchema),
     defaultValues: {
@@ -45,55 +42,9 @@ export function UsinaWizardForm({
     },
   });
 
-  const onSubmit = async (data: UsinaFormData) => {
-    try {
-      // Create the usina
-      const { error: usinaError } = await supabase
-        .from("usinas")
-        .insert({
-          investidor_id: investidorId,
-          unidade_usina_id: unidadeId,
-          valor_kwh: data.valor_kwh,
-          status: 'draft',
-          session_id: sessionId,
-        });
-
-      if (usinaError) throw usinaError;
-
-      // Update status of all draft records to active
-      await Promise.all([
-        supabase
-          .from("investidores")
-          .update({ status: 'active', session_id: null })
-          .eq('session_id', sessionId),
-        supabase
-          .from("unidades_usina")
-          .update({ status: 'active', session_id: null })
-          .eq('session_id', sessionId),
-        supabase
-          .from("usinas")
-          .update({ status: 'active', session_id: null })
-          .eq('session_id', sessionId),
-      ]);
-      
-      toast({
-        title: "Usina criada com sucesso!",
-      });
-      
-      onComplete();
-    } catch (error: any) {
-      console.error("Error saving usina:", error);
-      toast({
-        title: "Erro ao salvar usina",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onComplete)} className="space-y-4">
         <FormField
           control={form.control}
           name="valor_kwh"

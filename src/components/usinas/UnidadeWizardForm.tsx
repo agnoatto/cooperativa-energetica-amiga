@@ -12,8 +12,6 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useToast } from "../ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 const unidadeFormSchema = z.object({
   numero_uc: z.string().min(1, "Número UC é obrigatório"),
@@ -30,11 +28,10 @@ type UnidadeFormData = z.infer<typeof unidadeFormSchema>;
 interface UnidadeWizardFormProps {
   sessionId: string;
   investidorId: string;
-  onNext: (unidadeId: string) => void;
+  onNext: (data: UnidadeFormData) => void;
 }
 
 export function UnidadeWizardForm({ sessionId, investidorId, onNext }: UnidadeWizardFormProps) {
-  const { toast } = useToast();
   const form = useForm<UnidadeFormData>({
     resolver: zodResolver(unidadeFormSchema),
     defaultValues: {
@@ -48,48 +45,9 @@ export function UnidadeWizardForm({ sessionId, investidorId, onNext }: UnidadeWi
     },
   });
 
-  const onSubmit = async (data: UnidadeFormData) => {
-    try {
-      console.log('Submitting unidade with investidor_id:', investidorId);
-      
-      const { data: unidade, error } = await supabase
-        .from("unidades_usina")
-        .insert({
-          numero_uc: data.numero_uc,
-          logradouro: data.logradouro,
-          numero: data.numero,
-          complemento: data.complemento,
-          cidade: data.cidade,
-          uf: data.uf,
-          cep: data.cep,
-          titular_id: investidorId, // Using the investidor's ID as titular_id
-          status: 'draft',
-          session_id: sessionId,
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      toast({
-        title: "Unidade criada com sucesso!",
-      });
-      
-      onNext(unidade.id);
-    } catch (error: any) {
-      console.error("Error saving unidade:", error);
-      toast({
-        title: "Erro ao salvar unidade",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onNext)} className="space-y-4">
         <FormField
           control={form.control}
           name="numero_uc"

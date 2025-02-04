@@ -12,8 +12,6 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useToast } from "../ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import InputMask from "react-input-mask";
 
 const investidorFormSchema = z.object({
@@ -27,11 +25,10 @@ type InvestidorFormData = z.infer<typeof investidorFormSchema>;
 
 interface InvestidorWizardFormProps {
   sessionId: string;
-  onNext: (investidorId: string) => void;
+  onNext: (data: InvestidorFormData) => void;
 }
 
 export function InvestidorWizardForm({ sessionId, onNext }: InvestidorWizardFormProps) {
-  const { toast } = useToast();
   const form = useForm<InvestidorFormData>({
     resolver: zodResolver(investidorFormSchema),
     defaultValues: {
@@ -42,42 +39,9 @@ export function InvestidorWizardForm({ sessionId, onNext }: InvestidorWizardForm
     },
   });
 
-  const onSubmit = async (data: InvestidorFormData) => {
-    try {
-      const { data: investidor, error } = await supabase
-        .from("investidores")
-        .insert({
-          nome_investidor: data.nome_investidor,
-          documento: data.documento.replace(/\D/g, ''),
-          telefone: data.telefone ? data.telefone.replace(/\D/g, '') : null,
-          email: data.email || null,
-          status: 'draft',
-          session_id: sessionId,
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      toast({
-        title: "Investidor criado com sucesso!",
-      });
-      
-      onNext(investidor.id);
-    } catch (error: any) {
-      console.error("Error saving investidor:", error);
-      toast({
-        title: "Erro ao salvar investidor",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onNext)} className="space-y-4">
         <FormField
           control={form.control}
           name="nome_investidor"
