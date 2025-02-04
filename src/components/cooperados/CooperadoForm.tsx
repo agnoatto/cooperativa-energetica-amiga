@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { X } from "lucide-react";
 import InputMask from "react-input-mask";
 import {
   Dialog,
@@ -68,38 +67,33 @@ export function CooperadoForm({ open, onOpenChange, initialData, onSuccess }: Co
 
   async function onSubmit(data: CooperadoFormValues) {
     try {
-      // Gerar um UUID para o novo perfil
-      const profileId = crypto.randomUUID();
-
-      // Primeiro, criar ou atualizar o perfil
-      const profileData = {
-        id: profileId,
-        nome: data.nome,
-        documento: data.documento.replace(/\D/g, ''),
-        telefone: data.telefone.replace(/\D/g, ''),
-        email: data.email,
-        tipo_pessoa: data.tipo_pessoa,
-        responsavel_nome: data.responsavel_nome,
-        responsavel_cpf: data.responsavel_cpf?.replace(/\D/g, ''),
-        responsavel_telefone: data.responsavel_telefone?.replace(/\D/g, ''),
-      };
-
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .insert(profileData)
+      // Criar diretamente na tabela cooperados
+      const { data: cooperado, error: cooperadoError } = await supabase
+        .from('cooperados')
+        .insert({
+          profile_id: crypto.randomUUID(), // Gera um novo UUID para o profile_id
+        })
         .select()
         .single();
 
-      if (profileError) throw profileError;
-
-      // Em seguida, criar o cooperado vinculado ao perfil
-      const { error: cooperadoError } = await supabase
-        .from('cooperados')
-        .insert({
-          profile_id: profileId,
-        });
-
       if (cooperadoError) throw cooperadoError;
+
+      // Atualizar o perfil associado
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          nome: data.nome,
+          documento: data.documento.replace(/\D/g, ''),
+          telefone: data.telefone.replace(/\D/g, ''),
+          email: data.email,
+          tipo_pessoa: data.tipo_pessoa,
+          responsavel_nome: data.responsavel_nome,
+          responsavel_cpf: data.responsavel_cpf?.replace(/\D/g, ''),
+          responsavel_telefone: data.responsavel_telefone?.replace(/\D/g, ''),
+        })
+        .eq('id', cooperado.profile_id);
+
+      if (profileError) throw profileError;
 
       toast.success("Cooperado cadastrado com sucesso!");
       onSuccess?.();

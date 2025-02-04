@@ -56,7 +56,7 @@ export type Database = {
           created_at?: string
           documento?: string | null
           email?: string | null
-          id: string
+          id?: string
           nome?: string | null
           responsavel_cpf?: string | null
           responsavel_nome?: string | null
