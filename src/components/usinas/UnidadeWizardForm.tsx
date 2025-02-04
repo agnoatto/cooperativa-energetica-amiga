@@ -9,13 +9,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -24,8 +17,12 @@ import { supabase } from "@/integrations/supabase/client";
 
 const unidadeFormSchema = z.object({
   numero_uc: z.string().min(1, "Número UC é obrigatório"),
-  endereco: z.string().min(1, "Endereço é obrigatório"),
-  titular_tipo: z.enum(["cooperado", "investidor"]),
+  logradouro: z.string().min(1, "Logradouro é obrigatório"),
+  numero: z.string().min(1, "Número é obrigatório"),
+  complemento: z.string().optional(),
+  cidade: z.string().min(1, "Cidade é obrigatória"),
+  uf: z.string().min(1, "UF é obrigatória"),
+  cep: z.string().min(1, "CEP é obrigatório"),
   titular_id: z.string().min(1, "Titular é obrigatório"),
 });
 
@@ -43,8 +40,12 @@ export function UnidadeWizardForm({ sessionId, investidorId, onNext }: UnidadeWi
     resolver: zodResolver(unidadeFormSchema),
     defaultValues: {
       numero_uc: "",
-      endereco: "",
-      titular_tipo: "investidor",
+      logradouro: "",
+      numero: "",
+      complemento: "",
+      cidade: "",
+      uf: "",
+      cep: "",
       titular_id: investidorId,
     },
   });
@@ -54,10 +55,7 @@ export function UnidadeWizardForm({ sessionId, investidorId, onNext }: UnidadeWi
       const { data: unidade, error } = await supabase
         .from("unidades_usina")
         .insert({
-          numero_uc: data.numero_uc,
-          endereco: data.endereco,
-          titular_id: data.titular_id,
-          titular_tipo: data.titular_tipo,
+          ...data,
           status: 'draft',
           session_id: sessionId,
           updated_at: new Date().toISOString(),
@@ -101,10 +99,10 @@ export function UnidadeWizardForm({ sessionId, investidorId, onNext }: UnidadeWi
 
         <FormField
           control={form.control}
-          name="endereco"
+          name="logradouro"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Endereço</FormLabel>
+              <FormLabel>Logradouro</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
@@ -115,21 +113,69 @@ export function UnidadeWizardForm({ sessionId, investidorId, onNext }: UnidadeWi
 
         <FormField
           control={form.control}
-          name="titular_tipo"
+          name="numero"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tipo de Titular</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo de titular" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="cooperado">Cooperado</SelectItem>
-                  <SelectItem value="investidor">Investidor</SelectItem>
-                </SelectContent>
-              </Select>
+              <FormLabel>Número</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="complemento"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Complemento</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="cidade"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cidade</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="uf"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>UF</FormLabel>
+              <FormControl>
+                <Input {...field} maxLength={2} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="cep"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>CEP</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
