@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Steps } from "@/components/ui/steps";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UsinaWizardProps {
   open: boolean;
