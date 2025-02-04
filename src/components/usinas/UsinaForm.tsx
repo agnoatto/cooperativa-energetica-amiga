@@ -145,26 +145,26 @@ export function UsinaForm({
 
   const onSubmit = async (data: UsinaFormData) => {
     try {
-      const submitData = {
-        ...data,
-        status: usinaId ? 'active' : 'draft',
-        updated_at: new Date().toISOString(),
-      };
-
       if (usinaId) {
         const { error } = await supabase
           .from("usinas")
-          .update(submitData)
+          .update({
+            ...data,
+            status: 'active',
+            updated_at: new Date().toISOString(),
+          })
           .eq("id", usinaId);
         if (error) throw error;
         toast({
           title: "Usina atualizada com sucesso!",
         });
       } else {
-        const { error } = await supabase.from("usinas").insert({
-          ...submitData,
-          session_id: crypto.randomUUID(),
-        });
+        const { error } = await supabase
+          .from("usinas")
+          .insert({
+            ...data,
+            status: 'draft',
+          });
         if (error) throw error;
         toast({
           title: "Usina criada com sucesso!",
