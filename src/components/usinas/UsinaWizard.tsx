@@ -90,7 +90,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
           cidade: unidadeData.cidade,
           uf: unidadeData.uf,
           cep: unidadeData.cep,
-          titular_id: createdInvestidorId, // Use the created investidor id instead of session_id
+          titular_id: createdInvestidorId,
           status: 'active',
           session_id: sessionId,
           updated_at: new Date().toISOString(),
@@ -180,7 +180,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
               <UnidadeWizardForm
                 sessionId={sessionId}
                 investidorId={createdInvestidorId!}
-                onNext={(data) => {
+                onNext={(data: UnidadeData) => {
                   setUnidadeData(data);
                   handleNext();
                 }}
