@@ -41,9 +41,9 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
   const { toast } = useToast();
   
   // Form data state
-  const [investidorData, setInvestidorData] = useState<InvestidorData>();
-  const [unidadeData, setUnidadeData] = useState<UnidadeData>();
-  const [usinaData, setUsinaData] = useState<UsinaData>();
+  const [investidorData, setInvestidorData] = useState<InvestidorData | undefined>();
+  const [unidadeData, setUnidadeData] = useState<UnidadeData | undefined>();
+  const [usinaData, setUsinaData] = useState<UsinaData | undefined>();
 
   const steps = [
     { title: "Investidor", description: "Selecione ou crie um investidor" },
@@ -155,8 +155,10 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
               <InvestidorWizardForm
                 sessionId={sessionId}
                 onNext={(data) => {
-                  setInvestidorData(data);
-                  handleNext();
+                  if (data.nome_investidor && data.documento) {
+                    setInvestidorData(data);
+                    handleNext();
+                  }
                 }}
               />
             )}
@@ -166,8 +168,10 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
                 sessionId={sessionId}
                 investidorId={sessionId}
                 onNext={(data) => {
-                  setUnidadeData(data);
-                  handleNext();
+                  if (data.numero_uc && data.logradouro && data.numero && data.cidade && data.uf && data.cep) {
+                    setUnidadeData(data);
+                    handleNext();
+                  }
                 }}
               />
             )}
