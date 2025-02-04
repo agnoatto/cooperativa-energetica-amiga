@@ -102,6 +102,15 @@ const Cooperados = () => {
     return numero.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/g, '$1.$2.$3/$4-$5');
   };
 
+  const formatarTelefone = (telefone: string) => {
+    if (!telefone) return '-';
+    const numero = telefone.replace(/\D/g, '');
+    if (numero.length === 11) {
+      return numero.replace(/(\d{2})(\d{5})(\d{4})/g, '($1) $2-$3');
+    }
+    return numero.replace(/(\d{2})(\d{4})(\d{4})/g, '($1) $2-$3');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -148,8 +157,11 @@ const Cooperados = () => {
                   {cooperado.tipo_pessoa === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física'}
                 </TableCell>
                 <TableCell>
-                  {cooperado.telefone}<br/>
-                  {cooperado.email}
+                  <div>
+                    {formatarTelefone(cooperado.telefone)}
+                    <br />
+                    {cooperado.email || '-'}
+                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center space-x-2">
