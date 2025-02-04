@@ -24,7 +24,6 @@ const Cooperados = () => {
 
   const fetchData = async () => {
     try {
-      // Buscar cooperados
       const { data: cooperadosData, error: cooperadosError } = await supabase
         .from('cooperados')
         .select('*');
@@ -32,7 +31,6 @@ const Cooperados = () => {
       if (cooperadosError) throw cooperadosError;
       setCooperados(cooperadosData);
 
-      // Buscar unidades beneficiárias
       const { data: unidadesData, error: unidadesError } = await supabase
         .from('unidades_beneficiarias')
         .select('*');
@@ -48,19 +46,32 @@ const Cooperados = () => {
     fetchData();
   }, []);
 
-  const handleEdit = (cooperado: any) => {
-    // Format the data according to the form's expected structure
-    setSelectedCooperado({
-      nome: cooperado.nome,
-      documento: cooperado.documento,
-      tipo_pessoa: cooperado.tipo_pessoa,
-      telefone: cooperado.telefone,
-      email: cooperado.email,
-      responsavel_nome: cooperado.responsavel_nome || "",
-      responsavel_cpf: cooperado.responsavel_cpf || "",
-      responsavel_telefone: cooperado.responsavel_telefone || "",
-    });
-    setShowCooperadoForm(true);
+  const handleEdit = async (cooperadoId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('cooperados')
+        .select('*')
+        .eq('id', cooperadoId)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setSelectedCooperado({
+          nome: data.nome,
+          documento: data.documento,
+          tipo_pessoa: data.tipo_pessoa,
+          telefone: data.telefone,
+          email: data.email,
+          responsavel_nome: data.responsavel_nome || "",
+          responsavel_cpf: data.responsavel_cpf || "",
+          responsavel_telefone: data.responsavel_telefone || "",
+        });
+        setShowCooperadoForm(true);
+      }
+    } catch (error: any) {
+      toast.error("Erro ao carregar dados do cooperado: " + error.message);
+    }
   };
 
   const handleDelete = async (cooperadoId: string) => {
@@ -193,7 +204,7 @@ const Cooperados = () => {
                   <Button 
                     variant="outline" 
                     size="icon"
-                    onClick={() => handleEdit(cooperado)}
+                    onClick={() => handleEdit(cooperado.id)}
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
