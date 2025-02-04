@@ -44,6 +44,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
   const [unidadeData, setUnidadeData] = useState<UnidadeData | null>(null);
   const [usinaData, setUsinaData] = useState<UsinaData | null>(null);
   const [createdInvestidorId, setCreatedInvestidorId] = useState<string | null>(null);
+  const [createdUnidadeId, setCreatedUnidadeId] = useState<string | null>(null);
 
   const steps = [
     { title: "Investidor", description: "Selecione ou crie um investidor" },
@@ -65,69 +66,8 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
     setUnidadeData(null);
     setUsinaData(null);
     setCreatedInvestidorId(null);
+    setCreatedUnidadeId(null);
     onOpenChange(false);
-  };
-
-  const handleComplete = async (usinaFormData: UsinaData) => {
-    if (!investidorData || !unidadeData || !createdInvestidorId) {
-      toast({
-        title: "Erro",
-        description: "Dados incompletos. Por favor, preencha todos os passos.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Create unidade with active status using the created investidor id
-      const { data: unidade, error: unidadeError } = await supabase
-        .from("unidades_usina")
-        .insert({
-          numero_uc: unidadeData.numero_uc,
-          logradouro: unidadeData.logradouro,
-          numero: unidadeData.numero,
-          complemento: unidadeData.complemento,
-          cidade: unidadeData.cidade,
-          uf: unidadeData.uf,
-          cep: unidadeData.cep,
-          titular_id: createdInvestidorId,
-          status: 'active',
-          session_id: sessionId,
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (unidadeError) throw unidadeError;
-
-      // Create usina with active status
-      const { error: usinaError } = await supabase
-        .from("usinas")
-        .insert({
-          investidor_id: createdInvestidorId,
-          unidade_usina_id: unidade.id,
-          valor_kwh: usinaFormData.valor_kwh,
-          status: 'active',
-          session_id: sessionId,
-          updated_at: new Date().toISOString(),
-        });
-
-      if (usinaError) throw usinaError;
-
-      toast({
-        title: "Usina criada com sucesso!",
-      });
-
-      onSuccess();
-      handleCancel();
-    } catch (error: any) {
-      console.error("Error saving data:", error);
-      toast({
-        title: "Erro ao salvar dados",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
   };
 
   const handleInvestidorSubmit = async (data: InvestidorData) => {
@@ -161,6 +101,90 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
     }
   };
 
+  const handleUnidadeSubmit = async (data: UnidadeData) => {
+    if (!createdInvestidorId) {
+      toast({
+        title: "Erro",
+        description: "Investidor não foi criado corretamente",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data: unidade, error: unidadeError } = await supabase
+        .from("unidades_usina")
+        .insert({
+          numero_uc: data.numero_uc,
+          logradouro: data.logradouro,
+          numero: data.numero,
+          complemento: data.complemento,
+          cidade: data.cidade,
+          uf: data.uf,
+          cep: data.cep,
+          titular_id: createdInvestidorId,
+          status: 'active',
+          session_id: sessionId,
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (unidadeError) throw unidadeError;
+
+      setCreatedUnidadeId(unidade.id);
+      setUnidadeData(data);
+      handleNext();
+    } catch (error: any) {
+      console.error("Error creating unidade:", error);
+      toast({
+        title: "Erro ao criar unidade",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleComplete = async (usinaFormData: UsinaData) => {
+    if (!createdInvestidorId || !createdUnidadeId) {
+      toast({
+        title: "Erro",
+        description: "Dados incompletos. Por favor, preencha todos os passos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error: usinaError } = await supabase
+        .from("usinas")
+        .insert({
+          investidor_id: createdInvestidorId,
+          unidade_usina_id: createdUnidadeId,
+          valor_kwh: usinaFormData.valor_kwh,
+          status: 'active',
+          session_id: sessionId,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (usinaError) throw usinaError;
+
+      toast({
+        title: "Usina criada com sucesso!",
+      });
+
+      onSuccess();
+      handleCancel();
+    } catch (error: any) {
+      console.error("Error saving data:", error);
+      toast({
+        title: "Erro ao salvar dados",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleCancel}>
       <DialogContent className="sm:max-w-[600px]">
@@ -180,10 +204,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
               <UnidadeWizardForm
                 sessionId={sessionId}
                 investidorId={createdInvestidorId!}
-                onNext={(data: UnidadeData) => {
-                  setUnidadeData(data);
-                  handleNext();
-                }}
+                onNext={handleUnidadeSubmit}
               />
             )}
 
@@ -191,7 +212,7 @@ export function UsinaWizard({ open, onOpenChange, onSuccess }: UsinaWizardProps)
               <UsinaWizardForm
                 sessionId={sessionId}
                 investidorId={createdInvestidorId!}
-                unidadeId={sessionId}
+                unidadeId={createdUnidadeId!}
                 onComplete={handleComplete}
               />
             )}
