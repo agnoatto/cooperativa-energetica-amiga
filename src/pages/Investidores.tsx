@@ -7,22 +7,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Edit, Trash } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useState } from "react";
 import { InvestidorForm } from "@/components/investidores/InvestidorForm";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
 
 const Investidores = () => {
-  const [selectedInvestidorId, setSelectedInvestidorId] = useState<
-    string | undefined
-  >();
+  const [selectedInvestidorId, setSelectedInvestidorId] = useState<string | undefined>();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { data: investidores, refetch } = useQuery({
     queryKey: ["investidores"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("investidores").select("*");
+      const { data, error } = await supabase
+        .from("investidores")
+        .select("*")
+        .ilike("nome_investidor", `%${searchTerm}%`);
+      
       if (error) throw error;
       return data;
     },
@@ -31,20 +35,6 @@ const Investidores = () => {
   const handleEdit = (investidorId: string) => {
     setSelectedInvestidorId(investidorId);
     setIsFormOpen(true);
-  };
-
-  const handleDelete = async (investidorId: string) => {
-    try {
-      const { error } = await supabase
-        .from("investidores")
-        .delete()
-        .eq("id", investidorId);
-
-      if (error) throw error;
-      refetch();
-    } catch (error: any) {
-      console.error("Error deleting investidor:", error);
-    }
   };
 
   return (
@@ -59,6 +49,16 @@ const Investidores = () => {
         >
           <Plus className="mr-2 h-4 w-4" /> Novo Investidor
         </Button>
+      </div>
+
+      <div className="relative">
+        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Pesquisar investidores..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-8"
+        />
       </div>
 
       <div className="rounded-md border">
@@ -79,20 +79,13 @@ const Investidores = () => {
                 <TableCell>{investidor.documento}</TableCell>
                 <TableCell>{investidor.telefone}</TableCell>
                 <TableCell>{investidor.email}</TableCell>
-                <TableCell className="text-right space-x-2">
+                <TableCell className="text-right">
                   <Button
                     variant="outline"
-                    size="icon"
+                    size="sm"
                     onClick={() => handleEdit(investidor.id)}
                   >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleDelete(investidor.id)}
-                  >
-                    <Trash className="h-4 w-4" />
+                    Editar
                   </Button>
                 </TableCell>
               </TableRow>
