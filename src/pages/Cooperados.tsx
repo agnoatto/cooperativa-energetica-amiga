@@ -17,10 +17,9 @@ import { supabase } from "@/integrations/supabase/client";
 const Cooperados = () => {
   const [showCooperadoForm, setShowCooperadoForm] = useState(false);
   const [showUnidadeForm, setShowUnidadeForm] = useState(false);
-  const [selectedCooperado, setSelectedCooperado] = useState<any>(null);
+  const [selectedCooperadoId, setSelectedCooperadoId] = useState<string | null>(null);
   const [cooperados, setCooperados] = useState<any[]>([]);
   const [unidades, setUnidades] = useState<any[]>([]);
-  const [selectedCooperadoId, setSelectedCooperadoId] = useState<string | null>(null);
 
   const fetchData = async () => {
     try {
@@ -46,32 +45,9 @@ const Cooperados = () => {
     fetchData();
   }, []);
 
-  const handleEdit = async (cooperadoId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('cooperados')
-        .select('*')
-        .eq('id', cooperadoId)
-        .single();
-
-      if (error) throw error;
-
-      if (data) {
-        setSelectedCooperado({
-          nome: data.nome,
-          documento: data.documento,
-          tipo_pessoa: data.tipo_pessoa,
-          telefone: data.telefone,
-          email: data.email,
-          responsavel_nome: data.responsavel_nome || "",
-          responsavel_cpf: data.responsavel_cpf || "",
-          responsavel_telefone: data.responsavel_telefone || "",
-        });
-        setShowCooperadoForm(true);
-      }
-    } catch (error: any) {
-      toast.error("Erro ao carregar dados do cooperado: " + error.message);
-    }
+  const handleEdit = (cooperadoId: string) => {
+    setSelectedCooperadoId(cooperadoId);
+    setShowCooperadoForm(true);
   };
 
   const handleDelete = async (cooperadoId: string) => {
@@ -130,7 +106,7 @@ const Cooperados = () => {
         <h1 className="text-3xl font-bold text-gray-900">Cooperados</h1>
         <Button 
           onClick={() => {
-            setSelectedCooperado(null);
+            setSelectedCooperadoId(null);
             setShowCooperadoForm(true);
           }}
         >
@@ -141,11 +117,8 @@ const Cooperados = () => {
       <CooperadoForm 
         open={showCooperadoForm} 
         onOpenChange={setShowCooperadoForm}
-        initialData={selectedCooperado}
-        onSuccess={() => {
-          fetchData();
-          setSelectedCooperado(null);
-        }}
+        cooperadoId={selectedCooperadoId || undefined}
+        onSuccess={fetchData}
       />
 
       {selectedCooperadoId && (

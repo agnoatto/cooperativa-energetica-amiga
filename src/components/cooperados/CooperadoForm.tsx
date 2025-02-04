@@ -14,18 +14,19 @@ import { BasicInfoFields } from "./BasicInfoFields";
 import { ResponsavelFields } from "./ResponsavelFields";
 import { ContatoFields } from "./ContatoFields";
 import { cooperadoFormSchema, type CooperadoFormValues } from "./schema";
+import { useEffect } from "react";
 
 interface CooperadoFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  initialData?: CooperadoFormValues;
+  cooperadoId?: string;
   onSuccess?: () => void;
 }
 
-export function CooperadoForm({ open, onOpenChange, initialData, onSuccess }: CooperadoFormProps) {
+export function CooperadoForm({ open, onOpenChange, cooperadoId, onSuccess }: CooperadoFormProps) {
   const form = useForm<CooperadoFormValues>({
     resolver: zodResolver(cooperadoFormSchema),
-    defaultValues: initialData || {
+    defaultValues: {
       nome: "",
       documento: "",
       tipo_pessoa: "PF",
@@ -39,28 +40,78 @@ export function CooperadoForm({ open, onOpenChange, initialData, onSuccess }: Co
 
   const tipoPessoa = form.watch("tipo_pessoa");
 
+  // Fetch cooperado data when editing
+  useEffect(() => {
+    async function fetchCooperado() {
+      if (!cooperadoId) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('cooperados')
+          .select('*')
+          .eq('id', cooperadoId)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          form.reset({
+            nome: data.nome || "",
+            documento: data.documento || "",
+            tipo_pessoa: data.tipo_pessoa as "PF" | "PJ" || "PF",
+            telefone: data.telefone || "",
+            email: data.email || "",
+            responsavel_nome: data.responsavel_nome || "",
+            responsavel_cpf: data.responsavel_cpf || "",
+            responsavel_telefone: data.responsavel_telefone || "",
+          });
+        }
+      } catch (error: any) {
+        toast.error("Erro ao carregar dados do cooperado: " + error.message);
+      }
+    }
+
+    if (open) {
+      fetchCooperado();
+    }
+  }, [cooperadoId, open, form]);
+
   async function onSubmit(data: CooperadoFormValues) {
     try {
-      const { error } = await supabase
-        .from('cooperados')
-        .insert({
-          nome: data.nome,
-          documento: data.documento.replace(/\D/g, ''),
-          telefone: data.telefone.replace(/\D/g, ''),
-          email: data.email,
-          tipo_pessoa: data.tipo_pessoa,
-          responsavel_nome: data.responsavel_nome,
-          responsavel_cpf: data.responsavel_cpf?.replace(/\D/g, ''),
-          responsavel_telefone: data.responsavel_telefone?.replace(/\D/g, ''),
-        });
+      const cooperadoData = {
+        nome: data.nome,
+        documento: data.documento.replace(/\D/g, ''),
+        telefone: data.telefone.replace(/\D/g, ''),
+        email: data.email,
+        tipo_pessoa: data.tipo_pessoa,
+        responsavel_nome: data.responsavel_nome,
+        responsavel_cpf: data.responsavel_cpf?.replace(/\D/g, ''),
+        responsavel_telefone: data.responsavel_telefone?.replace(/\D/g, ''),
+      };
 
-      if (error) throw error;
+      if (cooperadoId) {
+        // Update existing cooperado
+        const { error } = await supabase
+          .from('cooperados')
+          .update(cooperadoData)
+          .eq('id', cooperadoId);
 
-      toast.success("Cooperado cadastrado com sucesso!");
+        if (error) throw error;
+        toast.success("Cooperado atualizado com sucesso!");
+      } else {
+        // Create new cooperado
+        const { error } = await supabase
+          .from('cooperados')
+          .insert(cooperadoData);
+
+        if (error) throw error;
+        toast.success("Cooperado cadastrado com sucesso!");
+      }
+
       onSuccess?.();
       onOpenChange(false);
     } catch (error: any) {
-      toast.error("Erro ao cadastrar cooperado: " + error.message);
+      toast.error(`Erro ao ${cooperadoId ? 'atualizar' : 'cadastrar'} cooperado: ` + error.message);
     }
   }
 
@@ -69,7 +120,7 @@ export function CooperadoForm({ open, onOpenChange, initialData, onSuccess }: Co
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {initialData ? "Editar Cooperado" : "Novo Cooperado"}
+            {cooperadoId ? "Editar Cooperado" : "Novo Cooperado"}
           </DialogTitle>
         </DialogHeader>
 
