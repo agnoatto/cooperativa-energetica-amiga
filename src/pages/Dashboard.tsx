@@ -76,7 +76,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-500">
-              Gráfico de distribuição será implementado aqui
+              Gráfico teste
             </p>
           </CardContent>
         </Card>
