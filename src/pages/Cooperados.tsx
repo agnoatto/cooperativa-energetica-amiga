@@ -49,15 +49,16 @@ const Cooperados = () => {
   }, []);
 
   const handleEdit = (cooperado: any) => {
+    // Format the data according to the form's expected structure
     setSelectedCooperado({
       nome: cooperado.nome,
       documento: cooperado.documento,
+      tipo_pessoa: cooperado.tipo_pessoa,
       telefone: cooperado.telefone,
       email: cooperado.email,
-      tipo_pessoa: cooperado.tipo_pessoa,
-      responsavel_nome: cooperado.responsavel_nome,
-      responsavel_cpf: cooperado.responsavel_cpf,
-      responsavel_telefone: cooperado.responsavel_telefone,
+      responsavel_nome: cooperado.responsavel_nome || "",
+      responsavel_cpf: cooperado.responsavel_cpf || "",
+      responsavel_telefone: cooperado.responsavel_telefone || "",
     });
     setShowCooperadoForm(true);
   };
@@ -95,6 +96,7 @@ const Cooperados = () => {
   };
 
   const formatarDocumento = (doc: string) => {
+    if (!doc) return '-';
     const numero = doc.replace(/\D/g, '');
     if (numero.length === 11) {
       return numero.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/g, '$1.$2.$3-$4');
@@ -115,7 +117,12 @@ const Cooperados = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Cooperados</h1>
-        <Button onClick={() => setShowCooperadoForm(true)}>
+        <Button 
+          onClick={() => {
+            setSelectedCooperado(null);
+            setShowCooperadoForm(true);
+          }}
+        >
           <Plus className="mr-2 h-4 w-4" /> Novo Cooperado
         </Button>
       </div>
@@ -124,7 +131,10 @@ const Cooperados = () => {
         open={showCooperadoForm} 
         onOpenChange={setShowCooperadoForm}
         initialData={selectedCooperado}
-        onSuccess={fetchData}
+        onSuccess={() => {
+          fetchData();
+          setSelectedCooperado(null);
+        }}
       />
 
       {selectedCooperadoId && (
