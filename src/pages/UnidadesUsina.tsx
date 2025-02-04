@@ -51,6 +51,22 @@ const UnidadesUsina = () => {
     }
   };
 
+  const formatAddress = (unidade: any) => {
+    const parts = [
+      unidade.logradouro,
+      unidade.numero,
+      unidade.complemento,
+      unidade.cidade,
+      unidade.uf,
+      unidade.cep,
+    ].filter(Boolean);
+    return parts.join(", ");
+  };
+
+  const getTitularName = (unidade: any) => {
+    return unidade.cooperado?.nome || unidade.investidor?.nome_investidor || "N/A";
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -71,7 +87,6 @@ const UnidadesUsina = () => {
             <TableRow>
               <TableHead>Número UC</TableHead>
               <TableHead>Endereço</TableHead>
-              <TableHead>Tipo Titular</TableHead>
               <TableHead>Titular</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -80,13 +95,8 @@ const UnidadesUsina = () => {
             {unidades?.map((unidade) => (
               <TableRow key={unidade.id}>
                 <TableCell>{unidade.numero_uc}</TableCell>
-                <TableCell>{unidade.endereco}</TableCell>
-                <TableCell>{unidade.titular_tipo}</TableCell>
-                <TableCell>
-                  {unidade.titular_tipo === "cooperado"
-                    ? unidade.cooperado?.nome
-                    : unidade.investidor?.nome_investidor}
-                </TableCell>
+                <TableCell>{formatAddress(unidade)}</TableCell>
+                <TableCell>{getTitularName(unidade)}</TableCell>
                 <TableCell className="text-right space-x-2">
                   <Button
                     variant="outline"
