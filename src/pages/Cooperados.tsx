@@ -11,6 +11,7 @@ import { Plus, Edit, Trash } from "lucide-react";
 import { useState, useEffect } from "react";
 import { CooperadoForm } from "@/components/cooperados/CooperadoForm";
 import { UnidadeBeneficiariaForm } from "@/components/cooperados/UnidadeBeneficiariaForm";
+import { CooperadoPdfButton } from "@/components/cooperados/CooperadoPdfButton";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -188,6 +189,10 @@ const Cooperados = () => {
                   >
                     <Trash className="h-4 w-4" />
                   </Button>
+                  <CooperadoPdfButton
+                    cooperado={cooperado}
+                    unidades={unidades.filter(u => u.cooperado_id === cooperado.id)}
+                  />
                 </TableCell>
               </TableRow>
             ))}
