@@ -80,7 +80,7 @@ export function UnidadeUsinaForm({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("investidores")
-        .select("id, nome");
+        .select("id, nome_investidor");
       if (error) throw error;
       return data;
     },
@@ -253,7 +253,7 @@ export function UnidadeUsinaForm({
                           ))
                         : investidores?.map((investidor) => (
                             <SelectItem key={investidor.id} value={investidor.id}>
-                              {investidor.nome}
+                              {investidor.nome_investidor}
                             </SelectItem>
                           ))}
                     </SelectContent>

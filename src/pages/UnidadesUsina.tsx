@@ -25,7 +25,7 @@ const UnidadesUsina = () => {
         .select(`
           *,
           cooperado:cooperados(nome),
-          investidor:investidores(nome)
+          investidor:investidores(nome_investidor)
         `);
       if (error) throw error;
       return data;
@@ -85,7 +85,7 @@ const UnidadesUsina = () => {
                 <TableCell>
                   {unidade.titular_tipo === "cooperado"
                     ? unidade.cooperado?.nome
-                    : unidade.investidor?.nome}
+                    : unidade.investidor?.nome_investidor}
                 </TableCell>
                 <TableCell className="text-right space-x-2">
                   <Button
