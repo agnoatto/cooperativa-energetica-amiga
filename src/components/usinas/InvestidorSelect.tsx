@@ -26,13 +26,18 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
         .select("id, nome_investidor")
         .eq("status", "active");
       if (error) throw error;
-      return data;
+      return data || []; // Ensure we always return an array
     },
   });
 
-  const filteredInvestidores = investidores?.filter((investidor) =>
+  // Ensure we have an array to filter, even if investidores is undefined
+  const filteredInvestidores = (investidores || []).filter((investidor) =>
     investidor.nome_investidor.toLowerCase().includes(search.toLowerCase())
-  ) ?? [];
+  );
+
+  const selectedInvestidor = investidores?.find(
+    (investidor) => investidor.id === form.getValues("investidor_id")
+  );
 
   return (
     <FormField
@@ -54,8 +59,7 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : field.value ? (
-                    investidores?.find((investidor) => investidor.id === field.value)
-                      ?.nome_investidor
+                    selectedInvestidor?.nome_investidor || "Selecione um investidor"
                   ) : (
                     "Selecione um investidor"
                   )}
