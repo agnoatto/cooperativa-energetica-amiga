@@ -50,14 +50,16 @@ export function UsinaForm({
   });
 
   useEffect(() => {
-    if (usinaId && open) {
-      setIsLoading(true);
-      supabase
-        .from("usinas")
-        .select("*")
-        .eq("id", usinaId)
-        .single()
-        .then(({ data, error }) => {
+    async function fetchUsinaData() {
+      if (usinaId && open) {
+        setIsLoading(true);
+        try {
+          const { data, error } = await supabase
+            .from("usinas")
+            .select("*")
+            .eq("id", usinaId)
+            .single();
+
           if (error) {
             console.error("Error fetching usina:", error);
             return;
@@ -65,13 +67,17 @@ export function UsinaForm({
           if (data) {
             form.reset(data);
           }
-        })
-        .finally(() => {
+        } catch (error) {
+          console.error("Error:", error);
+        } finally {
           setIsLoading(false);
-        });
-    } else if (!open) {
-      form.reset();
+        }
+      } else if (!open) {
+        form.reset();
+      }
     }
+
+    fetchUsinaData();
   }, [usinaId, open, form]);
 
   const onSubmit = async (data: UsinaFormData) => {
