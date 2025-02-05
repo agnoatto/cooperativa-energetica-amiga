@@ -31,7 +31,7 @@ import { usinaFormSchema, type UsinaFormData } from "./schema";
 import { useEffect, useState } from "react";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface UsinaFormProps {
@@ -67,7 +67,7 @@ export function UsinaForm({
     },
   });
 
-  const { data: investidores } = useQuery({
+  const { data: investidores, isLoading: isLoadingInvestidores } = useQuery({
     queryKey: ["investidores"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -81,7 +81,7 @@ export function UsinaForm({
 
   const filteredInvestidores = investidores?.filter((investidor) =>
     investidor.nome_investidor.toLowerCase().includes(searchInvestidor.toLowerCase())
-  );
+  ) ?? [];
 
   const { data: unidades } = useQuery({
     queryKey: ["unidades_usina"],
@@ -199,10 +199,15 @@ export function UsinaForm({
                             role="combobox"
                             aria-expanded={openInvestidor}
                             className="w-full justify-between"
+                            disabled={isLoadingInvestidores}
                           >
-                            {field.value
-                              ? investidores?.find((investidor) => investidor.id === field.value)?.nome_investidor
-                              : "Selecione um investidor"}
+                            {isLoadingInvestidores ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : field.value ? (
+                              investidores?.find((investidor) => investidor.id === field.value)?.nome_investidor
+                            ) : (
+                              "Selecione um investidor"
+                            )}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
@@ -216,24 +221,30 @@ export function UsinaForm({
                           />
                           <CommandEmpty>Nenhum investidor encontrado.</CommandEmpty>
                           <CommandGroup>
-                            {filteredInvestidores?.map((investidor) => (
-                              <CommandItem
-                                key={investidor.id}
-                                value={investidor.nome_investidor}
-                                onSelect={() => {
-                                  form.setValue("investidor_id", investidor.id);
-                                  setOpenInvestidor(false);
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    field.value === investidor.id ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                {investidor.nome_investidor}
-                              </CommandItem>
-                            ))}
+                            {isLoadingInvestidores ? (
+                              <div className="p-4 text-center">
+                                <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                              </div>
+                            ) : (
+                              filteredInvestidores.map((investidor) => (
+                                <CommandItem
+                                  key={investidor.id}
+                                  value={investidor.nome_investidor}
+                                  onSelect={() => {
+                                    form.setValue("investidor_id", investidor.id);
+                                    setOpenInvestidor(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      field.value === investidor.id ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {investidor.nome_investidor}
+                                </CommandItem>
+                              ))
+                            )}
                           </CommandGroup>
                         </Command>
                       </PopoverContent>
