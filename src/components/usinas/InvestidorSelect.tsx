@@ -14,11 +14,16 @@ interface InvestidorSelectProps {
   form: UseFormReturn<UsinaFormData>;
 }
 
+interface Investidor {
+  id: string;
+  nome_investidor: string;
+}
+
 export function InvestidorSelect({ form }: InvestidorSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const { data: investidores, isLoading } = useQuery({
+  const { data: investidores = [], isLoading } = useQuery({
     queryKey: ["investidores"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -26,16 +31,15 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
         .select("id, nome_investidor")
         .eq("status", "active");
       if (error) throw error;
-      return data || []; // Ensure we always return an array
+      return (data || []) as Investidor[];
     },
   });
 
-  // Ensure we have an array to filter, even if investidores is undefined
-  const filteredInvestidores = (investidores || []).filter((investidor) =>
+  const filteredInvestidores = investidores.filter((investidor) =>
     investidor.nome_investidor.toLowerCase().includes(search.toLowerCase())
   );
 
-  const selectedInvestidor = investidores?.find(
+  const selectedInvestidor = investidores.find(
     (investidor) => investidor.id === form.getValues("investidor_id")
   );
 
