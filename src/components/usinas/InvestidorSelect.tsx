@@ -23,7 +23,7 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const { data: investidores = [], isLoading } = useQuery({
+  const { data: investidores, isLoading } = useQuery<Investidor[]>({
     queryKey: ["investidores"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -31,15 +31,15 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
         .select("id, nome_investidor")
         .eq("status", "active");
       if (error) throw error;
-      return (data || []) as Investidor[];
+      return data || [];
     },
   });
 
-  const filteredInvestidores = investidores.filter((investidor) =>
+  const filteredInvestidores = (investidores || []).filter((investidor) =>
     investidor.nome_investidor.toLowerCase().includes(search.toLowerCase())
   );
 
-  const selectedInvestidor = investidores.find(
+  const selectedInvestidor = (investidores || []).find(
     (investidor) => investidor.id === form.getValues("investidor_id")
   );
 
@@ -88,7 +88,7 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                     filteredInvestidores.map((investidor) => (
                       <CommandItem
                         key={investidor.id}
-                        value={investidor.nome_investidor}
+                        value={investidor.id}
                         onSelect={() => {
                           form.setValue("investidor_id", investidor.id);
                           setOpen(false);
