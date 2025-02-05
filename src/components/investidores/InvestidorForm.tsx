@@ -153,17 +153,17 @@ export function InvestidorForm({ open, onOpenChange, investidorId, onSuccess }: 
             <FormField
               control={form.control}
               name="documento"
-              render={({ field }) => (
+              render={({ field: { onChange, value, ...field } }) => (
                 <FormItem>
                   <FormLabel>CPF/CNPJ</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <InputMask
-                        {...field}
-                        mask={field.value.length <= 14 ? "999.999.999-99" : "99.999.999/9999-99"}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      />
-                    </div>
+                    <Input
+                      as={InputMask}
+                      mask={value.length <= 14 ? "999.999.999-99" : "99.999.999/9999-99"}
+                      value={value}
+                      onChange={onChange}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -173,17 +173,17 @@ export function InvestidorForm({ open, onOpenChange, investidorId, onSuccess }: 
             <FormField
               control={form.control}
               name="telefone"
-              render={({ field }) => (
+              render={({ field: { onChange, value, ...field } }) => (
                 <FormItem>
                   <FormLabel>Telefone</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <InputMask
-                        {...field}
-                        mask="(99) 99999-9999"
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      />
-                    </div>
+                    <Input
+                      as={InputMask}
+                      mask="(99) 99999-9999"
+                      value={value}
+                      onChange={onChange}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
