@@ -30,7 +30,7 @@ export function InvestidorFormFields({ form }: InvestidorFormFieldsProps) {
       <FormField
         control={form.control}
         name="documento"
-        render={({ field: { onChange, value, ...field } }) => (
+        render={({ field: { onChange, value, ref, ...field } }) => (
           <FormItem>
             <FormLabel>CPF/CNPJ</FormLabel>
             <FormControl>
@@ -40,7 +40,9 @@ export function InvestidorFormFields({ form }: InvestidorFormFieldsProps) {
                 onChange={onChange}
                 {...field}
               >
-                {(inputProps: any) => <MaskedInput {...inputProps} />}
+                {(inputProps: any) => (
+                  <MaskedInput {...inputProps} ref={ref} />
+                )}
               </InputMask>
             </FormControl>
             <FormMessage />
@@ -51,7 +53,7 @@ export function InvestidorFormFields({ form }: InvestidorFormFieldsProps) {
       <FormField
         control={form.control}
         name="telefone"
-        render={({ field: { onChange, value, ...field } }) => (
+        render={({ field: { onChange, value, ref, ...field } }) => (
           <FormItem>
             <FormLabel>Telefone</FormLabel>
             <FormControl>
@@ -61,7 +63,9 @@ export function InvestidorFormFields({ form }: InvestidorFormFieldsProps) {
                 onChange={onChange}
                 {...field}
               >
-                {(inputProps: any) => <MaskedInput {...inputProps} />}
+                {(inputProps: any) => (
+                  <MaskedInput {...inputProps} ref={ref} />
+                )}
               </InputMask>
             </FormControl>
             <FormMessage />
