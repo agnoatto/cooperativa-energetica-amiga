@@ -4,17 +4,21 @@ import {
   Building2,
   FileText,
   Home,
+  LogOut,
   Menu,
   Users,
   Wallet,
   User,
 } from "lucide-react";
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "./ui/use-toast";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -24,6 +28,9 @@ export function AppSidebar({ className, children }: SidebarProps) {
   const [open, setOpen] = useState(false);
   const isMobile = useIsMobile();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [user, setUser] = useState(() => supabase.auth.getUser());
 
   const routes = [
     {
@@ -82,6 +89,52 @@ export function AppSidebar({ className, children }: SidebarProps) {
     setOpen(false);
   };
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Logout realizado com sucesso",
+        description: "Você foi desconectado do sistema",
+      });
+      navigate("/auth");
+    } catch (error) {
+      toast({
+        title: "Erro ao realizar logout",
+        description: "Tente novamente mais tarde",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const userSection = (
+    <div className="p-4 border-t">
+      <div className="flex items-center gap-4 mb-4">
+        <Avatar>
+          <AvatarImage src={user.data.user?.user_metadata?.avatar_url} />
+          <AvatarFallback>
+            {user.data.user?.email?.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">
+            {user.data.user?.email}
+          </p>
+          <p className="text-xs text-muted-foreground truncate">
+            {user.data.user?.user_metadata?.full_name || 'Usuário'}
+          </p>
+        </div>
+      </div>
+      <Button
+        variant="outline"
+        className="w-full justify-start"
+        onClick={handleLogout}
+      >
+        <LogOut className="mr-2 h-4 w-4" />
+        Sair
+      </Button>
+    </div>
+  );
+
   const sidebar = (
     <div className={cn("pb-12", className)}>
       <div className="space-y-4 py-4">
@@ -139,6 +192,7 @@ export function AppSidebar({ className, children }: SidebarProps) {
           </div>
         </div>
       </div>
+      {userSection}
     </div>
   );
 
