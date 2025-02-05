@@ -1,38 +1,22 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
-import { Separator } from "@/components/ui/separator";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { InvestidorSelect } from "./InvestidorSelect";
+import { UnidadeUsinaSelect } from "./UnidadeUsinaSelect";
+import { DadosPagamentoFields } from "./DadosPagamentoFields";
 import { usinaFormSchema, type UsinaFormData } from "./schema";
 import { useEffect, useState } from "react";
-import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
 interface UsinaFormProps {
   open: boolean;
@@ -48,8 +32,6 @@ export function UsinaForm({
   onSuccess,
 }: UsinaFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [openInvestidor, setOpenInvestidor] = useState(false);
-  const [searchInvestidor, setSearchInvestidor] = useState("");
 
   const form = useForm<UsinaFormData>({
     resolver: zodResolver(usinaFormSchema),
@@ -67,63 +49,26 @@ export function UsinaForm({
     },
   });
 
-  const { data: investidores, isLoading: isLoadingInvestidores } = useQuery({
-    queryKey: ["investidores"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("investidores")
-        .select("id, nome_investidor")
-        .eq("status", "active");
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const filteredInvestidores = investidores?.filter((investidor) =>
-    investidor.nome_investidor.toLowerCase().includes(searchInvestidor.toLowerCase())
-  ) ?? [];
-
-  const { data: unidades } = useQuery({
-    queryKey: ["unidades_usina"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("unidades_usina")
-        .select(`
-          id,
-          numero_uc,
-          logradouro,
-          numero,
-          complemento,
-          cidade,
-          uf,
-          cep
-        `)
-        .eq("status", "active");
-      if (error) throw error;
-      return data;
-    },
-  });
-
   useEffect(() => {
     if (usinaId && open) {
       setIsLoading(true);
-      Promise.resolve(
-        supabase
-          .from("usinas")
-          .select("*")
-          .eq("id", usinaId)
-          .single()
-      ).then(({ data, error }) => {
-        if (error) {
-          console.error("Error fetching usina:", error);
-          return;
-        }
-        if (data) {
-          form.reset(data);
-        }
-      }).finally(() => {
-        setIsLoading(false);
-      });
+      supabase
+        .from("usinas")
+        .select("*")
+        .eq("id", usinaId)
+        .single()
+        .then(({ data, error }) => {
+          if (error) {
+            console.error("Error fetching usina:", error);
+            return;
+          }
+          if (data) {
+            form.reset(data);
+          }
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     } else if (!open) {
       form.reset();
     }
@@ -143,7 +88,7 @@ export function UsinaForm({
         dados_pagamento_conta: data.dados_pagamento_conta,
         dados_pagamento_telefone: data.dados_pagamento_telefone,
         dados_pagamento_email: data.dados_pagamento_email,
-        status: usinaId ? 'active' : 'draft',
+        status: usinaId ? "active" : "draft",
       };
 
       if (usinaId) {
@@ -155,9 +100,7 @@ export function UsinaForm({
         if (error) throw error;
         toast.success("Usina atualizada com sucesso!");
       } else {
-        const { error } = await supabase
-          .from("usinas")
-          .insert(usinaData);
+        const { error } = await supabase.from("usinas").insert(usinaData);
 
         if (error) throw error;
         toast.success("Usina cadastrada com sucesso!");
@@ -185,102 +128,8 @@ export function UsinaForm({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="investidor_id"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Investidor</FormLabel>
-                    <Popover open={openInvestidor} onOpenChange={setOpenInvestidor}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={openInvestidor}
-                            className="w-full justify-between"
-                            disabled={isLoadingInvestidores}
-                          >
-                            {isLoadingInvestidores ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : field.value ? (
-                              investidores?.find((investidor) => investidor.id === field.value)?.nome_investidor
-                            ) : (
-                              "Selecione um investidor"
-                            )}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                        <Command>
-                          <CommandInput
-                            placeholder="Buscar investidor..."
-                            value={searchInvestidor}
-                            onValueChange={setSearchInvestidor}
-                          />
-                          <CommandEmpty>Nenhum investidor encontrado.</CommandEmpty>
-                          <CommandGroup>
-                            {isLoadingInvestidores ? (
-                              <div className="p-4 text-center">
-                                <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-                              </div>
-                            ) : (
-                              filteredInvestidores.map((investidor) => (
-                                <CommandItem
-                                  key={investidor.id}
-                                  value={investidor.nome_investidor}
-                                  onSelect={() => {
-                                    form.setValue("investidor_id", investidor.id);
-                                    setOpenInvestidor(false);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      field.value === investidor.id ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                  {investidor.nome_investidor}
-                                </CommandItem>
-                              ))
-                            )}
-                          </CommandGroup>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="unidade_usina_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Unidade da Usina</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma unidade" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {unidades?.map((unidade) => (
-                          <SelectItem key={unidade.id} value={unidade.id}>
-                            {unidade.numero_uc} - {unidade.logradouro}, {unidade.numero}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <InvestidorSelect form={form} />
+              <UnidadeUsinaSelect form={form} />
 
               <FormField
                 control={form.control}
@@ -303,113 +152,17 @@ export function UsinaForm({
               />
             </div>
 
-            <Separator />
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Dados de Pagamento</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="dados_pagamento_nome"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="dados_pagamento_documento"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Documento</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="dados_pagamento_banco"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Banco</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="dados_pagamento_agencia"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Agência</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="dados_pagamento_conta"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Conta</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="dados_pagamento_telefone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Telefone</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="dados_pagamento_email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+            <DadosPagamentoFields form={form} />
 
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Salvando..." : "Salvar"}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                "Salvar"
+              )}
             </Button>
           </form>
         </Form>
