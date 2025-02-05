@@ -70,12 +70,12 @@ export function UnidadeUsinaForm({
     },
   });
 
-  const { data: cooperados } = useQuery({
-    queryKey: ["cooperados"],
+  const { data: investidores } = useQuery({
+    queryKey: ["investidores"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("cooperados")
-        .select("id, nome");
+        .from("investidores")
+        .select("id, nome_investidor");
       if (error) throw error;
       return data;
     },
@@ -297,9 +297,9 @@ export function UnidadeUsinaForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {cooperados?.map((cooperado) => (
-                        <SelectItem key={cooperado.id} value={cooperado.id}>
-                          {cooperado.nome}
+                      {investidores?.map((investidor) => (
+                        <SelectItem key={investidor.id} value={investidor.id}>
+                          {investidor.nome_investidor}
                         </SelectItem>
                       ))}
                     </SelectContent>
