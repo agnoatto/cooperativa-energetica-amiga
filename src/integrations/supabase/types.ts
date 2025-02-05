@@ -341,13 +341,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_titular_cooperado"
-            columns: ["titular_id"]
-            isOneToOne: false
-            referencedRelation: "cooperados"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fk_titular_investidor"
             columns: ["titular_id"]
             isOneToOne: false

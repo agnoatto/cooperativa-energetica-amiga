@@ -12,10 +12,12 @@ import { useState } from "react";
 import { UnidadeUsinaForm } from "@/components/unidades-usina/UnidadeUsinaForm";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 const UnidadesUsina = () => {
   const [selectedUnidadeId, setSelectedUnidadeId] = useState<string | undefined>();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const { toast } = useToast();
 
   const { data: unidades, refetch } = useQuery({
     queryKey: ["unidades_usina"],
@@ -23,19 +25,19 @@ const UnidadesUsina = () => {
       const { data, error } = await supabase
         .from("unidades_usina")
         .select(`
-          id,
-          numero_uc,
-          logradouro,
-          numero,
-          complemento,
-          cidade,
-          uf,
-          cep,
-          titular_id,
-          cooperado:cooperados(nome),
+          *,
           investidor:investidores(nome_investidor)
         `);
-      if (error) throw error;
+
+      if (error) {
+        console.error("Error fetching unidades:", error);
+        toast({
+          title: "Erro ao carregar unidades",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
       return data;
     },
   });
@@ -53,9 +55,19 @@ const UnidadesUsina = () => {
         .eq("id", unidadeId);
 
       if (error) throw error;
+      
+      toast({
+        title: "Unidade excluída com sucesso!",
+      });
+      
       refetch();
     } catch (error: any) {
       console.error("Error deleting unidade:", error);
+      toast({
+        title: "Erro ao excluir unidade",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -69,10 +81,6 @@ const UnidadesUsina = () => {
       unidade.cep,
     ].filter(Boolean);
     return parts.join(", ");
-  };
-
-  const getTitularName = (unidade: any) => {
-    return unidade.cooperado?.nome || unidade.investidor?.nome_investidor || "N/A";
   };
 
   return (
@@ -104,7 +112,7 @@ const UnidadesUsina = () => {
               <TableRow key={unidade.id}>
                 <TableCell>{unidade.numero_uc}</TableCell>
                 <TableCell>{formatAddress(unidade)}</TableCell>
-                <TableCell>{getTitularName(unidade)}</TableCell>
+                <TableCell>{unidade.investidor?.nome_investidor}</TableCell>
                 <TableCell className="text-right space-x-2">
                   <Button
                     variant="outline"
