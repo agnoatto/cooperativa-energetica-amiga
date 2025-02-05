@@ -10,7 +10,7 @@ import {
   Wallet,
   User,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
@@ -19,6 +19,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./ui/use-toast";
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -30,7 +31,23 @@ export function AppSidebar({ className, children }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [user, setUser] = useState(() => supabase.auth.getUser());
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+
+  useEffect(() => {
+    // Get initial user
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const routes = [
     {
@@ -106,21 +123,21 @@ export function AppSidebar({ className, children }: SidebarProps) {
     }
   };
 
-  const userSection = (
+  const userSection = user ? (
     <div className="p-4 border-t">
       <div className="flex items-center gap-4 mb-4">
         <Avatar>
-          <AvatarImage src={user.data.user?.user_metadata?.avatar_url} />
+          <AvatarImage src={user.user_metadata?.avatar_url} />
           <AvatarFallback>
-            {user.data.user?.email?.charAt(0).toUpperCase()}
+            {user.email?.charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate">
-            {user.data.user?.email}
+            {user.email}
           </p>
           <p className="text-xs text-muted-foreground truncate">
-            {user.data.user?.user_metadata?.full_name || 'Usuário'}
+            {user.user_metadata?.full_name || 'Usuário'}
           </p>
         </div>
       </div>
@@ -133,7 +150,7 @@ export function AppSidebar({ className, children }: SidebarProps) {
         Sair
       </Button>
     </div>
-  );
+  ) : null;
 
   const sidebar = (
     <div className={cn("pb-12", className)}>
