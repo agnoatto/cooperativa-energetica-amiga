@@ -29,6 +29,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Separator } from "@/components/ui/separator";
 import { usinaFormSchema, type UsinaFormData } from "./schema";
 import { useEffect, useState } from "react";
+import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface UsinaFormProps {
   open: boolean;
@@ -44,6 +48,8 @@ export function UsinaForm({
   onSuccess,
 }: UsinaFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [openInvestidor, setOpenInvestidor] = useState(false);
+  const [searchInvestidor, setSearchInvestidor] = useState("");
 
   const form = useForm<UsinaFormData>({
     resolver: zodResolver(usinaFormSchema),
@@ -72,6 +78,10 @@ export function UsinaForm({
       return data;
     },
   });
+
+  const filteredInvestidores = investidores?.filter((investidor) =>
+    investidor.nome_investidor.toLowerCase().includes(searchInvestidor.toLowerCase())
+  );
 
   const { data: unidades } = useQuery({
     queryKey: ["unidades_usina"],
@@ -179,25 +189,55 @@ export function UsinaForm({
                 control={form.control}
                 name="investidor_id"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Investidor</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um investidor" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {investidores?.map((investidor) => (
-                          <SelectItem key={investidor.id} value={investidor.id}>
-                            {investidor.nome_investidor}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={openInvestidor} onOpenChange={setOpenInvestidor}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={openInvestidor}
+                            className="w-full justify-between"
+                          >
+                            {field.value
+                              ? investidores?.find((investidor) => investidor.id === field.value)?.nome_investidor
+                              : "Selecione um investidor"}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                        <Command>
+                          <CommandInput
+                            placeholder="Buscar investidor..."
+                            value={searchInvestidor}
+                            onValueChange={setSearchInvestidor}
+                          />
+                          <CommandEmpty>Nenhum investidor encontrado.</CommandEmpty>
+                          <CommandGroup>
+                            {filteredInvestidores?.map((investidor) => (
+                              <CommandItem
+                                key={investidor.id}
+                                value={investidor.nome_investidor}
+                                onSelect={() => {
+                                  form.setValue("investidor_id", investidor.id);
+                                  setOpenInvestidor(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    field.value === investidor.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {investidor.nome_investidor}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
