@@ -34,6 +34,7 @@ const unidadeUsinaFormSchema = z.object({
   logradouro: z.string().min(1, "Logradouro é obrigatório"),
   numero: z.string().min(1, "Número é obrigatório"),
   complemento: z.string().optional(),
+  bairro: z.string().min(1, "Bairro é obrigatório"),
   cidade: z.string().min(1, "Cidade é obrigatória"),
   uf: z.string().min(2, "UF é obrigatória").max(2, "UF deve ter 2 caracteres"),
   cep: z.string().min(8, "CEP é obrigatório").max(9, "CEP inválido"),
@@ -63,6 +64,7 @@ export function UnidadeUsinaForm({
       logradouro: "",
       numero: "",
       complemento: "",
+      bairro: "",
       cidade: "",
       uf: "",
       cep: "",
@@ -99,6 +101,7 @@ export function UnidadeUsinaForm({
               logradouro: data.logradouro || "",
               numero: data.numero || "",
               complemento: data.complemento || "",
+              bairro: data.bairro || "",
               cidade: data.cidade || "",
               uf: data.uf || "",
               cep: data.cep || "",
@@ -112,6 +115,7 @@ export function UnidadeUsinaForm({
         logradouro: "",
         numero: "",
         complemento: "",
+        bairro: "",
         cidade: "",
         uf: "",
         cep: "",
@@ -127,6 +131,7 @@ export function UnidadeUsinaForm({
         logradouro: data.logradouro,
         numero: data.numero,
         complemento: data.complemento,
+        bairro: data.bairro,
         cidade: data.cidade,
         uf: data.uf.toUpperCase(),
         cep: data.cep,
@@ -236,6 +241,20 @@ export function UnidadeUsinaForm({
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="bairro"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bairro</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <FormField

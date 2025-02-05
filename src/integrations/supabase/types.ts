@@ -295,6 +295,7 @@ export type Database = {
       }
       unidades_usina: {
         Row: {
+          bairro: string | null
           cep: string | null
           cidade: string | null
           complemento: string | null
@@ -310,6 +311,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          bairro?: string | null
           cep?: string | null
           cidade?: string | null
           complemento?: string | null
@@ -325,6 +327,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          bairro?: string | null
           cep?: string | null
           cidade?: string | null
           complemento?: string | null
