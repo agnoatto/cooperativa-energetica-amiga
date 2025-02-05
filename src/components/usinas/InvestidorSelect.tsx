@@ -11,6 +11,8 @@ import { UsinaFormData } from "./schema";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
 
 interface InvestidorSelectProps {
   form: UseFormReturn<UsinaFormData>;
@@ -22,13 +24,17 @@ interface Investidor {
 }
 
 export function InvestidorSelect({ form }: InvestidorSelectProps) {
+  const [searchTerm, setSearchTerm] = useState("");
+
   const { data: investidores, isLoading } = useQuery<Investidor[]>({
     queryKey: ["investidores"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("investidores")
         .select("id, nome_investidor")
-        .eq("status", "active");
+        .eq("status", "active")
+        .ilike("nome_investidor", `%${searchTerm}%`)
+        .order("nome_investidor", { ascending: true });
       
       if (error) throw error;
       return data || [];
@@ -59,7 +65,15 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                 </SelectValue>
               </SelectTrigger>
             </FormControl>
-            <SelectContent>
+            <SelectContent className="max-h-[200px] overflow-y-auto">
+              <div className="sticky top-0 bg-background p-2">
+                <Input
+                  placeholder="Buscar investidor..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="h-8"
+                />
+              </div>
               {investidores?.map((investidor) => (
                 <SelectItem key={investidor.id} value={investidor.id}>
                   {investidor.nome_investidor}
