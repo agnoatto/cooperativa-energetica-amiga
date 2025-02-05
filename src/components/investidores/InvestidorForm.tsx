@@ -6,48 +6,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Form } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { useToast } from "../ui/use-toast";
-import InputMask from "react-input-mask";
-
-interface MaskedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  mask: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}
-
-const MaskedInput = React.forwardRef<HTMLInputElement, MaskedInputProps>(
-  ({ className, mask, ...props }, ref) => (
-    <input
-      {...props}
-      ref={ref}
-      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-    />
-  )
-);
-
-MaskedInput.displayName = "MaskedInput";
-
-const investidorFormSchema = z.object({
-  nome_investidor: z.string().min(1, "Nome do investidor é obrigatório"),
-  documento: z.string().min(14, "CPF/CNPJ é obrigatório"),
-  telefone: z.string().optional(),
-  email: z.string().email("Email inválido").optional().or(z.literal("")),
-});
-
-type InvestidorFormData = z.infer<typeof investidorFormSchema>;
+import { InvestidorFormFields } from "./InvestidorFormFields";
+import { investidorFormSchema, type InvestidorFormData } from "./types";
 
 interface InvestidorFormProps {
   open: boolean;
@@ -56,7 +21,12 @@ interface InvestidorFormProps {
   onSuccess: () => void;
 }
 
-export function InvestidorForm({ open, onOpenChange, investidorId, onSuccess }: InvestidorFormProps) {
+export function InvestidorForm({
+  open,
+  onOpenChange,
+  investidorId,
+  onSuccess,
+}: InvestidorFormProps) {
   const { toast } = useToast();
   const form = useForm<InvestidorFormData>({
     resolver: zodResolver(investidorFormSchema),
@@ -103,8 +73,8 @@ export function InvestidorForm({ open, onOpenChange, investidorId, onSuccess }: 
     try {
       const submitData = {
         nome_investidor: data.nome_investidor,
-        documento: data.documento.replace(/\D/g, ''),
-        telefone: data.telefone ? data.telefone.replace(/\D/g, '') : null,
+        documento: data.documento.replace(/\D/g, ""),
+        telefone: data.telefone ? data.telefone.replace(/\D/g, "") : null,
         email: data.email || null,
         updated_at: new Date().toISOString(),
       };
@@ -119,13 +89,11 @@ export function InvestidorForm({ open, onOpenChange, investidorId, onSuccess }: 
           title: "Investidor atualizado com sucesso!",
         });
       } else {
-        const { error } = await supabase
-          .from("investidores")
-          .insert({
-            ...submitData,
-            status: 'draft',
-            session_id: crypto.randomUUID(),
-          });
+        const { error } = await supabase.from("investidores").insert({
+          ...submitData,
+          status: "draft",
+          session_id: crypto.randomUUID(),
+        });
         if (error) throw error;
         toast({
           title: "Investidor criado com sucesso!",
@@ -154,76 +122,7 @@ export function InvestidorForm({ open, onOpenChange, investidorId, onSuccess }: 
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="nome_investidor"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome do Investidor</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="documento"
-              render={({ field: { onChange, value, ...field } }) => (
-                <FormItem>
-                  <FormLabel>CPF/CNPJ</FormLabel>
-                  <FormControl>
-                    <InputMask
-                      mask={value.length <= 14 ? "999.999.999-99" : "99.999.999/9999-99"}
-                      value={value}
-                      onChange={onChange}
-                      {...field}
-                    >
-                      {(inputProps: any) => <MaskedInput {...inputProps} />}
-                    </InputMask>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="telefone"
-              render={({ field: { onChange, value, ...field } }) => (
-                <FormItem>
-                  <FormLabel>Telefone</FormLabel>
-                  <FormControl>
-                    <InputMask
-                      mask="(99) 99999-9999"
-                      value={value}
-                      onChange={onChange}
-                      {...field}
-                    >
-                      {(inputProps: any) => <MaskedInput {...inputProps} />}
-                    </InputMask>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="email" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+            <InvestidorFormFields form={form} />
             <Button type="submit">Salvar</Button>
           </form>
         </Form>
