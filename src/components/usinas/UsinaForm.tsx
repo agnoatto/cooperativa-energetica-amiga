@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { InvestidorSelect } from "./InvestidorSelect";
 import { UnidadeUsinaSelect } from "./UnidadeUsinaSelect";
 import { DadosPagamentoFields } from "./DadosPagamentoFields";
 import { usinaFormSchema, type UsinaFormData } from "./schema";
@@ -35,6 +36,7 @@ export function UsinaForm({
   const form = useForm<UsinaFormData>({
     resolver: zodResolver(usinaFormSchema),
     defaultValues: {
+      investidor_id: "",
       unidade_usina_id: "",
       valor_kwh: 0,
       dados_pagamento_nome: "",
@@ -82,6 +84,7 @@ export function UsinaForm({
     try {
       setIsLoading(true);
       const usinaData = {
+        investidor_id: data.investidor_id,
         unidade_usina_id: data.unidade_usina_id,
         valor_kwh: data.valor_kwh,
         dados_pagamento_nome: data.dados_pagamento_nome,
@@ -131,6 +134,7 @@ export function UsinaForm({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
+              <InvestidorSelect form={form} />
               <UnidadeUsinaSelect form={form} />
 
               <FormField
