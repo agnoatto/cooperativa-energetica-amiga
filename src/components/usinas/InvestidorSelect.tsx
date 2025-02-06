@@ -33,7 +33,7 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const { data: investidores, isLoading } = useQuery({
+  const { data: investidores = [], isLoading } = useQuery({
     queryKey: ["investidores"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -50,11 +50,11 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
     },
   });
 
-  const filteredInvestidores = investidores?.filter((inv) =>
+  const filteredInvestidores = investidores.filter((inv) =>
     inv.nome_investidor.toLowerCase().includes(search.toLowerCase())
-  ) || [];
+  );
 
-  const selectedInvestidor = investidores?.find(
+  const selectedInvestidor = investidores.find(
     (inv) => inv.id === form.getValues("investidor_id")
   );
 
