@@ -86,7 +86,7 @@ const Faturas = () => {
             nome
           )
         `)
-        .is("data_saida", null);
+        .filter('data_saida', 'is', null); // Changed this line to use filter instead of is
 
       if (unidadesError) throw unidadesError;
 
