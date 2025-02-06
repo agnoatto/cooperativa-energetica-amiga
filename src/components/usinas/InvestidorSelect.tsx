@@ -48,13 +48,18 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
     },
   });
 
-  const filteredInvestidores = investidores.filter((investidor) =>
-    investidor.nome_investidor.toLowerCase().includes(search.toLowerCase())
-  );
+  // Só filtrar se os dados estiverem carregados
+  const filteredInvestidores = !isLoading 
+    ? investidores.filter((investidor) =>
+        investidor.nome_investidor.toLowerCase().includes(search.toLowerCase())
+      )
+    : [];
 
-  const selectedInvestidor = investidores.find(
-    (investidor) => investidor.id === form.getValues("investidor_id")
-  );
+  const selectedInvestidor = !isLoading
+    ? investidores.find(
+        (investidor) => investidor.id === form.getValues("investidor_id")
+      )
+    : undefined;
 
   return (
     <FormField
@@ -98,6 +103,7 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                   value={search}
                   onValueChange={setSearch}
                   className="h-9"
+                  disabled={isLoading}
                 />
                 <CommandEmpty>Nenhum investidor encontrado.</CommandEmpty>
                 {!isLoading && (

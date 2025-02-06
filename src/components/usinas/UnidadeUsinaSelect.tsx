@@ -50,14 +50,19 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
     },
   });
 
-  const filteredUnidades = unidades.filter((unidade) =>
-    unidade.numero_uc.toLowerCase().includes(search.toLowerCase()) ||
-    (unidade.logradouro && unidade.logradouro.toLowerCase().includes(search.toLowerCase()))
-  );
+  // Só filtrar se os dados estiverem carregados
+  const filteredUnidades = !isLoading
+    ? unidades.filter((unidade) =>
+        unidade.numero_uc.toLowerCase().includes(search.toLowerCase()) ||
+        (unidade.logradouro && unidade.logradouro.toLowerCase().includes(search.toLowerCase()))
+      )
+    : [];
 
-  const selectedUnidade = unidades.find(
-    (unidade) => unidade.id === form.getValues("unidade_usina_id")
-  );
+  const selectedUnidade = !isLoading
+    ? unidades.find(
+        (unidade) => unidade.id === form.getValues("unidade_usina_id")
+      )
+    : undefined;
 
   return (
     <FormField
@@ -81,7 +86,10 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Carregando...</span>
+                    </div>
                   ) : selectedUnidade ? (
                     `UC ${selectedUnidade.numero_uc} - ${selectedUnidade.logradouro || ''}, ${selectedUnidade.numero || ''}`
                   ) : (
@@ -98,6 +106,7 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
                   value={search}
                   onValueChange={setSearch}
                   className="h-9"
+                  disabled={isLoading}
                 />
                 <CommandEmpty>Nenhuma unidade encontrada.</CommandEmpty>
                 {!isLoading && (
