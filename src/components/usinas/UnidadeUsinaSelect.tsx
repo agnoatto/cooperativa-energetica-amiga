@@ -12,7 +12,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UseFormReturn } from "react-hook-form";
 import { UsinaFormData } from "./schema";
@@ -35,23 +35,29 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const { data: unidades, isLoading } = useQuery<UnidadeUsina[]>({
+  const { data: unidades, isLoading } = useQuery({
     queryKey: ["unidades_usina"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("unidades_usina")
         .select("id, numero_uc, logradouro, numero")
-        .eq("status", "active");
-      if (error) throw error;
+        .eq("status", "active")
+        .order("numero_uc");
+
+      if (error) {
+        console.error("Error fetching unidades:", error);
+        throw error;
+      }
       return data || [];
     },
   });
 
-  const filteredUnidades = (unidades || []).filter((unidade) =>
-    unidade.numero_uc.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredUnidades = unidades?.filter((unidade) =>
+    unidade.numero_uc.toLowerCase().includes(search.toLowerCase()) ||
+    unidade.logradouro?.toLowerCase().includes(search.toLowerCase())
+  ) || [];
 
-  const selectedUnidade = (unidades || []).find(
+  const selectedUnidade = unidades?.find(
     (unidade) => unidade.id === form.getValues("unidade_usina_id")
   );
 
@@ -70,12 +76,15 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
                   role="combobox"
                   aria-expanded={open}
                   className={cn(
-                    "justify-between",
+                    "w-full justify-between",
                     !field.value && "text-muted-foreground"
                   )}
+                  disabled={isLoading}
                 >
-                  {selectedUnidade ? (
-                    `UC ${selectedUnidade.numero_uc} - ${selectedUnidade.logradouro}, ${selectedUnidade.numero}`
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : selectedUnidade ? (
+                    `UC ${selectedUnidade.numero_uc} - ${selectedUnidade.logradouro || ''}, ${selectedUnidade.numero || ''}`
                   ) : (
                     "Selecione uma unidade"
                   )}
@@ -83,12 +92,13 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="p-0">
+            <PopoverContent className="w-[400px] p-0">
               <Command>
                 <CommandInput
                   placeholder="Buscar unidade..."
                   value={search}
                   onValueChange={setSearch}
+                  className="h-9"
                 />
                 <CommandEmpty>Nenhuma unidade encontrada.</CommandEmpty>
                 <CommandGroup className="max-h-[300px] overflow-y-auto">
@@ -109,7 +119,7 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
                             : "opacity-0"
                         )}
                       />
-                      UC {unidade.numero_uc} - {unidade.logradouro}, {unidade.numero}
+                      UC {unidade.numero_uc} - {unidade.logradouro || ''}, {unidade.numero || ''}
                     </CommandItem>
                   ))}
                 </CommandGroup>
