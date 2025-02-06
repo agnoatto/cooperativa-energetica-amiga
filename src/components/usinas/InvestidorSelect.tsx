@@ -1,18 +1,23 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import { UseFormReturn } from "react-hook-form";
 import { UsinaFormData } from "./schema";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Search } from "lucide-react";
-import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface InvestidorSelectProps {
@@ -25,99 +30,99 @@ interface Investidor {
 }
 
 export function InvestidorSelect({ form }: InvestidorSelectProps) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredInvestidores, setFilteredInvestidores] = useState<Investidor[]>([]);
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const { data: investidores, isLoading, error } = useQuery<Investidor[]>({
+  const { data: investidores, isLoading } = useQuery({
     queryKey: ["investidores"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("investidores")
         .select("id, nome_investidor")
         .eq("status", "active")
-        .order("nome_investidor", { ascending: true });
-      
-      if (error) throw error;
+        .order("nome_investidor");
+
+      if (error) {
+        console.error("Error fetching investidores:", error);
+        throw error;
+      }
       return data || [];
     },
   });
 
-  useEffect(() => {
-    if (investidores) {
-      setFilteredInvestidores(
-        investidores.filter((inv) =>
-          inv.nome_investidor.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-    }
-  }, [searchTerm, investidores]);
+  const filteredInvestidores = investidores?.filter((inv) =>
+    inv.nome_investidor.toLowerCase().includes(search.toLowerCase())
+  ) || [];
 
-  if (error) {
-    console.error("Error loading investidores:", error);
-  }
+  const selectedInvestidor = investidores?.find(
+    (inv) => inv.id === form.getValues("investidor_id")
+  );
 
   return (
     <FormField
       control={form.control}
       name="investidor_id"
       render={({ field }) => (
-        <FormItem>
+        <FormItem className="flex flex-col">
           <FormLabel>Investidor</FormLabel>
-          <Select 
-            disabled={isLoading}
-            onValueChange={field.onChange} 
-            value={field.value}
-          >
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um investidor">
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <FormControl>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={open}
+                  className={cn(
+                    "w-full justify-between",
+                    !field.value && "text-muted-foreground"
+                  )}
+                  disabled={isLoading}
+                >
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : selectedInvestidor ? (
+                    selectedInvestidor.nome_investidor
                   ) : (
-                    investidores?.find(inv => inv.id === field.value)?.nome_investidor || 
                     "Selecione um investidor"
                   )}
-                </SelectValue>
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent 
-              className="max-h-[300px]"
-              position="popper"
-              sideOffset={5}
-            >
-              <div className="sticky top-0 bg-background px-2 py-2 border-b">
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar investidor..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className={cn(
-                      "pl-8 h-9",
-                      "focus-visible:ring-1 focus-visible:ring-offset-0"
-                    )}
-                  />
-                </div>
-              </div>
-              <div className="max-h-[200px] overflow-y-auto">
-                {filteredInvestidores.length === 0 ? (
-                  <div className="relative px-2 py-1.5 text-sm text-muted-foreground">
-                    Nenhum investidor encontrado
-                  </div>
-                ) : (
-                  filteredInvestidores.map((investidor) => (
-                    <SelectItem 
-                      key={investidor.id} 
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </FormControl>
+            </PopoverTrigger>
+            <PopoverContent className="w-[400px] p-0" align="start">
+              <Command>
+                <CommandInput
+                  placeholder="Buscar investidor..."
+                  value={search}
+                  onValueChange={setSearch}
+                  className="h-9"
+                />
+                <CommandEmpty>Nenhum investidor encontrado.</CommandEmpty>
+                <CommandGroup className="max-h-[300px] overflow-y-auto">
+                  {filteredInvestidores.map((investidor) => (
+                    <CommandItem
+                      key={investidor.id}
                       value={investidor.id}
-                      className="cursor-pointer"
+                      onSelect={() => {
+                        form.setValue("investidor_id", investidor.id);
+                        setOpen(false);
+                      }}
                     >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          investidor.id === field.value
+                            ? "opacity-100"
+                            : "opacity-0"
+                        )}
+                      />
                       {investidor.nome_investidor}
-                    </SelectItem>
-                  ))
-                )}
-              </div>
-            </SelectContent>
-          </Select>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
           <FormMessage />
         </FormItem>
       )}

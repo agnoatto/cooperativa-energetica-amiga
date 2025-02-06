@@ -92,7 +92,7 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="w-[400px] p-0">
+            <PopoverContent className="w-[400px] p-0" align="start">
               <Command>
                 <CommandInput
                   placeholder="Buscar unidade..."
