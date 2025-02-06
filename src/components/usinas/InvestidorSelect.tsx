@@ -1,15 +1,25 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { UseFormReturn } from "react-hook-form";
 import { type UsinaFormData } from "./schema";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface InvestidorSelectProps {
@@ -23,8 +33,9 @@ interface Investidor {
 
 export function InvestidorSelect({ form }: InvestidorSelectProps) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const { data, isLoading, error } = useQuery({
+  const { data: investidores = [], isLoading } = useQuery({
     queryKey: ["investidores"],
     queryFn: async () => {
       try {
@@ -34,8 +45,7 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
           .order("nome_investidor");
 
         if (error) throw error;
-
-        return (data || []) as Investidor[];
+        return data || [];
       } catch (error) {
         console.error("Error fetching investidores:", error);
         toast.error("Erro ao carregar investidores");
@@ -44,7 +54,9 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
     },
   });
 
-  const investidores = data || [];
+  const filteredInvestidores = investidores.filter((investidor) =>
+    investidor.nome_investidor.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <FormField
@@ -86,31 +98,35 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
               <Command>
                 <CommandInput
                   placeholder="Buscar investidor..."
+                  value={search}
+                  onValueChange={setSearch}
                   className="h-9"
                 />
                 <CommandEmpty>Nenhum investidor encontrado.</CommandEmpty>
-                <CommandGroup className="max-h-[300px] overflow-auto">
-                  {investidores.map((investidor) => (
-                    <CommandItem
-                      key={investidor.id}
-                      value={investidor.nome_investidor}
-                      onSelect={() => {
-                        form.setValue("investidor_id", investidor.id);
-                        setOpen(false);
-                      }}
-                    >
-                      {investidor.nome_investidor}
-                      <CheckIcon
-                        className={cn(
-                          "ml-auto h-4 w-4",
-                          investidor.id === field.value
-                            ? "opacity-100"
-                            : "opacity-0"
-                        )}
-                      />
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                {!isLoading && (
+                  <CommandGroup className="max-h-[300px] overflow-auto">
+                    {filteredInvestidores.map((investidor) => (
+                      <CommandItem
+                        key={investidor.id}
+                        value={investidor.nome_investidor}
+                        onSelect={() => {
+                          form.setValue("investidor_id", investidor.id);
+                          setOpen(false);
+                        }}
+                      >
+                        {investidor.nome_investidor}
+                        <CheckIcon
+                          className={cn(
+                            "ml-auto h-4 w-4",
+                            investidor.id === field.value
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
               </Command>
             </PopoverContent>
           </Popover>
