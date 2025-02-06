@@ -50,19 +50,14 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
     },
   });
 
-  // Só filtrar se os dados estiverem carregados
-  const filteredUnidades = !isLoading
-    ? unidades.filter((unidade) =>
-        unidade.numero_uc.toLowerCase().includes(search.toLowerCase()) ||
-        (unidade.logradouro && unidade.logradouro.toLowerCase().includes(search.toLowerCase()))
-      )
-    : [];
+  const filteredUnidades = unidades.filter((unidade) =>
+    unidade.numero_uc.toLowerCase().includes(search.toLowerCase()) ||
+    (unidade.logradouro && unidade.logradouro.toLowerCase().includes(search.toLowerCase()))
+  );
 
-  const selectedUnidade = !isLoading
-    ? unidades.find(
-        (unidade) => unidade.id === form.getValues("unidade_usina_id")
-      )
-    : undefined;
+  const selectedUnidade = unidades.find(
+    (unidade) => unidade.id === form.getValues("unidade_usina_id")
+  );
 
   return (
     <FormField
@@ -109,9 +104,11 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
                   disabled={isLoading}
                 />
                 <CommandEmpty>Nenhuma unidade encontrada.</CommandEmpty>
-                {!isLoading && (
-                  <CommandGroup>
-                    {filteredUnidades.map((unidade) => (
+                <CommandGroup>
+                  {isLoading ? (
+                    <CommandItem disabled>Carregando...</CommandItem>
+                  ) : (
+                    filteredUnidades.map((unidade) => (
                       <CommandItem
                         key={unidade.id}
                         value={unidade.id}
@@ -130,9 +127,9 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
                         />
                         UC {unidade.numero_uc} - {unidade.logradouro || ''}, {unidade.numero || ''}
                       </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
+                    ))
+                  )}
+                </CommandGroup>
               </Command>
             </PopoverContent>
           </Popover>

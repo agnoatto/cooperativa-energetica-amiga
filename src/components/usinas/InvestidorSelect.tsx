@@ -48,18 +48,13 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
     },
   });
 
-  // Só filtrar se os dados estiverem carregados
-  const filteredInvestidores = !isLoading 
-    ? investidores.filter((investidor) =>
-        investidor.nome_investidor.toLowerCase().includes(search.toLowerCase())
-      )
-    : [];
+  const filteredInvestidores = investidores.filter((investidor) =>
+    investidor.nome_investidor.toLowerCase().includes(search.toLowerCase())
+  );
 
-  const selectedInvestidor = !isLoading
-    ? investidores.find(
-        (investidor) => investidor.id === form.getValues("investidor_id")
-      )
-    : undefined;
+  const selectedInvestidor = investidores.find(
+    (investidor) => investidor.id === form.getValues("investidor_id")
+  );
 
   return (
     <FormField
@@ -106,9 +101,11 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                   disabled={isLoading}
                 />
                 <CommandEmpty>Nenhum investidor encontrado.</CommandEmpty>
-                {!isLoading && (
-                  <CommandGroup>
-                    {filteredInvestidores.map((investidor) => (
+                <CommandGroup>
+                  {isLoading ? (
+                    <CommandItem disabled>Carregando...</CommandItem>
+                  ) : (
+                    filteredInvestidores.map((investidor) => (
                       <CommandItem
                         key={investidor.id}
                         value={investidor.nome_investidor}
@@ -127,9 +124,9 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                           )}
                         />
                       </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
+                    ))
+                  )}
+                </CommandGroup>
               </Command>
             </PopoverContent>
           </Popover>
