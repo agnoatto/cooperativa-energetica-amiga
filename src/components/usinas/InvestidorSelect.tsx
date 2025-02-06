@@ -48,9 +48,11 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
     },
   });
 
-  const filteredInvestidores = investidores.filter((investidor) =>
-    investidor.nome_investidor.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredInvestidores = isLoading 
+    ? [] 
+    : investidores.filter((investidor) =>
+        investidor.nome_investidor.toLowerCase().includes(search.toLowerCase())
+      );
 
   const selectedInvestidor = investidores.find(
     (investidor) => investidor.id === form.getValues("investidor_id")
@@ -103,7 +105,12 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                 <CommandEmpty>Nenhum investidor encontrado.</CommandEmpty>
                 <CommandGroup>
                   {isLoading ? (
-                    <CommandItem disabled>Carregando...</CommandItem>
+                    <CommandItem disabled>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Carregando...
+                    </CommandItem>
+                  ) : filteredInvestidores.length === 0 ? (
+                    <CommandItem disabled>Nenhum resultado encontrado.</CommandItem>
                   ) : (
                     filteredInvestidores.map((investidor) => (
                       <CommandItem

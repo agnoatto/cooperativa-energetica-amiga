@@ -50,10 +50,12 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
     },
   });
 
-  const filteredUnidades = unidades.filter((unidade) =>
-    unidade.numero_uc.toLowerCase().includes(search.toLowerCase()) ||
-    (unidade.logradouro && unidade.logradouro.toLowerCase().includes(search.toLowerCase()))
-  );
+  const filteredUnidades = isLoading 
+    ? [] 
+    : unidades.filter((unidade) =>
+        unidade.numero_uc.toLowerCase().includes(search.toLowerCase()) ||
+        (unidade.logradouro && unidade.logradouro.toLowerCase().includes(search.toLowerCase()))
+      );
 
   const selectedUnidade = unidades.find(
     (unidade) => unidade.id === form.getValues("unidade_usina_id")
@@ -106,7 +108,12 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
                 <CommandEmpty>Nenhuma unidade encontrada.</CommandEmpty>
                 <CommandGroup>
                   {isLoading ? (
-                    <CommandItem disabled>Carregando...</CommandItem>
+                    <CommandItem disabled>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Carregando...
+                    </CommandItem>
+                  ) : filteredUnidades.length === 0 ? (
+                    <CommandItem disabled>Nenhuma unidade encontrada.</CommandItem>
                   ) : (
                     filteredUnidades.map((unidade) => (
                       <CommandItem
