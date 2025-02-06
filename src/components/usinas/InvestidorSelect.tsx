@@ -22,22 +22,26 @@ interface Investidor {
 }
 
 export function InvestidorSelect({ form }: InvestidorSelectProps) {
-  const { data: investidores = [], isLoading } = useQuery({
+  const { data: investidores = [], isLoading, error } = useQuery({
     queryKey: ["investidores"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("investidores")
         .select("id, nome_investidor")
-        .eq("status", "active")
         .order("nome_investidor");
 
       if (error) {
         console.error("Error fetching investidores:", error);
         throw error;
       }
-      return data || [];
+
+      return data as Investidor[];
     },
   });
+
+  if (error) {
+    console.error("Error loading investidores:", error);
+  }
 
   return (
     <FormField
