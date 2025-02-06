@@ -92,7 +92,7 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
               </FormControl>
             </PopoverTrigger>
             <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-              <Command>
+              <Command shouldFilter={false}>
                 <CommandInput
                   placeholder="Buscar investidor..."
                   value={search}
