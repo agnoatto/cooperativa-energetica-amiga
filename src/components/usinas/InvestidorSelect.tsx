@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { UseFormReturn } from "react-hook-form";
+import { type UsinaFormData } from "./schema";
 
 interface InvestidorSelectProps {
   form: UseFormReturn<UsinaFormData>;
