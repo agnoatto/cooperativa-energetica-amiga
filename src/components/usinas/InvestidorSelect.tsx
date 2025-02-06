@@ -11,6 +11,12 @@ import { UsinaFormData } from "./schema";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 interface InvestidorSelectProps {
   form: UseFormReturn<UsinaFormData>;
@@ -22,6 +28,8 @@ interface Investidor {
 }
 
 export function InvestidorSelect({ form }: InvestidorSelectProps) {
+  const [open, setOpen] = useState(false);
+
   const { data: investidores = [], isLoading, error } = useQuery({
     queryKey: ["investidores"],
     queryFn: async () => {
@@ -48,30 +56,65 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
       control={form.control}
       name="investidor_id"
       render={({ field }) => (
-        <FormItem>
+        <FormItem className="flex flex-col">
           <FormLabel>Investidor</FormLabel>
-          <Select
-            disabled={isLoading}
-            onValueChange={field.onChange}
-            value={field.value}
-          >
-            <FormControl>
-              <SelectTrigger>
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <SelectValue placeholder="Selecione um investidor" />
-                )}
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {investidores.map((investidor) => (
-                <SelectItem key={investidor.id} value={investidor.id}>
-                  {investidor.nome_investidor}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <FormControl>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={open}
+                  className={cn(
+                    "w-full justify-between",
+                    !field.value && "text-muted-foreground"
+                  )}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : field.value ? (
+                    investidores.find((investidor) => investidor.id === field.value)
+                      ?.nome_investidor
+                  ) : (
+                    "Selecione um investidor"
+                  )}
+                  <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </FormControl>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+              <Command>
+                <CommandInput
+                  placeholder="Buscar investidor..."
+                  className="h-9"
+                />
+                <CommandEmpty>Nenhum investidor encontrado.</CommandEmpty>
+                <CommandGroup className="max-h-[300px] overflow-auto">
+                  {investidores.map((investidor) => (
+                    <CommandItem
+                      key={investidor.id}
+                      value={investidor.nome_investidor}
+                      onSelect={() => {
+                        form.setValue("investidor_id", investidor.id);
+                        setOpen(false);
+                      }}
+                    >
+                      {investidor.nome_investidor}
+                      <CheckIcon
+                        className={cn(
+                          "ml-auto h-4 w-4",
+                          investidor.id === field.value
+                            ? "opacity-100"
+                            : "opacity-0"
+                        )}
+                      />
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
           <FormMessage />
         </FormItem>
       )}
