@@ -1,3 +1,4 @@
+
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import {
   Command,
@@ -47,9 +48,13 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
     },
   });
 
-  const filteredInvestidores = investidores?.filter((investidor) =>
+  const filteredInvestidores = investidores.filter((investidor) =>
     investidor.nome_investidor.toLowerCase().includes(search.toLowerCase())
-  ) || [];
+  );
+
+  const selectedInvestidor = investidores.find(
+    (investidor) => investidor.id === form.getValues("investidor_id")
+  );
 
   return (
     <FormField
@@ -77,9 +82,8 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                       <Loader2 className="h-4 w-4 animate-spin" />
                       <span>Carregando...</span>
                     </div>
-                  ) : field.value ? (
-                    investidores?.find((investidor) => investidor.id === field.value)
-                      ?.nome_investidor || "Selecione um investidor"
+                  ) : selectedInvestidor ? (
+                    selectedInvestidor.nome_investidor
                   ) : (
                     "Selecione um investidor"
                   )}
@@ -97,7 +101,7 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                 />
                 <CommandEmpty>Nenhum investidor encontrado.</CommandEmpty>
                 {!isLoading && (
-                  <CommandGroup className="max-h-[300px] overflow-auto">
+                  <CommandGroup>
                     {filteredInvestidores.map((investidor) => (
                       <CommandItem
                         key={investidor.id}

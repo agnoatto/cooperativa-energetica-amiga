@@ -1,3 +1,4 @@
+
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import {
   Command,
@@ -49,12 +50,12 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
     },
   });
 
-  const filteredUnidades = unidades?.filter((unidade) =>
+  const filteredUnidades = unidades.filter((unidade) =>
     unidade.numero_uc.toLowerCase().includes(search.toLowerCase()) ||
-    unidade.logradouro?.toLowerCase().includes(search.toLowerCase())
-  ) || [];
+    (unidade.logradouro && unidade.logradouro.toLowerCase().includes(search.toLowerCase()))
+  );
 
-  const selectedUnidade = unidades?.find(
+  const selectedUnidade = unidades.find(
     (unidade) => unidade.id === form.getValues("unidade_usina_id")
   );
 
@@ -100,7 +101,7 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
                 />
                 <CommandEmpty>Nenhuma unidade encontrada.</CommandEmpty>
                 {!isLoading && (
-                  <CommandGroup className="max-h-[300px] overflow-y-auto">
+                  <CommandGroup>
                     {filteredUnidades.map((unidade) => (
                       <CommandItem
                         key={unidade.id}
