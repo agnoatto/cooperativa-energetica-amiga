@@ -35,7 +35,7 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const { data: unidades, isLoading } = useQuery({
+  const { data: unidades = [], isLoading } = useQuery({
     queryKey: ["unidades_usina"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -52,12 +52,12 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
     },
   });
 
-  const filteredUnidades = unidades?.filter((unidade) =>
+  const filteredUnidades = unidades.filter((unidade) =>
     unidade.numero_uc.toLowerCase().includes(search.toLowerCase()) ||
     unidade.logradouro?.toLowerCase().includes(search.toLowerCase())
-  ) || [];
+  );
 
-  const selectedUnidade = unidades?.find(
+  const selectedUnidade = unidades.find(
     (unidade) => unidade.id === form.getValues("unidade_usina_id")
   );
 
@@ -93,37 +93,39 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
               </FormControl>
             </PopoverTrigger>
             <PopoverContent className="w-[400px] p-0" align="start">
-              <Command>
-                <CommandInput
-                  placeholder="Buscar unidade..."
-                  value={search}
-                  onValueChange={setSearch}
-                  className="h-9"
-                />
-                <CommandEmpty>Nenhuma unidade encontrada.</CommandEmpty>
-                <CommandGroup className="max-h-[300px] overflow-y-auto">
-                  {filteredUnidades.map((unidade) => (
-                    <CommandItem
-                      key={unidade.id}
-                      value={unidade.id}
-                      onSelect={() => {
-                        form.setValue("unidade_usina_id", unidade.id);
-                        setOpen(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          unidade.id === field.value
-                            ? "opacity-100"
-                            : "opacity-0"
-                        )}
-                      />
-                      UC {unidade.numero_uc} - {unidade.logradouro || ''}, {unidade.numero || ''}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </Command>
+              {open && (
+                <Command>
+                  <CommandInput
+                    placeholder="Buscar unidade..."
+                    value={search}
+                    onValueChange={setSearch}
+                    className="h-9"
+                  />
+                  <CommandEmpty>Nenhuma unidade encontrada.</CommandEmpty>
+                  <CommandGroup className="max-h-[300px] overflow-y-auto">
+                    {filteredUnidades.map((unidade) => (
+                      <CommandItem
+                        key={unidade.id}
+                        value={unidade.id}
+                        onSelect={() => {
+                          form.setValue("unidade_usina_id", unidade.id);
+                          setOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            unidade.id === field.value
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                        UC {unidade.numero_uc} - {unidade.logradouro || ''}, {unidade.numero || ''}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              )}
             </PopoverContent>
           </Popover>
           <FormMessage />

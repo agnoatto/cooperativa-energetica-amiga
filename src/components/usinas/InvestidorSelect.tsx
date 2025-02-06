@@ -90,37 +90,39 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
               </FormControl>
             </PopoverTrigger>
             <PopoverContent className="w-[400px] p-0" align="start">
-              <Command>
-                <CommandInput
-                  placeholder="Buscar investidor..."
-                  value={search}
-                  onValueChange={setSearch}
-                  className="h-9"
-                />
-                <CommandEmpty>Nenhum investidor encontrado.</CommandEmpty>
-                <CommandGroup className="max-h-[300px] overflow-y-auto">
-                  {filteredInvestidores.map((investidor) => (
-                    <CommandItem
-                      key={investidor.id}
-                      value={investidor.id}
-                      onSelect={() => {
-                        form.setValue("investidor_id", investidor.id);
-                        setOpen(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          investidor.id === field.value
-                            ? "opacity-100"
-                            : "opacity-0"
-                        )}
-                      />
-                      {investidor.nome_investidor}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </Command>
+              {open && (
+                <Command>
+                  <CommandInput
+                    placeholder="Buscar investidor..."
+                    value={search}
+                    onValueChange={setSearch}
+                    className="h-9"
+                  />
+                  <CommandEmpty>Nenhum investidor encontrado.</CommandEmpty>
+                  <CommandGroup className="max-h-[300px] overflow-y-auto">
+                    {filteredInvestidores.map((investidor) => (
+                      <CommandItem
+                        key={investidor.id}
+                        value={investidor.id}
+                        onSelect={() => {
+                          form.setValue("investidor_id", investidor.id);
+                          setOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            investidor.id === field.value
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                        {investidor.nome_investidor}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              )}
             </PopoverContent>
           </Popover>
           <FormMessage />
