@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, Loader2, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { type UsinaFormData } from "./schema";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 interface InvestidorSelectProps {
   form: UseFormReturn<UsinaFormData>;
@@ -27,6 +28,7 @@ interface Investidor {
 export function InvestidorSelect({ form }: InvestidorSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const parentRef = useRef<HTMLDivElement>(null);
 
   const { data: investidores = [], isLoading } = useQuery<Investidor[]>({
     queryKey: ["investidores"],
@@ -47,9 +49,22 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
         investidor.nome_investidor.toLowerCase().includes(search.toLowerCase())
       );
 
+  const rowVirtualizer = useVirtualizer({
+    count: filteredInvestidores.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 40,
+    overscan: 5,
+  });
+
   const selectedInvestidor = investidores.find(
     (investidor) => investidor.id === form.getValues("investidor_id")
   );
+
+  useEffect(() => {
+    if (!open) {
+      setSearch("");
+    }
+  }, [open]);
 
   return (
     <FormField
@@ -86,7 +101,12 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+            <PopoverContent 
+              className="w-[--radix-popover-trigger-width] p-0" 
+              align="start"
+              side="bottom"
+              sideOffset={4}
+            >
               <div className="flex items-center border-b px-3 pb-2 pt-3">
                 <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
                 <Input
@@ -102,7 +122,10 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                   />
                 )}
               </div>
-              <div className="max-h-[300px] overflow-y-auto">
+              <div 
+                ref={parentRef} 
+                className="max-h-[300px] overflow-y-auto bg-popover"
+              >
                 {isLoading ? (
                   <div className="flex items-center justify-center py-6">
                     <Loader2 className="h-6 w-6 animate-spin opacity-50" />
@@ -112,25 +135,40 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                     Nenhum investidor encontrado.
                   </div>
                 ) : (
-                  <div className="py-2">
-                    {filteredInvestidores.map((investidor) => (
-                      <div
-                        key={investidor.id}
-                        className={cn(
-                          "flex cursor-pointer items-center justify-between px-3 py-2 hover:bg-accent",
-                          investidor.id === field.value && "bg-accent"
-                        )}
-                        onClick={() => {
-                          form.setValue("investidor_id", investidor.id);
-                          setOpen(false);
-                        }}
-                      >
-                        <span>{investidor.nome_investidor}</span>
-                        {investidor.id === field.value && (
-                          <Check className="h-4 w-4" />
-                        )}
-                      </div>
-                    ))}
+                  <div
+                    style={{
+                      height: `${rowVirtualizer.getTotalSize()}px`,
+                      width: '100%',
+                      position: 'relative',
+                    }}
+                  >
+                    {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                      const investidor = filteredInvestidores[virtualRow.index];
+                      return (
+                        <div
+                          key={investidor.id}
+                          className={cn(
+                            "absolute left-0 top-0 w-full cursor-pointer px-3 py-2 hover:bg-accent",
+                            investidor.id === field.value && "bg-accent"
+                          )}
+                          style={{
+                            height: `${virtualRow.size}px`,
+                            transform: `translateY(${virtualRow.start}px)`,
+                          }}
+                          onClick={() => {
+                            form.setValue("investidor_id", investidor.id);
+                            setOpen(false);
+                          }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span>{investidor.nome_investidor}</span>
+                            {investidor.id === field.value && (
+                              <Check className="h-4 w-4" />
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
