@@ -23,7 +23,7 @@ interface Investidor {
 export function InvestidorSelect({ form }: InvestidorSelectProps) {
   const [open, setOpen] = useState(false);
 
-  const { data: investidores = [], isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["investidores"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -33,12 +33,14 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
 
       if (error) {
         console.error("Error fetching investidores:", error);
-        throw error;
+        return [];
       }
 
-      return data || [];
+      return data as Investidor[];
     },
   });
+
+  const investidores = data || [];
 
   if (error) {
     console.error("Error loading investidores:", error);
