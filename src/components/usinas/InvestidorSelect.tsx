@@ -10,6 +10,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { UseFormReturn } from "react-hook-form";
 import { type UsinaFormData } from "./schema";
+import { toast } from "sonner";
 
 interface InvestidorSelectProps {
   form: UseFormReturn<UsinaFormData>;
@@ -26,25 +27,24 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
   const { data, isLoading, error } = useQuery({
     queryKey: ["investidores"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("investidores")
-        .select("id, nome_investidor")
-        .order("nome_investidor");
+      try {
+        const { data, error } = await supabase
+          .from("investidores")
+          .select("id, nome_investidor")
+          .order("nome_investidor");
 
-      if (error) {
+        if (error) throw error;
+
+        return (data || []) as Investidor[];
+      } catch (error) {
         console.error("Error fetching investidores:", error);
+        toast.error("Erro ao carregar investidores");
         return [];
       }
-
-      return data as Investidor[];
     },
   });
 
   const investidores = data || [];
-
-  if (error) {
-    console.error("Error loading investidores:", error);
-  }
 
   return (
     <FormField
@@ -68,10 +68,13 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Carregando...</span>
+                    </div>
                   ) : field.value ? (
                     investidores.find((investidor) => investidor.id === field.value)
-                      ?.nome_investidor
+                      ?.nome_investidor || "Selecione um investidor"
                   ) : (
                     "Selecione um investidor"
                   )}
