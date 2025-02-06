@@ -1,20 +1,13 @@
 
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown, Loader2, Search, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { useEffect, useRef, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { type UsinaFormData } from "./schema";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { useRef, useState } from "react";
+import { SapSelectBase } from "../ui/sap-select/SapSelectBase";
 
 interface InvestidorSelectProps {
   form: UseFormReturn<UsinaFormData>;
@@ -62,123 +55,62 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
     (investidor) => investidor.id === form.getValues("investidor_id")
   );
 
-  useEffect(() => {
-    if (!open) {
-      setSearch("");
-    }
-  }, [open]);
-
   return (
-    <FormField
-      control={form.control}
+    <SapSelectBase
       name="investidor_id"
-      render={({ field }) => (
-        <FormItem className="flex flex-col">
-          <FormLabel>Investidor</FormLabel>
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <FormControl>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  type="button"
-                  aria-expanded={open}
-                  className={cn(
-                    "w-full justify-between",
-                    !field.value && "text-muted-foreground"
-                  )}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Carregando...</span>
-                    </div>
-                  ) : selectedInvestidor ? (
-                    selectedInvestidor.nome_investidor
-                  ) : (
-                    "Selecione um investidor"
-                  )}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </FormControl>
-            </PopoverTrigger>
-            <PopoverContent 
-              className="w-[--radix-popover-trigger-width] p-0" 
-              align="start"
-              side="bottom"
-              sideOffset={4}
-            >
-              <div className="flex items-center border-b px-3 pb-2 pt-3">
-                <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-                <Input
-                  placeholder="Buscar investidor..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="h-8 border-0 p-0 focus-visible:ring-0"
-                />
-                {search && (
-                  <X
-                    className="h-4 w-4 cursor-pointer opacity-50 hover:opacity-100"
-                    onClick={() => setSearch("")}
-                  />
+      form={form}
+      label="Investidor"
+      isLoading={isLoading}
+      placeholder="Selecione um investidor"
+      searchPlaceholder="Buscar investidor..."
+      searchValue={search}
+      onSearchChange={setSearch}
+      selectedLabel={selectedInvestidor?.nome_investidor}
+      open={open}
+      onOpenChange={setOpen}
+    >
+      {filteredInvestidores.length === 0 ? (
+        <div className="py-6 text-center text-sm text-muted-foreground">
+          Nenhum investidor encontrado.
+        </div>
+      ) : (
+        <div
+          ref={parentRef}
+          style={{
+            height: `${rowVirtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const investidor = filteredInvestidores[virtualRow.index];
+            return (
+              <div
+                key={investidor.id}
+                className={cn(
+                  "absolute left-0 top-0 w-full cursor-pointer px-3 py-2 hover:bg-blue-50",
+                  investidor.id === form.getValues("investidor_id") && "bg-blue-100"
                 )}
-              </div>
-              <div 
-                ref={parentRef} 
-                className="max-h-[300px] overflow-y-auto bg-popover"
+                style={{
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+                onClick={() => {
+                  form.setValue("investidor_id", investidor.id);
+                  setOpen(false);
+                }}
               >
-                {isLoading ? (
-                  <div className="flex items-center justify-center py-6">
-                    <Loader2 className="h-6 w-6 animate-spin opacity-50" />
-                  </div>
-                ) : filteredInvestidores.length === 0 ? (
-                  <div className="py-6 text-center text-sm text-muted-foreground">
-                    Nenhum investidor encontrado.
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      height: `${rowVirtualizer.getTotalSize()}px`,
-                      width: '100%',
-                      position: 'relative',
-                    }}
-                  >
-                    {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                      const investidor = filteredInvestidores[virtualRow.index];
-                      return (
-                        <div
-                          key={investidor.id}
-                          className={cn(
-                            "absolute left-0 top-0 w-full cursor-pointer px-3 py-2 hover:bg-accent",
-                            investidor.id === field.value && "bg-accent"
-                          )}
-                          style={{
-                            height: `${virtualRow.size}px`,
-                            transform: `translateY(${virtualRow.start}px)`,
-                          }}
-                          onClick={() => {
-                            form.setValue("investidor_id", investidor.id);
-                            setOpen(false);
-                          }}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span>{investidor.nome_investidor}</span>
-                            {investidor.id === field.value && (
-                              <Check className="h-4 w-4" />
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                <div className="flex items-center justify-between">
+                  <span>{investidor.nome_investidor}</span>
+                  {investidor.id === form.getValues("investidor_id") && (
+                    <Check className="h-4 w-4 text-blue-600" />
+                  )}
+                </div>
               </div>
-            </PopoverContent>
-          </Popover>
-          <FormMessage />
-        </FormItem>
+            );
+          })}
+        </div>
       )}
-    />
+    </SapSelectBase>
   );
 }
