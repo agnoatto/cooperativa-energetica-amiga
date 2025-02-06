@@ -45,9 +45,11 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
 
   const filteredInvestidores = isLoading 
     ? [] 
-    : investidores.filter((investidor) =>
-        investidor.nome_investidor.toLowerCase().includes(search.toLowerCase())
-      );
+    : search.trim() === ""
+      ? investidores
+      : investidores.filter((investidor) =>
+          investidor.nome_investidor.toLowerCase().includes(search.toLowerCase().trim())
+        );
 
   const rowVirtualizer = useVirtualizer({
     count: filteredInvestidores.length,
