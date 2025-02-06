@@ -51,6 +51,56 @@ export type Database = {
         }
         Relationships: []
       }
+      faturas: {
+        Row: {
+          ano: number
+          consumo_kwh: number
+          created_at: string
+          data_pagamento: string | null
+          data_vencimento: string
+          id: string
+          mes: number
+          status: string
+          unidade_beneficiaria_id: string
+          updated_at: string
+          valor_total: number
+        }
+        Insert: {
+          ano: number
+          consumo_kwh: number
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento: string
+          id?: string
+          mes: number
+          status?: string
+          unidade_beneficiaria_id: string
+          updated_at?: string
+          valor_total: number
+        }
+        Update: {
+          ano?: number
+          consumo_kwh?: number
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento?: string
+          id?: string
+          mes?: number
+          status?: string
+          unidade_beneficiaria_id?: string
+          updated_at?: string
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faturas_unidade_beneficiaria_id_fkey"
+            columns: ["unidade_beneficiaria_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_beneficiarias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       geracao_prevista: {
         Row: {
           ano: number
