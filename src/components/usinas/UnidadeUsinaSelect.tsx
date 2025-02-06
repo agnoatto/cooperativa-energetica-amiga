@@ -31,7 +31,7 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
       const { data, error } = await supabase
         .from("unidades_usina")
         .select("id, numero_uc, logradouro, numero")
-        .eq("status", "active")
+        .or('status.eq.active,status.is.null')
         .order("numero_uc");
 
       if (error) throw error;

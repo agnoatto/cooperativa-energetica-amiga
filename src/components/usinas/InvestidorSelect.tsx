@@ -29,6 +29,7 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
       const { data, error } = await supabase
         .from("investidores")
         .select("id, nome_investidor")
+        .eq("status", "active")
         .order("nome_investidor");
 
       if (error) throw error;
