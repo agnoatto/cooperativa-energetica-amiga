@@ -34,7 +34,10 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
         .or('status.eq.active,status.is.null')
         .order("numero_uc");
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching unidades:", error);
+        throw error;
+      }
       return data || [];
     },
   });

@@ -32,7 +32,10 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
         .eq("status", "active")
         .order("nome_investidor");
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching investidores:", error);
+        throw error;
+      }
       return data || [];
     },
   });
