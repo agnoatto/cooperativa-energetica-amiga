@@ -23,7 +23,7 @@ interface Investidor {
 export function InvestidorSelect({ form }: InvestidorSelectProps) {
   const [open, setOpen] = useState(false);
 
-  const { data: investidores = [], isLoading, error } = useQuery({
+  const { data: investidores, isLoading, error } = useQuery({
     queryKey: ["investidores"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -36,13 +36,15 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
         throw error;
       }
 
-      return data as Investidor[];
+      return (data || []) as Investidor[];
     },
   });
 
   if (error) {
     console.error("Error loading investidores:", error);
   }
+
+  const safeInvestidores = investidores || [];
 
   return (
     <FormField
@@ -67,7 +69,7 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : field.value ? (
-                    investidores.find((investidor) => investidor.id === field.value)
+                    safeInvestidores.find((investidor) => investidor.id === field.value)
                       ?.nome_investidor
                   ) : (
                     "Selecione um investidor"
@@ -84,7 +86,7 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                 />
                 <CommandEmpty>Nenhum investidor encontrado.</CommandEmpty>
                 <CommandGroup className="max-h-[300px] overflow-auto">
-                  {investidores.map((investidor) => (
+                  {safeInvestidores.map((investidor) => (
                     <CommandItem
                       key={investidor.id}
                       value={investidor.nome_investidor}
