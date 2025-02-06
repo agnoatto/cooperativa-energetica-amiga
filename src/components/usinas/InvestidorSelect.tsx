@@ -35,7 +35,7 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const { data: investidores = [], isLoading } = useQuery({
+  const { data: investidores, isLoading } = useQuery<Investidor[]>({
     queryKey: ["investidores"],
     queryFn: async () => {
       try {
@@ -54,9 +54,9 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
     },
   });
 
-  const filteredInvestidores = investidores.filter((investidor) =>
+  const filteredInvestidores = investidores?.filter((investidor) =>
     investidor.nome_investidor.toLowerCase().includes(search.toLowerCase())
-  );
+  ) || [];
 
   return (
     <FormField
@@ -85,7 +85,7 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                       <span>Carregando...</span>
                     </div>
                   ) : field.value ? (
-                    investidores.find((investidor) => investidor.id === field.value)
+                    investidores?.find((investidor) => investidor.id === field.value)
                       ?.nome_investidor || "Selecione um investidor"
                   ) : (
                     "Selecione um investidor"
