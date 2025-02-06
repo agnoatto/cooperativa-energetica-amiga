@@ -89,8 +89,8 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="w-[400px] p-0" align="start">
-              {open && (
+            {open && (
+              <PopoverContent className="w-[400px] p-0" align="start">
                 <Command>
                   <CommandInput
                     placeholder="Buscar investidor..."
@@ -122,8 +122,8 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                     ))}
                   </CommandGroup>
                 </Command>
-              )}
-            </PopoverContent>
+              </PopoverContent>
+            )}
           </Popover>
           <FormMessage />
         </FormItem>
