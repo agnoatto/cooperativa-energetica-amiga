@@ -31,6 +31,7 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const parentRef = useRef<HTMLDivElement>(null);
+  const [parentHeight, setParentHeight] = useState(300); // Default height
 
   const { data: unidades = [], isLoading } = useQuery<UnidadeUsina[]>({
     queryKey: ["unidades_usina"],
@@ -55,11 +56,31 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
           (unidade.logradouro && unidade.logradouro.toLowerCase().includes(search.toLowerCase().trim()))
         );
 
+  useEffect(() => {
+    if (parentRef.current) {
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.contentRect) {
+            setParentHeight(Math.min(entry.contentRect.height, 300));
+          }
+        }
+      });
+
+      resizeObserver.observe(parentRef.current);
+
+      return () => {
+        resizeObserver.disconnect();
+      };
+    }
+  }, []);
+
   const rowVirtualizer = useVirtualizer({
     count: filteredUnidades.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 40,
     overscan: 5,
+    scrollPaddingStart: 4,
+    scrollPaddingEnd: 4,
   });
 
   const selectedUnidade = unidades.find(
@@ -131,6 +152,7 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
               <div 
                 ref={parentRef} 
                 className="max-h-[300px] overflow-y-auto bg-popover"
+                style={{ contain: 'strict' }}
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center py-6">
