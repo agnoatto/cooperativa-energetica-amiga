@@ -77,7 +77,7 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
       onOpenChange={setOpen}
     >
       {filteredUnidades.length === 0 ? (
-        <div className="py-6 text-center text-sm text-muted-foreground">
+        <div className="py-6 text-center text-sm text-gray-500">
           Nenhuma unidade encontrada.
         </div>
       ) : (
@@ -91,12 +91,15 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
         >
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const unidade = filteredUnidades[virtualRow.index];
+            const isSelected = unidade.id === form.getValues("unidade_usina_id");
             return (
               <div
                 key={unidade.id}
                 className={cn(
-                  "absolute left-0 top-0 w-full cursor-pointer px-3 py-2 hover:bg-blue-50",
-                  unidade.id === form.getValues("unidade_usina_id") && "bg-blue-100"
+                  "absolute left-0 top-0 w-full cursor-pointer px-3 py-2",
+                  "transition-colors duration-150",
+                  "hover:bg-blue-50",
+                  isSelected ? "bg-blue-100" : "bg-white"
                 )}
                 style={{
                   height: `${virtualRow.size}px`,
@@ -108,8 +111,13 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
                 }}
               >
                 <div className="flex items-center justify-between">
-                  <span>{getUnidadeLabel(unidade)}</span>
-                  {unidade.id === form.getValues("unidade_usina_id") && (
+                  <span className={cn(
+                    "text-sm",
+                    isSelected ? "text-blue-900 font-medium" : "text-gray-900"
+                  )}>
+                    {getUnidadeLabel(unidade)}
+                  </span>
+                  {isSelected && (
                     <Check className="h-4 w-4 text-blue-600" />
                   )}
                 </div>

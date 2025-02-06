@@ -70,7 +70,7 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
       onOpenChange={setOpen}
     >
       {filteredInvestidores.length === 0 ? (
-        <div className="py-6 text-center text-sm text-muted-foreground">
+        <div className="py-6 text-center text-sm text-gray-500">
           Nenhum investidor encontrado.
         </div>
       ) : (
@@ -84,12 +84,15 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
         >
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const investidor = filteredInvestidores[virtualRow.index];
+            const isSelected = investidor.id === form.getValues("investidor_id");
             return (
               <div
                 key={investidor.id}
                 className={cn(
-                  "absolute left-0 top-0 w-full cursor-pointer px-3 py-2 hover:bg-blue-50",
-                  investidor.id === form.getValues("investidor_id") && "bg-blue-100"
+                  "absolute left-0 top-0 w-full cursor-pointer px-3 py-2",
+                  "transition-colors duration-150",
+                  "hover:bg-blue-50",
+                  isSelected ? "bg-blue-100" : "bg-white"
                 )}
                 style={{
                   height: `${virtualRow.size}px`,
@@ -101,8 +104,13 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                 }}
               >
                 <div className="flex items-center justify-between">
-                  <span>{investidor.nome_investidor}</span>
-                  {investidor.id === form.getValues("investidor_id") && (
+                  <span className={cn(
+                    "text-sm",
+                    isSelected ? "text-blue-900 font-medium" : "text-gray-900"
+                  )}>
+                    {investidor.nome_investidor}
+                  </span>
+                  {isSelected && (
                     <Check className="h-4 w-4 text-blue-600" />
                   )}
                 </div>
