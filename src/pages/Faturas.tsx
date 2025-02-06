@@ -8,9 +8,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
+import { format, lastDayOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
@@ -30,8 +30,18 @@ interface Fatura {
   };
 }
 
+interface UnidadeBeneficiaria {
+  id: string;
+  numero_uc: string;
+  apelido: string | null;
+  cooperado: {
+    nome: string;
+  };
+}
+
 const Faturas = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const queryClient = useQueryClient();
 
   const { data: faturas, isLoading } = useQuery({
     queryKey: ["faturas", currentDate],
@@ -63,6 +73,77 @@ const Faturas = () => {
     },
   });
 
+  const gerarFaturasMutation = useMutation({
+    mutationFn: async () => {
+      // 1. Buscar unidades beneficiárias ativas
+      const { data: unidades, error: unidadesError } = await supabase
+        .from("unidades_beneficiarias")
+        .select(`
+          id,
+          numero_uc,
+          apelido,
+          cooperado:cooperado_id (
+            nome
+          )
+        `)
+        .is("data_saida", null);
+
+      if (unidadesError) throw unidadesError;
+
+      // 2. Para cada unidade, verificar se já existe fatura e criar se necessário
+      const mes = currentDate.getMonth() + 1;
+      const ano = currentDate.getFullYear();
+      const dataVencimento = lastDayOfMonth(currentDate);
+
+      const unidadesComFatura = await Promise.all(
+        (unidades as UnidadeBeneficiaria[]).map(async (unidade) => {
+          // Verificar se já existe fatura para esta unidade neste mês/ano
+          const { data: faturasExistentes } = await supabase
+            .from("faturas")
+            .select()
+            .eq("unidade_beneficiaria_id", unidade.id)
+            .eq("mes", mes)
+            .eq("ano", ano);
+
+          if (faturasExistentes && faturasExistentes.length > 0) {
+            return null; // Pular se já existe fatura
+          }
+
+          // Criar nova fatura
+          const { error: insertError } = await supabase
+            .from("faturas")
+            .insert({
+              unidade_beneficiaria_id: unidade.id,
+              mes,
+              ano,
+              consumo_kwh: 0,
+              valor_total: 0,
+              status: "pendente",
+              data_vencimento: dataVencimento.toISOString().split('T')[0],
+            });
+
+          if (insertError) throw insertError;
+          return unidade;
+        })
+      );
+
+      return unidadesComFatura.filter(Boolean);
+    },
+    onSuccess: (unidades) => {
+      const count = unidades?.length || 0;
+      queryClient.invalidateQueries({ queryKey: ["faturas"] });
+      if (count > 0) {
+        toast.success(`${count} faturas geradas com sucesso!`);
+      } else {
+        toast.info("Todas as faturas já foram geradas para este mês.");
+      }
+    },
+    onError: (error) => {
+      console.error("Erro ao gerar faturas:", error);
+      toast.error("Erro ao gerar faturas");
+    },
+  });
+
   const handlePreviousMonth = () => {
     setCurrentDate(prev => {
       const newDate = new Date(prev);
@@ -80,8 +161,7 @@ const Faturas = () => {
   };
 
   const handleGerarFaturas = async () => {
-    // Aqui vamos implementar a lógica para gerar as faturas do mês
-    toast.info("Em desenvolvimento: Geração de faturas");
+    gerarFaturasMutation.mutate();
   };
 
   return (
@@ -93,8 +173,9 @@ const Faturas = () => {
           <Button 
             className="bg-primary hover:bg-primary/90"
             onClick={handleGerarFaturas}
+            disabled={gerarFaturasMutation.isPending}
           >
-            Gerar Faturas
+            {gerarFaturasMutation.isPending ? "Gerando..." : "Gerar Faturas"}
           </Button>
         </div>
       </div>
