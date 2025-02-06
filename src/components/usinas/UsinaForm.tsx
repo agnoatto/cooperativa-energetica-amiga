@@ -53,25 +53,18 @@ export function UsinaForm({
     async function fetchUsinaData() {
       if (usinaId && open) {
         setIsLoading(true);
-        try {
-          const { data, error } = await supabase
-            .from("usinas")
-            .select("*")
-            .eq("id", usinaId)
-            .single();
+        const { data, error } = await supabase
+          .from("usinas")
+          .select("*")
+          .eq("id", usinaId)
+          .single();
 
-          if (error) {
-            console.error("Error fetching usina:", error);
-            return;
-          }
-          if (data) {
-            form.reset(data);
-          }
-        } catch (error) {
-          console.error("Error:", error);
-        } finally {
-          setIsLoading(false);
+        if (error) throw error;
+        
+        if (data) {
+          form.reset(data);
         }
+        setIsLoading(false);
       } else if (!open) {
         form.reset();
       }
@@ -81,47 +74,39 @@ export function UsinaForm({
   }, [usinaId, open, form]);
 
   const onSubmit = async (data: UsinaFormData) => {
-    try {
-      setIsLoading(true);
-      const usinaData = {
-        investidor_id: data.investidor_id,
-        unidade_usina_id: data.unidade_usina_id,
-        valor_kwh: data.valor_kwh,
-        dados_pagamento_nome: data.dados_pagamento_nome,
-        dados_pagamento_documento: data.dados_pagamento_documento,
-        dados_pagamento_banco: data.dados_pagamento_banco,
-        dados_pagamento_agencia: data.dados_pagamento_agencia,
-        dados_pagamento_conta: data.dados_pagamento_conta,
-        dados_pagamento_telefone: data.dados_pagamento_telefone,
-        dados_pagamento_email: data.dados_pagamento_email,
-        status: usinaId ? "active" : "draft",
-      };
+    setIsLoading(true);
+    const usinaData = {
+      investidor_id: data.investidor_id,
+      unidade_usina_id: data.unidade_usina_id,
+      valor_kwh: data.valor_kwh,
+      dados_pagamento_nome: data.dados_pagamento_nome,
+      dados_pagamento_documento: data.dados_pagamento_documento,
+      dados_pagamento_banco: data.dados_pagamento_banco,
+      dados_pagamento_agencia: data.dados_pagamento_agencia,
+      dados_pagamento_conta: data.dados_pagamento_conta,
+      dados_pagamento_telefone: data.dados_pagamento_telefone,
+      dados_pagamento_email: data.dados_pagamento_email,
+      status: usinaId ? "active" : "draft",
+    };
 
-      if (usinaId) {
-        const { error } = await supabase
-          .from("usinas")
-          .update(usinaData)
-          .eq("id", usinaId);
+    if (usinaId) {
+      const { error } = await supabase
+        .from("usinas")
+        .update(usinaData)
+        .eq("id", usinaId);
 
-        if (error) throw error;
-        toast.success("Usina atualizada com sucesso!");
-      } else {
-        const { error } = await supabase.from("usinas").insert(usinaData);
+      if (error) throw error;
+      toast.success("Usina atualizada com sucesso!");
+    } else {
+      const { error } = await supabase.from("usinas").insert(usinaData);
 
-        if (error) throw error;
-        toast.success("Usina cadastrada com sucesso!");
-      }
-
-      onSuccess();
-      onOpenChange(false);
-    } catch (error: any) {
-      console.error("Error saving usina:", error);
-      toast.error(
-        `Erro ao ${usinaId ? "atualizar" : "cadastrar"} usina: ` + error.message
-      );
-    } finally {
-      setIsLoading(false);
+      if (error) throw error;
+      toast.success("Usina cadastrada com sucesso!");
     }
+
+    onSuccess();
+    onOpenChange(false);
+    setIsLoading(false);
   };
 
   return (

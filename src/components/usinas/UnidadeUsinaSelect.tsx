@@ -35,7 +35,7 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const { data: unidades = [], isLoading } = useQuery({
+  const { data: unidades = [], isLoading } = useQuery<UnidadeUsina[]>({
     queryKey: ["unidades_usina"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -44,20 +44,17 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
         .eq("status", "active")
         .order("numero_uc");
 
-      if (error) {
-        console.error("Error fetching unidades:", error);
-        throw error;
-      }
+      if (error) throw error;
       return data || [];
     },
   });
 
-  const filteredUnidades = unidades.filter((unidade) =>
+  const filteredUnidades = unidades?.filter((unidade) =>
     unidade.numero_uc.toLowerCase().includes(search.toLowerCase()) ||
     unidade.logradouro?.toLowerCase().includes(search.toLowerCase())
-  );
+  ) || [];
 
-  const selectedUnidade = unidades.find(
+  const selectedUnidade = unidades?.find(
     (unidade) => unidade.id === form.getValues("unidade_usina_id")
   );
 
@@ -74,6 +71,7 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
                 <Button
                   variant="outline"
                   role="combobox"
+                  type="button"
                   aria-expanded={open}
                   className={cn(
                     "w-full justify-between",
@@ -92,16 +90,16 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            {open && (
-              <PopoverContent className="w-[400px] p-0" align="start">
-                <Command>
-                  <CommandInput
-                    placeholder="Buscar unidade..."
-                    value={search}
-                    onValueChange={setSearch}
-                    className="h-9"
-                  />
-                  <CommandEmpty>Nenhuma unidade encontrada.</CommandEmpty>
+            <PopoverContent className="w-[400px] p-0" align="start">
+              <Command>
+                <CommandInput
+                  placeholder="Buscar unidade..."
+                  value={search}
+                  onValueChange={setSearch}
+                  className="h-9"
+                />
+                <CommandEmpty>Nenhuma unidade encontrada.</CommandEmpty>
+                {!isLoading && (
                   <CommandGroup className="max-h-[300px] overflow-y-auto">
                     {filteredUnidades.map((unidade) => (
                       <CommandItem
@@ -124,9 +122,9 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
                       </CommandItem>
                     ))}
                   </CommandGroup>
-                </Command>
-              </PopoverContent>
-            )}
+                )}
+              </Command>
+            </PopoverContent>
           </Popover>
           <FormMessage />
         </FormItem>

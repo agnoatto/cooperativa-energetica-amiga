@@ -20,7 +20,6 @@ import { UseFormReturn } from "react-hook-form";
 import { type UsinaFormData } from "./schema";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 interface InvestidorSelectProps {
   form: UseFormReturn<UsinaFormData>;
@@ -35,22 +34,16 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const { data: investidores, isLoading } = useQuery<Investidor[]>({
+  const { data: investidores = [], isLoading } = useQuery<Investidor[]>({
     queryKey: ["investidores"],
     queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from("investidores")
-          .select("id, nome_investidor")
-          .order("nome_investidor");
+      const { data, error } = await supabase
+        .from("investidores")
+        .select("id, nome_investidor")
+        .order("nome_investidor");
 
-        if (error) throw error;
-        return data || [];
-      } catch (error) {
-        console.error("Error fetching investidores:", error);
-        toast.error("Erro ao carregar investidores");
-        return [];
-      }
+      if (error) throw error;
+      return data || [];
     },
   });
 
