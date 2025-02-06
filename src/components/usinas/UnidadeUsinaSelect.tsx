@@ -1,19 +1,13 @@
 
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2, Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { UseFormReturn } from "react-hook-form";
 import { UsinaFormData } from "./schema";
@@ -97,47 +91,55 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
               </FormControl>
             </PopoverTrigger>
             <PopoverContent className="w-[400px] p-0" align="start">
-              <Command shouldFilter={false}>
-                <CommandInput
+              <div className="flex items-center border-b px-3 pb-2 pt-3">
+                <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                <Input
                   placeholder="Buscar unidade..."
                   value={search}
-                  onValueChange={setSearch}
-                  className="h-9"
-                  disabled={isLoading}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="h-8 border-0 p-0 focus-visible:ring-0"
                 />
-                <CommandEmpty>Nenhuma unidade encontrada.</CommandEmpty>
-                <CommandGroup>
-                  {isLoading ? (
-                    <CommandItem disabled>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Carregando...
-                    </CommandItem>
-                  ) : filteredUnidades.length === 0 ? (
-                    <CommandItem disabled>Nenhuma unidade encontrada.</CommandItem>
-                  ) : (
-                    filteredUnidades.map((unidade) => (
-                      <CommandItem
+                {search && (
+                  <X
+                    className="h-4 w-4 cursor-pointer opacity-50 hover:opacity-100"
+                    onClick={() => setSearch("")}
+                  />
+                )}
+              </div>
+              <div className="max-h-[300px] overflow-y-auto">
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="h-6 w-6 animate-spin opacity-50" />
+                  </div>
+                ) : filteredUnidades.length === 0 ? (
+                  <div className="py-6 text-center text-sm text-muted-foreground">
+                    Nenhuma unidade encontrada.
+                  </div>
+                ) : (
+                  <div className="py-2">
+                    {filteredUnidades.map((unidade) => (
+                      <div
                         key={unidade.id}
-                        value={unidade.id}
-                        onSelect={() => {
+                        className={cn(
+                          "flex cursor-pointer items-center justify-between px-3 py-2 hover:bg-accent",
+                          unidade.id === field.value && "bg-accent"
+                        )}
+                        onClick={() => {
                           form.setValue("unidade_usina_id", unidade.id);
                           setOpen(false);
                         }}
                       >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            unidade.id === field.value
-                              ? "opacity-100"
-                              : "opacity-0"
-                          )}
-                        />
-                        UC {unidade.numero_uc} - {unidade.logradouro || ''}, {unidade.numero || ''}
-                      </CommandItem>
-                    ))
-                  )}
-                </CommandGroup>
-              </Command>
+                        <span>
+                          UC {unidade.numero_uc} - {unidade.logradouro || ''}, {unidade.numero || ''}
+                        </span>
+                        {unidade.id === field.value && (
+                          <Check className="h-4 w-4" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </PopoverContent>
           </Popover>
           <FormMessage />

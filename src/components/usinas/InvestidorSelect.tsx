@@ -1,21 +1,14 @@
 
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
-import { Loader2 } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2, Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { type UsinaFormData } from "./schema";
@@ -89,52 +82,58 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
                   ) : (
                     "Selecione um investidor"
                   )}
-                  <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-              <Command shouldFilter={false}>
-                <CommandInput
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+              <div className="flex items-center border-b px-3 pb-2 pt-3">
+                <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                <Input
                   placeholder="Buscar investidor..."
                   value={search}
-                  onValueChange={setSearch}
-                  className="h-9"
-                  disabled={isLoading}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="h-8 border-0 p-0 focus-visible:ring-0"
                 />
-                <CommandEmpty>Nenhum investidor encontrado.</CommandEmpty>
-                <CommandGroup>
-                  {isLoading ? (
-                    <CommandItem disabled>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Carregando...
-                    </CommandItem>
-                  ) : filteredInvestidores.length === 0 ? (
-                    <CommandItem disabled>Nenhum resultado encontrado.</CommandItem>
-                  ) : (
-                    filteredInvestidores.map((investidor) => (
-                      <CommandItem
+                {search && (
+                  <X
+                    className="h-4 w-4 cursor-pointer opacity-50 hover:opacity-100"
+                    onClick={() => setSearch("")}
+                  />
+                )}
+              </div>
+              <div className="max-h-[300px] overflow-y-auto">
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="h-6 w-6 animate-spin opacity-50" />
+                  </div>
+                ) : filteredInvestidores.length === 0 ? (
+                  <div className="py-6 text-center text-sm text-muted-foreground">
+                    Nenhum investidor encontrado.
+                  </div>
+                ) : (
+                  <div className="py-2">
+                    {filteredInvestidores.map((investidor) => (
+                      <div
                         key={investidor.id}
-                        value={investidor.nome_investidor}
-                        onSelect={() => {
+                        className={cn(
+                          "flex cursor-pointer items-center justify-between px-3 py-2 hover:bg-accent",
+                          investidor.id === field.value && "bg-accent"
+                        )}
+                        onClick={() => {
                           form.setValue("investidor_id", investidor.id);
                           setOpen(false);
                         }}
                       >
-                        {investidor.nome_investidor}
-                        <CheckIcon
-                          className={cn(
-                            "ml-auto h-4 w-4",
-                            investidor.id === field.value
-                              ? "opacity-100"
-                              : "opacity-0"
-                          )}
-                        />
-                      </CommandItem>
-                    ))
-                  )}
-                </CommandGroup>
-              </Command>
+                        <span>{investidor.nome_investidor}</span>
+                        {investidor.id === field.value && (
+                          <Check className="h-4 w-4" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </PopoverContent>
           </Popover>
           <FormMessage />
