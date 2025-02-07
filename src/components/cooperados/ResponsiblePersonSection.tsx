@@ -1,4 +1,6 @@
 
+import { formatarDocumento, formatarTelefone } from '@/utils/formatters';
+
 interface ResponsiblePersonProps {
   nome: string | null;
   cpf: string | null;
@@ -10,8 +12,6 @@ export function ResponsiblePersonSection({
   cpf, 
   telefone 
 }: ResponsiblePersonProps) {
-  const { formatarDocumento, formatarTelefone } = require('@/utils/formatters');
-
   return (
     <div>
       <h3 className="font-semibold mb-2">Dados do Responsável</h3>

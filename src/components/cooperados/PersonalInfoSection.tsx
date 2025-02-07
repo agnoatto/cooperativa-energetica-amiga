@@ -1,4 +1,6 @@
 
+import { formatarDocumento, formatarTelefone } from '@/utils/formatters';
+
 interface PersonalInfoProps {
   nome: string;
   documento: string;
@@ -14,8 +16,6 @@ export function PersonalInfoSection({
   telefone, 
   email 
 }: PersonalInfoProps) {
-  const { formatarDocumento, formatarTelefone } = require('@/utils/formatters');
-
   return (
     <div className="grid grid-cols-2 gap-4">
       <div>
