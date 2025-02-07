@@ -20,12 +20,34 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
+
+const cepRegex = /^\d{5}-?\d{3}$/;
+const UFS = [
+  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", 
+  "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"
+] as const;
 
 const formSchema = z.object({
   numero_uc: z.string().min(1, "Número da UC é obrigatório"),
   apelido: z.string().optional(),
-  endereco: z.string().min(1, "Endereço é obrigatório"),
+  cep: z.string().min(1, "CEP é obrigatório").regex(cepRegex, "CEP inválido"),
+  logradouro: z.string().min(1, "Logradouro é obrigatório"),
+  numero: z.string().min(1, "Número é obrigatório"),
+  complemento: z.string().optional(),
+  bairro: z.string().min(1, "Bairro é obrigatório"),
+  cidade: z.string().min(1, "Cidade é obrigatória"),
+  uf: z.enum(UFS, {
+    required_error: "UF é obrigatória",
+  }),
   percentual_desconto: z.string().min(1, "Percentual de desconto é obrigatório"),
   data_entrada: z.string().min(1, "Data de entrada é obrigatória"),
   data_saida: z.string().optional(),
@@ -41,6 +63,14 @@ interface UnidadeBeneficiariaFormProps {
   onSuccess?: () => void;
 }
 
+interface ViaCEPResponse {
+  logradouro: string;
+  bairro: string;
+  localidade: string;
+  uf: string;
+  erro?: boolean;
+}
+
 export function UnidadeBeneficiariaForm({
   open,
   onOpenChange,
@@ -48,17 +78,48 @@ export function UnidadeBeneficiariaForm({
   unidadeId,
   onSuccess,
 }: UnidadeBeneficiariaFormProps) {
+  const [isLoadingCep, setIsLoadingCep] = useState(false);
+  
   const form = useForm<UnidadeBeneficiariaFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       numero_uc: "",
       apelido: "",
-      endereco: "",
+      cep: "",
+      logradouro: "",
+      numero: "",
+      complemento: "",
+      bairro: "",
+      cidade: "",
+      uf: undefined,
       percentual_desconto: "",
       data_entrada: new Date().toISOString().split('T')[0],
       data_saida: "",
     },
   });
+
+  const fetchCep = async (cep: string) => {
+    try {
+      setIsLoadingCep(true);
+      const cleanCep = cep.replace(/\D/g, '');
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data: ViaCEPResponse = await response.json();
+
+      if (data.erro) {
+        toast.error("CEP não encontrado");
+        return;
+      }
+
+      form.setValue('logradouro', data.logradouro);
+      form.setValue('bairro', data.bairro);
+      form.setValue('cidade', data.localidade);
+      form.setValue('uf', data.uf as any);
+    } catch (error) {
+      toast.error("Erro ao buscar CEP");
+    } finally {
+      setIsLoadingCep(false);
+    }
+  };
 
   // Fetch unidade data when editing
   useEffect(() => {
@@ -78,7 +139,13 @@ export function UnidadeBeneficiariaForm({
           form.reset({
             numero_uc: data.numero_uc,
             apelido: data.apelido || "",
-            endereco: data.endereco,
+            cep: data.cep || "",
+            logradouro: data.logradouro || "",
+            numero: data.numero || "",
+            complemento: data.complemento || "",
+            bairro: data.bairro || "",
+            cidade: data.cidade || "",
+            uf: (data.uf as any) || undefined,
             percentual_desconto: data.percentual_desconto.toString(),
             data_entrada: new Date(data.data_entrada).toISOString().split('T')[0],
             data_saida: data.data_saida ? new Date(data.data_saida).toISOString().split('T')[0] : "",
@@ -96,18 +163,26 @@ export function UnidadeBeneficiariaForm({
 
   async function onSubmit(data: UnidadeBeneficiariaFormValues) {
     try {
+      const endereco = `${data.logradouro}, ${data.numero}${data.complemento ? `, ${data.complemento}` : ''} - ${data.bairro}, ${data.cidade} - ${data.uf}, ${data.cep}`;
+      
       const unidadeData = {
         cooperado_id: cooperadoId,
         numero_uc: data.numero_uc,
         apelido: data.apelido || null,
-        endereco: data.endereco,
+        endereco: endereco,
+        logradouro: data.logradouro,
+        numero: data.numero,
+        complemento: data.complemento || null,
+        bairro: data.bairro,
+        cidade: data.cidade,
+        uf: data.uf,
+        cep: data.cep,
         percentual_desconto: parseFloat(data.percentual_desconto),
         data_entrada: new Date(data.data_entrada).toISOString(),
         data_saida: data.data_saida ? new Date(data.data_saida).toISOString() : null,
       };
 
       if (unidadeId) {
-        // Update existing unidade
         const { error } = await supabase
           .from('unidades_beneficiarias')
           .update(unidadeData)
@@ -116,7 +191,6 @@ export function UnidadeBeneficiariaForm({
         if (error) throw error;
         toast.success("Unidade beneficiária atualizada com sucesso!");
       } else {
-        // Create new unidade
         const { error } = await supabase
           .from('unidades_beneficiarias')
           .insert(unidadeData);
@@ -172,19 +246,148 @@ export function UnidadeBeneficiariaForm({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="endereco"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Endereço</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Endereço completo" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                <FormField
+                  control={form.control}
+                  name="cep"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormLabel>CEP</FormLabel>
+                      <FormControl>
+                        <div className="flex gap-2">
+                          <Input 
+                            placeholder="00000-000" 
+                            {...field}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              // Apply CEP mask
+                              const maskedValue = value
+                                .replace(/\D/g, '')
+                                .replace(/(\d{5})(\d)/, '$1-$2')
+                                .replace(/(-\d{3})\d+?$/, '$1');
+                              field.onChange(maskedValue);
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => fetchCep(field.value)}
+                            disabled={isLoadingCep || !field.value}
+                          >
+                            {isLoadingCep ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              "Buscar"
+                            )}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="logradouro"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Logradouro</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Rua, Avenida, etc" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="numero"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Número</FormLabel>
+                      <FormControl>
+                        <Input placeholder="123" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="complemento"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Complemento</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Apto, Sala, etc" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="bairro"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bairro</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Bairro" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="cidade"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cidade</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Cidade" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="uf"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>UF</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="UF" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {UFS.map((uf) => (
+                            <SelectItem key={uf} value={uf}>
+                              {uf}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
             <FormField
               control={form.control}
