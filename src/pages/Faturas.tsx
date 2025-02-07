@@ -12,15 +12,20 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, lastDayOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Edit } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { FaturaEditModal } from "@/components/faturas/FaturaEditModal";
+import { FaturaPdfButton } from "@/components/faturas/FaturaPdfButton";
 
 interface Fatura {
   id: string;
   consumo_kwh: number;
   valor_total: number;
   status: string;
+  data_vencimento: string;
+  mes: number;
+  ano: number;
   unidade_beneficiaria: {
     numero_uc: string;
     apelido: string | null;
@@ -30,17 +35,9 @@ interface Fatura {
   };
 }
 
-interface UnidadeBeneficiaria {
-  id: string;
-  numero_uc: string;
-  apelido: string | null;
-  cooperado: {
-    nome: string;
-  };
-}
-
 const Faturas = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
   const queryClient = useQueryClient();
 
   const { data: faturas, isLoading } = useQuery({
@@ -53,6 +50,9 @@ const Faturas = () => {
           consumo_kwh,
           valor_total,
           status,
+          data_vencimento,
+          mes,
+          ano,
           unidade_beneficiaria:unidade_beneficiaria_id (
             numero_uc,
             apelido,
@@ -209,12 +209,13 @@ const Faturas = () => {
               <TableHead>Consumo (kWh)</TableHead>
               <TableHead>Valor</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center">
+                <TableCell colSpan={6} className="text-center">
                   Carregando...
                 </TableCell>
               </TableRow>
@@ -248,11 +249,22 @@ const Faturas = () => {
                       {fatura.status.charAt(0).toUpperCase() + fatura.status.slice(1)}
                     </span>
                   </TableCell>
+                  <TableCell className="text-right space-x-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setSelectedFatura(fatura)}
+                      title="Editar Fatura"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <FaturaPdfButton fatura={fatura} />
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-gray-500">
+                <TableCell colSpan={6} className="text-center text-gray-500">
                   Nenhuma fatura encontrada para este mês
                 </TableCell>
               </TableRow>
@@ -260,6 +272,17 @@ const Faturas = () => {
           </TableBody>
         </Table>
       </div>
+
+      {selectedFatura && (
+        <FaturaEditModal
+          isOpen={!!selectedFatura}
+          onClose={() => setSelectedFatura(null)}
+          fatura={selectedFatura}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["faturas"] });
+          }}
+        />
+      )}
     </div>
   );
 };
