@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { lastDayOfMonth, startOfMonth, isBefore } from "date-fns";
@@ -165,6 +166,25 @@ export const useFaturas = (currentDate: Date) => {
     onError: (error) => {
       console.error("Erro ao gerar faturas:", error);
       toast.error("Erro ao gerar faturas");
+    },
+  });
+
+  const deleteFaturaMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("faturas")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["faturas"] });
+      toast.success("Fatura excluída com sucesso!");
+    },
+    onError: (error) => {
+      console.error("Erro ao excluir fatura:", error);
+      toast.error("Erro ao excluir fatura");
     },
   });
 
