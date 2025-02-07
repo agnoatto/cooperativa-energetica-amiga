@@ -60,6 +60,8 @@ export type Database = {
       faturas: {
         Row: {
           ano: number
+          arquivo_concessionaria_nome: string | null
+          arquivo_concessionaria_path: string | null
           consumo_kwh: number
           created_at: string
           data_pagamento: string | null
@@ -80,6 +82,8 @@ export type Database = {
         }
         Insert: {
           ano: number
+          arquivo_concessionaria_nome?: string | null
+          arquivo_concessionaria_path?: string | null
           consumo_kwh: number
           created_at?: string
           data_pagamento?: string | null
@@ -100,6 +104,8 @@ export type Database = {
         }
         Update: {
           ano?: number
+          arquivo_concessionaria_nome?: string | null
+          arquivo_concessionaria_path?: string | null
           consumo_kwh?: number
           created_at?: string
           data_pagamento?: string | null
