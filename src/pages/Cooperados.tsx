@@ -31,7 +31,8 @@ const Cooperados = () => {
 
       const { data: unidadesData, error: unidadesError } = await supabase
         .from('unidades_beneficiarias')
-        .select('*');
+        .select('*')
+        .is('data_saida', null);
 
       if (unidadesError) throw unidadesError;
       setUnidades(unidadesData);
@@ -51,14 +52,26 @@ const Cooperados = () => {
 
   const handleDelete = async (cooperadoId: string) => {
     try {
-      const { error } = await supabase
+      const currentDate = new Date().toISOString();
+
+      // Update cooperado with data_exclusao
+      const { error: cooperadoError } = await supabase
         .from('cooperados')
-        .update({ data_exclusao: new Date().toISOString() })
+        .update({ data_exclusao: currentDate })
         .eq('id', cooperadoId);
 
-      if (error) throw error;
+      if (cooperadoError) throw cooperadoError;
 
-      toast.success("Cooperado excluído com sucesso!");
+      // Update all unidades_beneficiarias related to this cooperado with data_saida
+      const { error: unidadesError } = await supabase
+        .from('unidades_beneficiarias')
+        .update({ data_saida: currentDate })
+        .eq('cooperado_id', cooperadoId)
+        .is('data_saida', null);
+
+      if (unidadesError) throw unidadesError;
+
+      toast.success("Cooperado e suas unidades beneficiárias foram excluídos com sucesso!");
       fetchData();
     } catch (error: any) {
       toast.error("Erro ao excluir cooperado: " + error.message);
@@ -69,7 +82,7 @@ const Cooperados = () => {
     try {
       const { error } = await supabase
         .from('unidades_beneficiarias')
-        .delete()
+        .update({ data_saida: new Date().toISOString() })
         .eq('id', unidadeId);
 
       if (error) throw error;
