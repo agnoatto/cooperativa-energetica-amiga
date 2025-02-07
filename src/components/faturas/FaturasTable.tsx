@@ -10,29 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Edit } from "lucide-react";
 import { FaturaPdfButton } from "./FaturaPdfButton";
-
-interface Fatura {
-  id: string;
-  consumo_kwh: number;
-  valor_total: number;
-  status: string;
-  data_vencimento: string;
-  mes: number;
-  ano: number;
-  fatura_concessionaria: number;
-  total_fatura: number;
-  iluminacao_publica: number;
-  outros_valores: number;
-  valor_desconto: number;
-  unidade_beneficiaria: {
-    numero_uc: string;
-    apelido: string | null;
-    percentual_desconto: number;
-    cooperado: {
-      nome: string;
-    };
-  };
-}
+import { Fatura } from "@/types/fatura";
 
 interface FaturasTableProps {
   faturas: Fatura[] | undefined;

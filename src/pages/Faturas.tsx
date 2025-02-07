@@ -8,6 +8,7 @@ import { FaturaEditModal } from "@/components/faturas/FaturaEditModal";
 import { FaturasHeader } from "@/components/faturas/FaturasHeader";
 import { MonthSelector } from "@/components/faturas/MonthSelector";
 import { FaturasTable } from "@/components/faturas/FaturasTable";
+import { Fatura } from "@/types/fatura";
 
 interface UnidadeBeneficiaria {
   id: string;
@@ -15,29 +16,6 @@ interface UnidadeBeneficiaria {
   apelido: string | null;
   cooperado: {
     nome: string;
-  };
-}
-
-interface Fatura {
-  id: string;
-  consumo_kwh: number;
-  valor_total: number;
-  status: string;
-  data_vencimento: string;
-  mes: number;
-  ano: number;
-  fatura_concessionaria: number;
-  total_fatura: number;
-  iluminacao_publica: number;
-  outros_valores: number;
-  valor_desconto: number;
-  unidade_beneficiaria: {
-    numero_uc: string;
-    apelido: string | null;
-    percentual_desconto: number;
-    cooperado: {
-      nome: string;
-    };
   };
 }
 
@@ -67,9 +45,11 @@ const Faturas = () => {
           unidade_beneficiaria:unidade_beneficiaria_id (
             numero_uc,
             apelido,
+            endereco,
             percentual_desconto,
             cooperado:cooperado_id (
-              nome
+              nome,
+              documento
             )
           )
         `)
