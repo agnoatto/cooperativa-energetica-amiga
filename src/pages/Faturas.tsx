@@ -1,22 +1,22 @@
 
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format, lastDayOfMonth } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Edit } from "lucide-react";
-import { useState } from "react";
+import { lastDayOfMonth } from "date-fns";
 import { toast } from "sonner";
 import { FaturaEditModal } from "@/components/faturas/FaturaEditModal";
-import { FaturaPdfButton } from "@/components/faturas/FaturaPdfButton";
+import { FaturasHeader } from "@/components/faturas/FaturasHeader";
+import { MonthSelector } from "@/components/faturas/MonthSelector";
+import { FaturasTable } from "@/components/faturas/FaturasTable";
+
+interface UnidadeBeneficiaria {
+  id: string;
+  numero_uc: string;
+  apelido: string | null;
+  cooperado: {
+    nome: string;
+  };
+}
 
 interface Fatura {
   id: string;
@@ -38,15 +38,6 @@ interface Fatura {
     cooperado: {
       nome: string;
     };
-  };
-}
-
-interface UnidadeBeneficiaria {
-  id: string;
-  numero_uc: string;
-  apelido: string | null;
-  cooperado: {
-    nome: string;
   };
 }
 
@@ -96,7 +87,6 @@ const Faturas = () => {
 
   const gerarFaturasMutation = useMutation({
     mutationFn: async () => {
-      // 1. Buscar unidades beneficiárias ativas
       const { data: unidades, error: unidadesError } = await supabase
         .from("unidades_beneficiarias")
         .select(`
@@ -111,14 +101,12 @@ const Faturas = () => {
 
       if (unidadesError) throw unidadesError;
 
-      // 2. Para cada unidade, verificar se já existe fatura e criar se necessário
       const mes = currentDate.getMonth() + 1;
       const ano = currentDate.getFullYear();
       const dataVencimento = lastDayOfMonth(currentDate);
 
       const unidadesComFatura = await Promise.all(
         (unidades as UnidadeBeneficiaria[]).map(async (unidade) => {
-          // Verificar se já existe fatura para esta unidade neste mês/ano
           const { data: faturasExistentes } = await supabase
             .from("faturas")
             .select()
@@ -127,10 +115,9 @@ const Faturas = () => {
             .eq("ano", ano);
 
           if (faturasExistentes && faturasExistentes.length > 0) {
-            return null; // Pular se já existe fatura
+            return null;
           }
 
-          // Criar nova fatura
           const { error: insertError } = await supabase
             .from("faturas")
             .insert({
@@ -181,132 +168,24 @@ const Faturas = () => {
     });
   };
 
-  const handleGerarFaturas = async () => {
-    gerarFaturasMutation.mutate();
-  };
-
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Faturas</h1>
-        <div className="space-x-2">
-          <Button variant="outline">Filtrar</Button>
-          <Button 
-            className="bg-primary hover:bg-primary/90"
-            onClick={handleGerarFaturas}
-            disabled={gerarFaturasMutation.isPending}
-          >
-            {gerarFaturasMutation.isPending ? "Gerando..." : "Gerar Faturas"}
-          </Button>
-        </div>
-      </div>
+      <FaturasHeader 
+        onGerarFaturas={() => gerarFaturasMutation.mutate()}
+        isGenerating={gerarFaturasMutation.isPending}
+      />
 
-      <div className="flex items-center justify-center space-x-4 py-4">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handlePreviousMonth}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <span className="text-lg font-medium min-w-40 text-center">
-          {format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })}
-        </span>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handleNextMonth}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
+      <MonthSelector
+        currentDate={currentDate}
+        onPreviousMonth={handlePreviousMonth}
+        onNextMonth={handleNextMonth}
+      />
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Cooperado</TableHead>
-              <TableHead>UC</TableHead>
-              <TableHead>Consumo (kWh)</TableHead>
-              <TableHead>Valor Original</TableHead>
-              <TableHead>Desconto</TableHead>
-              <TableHead>Valor Final</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center">
-                  Carregando...
-                </TableCell>
-              </TableRow>
-            ) : faturas && faturas.length > 0 ? (
-              faturas.map((fatura) => (
-                <TableRow key={fatura.id}>
-                  <TableCell>{fatura.unidade_beneficiaria.cooperado.nome}</TableCell>
-                  <TableCell>
-                    {fatura.unidade_beneficiaria.numero_uc}
-                    {fatura.unidade_beneficiaria.apelido && (
-                      <span className="text-gray-500 text-sm ml-1">
-                        ({fatura.unidade_beneficiaria.apelido})
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>{fatura.consumo_kwh} kWh</TableCell>
-                  <TableCell>
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL'
-                    }).format(fatura.total_fatura)}
-                  </TableCell>
-                  <TableCell>
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL'
-                    }).format(fatura.valor_desconto)}
-                  </TableCell>
-                  <TableCell>
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL'
-                    }).format(fatura.valor_total)}
-                  </TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-sm ${
-                      fatura.status === 'pendente'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : fatura.status === 'paga'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {fatura.status.charAt(0).toUpperCase() + fatura.status.slice(1)}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setSelectedFatura(fatura)}
-                      title="Editar Fatura"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <FaturaPdfButton fatura={fatura} />
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center text-gray-500">
-                  Nenhuma fatura encontrada para este mês
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <FaturasTable
+        faturas={faturas}
+        isLoading={isLoading}
+        onEditFatura={setSelectedFatura}
+      />
 
       {selectedFatura && (
         <FaturaEditModal
