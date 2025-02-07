@@ -1,7 +1,6 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { lastDayOfMonth } from "date-fns";
+import { lastDayOfMonth, startOfMonth, isBefore } from "date-fns";
 import { toast } from "sonner";
 import { Fatura } from "@/types/fatura";
 
@@ -9,6 +8,7 @@ interface UnidadeBeneficiaria {
   id: string;
   numero_uc: string;
   apelido: string | null;
+  data_entrada: string;
   cooperado: {
     nome: string;
   };
@@ -96,6 +96,7 @@ export const useFaturas = (currentDate: Date) => {
           id,
           numero_uc,
           apelido,
+          data_entrada,
           cooperado:cooperado_id (
             nome
           )
@@ -107,9 +108,20 @@ export const useFaturas = (currentDate: Date) => {
       const mes = currentDate.getMonth() + 1;
       const ano = currentDate.getFullYear();
       const dataVencimento = lastDayOfMonth(currentDate);
+      const primeiroDiaMes = startOfMonth(currentDate);
+
+      const unidadesElegiveis = (unidades as UnidadeBeneficiaria[]).filter(unidade => {
+        const dataEntrada = new Date(unidade.data_entrada);
+        return isBefore(dataEntrada, primeiroDiaMes);
+      });
+
+      if (unidadesElegiveis.length === 0) {
+        toast.info("Não há unidades elegíveis para geração de faturas neste mês.");
+        return [];
+      }
 
       const unidadesComFatura = await Promise.all(
-        (unidades as UnidadeBeneficiaria[]).map(async (unidade) => {
+        unidadesElegiveis.map(async (unidade) => {
           const { data: faturasExistentes } = await supabase
             .from("faturas")
             .select()
@@ -153,25 +165,6 @@ export const useFaturas = (currentDate: Date) => {
     onError: (error) => {
       console.error("Erro ao gerar faturas:", error);
       toast.error("Erro ao gerar faturas");
-    },
-  });
-
-  const deleteFaturaMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("faturas")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["faturas"] });
-      toast.success("Fatura excluída com sucesso!");
-    },
-    onError: (error) => {
-      console.error("Erro ao excluir fatura:", error);
-      toast.error("Erro ao excluir fatura");
     },
   });
 
