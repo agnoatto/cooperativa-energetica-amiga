@@ -34,11 +34,9 @@ interface Fatura {
   unidade_beneficiaria: {
     numero_uc: string;
     apelido: string | null;
-    endereco: string;
     percentual_desconto: number;
     cooperado: {
       nome: string;
-      documento: string | null;
     };
   };
 }
@@ -69,11 +67,9 @@ const Faturas = () => {
           unidade_beneficiaria:unidade_beneficiaria_id (
             numero_uc,
             apelido,
-            endereco,
             percentual_desconto,
             cooperado:cooperado_id (
-              nome,
-              documento
+              nome
             )
           )
         `)

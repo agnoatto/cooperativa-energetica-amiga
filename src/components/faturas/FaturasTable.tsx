@@ -27,11 +27,9 @@ interface Fatura {
   unidade_beneficiaria: {
     numero_uc: string;
     apelido: string | null;
-    endereco: string;
     percentual_desconto: number;
     cooperado: {
       nome: string;
-      documento: string | null;
     };
   };
 }
