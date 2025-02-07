@@ -1,6 +1,7 @@
 
 import { z } from "zod";
 import { cooperadoFormSchema } from "./schema";
+import { UseFormReturn } from "react-hook-form";
 
 export type CooperadoFormValues = z.infer<typeof cooperadoFormSchema>;
 
