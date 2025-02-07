@@ -1,6 +1,5 @@
 
-import { ActionButtons } from "./ActionButtons";
-import { PageTitle } from "./PageTitle";
+import { Button } from "@/components/ui/button";
 
 interface FaturasHeaderProps {
   onGerarFaturas: () => void;
@@ -10,11 +9,17 @@ interface FaturasHeaderProps {
 export function FaturasHeader({ onGerarFaturas, isGenerating }: FaturasHeaderProps) {
   return (
     <div className="flex justify-between items-center">
-      <PageTitle />
-      <ActionButtons 
-        onGerarFaturas={onGerarFaturas}
-        isGenerating={isGenerating}
-      />
+      <h1 className="text-3xl font-bold text-gray-900">Faturas</h1>
+      <div className="space-x-2">
+        <Button variant="outline">Filtrar</Button>
+        <Button 
+          className="bg-primary hover:bg-primary/90"
+          onClick={onGerarFaturas}
+          disabled={isGenerating}
+        >
+          {isGenerating ? "Gerando..." : "Gerar Faturas"}
+        </Button>
+      </div>
     </div>
   );
 }
