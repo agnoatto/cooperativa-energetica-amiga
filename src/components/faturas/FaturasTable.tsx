@@ -50,7 +50,8 @@ export function FaturasTable({ faturas, isLoading, onEditFatura }: FaturasTableP
             <TableHead>UC</TableHead>
             <TableHead>Consumo (kWh)</TableHead>
             <TableHead>Valor Original</TableHead>
-            <TableHead>Desconto</TableHead>
+            <TableHead>Desconto (%)</TableHead>
+            <TableHead>Valor Desconto</TableHead>
             <TableHead>Valor Final</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Ações</TableHead>
@@ -59,7 +60,7 @@ export function FaturasTable({ faturas, isLoading, onEditFatura }: FaturasTableP
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={8} className="text-center">
+              <TableCell colSpan={9} className="text-center">
                 Carregando...
               </TableCell>
             </TableRow>
@@ -82,6 +83,7 @@ export function FaturasTable({ faturas, isLoading, onEditFatura }: FaturasTableP
                     currency: 'BRL'
                   }).format(fatura.total_fatura)}
                 </TableCell>
+                <TableCell>{fatura.unidade_beneficiaria.percentual_desconto}%</TableCell>
                 <TableCell>
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
@@ -120,7 +122,7 @@ export function FaturasTable({ faturas, isLoading, onEditFatura }: FaturasTableP
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={8} className="text-center text-gray-500">
+              <TableCell colSpan={9} className="text-center text-gray-500">
                 Nenhuma fatura encontrada para este mês
               </TableCell>
             </TableRow>
