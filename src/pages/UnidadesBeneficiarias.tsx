@@ -1,0 +1,100 @@
+
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { UnidadeBeneficiariaForm } from "@/components/cooperados/UnidadeBeneficiariaForm";
+import { UnidadesTable } from "@/components/cooperados/UnidadesTable";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+
+const UnidadesBeneficiarias = () => {
+  const [showUnidadeForm, setShowUnidadeForm] = useState(false);
+  const [selectedCooperadoId, setSelectedCooperadoId] = useState<string | null>(null);
+  const [selectedUnidadeId, setSelectedUnidadeId] = useState<string | null>(null);
+  const [unidades, setUnidades] = useState<any[]>([]);
+  const navigate = useNavigate();
+
+  const fetchData = async () => {
+    try {
+      const { data: unidadesData, error: unidadesError } = await supabase
+        .from('unidades_beneficiarias')
+        .select(`
+          *,
+          cooperado:cooperados(nome)
+        `)
+        .is('data_saida', null);
+
+      if (unidadesError) throw unidadesError;
+      setUnidades(unidadesData);
+    } catch (error: any) {
+      toast.error("Erro ao carregar dados: " + error.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleDeleteUnidade = async (unidadeId: string) => {
+    try {
+      const { error } = await supabase
+        .from('unidades_beneficiarias')
+        .update({ data_saida: new Date().toISOString() })
+        .eq('id', unidadeId);
+
+      if (error) throw error;
+
+      toast.success("Unidade beneficiária excluída com sucesso!");
+      fetchData();
+    } catch (error: any) {
+      toast.error("Erro ao excluir unidade beneficiária: " + error.message);
+    }
+  };
+
+  const handleEditUnidade = (cooperadoId: string, unidadeId: string) => {
+    setSelectedCooperadoId(cooperadoId);
+    setSelectedUnidadeId(unidadeId);
+    setShowUnidadeForm(true);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Unidades Beneficiárias</h1>
+          <Button 
+            variant="link" 
+            className="px-0"
+            onClick={() => navigate('/cooperados')}
+          >
+            ← Voltar para Cooperados
+          </Button>
+        </div>
+      </div>
+
+      {selectedCooperadoId && (
+        <UnidadeBeneficiariaForm
+          open={showUnidadeForm}
+          onOpenChange={(open) => {
+            setShowUnidadeForm(open);
+            if (!open) {
+              setSelectedUnidadeId(null);
+            }
+          }}
+          cooperadoId={selectedCooperadoId}
+          unidadeId={selectedUnidadeId || undefined}
+          onSuccess={fetchData}
+        />
+      )}
+      
+      <UnidadesTable
+        unidades={unidades}
+        onEdit={handleEditUnidade}
+        onDelete={handleDeleteUnidade}
+      />
+    </div>
+  );
+};
+
+export default UnidadesBeneficiarias;

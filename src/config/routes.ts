@@ -36,6 +36,14 @@ export const routes: readonly RouteItem[] = [
     icon: Users,
     href: "/cooperados",
     color: "text-violet-500",
+    subItems: [
+      {
+        label: "Unidades Beneficiárias",
+        icon: Building2,
+        href: "/cooperados/unidades",
+        color: "text-violet-500",
+      },
+    ],
   },
   {
     label: "Usinas",

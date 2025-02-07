@@ -1,8 +1,10 @@
+
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { AppSidebar } from "./components/AppSidebar";
 import { Toaster } from "./components/ui/toaster";
 import Auth from "./pages/Auth";
 import Cooperados from "./pages/Cooperados";
+import UnidadesBeneficiarias from "./pages/UnidadesBeneficiarias";
 import Dashboard from "./pages/Dashboard";
 import Faturas from "./pages/Faturas";
 import Index from "./pages/Index";
@@ -73,6 +75,10 @@ function App() {
             <Route
               path="/cooperados"
               element={session ? <Cooperados /> : <Navigate to="/auth" replace />}
+            />
+            <Route
+              path="/cooperados/unidades"
+              element={session ? <UnidadesBeneficiarias /> : <Navigate to="/auth" replace />}
             />
             <Route
               path="/usinas"

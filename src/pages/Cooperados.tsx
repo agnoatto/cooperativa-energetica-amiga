@@ -3,21 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { CooperadoForm } from "@/components/cooperados/CooperadoForm";
-import { UnidadeBeneficiariaForm } from "@/components/cooperados/UnidadeBeneficiariaForm";
 import { CooperadosTable } from "@/components/cooperados/CooperadosTable";
-import { UnidadesTable } from "@/components/cooperados/UnidadesTable";
 import { CooperadoDetailsDialog } from "@/components/cooperados/CooperadoDetailsDialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const Cooperados = () => {
   const [showCooperadoForm, setShowCooperadoForm] = useState(false);
-  const [showUnidadeForm, setShowUnidadeForm] = useState(false);
   const [selectedCooperadoId, setSelectedCooperadoId] = useState<string | null>(null);
-  const [selectedUnidadeId, setSelectedUnidadeId] = useState<string | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [cooperados, setCooperados] = useState<any[]>([]);
   const [unidades, setUnidades] = useState<any[]>([]);
+  const navigate = useNavigate();
 
   const fetchData = async () => {
     try {
@@ -78,28 +76,6 @@ const Cooperados = () => {
     }
   };
 
-  const handleDeleteUnidade = async (unidadeId: string) => {
-    try {
-      const { error } = await supabase
-        .from('unidades_beneficiarias')
-        .update({ data_saida: new Date().toISOString() })
-        .eq('id', unidadeId);
-
-      if (error) throw error;
-
-      toast.success("Unidade beneficiária excluída com sucesso!");
-      fetchData();
-    } catch (error: any) {
-      toast.error("Erro ao excluir unidade beneficiária: " + error.message);
-    }
-  };
-
-  const handleEditUnidade = (cooperadoId: string, unidadeId: string) => {
-    setSelectedCooperadoId(cooperadoId);
-    setSelectedUnidadeId(unidadeId);
-    setShowUnidadeForm(true);
-  };
-
   const handleViewDetails = (cooperadoId: string) => {
     setSelectedCooperadoId(cooperadoId);
     setShowDetailsDialog(true);
@@ -109,14 +85,22 @@ const Cooperados = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Cooperados</h1>
-        <Button 
-          onClick={() => {
-            setSelectedCooperadoId(null);
-            setShowCooperadoForm(true);
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" /> Novo Cooperado
-        </Button>
+        <div className="space-x-2">
+          <Button 
+            variant="outline"
+            onClick={() => navigate('/cooperados/unidades')}
+          >
+            Ver Unidades Beneficiárias
+          </Button>
+          <Button 
+            onClick={() => {
+              setSelectedCooperadoId(null);
+              setShowCooperadoForm(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" /> Novo Cooperado
+          </Button>
+        </div>
       </div>
 
       <CooperadoForm 
@@ -135,39 +119,15 @@ const Cooperados = () => {
         }}
       />
 
-      {selectedCooperadoId && (
-        <UnidadeBeneficiariaForm
-          open={showUnidadeForm}
-          onOpenChange={(open) => {
-            setShowUnidadeForm(open);
-            if (!open) {
-              setSelectedUnidadeId(null);
-            }
-          }}
-          cooperadoId={selectedCooperadoId}
-          unidadeId={selectedUnidadeId || undefined}
-          onSuccess={fetchData}
-        />
-      )}
-
       <CooperadosTable
         cooperados={cooperados}
         unidades={unidades}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onAddUnidade={(cooperadoId) => {
-          setSelectedCooperadoId(cooperadoId);
-          setShowUnidadeForm(true);
+          navigate(`/cooperados/unidades`);
         }}
         onViewDetails={handleViewDetails}
-      />
-
-      <h2 className="text-2xl font-bold text-gray-900 mt-8">Unidades Beneficiárias</h2>
-      
-      <UnidadesTable
-        unidades={unidades}
-        onEdit={handleEditUnidade}
-        onDelete={handleDeleteUnidade}
       />
     </div>
   );
