@@ -24,15 +24,18 @@ export function FileUploadSection({
     setIsUploading(true);
     try {
       await handleFileUpload(file, faturaId, () => {
+        // Only call onUpdateList after successful upload
         onUpdateList();
-        onFileUploaded();
       });
     } finally {
       setIsUploading(false);
+      // Call onFileUploaded after upload is complete (success or failure)
+      onFileUploaded();
     }
   };
 
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
     event.stopPropagation();
     const file = event.target.files?.[0];
     if (file) handleFile(file);
