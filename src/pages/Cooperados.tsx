@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -19,6 +20,7 @@ const Cooperados = () => {
   const [showCooperadoForm, setShowCooperadoForm] = useState(false);
   const [showUnidadeForm, setShowUnidadeForm] = useState(false);
   const [selectedCooperadoId, setSelectedCooperadoId] = useState<string | null>(null);
+  const [selectedUnidadeId, setSelectedUnidadeId] = useState<string | null>(null);
   const [cooperados, setCooperados] = useState<any[]>([]);
   const [unidades, setUnidades] = useState<any[]>([]);
 
@@ -83,6 +85,12 @@ const Cooperados = () => {
     }
   };
 
+  const handleEditUnidade = (cooperadoId: string, unidadeId: string) => {
+    setSelectedCooperadoId(cooperadoId);
+    setSelectedUnidadeId(unidadeId);
+    setShowUnidadeForm(true);
+  };
+
   const formatarDocumento = (doc: string) => {
     if (!doc) return '-';
     const numero = doc.replace(/\D/g, '');
@@ -125,8 +133,14 @@ const Cooperados = () => {
       {selectedCooperadoId && (
         <UnidadeBeneficiariaForm
           open={showUnidadeForm}
-          onOpenChange={setShowUnidadeForm}
+          onOpenChange={(open) => {
+            setShowUnidadeForm(open);
+            if (!open) {
+              setSelectedUnidadeId(null);
+            }
+          }}
           cooperadoId={selectedCooperadoId}
+          unidadeId={selectedUnidadeId || undefined}
           onSuccess={fetchData}
         />
       )}
@@ -228,6 +242,13 @@ const Cooperados = () => {
                     : '-'}
                 </TableCell>
                 <TableCell className="text-right space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={() => handleEditUnidade(unidade.cooperado_id, unidade.id)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
                   <Button 
                     variant="outline" 
                     size="icon"

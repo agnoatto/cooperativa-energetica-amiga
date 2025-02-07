@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -19,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 const formSchema = z.object({
   numero_uc: z.string().min(1, "Número da UC é obrigatório"),
@@ -35,7 +37,7 @@ interface UnidadeBeneficiariaFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   cooperadoId: string;
-  initialData?: UnidadeBeneficiariaFormValues;
+  unidadeId?: string;
   onSuccess?: () => void;
 }
 
@@ -43,12 +45,12 @@ export function UnidadeBeneficiariaForm({
   open,
   onOpenChange,
   cooperadoId,
-  initialData,
+  unidadeId,
   onSuccess,
 }: UnidadeBeneficiariaFormProps) {
   const form = useForm<UnidadeBeneficiariaFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData || {
+    defaultValues: {
       numero_uc: "",
       apelido: "",
       endereco: "",
@@ -58,27 +60,76 @@ export function UnidadeBeneficiariaForm({
     },
   });
 
+  // Fetch unidade data when editing
+  useEffect(() => {
+    async function fetchUnidade() {
+      if (!unidadeId) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('unidades_beneficiarias')
+          .select('*')
+          .eq('id', unidadeId)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          form.reset({
+            numero_uc: data.numero_uc,
+            apelido: data.apelido || "",
+            endereco: data.endereco,
+            percentual_desconto: data.percentual_desconto.toString(),
+            data_entrada: new Date(data.data_entrada).toISOString().split('T')[0],
+            data_saida: data.data_saida ? new Date(data.data_saida).toISOString().split('T')[0] : "",
+          });
+        }
+      } catch (error: any) {
+        toast.error("Erro ao carregar dados da unidade: " + error.message);
+      }
+    }
+
+    if (open) {
+      fetchUnidade();
+    }
+  }, [unidadeId, open, form]);
+
   async function onSubmit(data: UnidadeBeneficiariaFormValues) {
     try {
-      const { error } = await supabase
-        .from('unidades_beneficiarias')
-        .insert({
-          cooperado_id: cooperadoId,
-          numero_uc: data.numero_uc,
-          apelido: data.apelido || null,
-          endereco: data.endereco,
-          percentual_desconto: parseFloat(data.percentual_desconto),
-          data_entrada: new Date(data.data_entrada).toISOString(),
-          data_saida: data.data_saida ? new Date(data.data_saida).toISOString() : null,
-        });
+      const unidadeData = {
+        cooperado_id: cooperadoId,
+        numero_uc: data.numero_uc,
+        apelido: data.apelido || null,
+        endereco: data.endereco,
+        percentual_desconto: parseFloat(data.percentual_desconto),
+        data_entrada: new Date(data.data_entrada).toISOString(),
+        data_saida: data.data_saida ? new Date(data.data_saida).toISOString() : null,
+      };
 
-      if (error) throw error;
+      if (unidadeId) {
+        // Update existing unidade
+        const { error } = await supabase
+          .from('unidades_beneficiarias')
+          .update(unidadeData)
+          .eq('id', unidadeId);
 
-      toast.success("Unidade beneficiária cadastrada com sucesso!");
+        if (error) throw error;
+        toast.success("Unidade beneficiária atualizada com sucesso!");
+      } else {
+        // Create new unidade
+        const { error } = await supabase
+          .from('unidades_beneficiarias')
+          .insert(unidadeData);
+
+        if (error) throw error;
+        toast.success("Unidade beneficiária cadastrada com sucesso!");
+      }
+
       onSuccess?.();
       onOpenChange(false);
+      form.reset();
     } catch (error: any) {
-      toast.error("Erro ao cadastrar unidade beneficiária: " + error.message);
+      toast.error(`Erro ao ${unidadeId ? 'atualizar' : 'cadastrar'} unidade beneficiária: ` + error.message);
     }
   }
 
@@ -87,7 +138,7 @@ export function UnidadeBeneficiariaForm({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {initialData ? "Editar Unidade Beneficiária" : "Nova Unidade Beneficiária"}
+            {unidadeId ? "Editar Unidade Beneficiária" : "Nova Unidade Beneficiária"}
           </DialogTitle>
         </DialogHeader>
 
