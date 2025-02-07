@@ -42,25 +42,27 @@ const Pagamentos = () => {
           ano,
           economia_mes,
           economia_acumulada,
-          usina:usina_id (
+          usina:usinas!inner(
             id,
-            unidade_usina:unidade_usina_id (
+            unidade_usina:unidades_usina!inner(
               numero_uc
             ),
-            investidor:investidor_id (
+            investidor:investidores!inner(
               nome_investidor
             )
           )
         `)
         .eq("mes", currentDate.getMonth() + 1)
-        .eq("ano", currentDate.getFullYear());
+        .eq("ano", currentDate.getFullYear())
+        .order('created_at', { ascending: false });
 
       if (error) {
+        console.error("Erro ao carregar pagamentos:", error);
         toast.error("Erro ao carregar pagamentos");
-        throw error;
+        return [];
       }
 
-      return data;
+      return data || [];
     },
   });
 
@@ -70,13 +72,13 @@ const Pagamentos = () => {
         .from("usinas")
         .select(`
           id,
-          unidade_usina:unidade_usina_id (
+          unidade_usina:unidades_usina!inner(
             numero_uc
           ),
-          investidor:investidor_id (
+          investidor:investidores!inner(
             nome_investidor
           )
-        `); // Removida a restrição .eq('status', 'active')
+        `);
 
       if (usinasError) throw usinasError;
 

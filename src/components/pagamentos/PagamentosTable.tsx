@@ -74,8 +74,8 @@ export function PagamentosTable({ pagamentos, isLoading, onEditPagamento }: Paga
           ) : pagamentos && pagamentos.length > 0 ? (
             pagamentos.map((pagamento) => (
               <TableRow key={pagamento.id}>
-                <TableCell>{pagamento.usina.unidade_usina.numero_uc}</TableCell>
-                <TableCell>{pagamento.usina.investidor.nome_investidor}</TableCell>
+                <TableCell>{pagamento.usina?.unidade_usina?.numero_uc || 'N/A'}</TableCell>
+                <TableCell>{pagamento.usina?.investidor?.nome_investidor || 'N/A'}</TableCell>
                 <TableCell>{pagamento.geracao_kwh} kWh</TableCell>
                 <TableCell>{formatCurrency(pagamento.valor_tusd_fio_b)}</TableCell>
                 <TableCell>{formatCurrency(pagamento.conta_energia)}</TableCell>
