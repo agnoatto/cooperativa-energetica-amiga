@@ -1,17 +1,11 @@
+
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Plus, Edit, Trash, Eye } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { CooperadoForm } from "@/components/cooperados/CooperadoForm";
 import { UnidadeBeneficiariaForm } from "@/components/cooperados/UnidadeBeneficiariaForm";
-import { CooperadoPdfButton } from "@/components/cooperados/CooperadoPdfButton";
+import { CooperadosTable } from "@/components/cooperados/CooperadosTable";
+import { UnidadesTable } from "@/components/cooperados/UnidadesTable";
 import { CooperadoDetailsDialog } from "@/components/cooperados/CooperadoDetailsDialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -97,24 +91,6 @@ const Cooperados = () => {
     setShowDetailsDialog(true);
   };
 
-  const formatarDocumento = (doc: string) => {
-    if (!doc) return '-';
-    const numero = doc.replace(/\D/g, '');
-    if (numero.length === 11) {
-      return numero.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/g, '$1.$2.$3-$4');
-    }
-    return numero.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/g, '$1.$2.$3/$4-$5');
-  };
-
-  const formatarTelefone = (telefone: string) => {
-    if (!telefone) return '-';
-    const numero = telefone.replace(/\D/g, '');
-    if (numero.length === 11) {
-      return numero.replace(/(\d{2})(\d{5})(\d{4})/g, '($1) $2-$3');
-    }
-    return numero.replace(/(\d{2})(\d{4})(\d{4})/g, '($1) $2-$3');
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -160,144 +136,25 @@ const Cooperados = () => {
         />
       )}
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome/Razão Social</TableHead>
-              <TableHead>CPF/CNPJ</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Contato</TableHead>
-              <TableHead>Unidades</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {cooperados.map((cooperado) => (
-              <TableRow 
-                key={cooperado.id} 
-                className="cursor-pointer hover:bg-gray-50"
-                onClick={() => handleViewDetails(cooperado.id)}
-              >
-                <TableCell>{cooperado.nome}</TableCell>
-                <TableCell>{cooperado.documento ? formatarDocumento(cooperado.documento) : '-'}</TableCell>
-                <TableCell>
-                  {cooperado.tipo_pessoa === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física'}
-                </TableCell>
-                <TableCell>
-                  <div>
-                    {formatarTelefone(cooperado.telefone)}
-                    <br />
-                    {cooperado.email || '-'}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center space-x-2">
-                    <span>{unidades.filter(u => u.cooperado_id === cooperado.id).length}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedCooperadoId(cooperado.id);
-                        setShowUnidadeForm(true);
-                      }}
-                      title="Adicionar Unidade Beneficiária"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-                <TableCell className="text-right space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleViewDetails(cooperado.id);
-                    }}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEdit(cooperado.id);
-                    }}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(cooperado.id);
-                    }}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                  <CooperadoPdfButton
-                    cooperado={cooperado}
-                    unidades={unidades.filter(u => u.cooperado_id === cooperado.id)}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <CooperadosTable
+        cooperados={cooperados}
+        unidades={unidades}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onAddUnidade={(cooperadoId) => {
+          setSelectedCooperadoId(cooperadoId);
+          setShowUnidadeForm(true);
+        }}
+        onViewDetails={handleViewDetails}
+      />
 
       <h2 className="text-2xl font-bold text-gray-900 mt-8">Unidades Beneficiárias</h2>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Número UC</TableHead>
-              <TableHead>Apelido</TableHead>
-              <TableHead>Endereço</TableHead>
-              <TableHead>Desconto</TableHead>
-              <TableHead>Data Entrada</TableHead>
-              <TableHead>Data Saída</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {unidades.map((unidade) => (
-              <TableRow key={unidade.id}>
-                <TableCell>{unidade.numero_uc}</TableCell>
-                <TableCell>{unidade.apelido}</TableCell>
-                <TableCell>{unidade.endereco}</TableCell>
-                <TableCell>{unidade.percentual_desconto}%</TableCell>
-                <TableCell>{new Date(unidade.data_entrada).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  {unidade.data_saida 
-                    ? new Date(unidade.data_saida).toLocaleDateString()
-                    : '-'}
-                </TableCell>
-                <TableCell className="text-right space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    onClick={() => handleEditUnidade(unidade.cooperado_id, unidade.id)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    onClick={() => handleDeleteUnidade(unidade.id)}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      
+      <UnidadesTable
+        unidades={unidades}
+        onEdit={handleEditUnidade}
+        onDelete={handleDeleteUnidade}
+      />
     </div>
   );
 };
