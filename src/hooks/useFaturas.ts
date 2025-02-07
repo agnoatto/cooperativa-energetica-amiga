@@ -20,6 +20,24 @@ export const useFaturas = (currentDate: Date) => {
   const { data: faturas, isLoading } = useQuery({
     queryKey: ["faturas", currentDate],
     queryFn: async () => {
+      // Primeiro, buscar todas as faturas anteriores para calcular a economia acumulada
+      const { data: faturasAnteriores } = await supabase
+        .from("faturas")
+        .select('valor_desconto, unidade_beneficiaria_id')
+        .lt('ano', currentDate.getFullYear())
+        .order('ano', { ascending: false });
+
+      const { data: faturasAnoAtual } = await supabase
+        .from("faturas")
+        .select('valor_desconto, unidade_beneficiaria_id, mes')
+        .eq('ano', currentDate.getFullYear())
+        .lt('mes', currentDate.getMonth() + 1)
+        .order('mes', { ascending: false });
+
+      // Combinar todas as faturas anteriores
+      const todasFaturasAnteriores = [...(faturasAnteriores || []), ...(faturasAnoAtual || [])];
+
+      // Buscar faturas do mês atual
       const { data, error } = await supabase
         .from("faturas")
         .select(`
@@ -35,6 +53,7 @@ export const useFaturas = (currentDate: Date) => {
           iluminacao_publica,
           outros_valores,
           valor_desconto,
+          economia_acumulada,
           unidade_beneficiaria:unidade_beneficiaria_id (
             numero_uc,
             apelido,
@@ -54,7 +73,17 @@ export const useFaturas = (currentDate: Date) => {
         throw error;
       }
 
-      return data as Fatura[];
+      // Calcular economia acumulada para cada fatura
+      return data.map(fatura => {
+        const economiaAcumulada = todasFaturasAnteriores
+          .filter(f => f.unidade_beneficiaria_id === fatura.unidade_beneficiaria_id)
+          .reduce((acc, f) => acc + (f.valor_desconto || 0), 0);
+
+        return {
+          ...fatura,
+          economia_acumulada: economiaAcumulada
+        };
+      }) as Fatura[];
     },
   });
 
@@ -101,6 +130,7 @@ export const useFaturas = (currentDate: Date) => {
               valor_total: 0,
               status: "pendente",
               data_vencimento: dataVencimento.toISOString().split('T')[0],
+              economia_acumulada: 0, // Inicializar com zero
             });
 
           if (insertError) throw insertError;
