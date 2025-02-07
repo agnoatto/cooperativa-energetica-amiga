@@ -26,9 +26,15 @@ interface Fatura {
   data_vencimento: string;
   mes: number;
   ano: number;
+  fatura_concessionaria: number;
+  total_fatura: number;
+  iluminacao_publica: number;
+  outros_valores: number;
+  valor_desconto: number;
   unidade_beneficiaria: {
     numero_uc: string;
     apelido: string | null;
+    percentual_desconto: number;
     cooperado: {
       nome: string;
     };
@@ -62,9 +68,15 @@ const Faturas = () => {
           data_vencimento,
           mes,
           ano,
+          fatura_concessionaria,
+          total_fatura,
+          iluminacao_publica,
+          outros_valores,
+          valor_desconto,
           unidade_beneficiaria:unidade_beneficiaria_id (
             numero_uc,
             apelido,
+            percentual_desconto,
             cooperado:cooperado_id (
               nome
             )
@@ -216,7 +228,9 @@ const Faturas = () => {
               <TableHead>Cooperado</TableHead>
               <TableHead>UC</TableHead>
               <TableHead>Consumo (kWh)</TableHead>
-              <TableHead>Valor</TableHead>
+              <TableHead>Valor Original</TableHead>
+              <TableHead>Desconto</TableHead>
+              <TableHead>Valor Final</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -224,7 +238,7 @@ const Faturas = () => {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center">
+                <TableCell colSpan={8} className="text-center">
                   Carregando...
                 </TableCell>
               </TableRow>
@@ -241,6 +255,18 @@ const Faturas = () => {
                     )}
                   </TableCell>
                   <TableCell>{fatura.consumo_kwh} kWh</TableCell>
+                  <TableCell>
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }).format(fatura.total_fatura)}
+                  </TableCell>
+                  <TableCell>
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }).format(fatura.valor_desconto)}
+                  </TableCell>
                   <TableCell>
                     {new Intl.NumberFormat('pt-BR', {
                       style: 'currency',
@@ -273,7 +299,7 @@ const Faturas = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-gray-500">
+                <TableCell colSpan={8} className="text-center text-gray-500">
                   Nenhuma fatura encontrada para este mês
                 </TableCell>
               </TableRow>

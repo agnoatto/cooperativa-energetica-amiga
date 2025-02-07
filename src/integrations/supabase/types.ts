@@ -58,11 +58,16 @@ export type Database = {
           created_at: string
           data_pagamento: string | null
           data_vencimento: string
+          fatura_concessionaria: number
           id: string
+          iluminacao_publica: number
           mes: number
+          outros_valores: number
           status: string
+          total_fatura: number
           unidade_beneficiaria_id: string
           updated_at: string
+          valor_desconto: number
           valor_total: number
         }
         Insert: {
@@ -71,11 +76,16 @@ export type Database = {
           created_at?: string
           data_pagamento?: string | null
           data_vencimento: string
+          fatura_concessionaria?: number
           id?: string
+          iluminacao_publica?: number
           mes: number
+          outros_valores?: number
           status?: string
+          total_fatura?: number
           unidade_beneficiaria_id: string
           updated_at?: string
+          valor_desconto?: number
           valor_total: number
         }
         Update: {
@@ -84,11 +94,16 @@ export type Database = {
           created_at?: string
           data_pagamento?: string | null
           data_vencimento?: string
+          fatura_concessionaria?: number
           id?: string
+          iluminacao_publica?: number
           mes?: number
+          outros_valores?: number
           status?: string
+          total_fatura?: number
           unidade_beneficiaria_id?: string
           updated_at?: string
+          valor_desconto?: number
           valor_total?: number
         }
         Relationships: [
