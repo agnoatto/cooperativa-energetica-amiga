@@ -18,12 +18,12 @@ import { calculateValues, parseValue } from "./utils/calculateValues";
 import type { FaturaEditModalProps } from "./types";
 
 export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEditModalProps) {
-  const [consumo, setConsumo] = useState(fatura.consumo_kwh.toString());
+  const [consumo, setConsumo] = useState(fatura.consumo_kwh?.toString() || "0");
   const [totalFatura, setTotalFatura] = useState(fatura.total_fatura.toFixed(2).replace('.', ','));
   const [faturaConcessionaria, setFaturaConcessionaria] = useState(fatura.fatura_concessionaria.toFixed(2).replace('.', ','));
   const [iluminacaoPublica, setIluminacaoPublica] = useState(fatura.iluminacao_publica.toFixed(2).replace('.', ','));
   const [outrosValores, setOutrosValores] = useState(fatura.outros_valores.toFixed(2).replace('.', ','));
-  const [saldoEnergiaKwh, setSaldoEnergiaKwh] = useState(fatura.saldo_energia_kwh.toString());
+  const [saldoEnergiaKwh, setSaldoEnergiaKwh] = useState(fatura.saldo_energia_kwh?.toString() || "0");
   const [observacao, setObservacao] = useState(fatura.observacao || '');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -159,4 +159,3 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     </Dialog>
   );
 }
-

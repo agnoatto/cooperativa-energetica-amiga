@@ -32,4 +32,3 @@ export interface Fatura {
   arquivo_concessionaria_nome?: string | null;
   unidade_beneficiaria: UnidadeBeneficiaria;
 }
-
