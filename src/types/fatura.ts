@@ -26,7 +26,10 @@ export interface Fatura {
   outros_valores: number;
   valor_desconto: number;
   economia_acumulada: number;
+  saldo_energia_kwh: number;
+  observacao: string | null;
   arquivo_concessionaria_path?: string | null;
   arquivo_concessionaria_nome?: string | null;
   unidade_beneficiaria: UnidadeBeneficiaria;
 }
+

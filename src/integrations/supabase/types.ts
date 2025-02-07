@@ -70,7 +70,9 @@ export type Database = {
           id: string
           iluminacao_publica: number
           mes: number
+          observacao: string | null
           outros_valores: number
+          saldo_energia_kwh: number
           status: string
           total_fatura: number
           unidade_beneficiaria_id: string
@@ -90,7 +92,9 @@ export type Database = {
           id?: string
           iluminacao_publica?: number
           mes: number
+          observacao?: string | null
           outros_valores?: number
+          saldo_energia_kwh?: number
           status?: string
           total_fatura?: number
           unidade_beneficiaria_id: string
@@ -110,7 +114,9 @@ export type Database = {
           id?: string
           iluminacao_publica?: number
           mes?: number
+          observacao?: string | null
           outros_valores?: number
+          saldo_energia_kwh?: number
           status?: string
           total_fatura?: number
           unidade_beneficiaria_id?: string

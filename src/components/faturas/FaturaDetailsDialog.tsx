@@ -72,6 +72,10 @@ export function FaturaDetailsDialog({ fatura, isOpen, onClose }: FaturaDetailsDi
                 <p>{fatura.consumo_kwh} kWh</p>
               </div>
               <div>
+                <span className="text-muted-foreground">Saldo de Energia:</span>
+                <p>{fatura.saldo_energia_kwh} kWh</p>
+              </div>
+              <div>
                 <span className="text-muted-foreground">Percentual de Desconto:</span>
                 <p>{fatura.unidade_beneficiaria.percentual_desconto}%</p>
               </div>
@@ -123,8 +127,19 @@ export function FaturaDetailsDialog({ fatura, isOpen, onClose }: FaturaDetailsDi
               </div>
             </div>
           </div>
+
+          {/* Observações */}
+          {fatura.observacao && (
+            <div className="space-y-2">
+              <h3 className="font-semibold">Observações</h3>
+              <div className="text-sm bg-muted p-3 rounded-md">
+                {fatura.observacao}
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
   );
 }
+

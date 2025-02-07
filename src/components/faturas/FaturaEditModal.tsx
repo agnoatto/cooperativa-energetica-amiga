@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -22,6 +23,8 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
   const [faturaConcessionaria, setFaturaConcessionaria] = useState(fatura.fatura_concessionaria.toFixed(2).replace('.', ','));
   const [iluminacaoPublica, setIluminacaoPublica] = useState(fatura.iluminacao_publica.toFixed(2).replace('.', ','));
   const [outrosValores, setOutrosValores] = useState(fatura.outros_valores.toFixed(2).replace('.', ','));
+  const [saldoEnergiaKwh, setSaldoEnergiaKwh] = useState(fatura.saldo_energia_kwh.toString());
+  const [observacao, setObservacao] = useState(fatura.observacao || '');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,6 +50,8 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
           outros_valores: parseValue(outrosValores),
           valor_desconto: calculatedValues.valor_desconto,
           valor_total: calculatedValues.valor_total,
+          saldo_energia_kwh: Number(saldoEnergiaKwh),
+          observacao: observacao || null,
         })
         .eq("id", fatura.id);
 
@@ -118,6 +123,29 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               required
             />
           </div>
+          <div className="grid w-full items-center gap-2">
+            <Label htmlFor="saldoEnergiaKwh">Saldo de Energia (kWh)</Label>
+            <Input
+              type="number"
+              id="saldoEnergiaKwh"
+              value={saldoEnergiaKwh}
+              onChange={(e) => setSaldoEnergiaKwh(e.target.value)}
+              step="0.01"
+              min="0"
+              required
+            />
+          </div>
+          <div className="grid w-full items-center gap-2">
+            <Label htmlFor="observacao">Observações</Label>
+            <Textarea
+              id="observacao"
+              value={observacao}
+              onChange={(e) => setObservacao(e.target.value)}
+              placeholder="Adicione observações relevantes sobre a fatura..."
+              className="resize-none"
+              rows={3}
+            />
+          </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
               Cancelar
@@ -131,3 +159,4 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     </Dialog>
   );
 }
+
