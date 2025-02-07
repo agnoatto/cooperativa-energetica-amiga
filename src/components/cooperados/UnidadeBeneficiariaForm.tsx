@@ -5,13 +5,7 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -21,14 +15,9 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { AddressFields } from "./AddressFields";
+import { UnidadeBeneficiariaBasicInfo } from "./UnidadeBeneficiariaBasicInfo";
+import { UnidadeBeneficiariaDateFields } from "./UnidadeBeneficiariaDateFields";
 
 const cepRegex = /^\d{5}-?\d{3}$/;
 const UFS = [
@@ -121,7 +110,6 @@ export function UnidadeBeneficiariaForm({
     }
   };
 
-  // Fetch unidade data when editing
   useEffect(() => {
     async function fetchUnidade() {
       if (!unidadeId) return;
@@ -218,225 +206,13 @@ export function UnidadeBeneficiariaForm({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="numero_uc"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Número da UC</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Número da UC" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <UnidadeBeneficiariaBasicInfo form={form} />
+            <AddressFields 
+              form={form}
+              isLoadingCep={isLoadingCep}
+              onFetchCep={fetchCep}
             />
-
-            <FormField
-              control={form.control}
-              name="apelido"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Apelido (opcional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Apelido da unidade" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="space-y-4">
-              <div className="flex gap-2">
-                <FormField
-                  control={form.control}
-                  name="cep"
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>CEP</FormLabel>
-                      <FormControl>
-                        <div className="flex gap-2">
-                          <Input 
-                            placeholder="00000-000" 
-                            {...field}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              // Apply CEP mask
-                              const maskedValue = value
-                                .replace(/\D/g, '')
-                                .replace(/(\d{5})(\d)/, '$1-$2')
-                                .replace(/(-\d{3})\d+?$/, '$1');
-                              field.onChange(maskedValue);
-                            }}
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => fetchCep(field.value)}
-                            disabled={isLoadingCep || !field.value}
-                          >
-                            {isLoadingCep ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              "Buscar"
-                            )}
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="logradouro"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Logradouro</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Rua, Avenida, etc" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="numero"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Número</FormLabel>
-                      <FormControl>
-                        <Input placeholder="123" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="complemento"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Complemento</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Apto, Sala, etc" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="bairro"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Bairro</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Bairro" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="cidade"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cidade</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Cidade" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="uf"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>UF</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="UF" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {UFS.map((uf) => (
-                            <SelectItem key={uf} value={uf}>
-                              {uf}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            <FormField
-              control={form.control}
-              name="percentual_desconto"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Percentual de Desconto</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="100"
-                      placeholder="0.00"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="data_entrada"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Data de Entrada</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="data_saida"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Data de Saída (opcional)</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <UnidadeBeneficiariaDateFields form={form} />
 
             <div className="flex justify-end gap-2">
               <Button type="submit">Salvar</Button>
