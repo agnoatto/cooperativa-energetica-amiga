@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import { AddressFields } from "./AddressFields";
 import { UnidadeBeneficiariaBasicInfo } from "./UnidadeBeneficiariaBasicInfo";
 import { UnidadeBeneficiariaDateFields } from "./UnidadeBeneficiariaDateFields";
+import { UnidadeBeneficiariaFormProps, UnidadeBeneficiariaFormValues, ViaCEPResponse } from "./types";
 
 const cepRegex = /^\d{5}-?\d{3}$/;
 const UFS = [
@@ -41,24 +42,6 @@ const formSchema = z.object({
   data_entrada: z.string().min(1, "Data de entrada é obrigatória"),
   data_saida: z.string().optional(),
 });
-
-type UnidadeBeneficiariaFormValues = z.infer<typeof formSchema>;
-
-interface UnidadeBeneficiariaFormProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  cooperadoId: string;
-  unidadeId?: string;
-  onSuccess?: () => void;
-}
-
-interface ViaCEPResponse {
-  logradouro: string;
-  bairro: string;
-  localidade: string;
-  uf: string;
-  erro?: boolean;
-}
 
 export function UnidadeBeneficiariaForm({
   open,

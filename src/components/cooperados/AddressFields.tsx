@@ -3,7 +3,6 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { UseFormReturn } from "react-hook-form";
 import { 
   Select,
   SelectContent,
@@ -11,13 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
-
-interface AddressFieldsProps {
-  form: UseFormReturn<any>;
-  isLoadingCep: boolean;
-  onFetchCep: (cep: string) => Promise<void>;
-}
+import { AddressFieldsProps } from "./types";
 
 const UFS = [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", 

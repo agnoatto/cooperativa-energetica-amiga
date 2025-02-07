@@ -1,11 +1,7 @@
 
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { UseFormReturn } from "react-hook-form";
-
-interface BasicInfoFieldsProps {
-  form: UseFormReturn<any>;
-}
+import { BasicInfoFieldsProps } from "./types";
 
 export function UnidadeBeneficiariaBasicInfo({ form }: BasicInfoFieldsProps) {
   return (

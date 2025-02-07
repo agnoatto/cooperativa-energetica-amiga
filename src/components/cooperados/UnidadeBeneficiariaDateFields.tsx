@@ -1,11 +1,7 @@
 
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { UseFormReturn } from "react-hook-form";
-
-interface DateFieldsProps {
-  form: UseFormReturn<any>;
-}
+import { DateFieldsProps } from "./types";
 
 export function UnidadeBeneficiariaDateFields({ form }: DateFieldsProps) {
   return (
