@@ -66,12 +66,22 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
   };
 
   const handleFileUploaded = () => {
-    onSuccess(); // Apenas atualiza os dados, sem fechar o modal
+    onSuccess();
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!isUploading) {
+      onClose();
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-[425px]" onPointerDownOutside={(e) => {
+        if (isUploading) {
+          e.preventDefault();
+        }
+      }}>
         <DialogHeader>
           <DialogTitle>Editar Fatura</DialogTitle>
         </DialogHeader>
@@ -134,10 +144,10 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
             />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isUploading}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading || isUploading}>
               {isLoading ? "Salvando..." : "Salvar"}
             </Button>
           </DialogFooter>

@@ -26,22 +26,26 @@ export function FileUploadSection({
   };
 
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.stopPropagation();
     const file = event.target.files?.[0];
     if (file) handleFile(file);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(true);
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(false);
   };
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(false);
 
     const file = e.dataTransfer.files[0];
@@ -61,6 +65,7 @@ export function FileUploadSection({
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
+          onClick={(e) => e.stopPropagation()}
         >
           <input
             type="file"
@@ -68,6 +73,7 @@ export function FileUploadSection({
             onChange={onFileChange}
             disabled={isUploading}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            onClick={(e) => e.stopPropagation()}
           />
           <div className="flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
             <Upload className="h-6 w-6" />
@@ -80,7 +86,10 @@ export function FileUploadSection({
             type="button"
             variant="outline"
             size="icon"
-            onClick={() => downloadFile(arquivoConcessionariaPath, arquivoConcessionariaNome)}
+            onClick={(e) => {
+              e.stopPropagation();
+              downloadFile(arquivoConcessionariaPath, arquivoConcessionariaNome);
+            }}
             title="Baixar arquivo"
           >
             <Upload className="h-4 w-4" />
