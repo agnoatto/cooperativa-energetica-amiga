@@ -12,7 +12,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CurrencyInput } from "./CurrencyInput";
-import { FileUpload, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 
 interface FaturaEditModalProps {
   isOpen: boolean;
@@ -177,7 +177,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
                   onClick={downloadFile}
                   title="Baixar arquivo"
                 >
-                  <FileUpload className="h-4 w-4" />
+                  <Upload className="h-4 w-4" />
                 </Button>
               )}
             </div>
