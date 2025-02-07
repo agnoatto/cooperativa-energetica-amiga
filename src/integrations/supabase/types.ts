@@ -242,6 +242,68 @@ export type Database = {
         }
         Relationships: []
       }
+      pagamentos_usina: {
+        Row: {
+          ano: number
+          conta_energia: number
+          created_at: string
+          data_pagamento: string | null
+          data_vencimento: string
+          economia_acumulada: number | null
+          economia_mes: number | null
+          geracao_kwh: number
+          id: string
+          mes: number
+          status: string
+          updated_at: string
+          usina_id: string | null
+          valor_total: number
+          valor_tusd_fio_b: number
+        }
+        Insert: {
+          ano: number
+          conta_energia: number
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento: string
+          economia_acumulada?: number | null
+          economia_mes?: number | null
+          geracao_kwh: number
+          id?: string
+          mes: number
+          status?: string
+          updated_at?: string
+          usina_id?: string | null
+          valor_total: number
+          valor_tusd_fio_b: number
+        }
+        Update: {
+          ano?: number
+          conta_energia?: number
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento?: string
+          economia_acumulada?: number | null
+          economia_mes?: number | null
+          geracao_kwh?: number
+          id?: string
+          mes?: number
+          status?: string
+          updated_at?: string
+          usina_id?: string | null
+          valor_total?: number
+          valor_tusd_fio_b?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagamentos_usina_usina_id_fkey"
+            columns: ["usina_id"]
+            isOneToOne: false
+            referencedRelation: "usinas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string

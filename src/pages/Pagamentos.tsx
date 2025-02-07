@@ -1,47 +1,176 @@
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { lastDayOfMonth } from "date-fns";
+import { toast } from "sonner";
+import { MonthSelector } from "@/components/pagamentos/MonthSelector";
+import { PagamentosHeader } from "@/components/pagamentos/PagamentosHeader";
+import { PagamentosTable } from "@/components/pagamentos/PagamentosTable";
+
+interface Usina {
+  id: string;
+  unidade_usina: {
+    numero_uc: string;
+  };
+  investidor: {
+    nome_investidor: string;
+  };
+}
 
 const Pagamentos = () => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const queryClient = useQueryClient();
+
+  const { data: pagamentos, isLoading } = useQuery({
+    queryKey: ["pagamentos", currentDate],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pagamentos_usina")
+        .select(`
+          id,
+          geracao_kwh,
+          valor_tusd_fio_b,
+          conta_energia,
+          valor_total,
+          status,
+          data_vencimento,
+          data_pagamento,
+          mes,
+          ano,
+          economia_mes,
+          economia_acumulada,
+          usina:usina_id (
+            id,
+            unidade_usina:unidade_usina_id (
+              numero_uc
+            ),
+            investidor:investidor_id (
+              nome_investidor
+            )
+          )
+        `)
+        .eq("mes", currentDate.getMonth() + 1)
+        .eq("ano", currentDate.getFullYear());
+
+      if (error) {
+        toast.error("Erro ao carregar pagamentos");
+        throw error;
+      }
+
+      return data;
+    },
+  });
+
+  const gerarPagamentosMutation = useMutation({
+    mutationFn: async () => {
+      const { data: usinas, error: usinasError } = await supabase
+        .from("usinas")
+        .select(`
+          id,
+          unidade_usina:unidade_usina_id (
+            numero_uc
+          ),
+          investidor:investidor_id (
+            nome_investidor
+          )
+        `)
+        .eq('status', 'active');
+
+      if (usinasError) throw usinasError;
+
+      const mes = currentDate.getMonth() + 1;
+      const ano = currentDate.getFullYear();
+      const dataVencimento = lastDayOfMonth(currentDate);
+
+      const usinasComPagamento = await Promise.all(
+        (usinas as Usina[]).map(async (usina) => {
+          const { data: pagamentosExistentes } = await supabase
+            .from("pagamentos_usina")
+            .select()
+            .eq("usina_id", usina.id)
+            .eq("mes", mes)
+            .eq("ano", ano);
+
+          if (pagamentosExistentes && pagamentosExistentes.length > 0) {
+            return null;
+          }
+
+          const { error: insertError } = await supabase
+            .from("pagamentos_usina")
+            .insert({
+              usina_id: usina.id,
+              mes,
+              ano,
+              geracao_kwh: 0,
+              valor_tusd_fio_b: 0,
+              conta_energia: 0,
+              valor_total: 0,
+              status: "pendente",
+              data_vencimento: dataVencimento.toISOString().split('T')[0],
+            });
+
+          if (insertError) throw insertError;
+          return usina;
+        })
+      );
+
+      return usinasComPagamento.filter(Boolean);
+    },
+    onSuccess: (usinas) => {
+      const count = usinas?.length || 0;
+      queryClient.invalidateQueries({ queryKey: ["pagamentos"] });
+      if (count > 0) {
+        toast.success(`${count} pagamentos gerados com sucesso!`);
+      } else {
+        toast.info("Todos os pagamentos já foram gerados para este mês.");
+      }
+    },
+    onError: (error) => {
+      console.error("Erro ao gerar pagamentos:", error);
+      toast.error("Erro ao gerar pagamentos");
+    },
+  });
+
+  const handlePreviousMonth = () => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(prev.getMonth() - 1);
+      return newDate;
+    });
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(prev.getMonth() + 1);
+      return newDate;
+    });
+  };
+
+  const handleEditPagamento = (pagamento: any) => {
+    // TODO: Implementar modal de edição
+    console.log("Editar pagamento:", pagamento);
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Pagamentos</h1>
-        <Button variant="outline">Exportar</Button>
-      </div>
+      <PagamentosHeader 
+        onGerarPagamentos={() => gerarPagamentosMutation.mutate()}
+        isGenerating={gerarPagamentosMutation.isPending}
+      />
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Usina</TableHead>
-              <TableHead>Proprietário</TableHead>
-              <TableHead>Mês Referência</TableHead>
-              <TableHead>Valor Total</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell>Usina Solar 1</TableCell>
-              <TableCell>Energia Solar S.A.</TableCell>
-              <TableCell>Março/2024</TableCell>
-              <TableCell>R$ 22.500,00</TableCell>
-              <TableCell>
-                <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">
-                  Pago
-                </span>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </div>
+      <MonthSelector
+        currentDate={currentDate}
+        onPreviousMonth={handlePreviousMonth}
+        onNextMonth={handleNextMonth}
+      />
+
+      <PagamentosTable
+        pagamentos={pagamentos}
+        isLoading={isLoading}
+        onEditPagamento={handleEditPagamento}
+      />
     </div>
   );
 };
