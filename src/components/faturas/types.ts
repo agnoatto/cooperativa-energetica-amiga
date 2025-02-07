@@ -27,4 +27,3 @@ export interface FileUploadSectionProps {
   onFileUploaded: () => void;
   onUpdateList: () => void;
 }
-
