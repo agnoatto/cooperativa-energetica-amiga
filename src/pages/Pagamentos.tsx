@@ -74,8 +74,7 @@ const Pagamentos = () => {
           investidor:investidor_id (
             nome_investidor
           )
-        `)
-        .eq('status', 'active');
+        `); // Removida a restrição .eq('status', 'active')
 
       if (usinasError) throw usinasError;
 
