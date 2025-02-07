@@ -395,38 +395,59 @@ export type Database = {
       unidades_beneficiarias: {
         Row: {
           apelido: string | null
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
+          complemento: string | null
           cooperado_id: string
           created_at: string
           data_entrada: string
           data_saida: string | null
           endereco: string
           id: string
+          logradouro: string | null
+          numero: string | null
           numero_uc: string
           percentual_desconto: number
+          uf: string | null
           updated_at: string
         }
         Insert: {
           apelido?: string | null
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
           cooperado_id: string
           created_at?: string
           data_entrada: string
           data_saida?: string | null
           endereco: string
           id?: string
+          logradouro?: string | null
+          numero?: string | null
           numero_uc: string
           percentual_desconto: number
+          uf?: string | null
           updated_at?: string
         }
         Update: {
           apelido?: string | null
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
           cooperado_id?: string
           created_at?: string
           data_entrada?: string
           data_saida?: string | null
           endereco?: string
           id?: string
+          logradouro?: string | null
+          numero?: string | null
           numero_uc?: string
           percentual_desconto?: number
+          uf?: string | null
           updated_at?: string
         }
         Relationships: [
