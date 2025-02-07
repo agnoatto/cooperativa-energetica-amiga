@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -38,19 +38,22 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
   const [outrosValores, setOutrosValores] = useState(fatura.outros_valores.toString());
   const [isLoading, setIsLoading] = useState(false);
 
-  // Calcula o valor do desconto e valor final automaticamente
+  // Calcula todos os valores derivados automaticamente
   const calculateValues = () => {
     const total = Number(totalFatura);
     const iluminacao = Number(iluminacaoPublica);
     const outros = Number(outrosValores);
+    const concessionaria = Number(faturaConcessionaria);
     const percentualDesconto = fatura.unidade_beneficiaria.percentual_desconto / 100;
 
-    // Base para cálculo do desconto
+    // Base para cálculo do desconto (excluindo iluminação e outros)
     const baseDesconto = total - iluminacao - outros;
     // Valor do desconto
     const valorDesconto = baseDesconto * percentualDesconto;
-    // Valor final
-    const valorFinal = total - iluminacao - outros - valorDesconto;
+    // Valor após desconto
+    const valorAposDesconto = baseDesconto - valorDesconto;
+    // Valor final da assinatura
+    const valorFinal = valorAposDesconto - concessionaria;
 
     return {
       valor_desconto: valorDesconto,
@@ -123,7 +126,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
             />
           </div>
           <div className="grid w-full items-center gap-2">
-            <Label htmlFor="faturaConcessionaria">Valor Concessionária</Label>
+            <Label htmlFor="faturaConcessionaria">Valor Conta de Energia</Label>
             <Input
               type="number"
               id="faturaConcessionaria"

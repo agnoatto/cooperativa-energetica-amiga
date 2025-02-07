@@ -41,6 +41,22 @@ interface FaturasTableProps {
 }
 
 export function FaturasTable({ faturas, isLoading, onEditFatura }: FaturasTableProps) {
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  const calcularValorAssinatura = (fatura: Fatura) => {
+    // Base para desconto = Valor Total - Iluminação - Outros
+    const baseDesconto = fatura.total_fatura - fatura.iluminacao_publica - fatura.outros_valores;
+    // Valor após desconto = Base - Valor do Desconto
+    const valorAposDesconto = baseDesconto - fatura.valor_desconto;
+    // Valor final da assinatura = Valor após desconto - Conta de Energia
+    return valorAposDesconto - fatura.fatura_concessionaria;
+  };
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -50,9 +66,10 @@ export function FaturasTable({ faturas, isLoading, onEditFatura }: FaturasTableP
             <TableHead>UC</TableHead>
             <TableHead>Consumo (kWh)</TableHead>
             <TableHead>Valor Original</TableHead>
+            <TableHead>Conta de Energia</TableHead>
             <TableHead>Desconto (%)</TableHead>
             <TableHead>Valor Desconto</TableHead>
-            <TableHead>Valor Final</TableHead>
+            <TableHead>Valor da Assinatura</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
@@ -60,7 +77,7 @@ export function FaturasTable({ faturas, isLoading, onEditFatura }: FaturasTableP
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={9} className="text-center">
+              <TableCell colSpan={10} className="text-center">
                 Carregando...
               </TableCell>
             </TableRow>
@@ -77,25 +94,11 @@ export function FaturasTable({ faturas, isLoading, onEditFatura }: FaturasTableP
                   )}
                 </TableCell>
                 <TableCell>{fatura.consumo_kwh} kWh</TableCell>
-                <TableCell>
-                  {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL'
-                  }).format(fatura.total_fatura)}
-                </TableCell>
+                <TableCell>{formatCurrency(fatura.total_fatura)}</TableCell>
+                <TableCell>{formatCurrency(fatura.fatura_concessionaria)}</TableCell>
                 <TableCell>{fatura.unidade_beneficiaria.percentual_desconto}%</TableCell>
-                <TableCell>
-                  {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL'
-                  }).format(fatura.valor_desconto)}
-                </TableCell>
-                <TableCell>
-                  {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL'
-                  }).format(fatura.valor_total)}
-                </TableCell>
+                <TableCell>{formatCurrency(fatura.valor_desconto)}</TableCell>
+                <TableCell>{formatCurrency(calcularValorAssinatura(fatura))}</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-sm ${
                     fatura.status === 'pendente'
@@ -122,7 +125,7 @@ export function FaturasTable({ faturas, isLoading, onEditFatura }: FaturasTableP
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={9} className="text-center text-gray-500">
+              <TableCell colSpan={10} className="text-center text-gray-500">
                 Nenhuma fatura encontrada para este mês
               </TableCell>
             </TableRow>
