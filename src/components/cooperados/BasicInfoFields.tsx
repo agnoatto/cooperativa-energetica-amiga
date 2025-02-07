@@ -1,3 +1,4 @@
+
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,6 +18,20 @@ export function BasicInfoFields({ form }: BasicInfoFieldsProps) {
 
   return (
     <>
+      <FormField
+        control={form.control}
+        name="numero_cadastro"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Número de Cadastro</FormLabel>
+            <FormControl>
+              <Input placeholder="Número de cadastro do cooperado" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
       <FormField
         control={form.control}
         name="tipo_pessoa"

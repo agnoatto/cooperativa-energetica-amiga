@@ -35,6 +35,7 @@ export function CooperadosTable({
         <TableHeader>
           <TableRow>
             <TableHead>Nome/Razão Social</TableHead>
+            <TableHead>Nº Cadastro</TableHead>
             <TableHead>CPF/CNPJ</TableHead>
             <TableHead>Tipo</TableHead>
             <TableHead>Contato</TableHead>
@@ -50,6 +51,7 @@ export function CooperadosTable({
               onClick={() => onViewDetails(cooperado.id)}
             >
               <TableCell>{cooperado.nome}</TableCell>
+              <TableCell>{cooperado.numero_cadastro || '-'}</TableCell>
               <TableCell>{cooperado.documento ? formatarDocumento(cooperado.documento) : '-'}</TableCell>
               <TableCell>
                 {cooperado.tipo_pessoa === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física'}

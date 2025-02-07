@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export function CooperadoForm({ open, onOpenChange, cooperadoId, onSuccess }: Co
       responsavel_nome: "",
       responsavel_cpf: "",
       responsavel_telefone: "",
+      numero_cadastro: "",
     },
   });
 
@@ -68,6 +70,7 @@ export function CooperadoForm({ open, onOpenChange, cooperadoId, onSuccess }: Co
             responsavel_nome: data.responsavel_nome || "",
             responsavel_cpf: data.responsavel_cpf || "",
             responsavel_telefone: data.responsavel_telefone || "",
+            numero_cadastro: data.numero_cadastro || "",
           });
         }
       } catch (error: any) {
@@ -95,6 +98,22 @@ export function CooperadoForm({ open, onOpenChange, cooperadoId, onSuccess }: Co
       setIsLoading(true);
       console.log('Submitting form with data:', data);
 
+      // Check if numero_cadastro is unique
+      if (data.numero_cadastro) {
+        const { data: existingCooperado, error: checkError } = await supabase
+          .from('cooperados')
+          .select('id')
+          .eq('numero_cadastro', data.numero_cadastro)
+          .maybeSingle();
+
+        if (checkError) throw checkError;
+
+        if (existingCooperado && existingCooperado.id !== cooperadoId) {
+          toast.error("Número de cadastro já existe");
+          return;
+        }
+      }
+
       const cooperadoData = {
         nome: data.nome,
         documento: data.documento.replace(/\D/g, ''),
@@ -104,6 +123,7 @@ export function CooperadoForm({ open, onOpenChange, cooperadoId, onSuccess }: Co
         responsavel_nome: data.responsavel_nome,
         responsavel_cpf: data.responsavel_cpf?.replace(/\D/g, ''),
         responsavel_telefone: data.responsavel_telefone?.replace(/\D/g, ''),
+        numero_cadastro: data.numero_cadastro,
       };
 
       if (cooperadoId) {

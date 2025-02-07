@@ -1,3 +1,4 @@
+
 import * as z from "zod";
 
 export const cooperadoFormSchema = z.object({
@@ -9,6 +10,7 @@ export const cooperadoFormSchema = z.object({
   responsavel_nome: z.string().optional(),
   responsavel_cpf: z.string().optional(),
   responsavel_telefone: z.string().optional(),
+  numero_cadastro: z.string().optional(),
 });
 
 export type CooperadoFormValues = z.infer<typeof cooperadoFormSchema>;
