@@ -10,9 +10,9 @@ interface FaturaPdfButtonProps {
 }
 
 export function FaturaPdfButton({ fatura }: FaturaPdfButtonProps) {
-  const gerarPDF = () => {
+  const gerarPDF = async () => {
     try {
-      const { doc, fileName } = generateFaturaPdf(fatura);
+      const { doc, fileName } = await generateFaturaPdf(fatura);
       doc.save(fileName);
       toast.success("PDF gerado com sucesso!");
     } catch (error) {

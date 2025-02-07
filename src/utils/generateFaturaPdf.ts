@@ -14,9 +14,36 @@ import {
   addFooter,
 } from "./pdfSections";
 
-export const generateFaturaPdf = (fatura: PdfFaturaData): { doc: jsPDF, fileName: string } => {
+const loadImage = (url: string): Promise<HTMLImageElement> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";  // Enable CORS
+    img.onload = () => resolve(img);
+    img.onerror = (e) => reject(new Error('Failed to load image'));
+    img.src = url;
+  });
+};
+
+export const generateFaturaPdf = async (fatura: PdfFaturaData): Promise<{ doc: jsPDF, fileName: string }> => {
   const doc = new jsPDF();
   let yPos = 20;
+
+  try {
+    // Load logo image
+    const logoImg = await loadImage('/lovable-uploads/45144fbd-4ede-4bea-bbe1-722ecd73ccfb.png');
+    const canvas = document.createElement('canvas');
+    canvas.width = logoImg.width;
+    canvas.height = logoImg.height;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(logoImg, 0, 0);
+      const imgData = canvas.toDataURL('image/png');
+      doc.addImage(imgData, 'PNG', 20, yPos, 40, 15);
+    }
+  } catch (error) {
+    console.error('Failed to load logo:', error);
+    // Continue without the logo if it fails to load
+  }
 
   // Header
   yPos = addHeader(doc, fatura, yPos);

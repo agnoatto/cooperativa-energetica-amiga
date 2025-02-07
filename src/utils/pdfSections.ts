@@ -7,9 +7,6 @@ import { PdfBoxConfig, PdfFaturaData } from "@/types/pdf";
 const BOX_BG_COLOR: [number, number, number] = [197, 255, 114];
 
 export const addHeader = (doc: jsPDF, fatura: PdfFaturaData, yPos: number): number => {
-  // Logo
-  doc.addImage('/lovable-uploads/45144fbd-4ede-4bea-bbe1-722ecd73ccfb.png', 'PNG', 20, yPos, 40, 15);
-  
   // Title
   yPos += 5;
   doc.setFontSize(14);
