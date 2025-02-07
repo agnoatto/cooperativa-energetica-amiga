@@ -12,6 +12,7 @@ export type Database = {
       cooperados: {
         Row: {
           created_at: string
+          data_exclusao: string | null
           documento: string | null
           email: string | null
           id: string
@@ -25,6 +26,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          data_exclusao?: string | null
           documento?: string | null
           email?: string | null
           id?: string
@@ -38,6 +40,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          data_exclusao?: string | null
           documento?: string | null
           email?: string | null
           id?: string
@@ -188,6 +191,13 @@ export type Database = {
             columns: ["titular_id"]
             isOneToOne: false
             referencedRelation: "cooperados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_historico_cooperado"
+            columns: ["titular_id"]
+            isOneToOne: false
+            referencedRelation: "cooperados_ativos"
             referencedColumns: ["id"]
           },
           {
@@ -424,6 +434,13 @@ export type Database = {
             referencedRelation: "cooperados"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "unidades_beneficiarias_cooperado_id_fkey"
+            columns: ["cooperado_id"]
+            isOneToOne: false
+            referencedRelation: "cooperados_ativos"
+            referencedColumns: ["id"]
+          },
         ]
       }
       unidades_usina: {
@@ -556,7 +573,51 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      cooperados_ativos: {
+        Row: {
+          created_at: string | null
+          data_exclusao: string | null
+          documento: string | null
+          email: string | null
+          id: string | null
+          nome: string | null
+          responsavel_cpf: string | null
+          responsavel_nome: string | null
+          responsavel_telefone: string | null
+          telefone: string | null
+          tipo_pessoa: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_exclusao?: string | null
+          documento?: string | null
+          email?: string | null
+          id?: string | null
+          nome?: string | null
+          responsavel_cpf?: string | null
+          responsavel_nome?: string | null
+          responsavel_telefone?: string | null
+          telefone?: string | null
+          tipo_pessoa?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_exclusao?: string | null
+          documento?: string | null
+          email?: string | null
+          id?: string | null
+          nome?: string | null
+          responsavel_cpf?: string | null
+          responsavel_nome?: string | null
+          responsavel_telefone?: string | null
+          telefone?: string | null
+          tipo_pessoa?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

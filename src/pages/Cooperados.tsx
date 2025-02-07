@@ -23,7 +23,8 @@ const Cooperados = () => {
     try {
       const { data: cooperadosData, error: cooperadosError } = await supabase
         .from('cooperados')
-        .select('*');
+        .select('*')
+        .is('data_exclusao', null);
 
       if (cooperadosError) throw cooperadosError;
       setCooperados(cooperadosData);
@@ -52,7 +53,7 @@ const Cooperados = () => {
     try {
       const { error } = await supabase
         .from('cooperados')
-        .delete()
+        .update({ data_exclusao: new Date().toISOString() })
         .eq('id', cooperadoId);
 
       if (error) throw error;
