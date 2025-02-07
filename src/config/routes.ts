@@ -7,9 +7,18 @@ import {
   Users,
   Wallet,
   User,
+  LucideIcon,
 } from "lucide-react";
 
-export const routes = [
+type RouteItem = {
+  label: string;
+  icon: LucideIcon;
+  href: string;
+  color: string;
+  subItems?: RouteItem[];
+};
+
+export const routes: readonly RouteItem[] = [
   {
     label: "Home",
     icon: Home,
@@ -60,4 +69,4 @@ export const routes = [
     href: "/pagamentos",
     color: "text-green-500",
   },
-] as const;
+];
