@@ -14,7 +14,7 @@ import {
   addFooter,
 } from "./pdfSections";
 
-export const generateFaturaPdf = (fatura: PdfFaturaData): string => {
+export const generateFaturaPdf = (fatura: PdfFaturaData): { doc: jsPDF, fileName: string } => {
   const doc = new jsPDF();
   let yPos = 20;
 
@@ -96,5 +96,7 @@ export const generateFaturaPdf = (fatura: PdfFaturaData): string => {
   addFooter(doc, yPos);
   
   // Generate filename
-  return `fatura-${fatura.unidade_beneficiaria.numero_uc}-${fatura.mes}-${fatura.ano}.pdf`;
+  const fileName = `fatura-${fatura.unidade_beneficiaria.numero_uc}-${fatura.mes}-${fatura.ano}.pdf`;
+  
+  return { doc, fileName };
 };

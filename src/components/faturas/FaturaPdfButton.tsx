@@ -4,7 +4,6 @@ import { FileText } from "lucide-react";
 import { toast } from "sonner";
 import { generateFaturaPdf } from "@/utils/generateFaturaPdf";
 import { PdfFaturaData } from "@/types/pdf";
-import { jsPDF } from "jspdf";
 
 interface FaturaPdfButtonProps {
   fatura: PdfFaturaData;
@@ -13,8 +12,7 @@ interface FaturaPdfButtonProps {
 export function FaturaPdfButton({ fatura }: FaturaPdfButtonProps) {
   const gerarPDF = () => {
     try {
-      const doc = new jsPDF();
-      const fileName = generateFaturaPdf(fatura);
+      const { doc, fileName } = generateFaturaPdf(fatura);
       doc.save(fileName);
       toast.success("PDF gerado com sucesso!");
     } catch (error) {
