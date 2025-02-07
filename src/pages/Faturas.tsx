@@ -35,6 +35,15 @@ interface Fatura {
   };
 }
 
+interface UnidadeBeneficiaria {
+  id: string;
+  numero_uc: string;
+  apelido: string | null;
+  cooperado: {
+    nome: string;
+  };
+}
+
 const Faturas = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
@@ -86,7 +95,7 @@ const Faturas = () => {
             nome
           )
         `)
-        .filter('data_saida', 'is', null); // Changed this line to use filter instead of is
+        .filter('data_saida', 'is', null);
 
       if (unidadesError) throw unidadesError;
 
