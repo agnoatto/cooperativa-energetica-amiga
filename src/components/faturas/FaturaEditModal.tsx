@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,26 +13,9 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CurrencyInput } from "./CurrencyInput";
-import { Upload } from "lucide-react";
-
-interface FaturaEditModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  fatura: {
-    id: string;
-    consumo_kwh: number;
-    total_fatura: number;
-    fatura_concessionaria: number;
-    iluminacao_publica: number;
-    outros_valores: number;
-    arquivo_concessionaria_path?: string | null;
-    arquivo_concessionaria_nome?: string | null;
-    unidade_beneficiaria: {
-      percentual_desconto: number;
-    };
-  };
-  onSuccess: () => void;
-}
+import { FileUploadSection } from "./FileUploadSection";
+import { calculateValues, parseValue } from "./utils/calculateValues";
+import type { FaturaEditModalProps } from "./types";
 
 export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEditModalProps) {
   const [consumo, setConsumo] = useState(fatura.consumo_kwh.toString());
@@ -42,64 +26,17 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  const parseValue = (value: string): number => {
-    return Number(value.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
-  };
-
-  const calculateValues = () => {
-    const total = parseValue(totalFatura);
-    const iluminacao = parseValue(iluminacaoPublica);
-    const outros = parseValue(outrosValores);
-    const concessionaria = parseValue(faturaConcessionaria);
-    const percentualDesconto = fatura.unidade_beneficiaria.percentual_desconto / 100;
-
-    const baseDesconto = total - iluminacao - outros;
-    const valorDesconto = baseDesconto * percentualDesconto;
-    const valorAposDesconto = baseDesconto - valorDesconto;
-    const valorFinal = valorAposDesconto - concessionaria;
-
-    return {
-      valor_desconto: valorDesconto,
-      valor_total: valorFinal
-    };
-  };
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (file.type !== 'application/pdf') {
-      toast.error('Apenas arquivos PDF são permitidos');
-      return;
-    }
-
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('faturaId', fatura.id);
-
-    try {
-      const { error } = await supabase.functions.invoke('upload-fatura', {
-        body: formData,
-      });
-
-      if (error) throw error;
-
-      toast.success('Arquivo enviado com sucesso!');
-      onSuccess();
-    } catch (error) {
-      console.error('Erro ao enviar arquivo:', error);
-      toast.error('Erro ao enviar arquivo');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    const calculatedValues = calculateValues();
+    const calculatedValues = calculateValues(
+      totalFatura,
+      iluminacaoPublica,
+      outrosValores,
+      faturaConcessionaria,
+      fatura.unidade_beneficiaria.percentual_desconto
+    );
 
     try {
       const { error } = await supabase
@@ -128,30 +65,6 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     }
   };
 
-  const downloadFile = async () => {
-    if (!fatura.arquivo_concessionaria_path) return;
-
-    try {
-      const { data, error } = await supabase.storage
-        .from('faturas_concessionaria')
-        .download(fatura.arquivo_concessionaria_path);
-
-      if (error) throw error;
-
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fatura.arquivo_concessionaria_nome || 'fatura.pdf';
-      document.body.appendChild(a);
-      a.click();
-      URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Erro ao baixar arquivo:', error);
-      toast.error('Erro ao baixar arquivo');
-    }
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
@@ -159,30 +72,14 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
           <DialogTitle>Editar Fatura</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid w-full items-center gap-2">
-            <Label>Arquivo da Fatura</Label>
-            <div className="flex gap-2">
-              <Input
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileUpload}
-                disabled={isUploading}
-                className="flex-1"
-              />
-              {fatura.arquivo_concessionaria_path && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={downloadFile}
-                  title="Baixar arquivo"
-                >
-                  <Upload className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-            {isUploading && <p className="text-sm text-muted-foreground">Enviando arquivo...</p>}
-          </div>
+          <FileUploadSection
+            isUploading={isUploading}
+            setIsUploading={setIsUploading}
+            faturaId={fatura.id}
+            arquivoConcessionariaPath={fatura.arquivo_concessionaria_path}
+            arquivoConcessionariaNome={fatura.arquivo_concessionaria_nome}
+            onSuccess={onSuccess}
+          />
 
           <div className="grid w-full items-center gap-2">
             <Label htmlFor="consumo">Consumo (kWh)</Label>
