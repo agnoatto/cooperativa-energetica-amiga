@@ -17,3 +17,12 @@ export interface FaturaEditModalProps {
   };
   onSuccess: () => void;
 }
+
+export interface FileUploadSectionProps {
+  isUploading: boolean;
+  setIsUploading: (value: boolean) => void;
+  faturaId: string;
+  arquivoConcessionariaPath?: string | null;
+  arquivoConcessionariaNome?: string | null;
+  onFileUploaded: () => void;
+}

@@ -5,15 +5,7 @@ import { Upload } from "lucide-react";
 import { handleFileUpload, downloadFile } from "./utils/fileHandlers";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-
-interface FileUploadSectionProps {
-  isUploading: boolean;
-  setIsUploading: (value: boolean) => void;
-  faturaId: string;
-  arquivoConcessionariaPath?: string | null;
-  arquivoConcessionariaNome?: string | null;
-  onSuccess: () => void;
-}
+import type { FileUploadSectionProps } from "./types";
 
 export function FileUploadSection({
   isUploading,
@@ -21,7 +13,7 @@ export function FileUploadSection({
   faturaId,
   arquivoConcessionariaPath,
   arquivoConcessionariaNome,
-  onSuccess
+  onFileUploaded
 }: FileUploadSectionProps) {
   const [isDragging, setIsDragging] = useState(false);
 
@@ -29,7 +21,7 @@ export function FileUploadSection({
     if (!file) return;
 
     setIsUploading(true);
-    await handleFileUpload(file, faturaId, onSuccess);
+    await handleFileUpload(file, faturaId, onFileUploaded);
     setIsUploading(false);
   };
 

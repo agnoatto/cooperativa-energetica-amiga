@@ -65,6 +65,10 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     }
   };
 
+  const handleFileUploaded = () => {
+    onSuccess(); // Apenas atualiza os dados, sem fechar o modal
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
@@ -78,7 +82,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
             faturaId={fatura.id}
             arquivoConcessionariaPath={fatura.arquivo_concessionaria_path}
             arquivoConcessionariaNome={fatura.arquivo_concessionaria_nome}
-            onSuccess={onSuccess}
+            onFileUploaded={handleFileUploaded}
           />
 
           <div className="grid w-full items-center gap-2">
