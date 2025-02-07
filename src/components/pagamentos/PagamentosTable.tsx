@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Edit } from "lucide-react";
+import { PagamentoPdfButton } from "./PagamentoPdfButton";
 
 interface Pagamento {
   id: string;
@@ -91,14 +92,17 @@ export function PagamentosTable({ pagamentos, isLoading, onEditPagamento }: Paga
                   </span>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => onEditPagamento(pagamento)}
-                    title="Editar Pagamento"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => onEditPagamento(pagamento)}
+                      title="Editar Pagamento"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <PagamentoPdfButton pagamento={pagamento} />
+                  </div>
                 </TableCell>
               </TableRow>
             ))

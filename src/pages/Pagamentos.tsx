@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { MonthSelector } from "@/components/pagamentos/MonthSelector";
 import { PagamentosHeader } from "@/components/pagamentos/PagamentosHeader";
 import { PagamentosTable } from "@/components/pagamentos/PagamentosTable";
+import { PagamentoEditModal } from "@/components/pagamentos/PagamentoEditModal";
 
 interface Usina {
   id: string;
@@ -20,6 +21,7 @@ interface Usina {
 
 const Pagamentos = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedPagamento, setSelectedPagamento] = useState<any>(null);
   const queryClient = useQueryClient();
 
   const { data: pagamentos, isLoading } = useQuery({
@@ -148,8 +150,7 @@ const Pagamentos = () => {
   };
 
   const handleEditPagamento = (pagamento: any) => {
-    // TODO: Implementar modal de edição
-    console.log("Editar pagamento:", pagamento);
+    setSelectedPagamento(pagamento);
   };
 
   return (
@@ -169,6 +170,15 @@ const Pagamentos = () => {
         pagamentos={pagamentos}
         isLoading={isLoading}
         onEditPagamento={handleEditPagamento}
+      />
+
+      <PagamentoEditModal
+        pagamento={selectedPagamento}
+        isOpen={!!selectedPagamento}
+        onClose={() => setSelectedPagamento(null)}
+        onSave={() => {
+          queryClient.invalidateQueries({ queryKey: ["pagamentos"] });
+        }}
       />
     </div>
   );
