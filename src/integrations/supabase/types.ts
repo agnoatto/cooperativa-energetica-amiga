@@ -58,6 +58,8 @@ export type Database = {
           created_at: string
           data_pagamento: string | null
           data_vencimento: string
+          economia_acumulada: number | null
+          economia_mes: number | null
           fatura_concessionaria: number
           id: string
           iluminacao_publica: number
@@ -76,6 +78,8 @@ export type Database = {
           created_at?: string
           data_pagamento?: string | null
           data_vencimento: string
+          economia_acumulada?: number | null
+          economia_mes?: number | null
           fatura_concessionaria?: number
           id?: string
           iluminacao_publica?: number
@@ -94,6 +98,8 @@ export type Database = {
           created_at?: string
           data_pagamento?: string | null
           data_vencimento?: string
+          economia_acumulada?: number | null
+          economia_mes?: number | null
           fatura_concessionaria?: number
           id?: string
           iluminacao_publica?: number
