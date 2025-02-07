@@ -66,11 +66,12 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
   };
 
   const handleFileUploaded = () => {
-    onSuccess();
+    // This is now just for any UI updates needed after file upload
+    // but doesn't trigger modal closure
   };
 
   const handleOpenChange = (open: boolean) => {
-    if (!isUploading) {
+    if (!isUploading && !open) {
       onClose();
     }
   };
@@ -93,6 +94,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
             arquivoConcessionariaPath={fatura.arquivo_concessionaria_path}
             arquivoConcessionariaNome={fatura.arquivo_concessionaria_nome}
             onFileUploaded={handleFileUploaded}
+            onUpdateList={onSuccess}
           />
 
           <div className="grid w-full items-center gap-2">

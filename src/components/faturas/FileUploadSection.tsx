@@ -13,7 +13,8 @@ export function FileUploadSection({
   faturaId,
   arquivoConcessionariaPath,
   arquivoConcessionariaNome,
-  onFileUploaded
+  onFileUploaded,
+  onUpdateList
 }: FileUploadSectionProps) {
   const [isDragging, setIsDragging] = useState(false);
 
@@ -21,8 +22,14 @@ export function FileUploadSection({
     if (!file) return;
 
     setIsUploading(true);
-    await handleFileUpload(file, faturaId, onFileUploaded);
-    setIsUploading(false);
+    try {
+      await handleFileUpload(file, faturaId, () => {
+        onUpdateList();
+        onFileUploaded();
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {

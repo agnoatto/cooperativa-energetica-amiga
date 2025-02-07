@@ -25,4 +25,6 @@ export interface FileUploadSectionProps {
   arquivoConcessionariaPath?: string | null;
   arquivoConcessionariaNome?: string | null;
   onFileUploaded: () => void;
+  onUpdateList: () => void;
 }
+
