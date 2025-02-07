@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Eye } from "lucide-react";
+import { Edit, Eye, Trash2 } from "lucide-react";
 import { FaturaPdfButton } from "./FaturaPdfButton";
 import { FaturaDetailsDialog } from "./FaturaDetailsDialog";
 import { Fatura } from "@/types/fatura";
@@ -18,9 +18,10 @@ interface FaturasTableProps {
   faturas: Fatura[] | undefined;
   isLoading: boolean;
   onEditFatura: (fatura: Fatura) => void;
+  onDeleteFatura: (id: string) => Promise<void>;
 }
 
-export function FaturasTable({ faturas, isLoading, onEditFatura }: FaturasTableProps) {
+export function FaturasTable({ faturas, isLoading, onEditFatura, onDeleteFatura }: FaturasTableProps) {
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
 
   const formatCurrency = (value: number) => {
@@ -109,6 +110,14 @@ export function FaturasTable({ faturas, isLoading, onEditFatura }: FaturasTableP
                       title="Editar Fatura"
                     >
                       <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => onDeleteFatura(fatura.id)}
+                      title="Excluir Fatura"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                     <FaturaPdfButton fatura={fatura} />
                   </TableCell>

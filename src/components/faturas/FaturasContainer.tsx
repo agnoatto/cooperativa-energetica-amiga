@@ -11,7 +11,7 @@ import { Fatura } from "@/types/fatura";
 export function FaturasContainer() {
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
   const { currentDate, handlePreviousMonth, handleNextMonth } = useMonthSelection();
-  const { faturas, isLoading, gerarFaturas, isGenerating } = useFaturas(currentDate);
+  const { faturas, isLoading, gerarFaturas, isGenerating, deleteFatura } = useFaturas(currentDate);
 
   return (
     <div className="space-y-6">
@@ -30,6 +30,7 @@ export function FaturasContainer() {
         faturas={faturas}
         isLoading={isLoading}
         onEditFatura={setSelectedFatura}
+        onDeleteFatura={deleteFatura}
       />
 
       {selectedFatura && (
