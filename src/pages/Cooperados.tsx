@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -8,11 +7,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Edit, Trash } from "lucide-react";
+import { Plus, Edit, Trash, Eye } from "lucide-react";
 import { useState, useEffect } from "react";
 import { CooperadoForm } from "@/components/cooperados/CooperadoForm";
 import { UnidadeBeneficiariaForm } from "@/components/cooperados/UnidadeBeneficiariaForm";
 import { CooperadoPdfButton } from "@/components/cooperados/CooperadoPdfButton";
+import { CooperadoDetailsDialog } from "@/components/cooperados/CooperadoDetailsDialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -21,6 +21,7 @@ const Cooperados = () => {
   const [showUnidadeForm, setShowUnidadeForm] = useState(false);
   const [selectedCooperadoId, setSelectedCooperadoId] = useState<string | null>(null);
   const [selectedUnidadeId, setSelectedUnidadeId] = useState<string | null>(null);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [cooperados, setCooperados] = useState<any[]>([]);
   const [unidades, setUnidades] = useState<any[]>([]);
 
@@ -91,6 +92,11 @@ const Cooperados = () => {
     setShowUnidadeForm(true);
   };
 
+  const handleViewDetails = (cooperadoId: string) => {
+    setSelectedCooperadoId(cooperadoId);
+    setShowDetailsDialog(true);
+  };
+
   const formatarDocumento = (doc: string) => {
     if (!doc) return '-';
     const numero = doc.replace(/\D/g, '');
@@ -130,6 +136,15 @@ const Cooperados = () => {
         onSuccess={fetchData}
       />
 
+      <CooperadoDetailsDialog
+        cooperadoId={selectedCooperadoId}
+        isOpen={showDetailsDialog}
+        onClose={() => {
+          setShowDetailsDialog(false);
+          setSelectedCooperadoId(null);
+        }}
+      />
+
       {selectedCooperadoId && (
         <UnidadeBeneficiariaForm
           open={showUnidadeForm}
@@ -159,7 +174,11 @@ const Cooperados = () => {
           </TableHeader>
           <TableBody>
             {cooperados.map((cooperado) => (
-              <TableRow key={cooperado.id}>
+              <TableRow 
+                key={cooperado.id} 
+                className="cursor-pointer hover:bg-gray-50"
+                onClick={() => handleViewDetails(cooperado.id)}
+              >
                 <TableCell>{cooperado.nome}</TableCell>
                 <TableCell>{cooperado.documento ? formatarDocumento(cooperado.documento) : '-'}</TableCell>
                 <TableCell>
@@ -178,7 +197,8 @@ const Cooperados = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setSelectedCooperadoId(cooperado.id);
                         setShowUnidadeForm(true);
                       }}
@@ -192,14 +212,30 @@ const Cooperados = () => {
                   <Button 
                     variant="outline" 
                     size="icon"
-                    onClick={() => handleEdit(cooperado.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleViewDetails(cooperado.id);
+                    }}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(cooperado.id);
+                    }}
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
                   <Button 
                     variant="outline" 
                     size="icon"
-                    onClick={() => handleDelete(cooperado.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(cooperado.id);
+                    }}
                   >
                     <Trash className="h-4 w-4" />
                   </Button>
