@@ -9,21 +9,9 @@ export interface FaturaEditModalProps {
     fatura_concessionaria: number;
     iluminacao_publica: number;
     outros_valores: number;
-    arquivo_concessionaria_path?: string | null;
-    arquivo_concessionaria_nome?: string | null;
     unidade_beneficiaria: {
       percentual_desconto: number;
     };
   };
   onSuccess: () => void;
-}
-
-export interface FileUploadSectionProps {
-  isUploading: boolean;
-  setIsUploading: (value: boolean) => void;
-  faturaId: string;
-  arquivoConcessionariaPath?: string | null;
-  arquivoConcessionariaNome?: string | null;
-  onFileUploaded: () => void;
-  onUpdateList: () => void;
 }

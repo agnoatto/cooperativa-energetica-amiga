@@ -14,9 +14,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CurrencyInput } from "./CurrencyInput";
 import { calculateValues, parseValue } from "./utils/calculateValues";
-import { Upload } from "lucide-react";
-import { downloadFile } from "./utils/fileHandlers";
-import { FaturaUploadModal } from "./FaturaUploadModal";
 import type { FaturaEditModalProps } from "./types";
 
 export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEditModalProps) {
@@ -26,7 +23,6 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
   const [iluminacaoPublica, setIluminacaoPublica] = useState(fatura.iluminacao_publica.toFixed(2).replace('.', ','));
   const [outrosValores, setOutrosValores] = useState(fatura.outros_valores.toFixed(2).replace('.', ','));
   const [isLoading, setIsLoading] = useState(false);
-  const [showUploadModal, setShowUploadModal] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,110 +64,70 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
   };
 
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={(open) => !isLoading && !open && onClose()}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Editar Fatura</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => setShowUploadModal(true)}
-                title="Enviar arquivo"
-              >
-                <Upload className="h-4 w-4" />
-              </Button>
-              {fatura.arquivo_concessionaria_path && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    downloadFile(
-                      fatura.arquivo_concessionaria_path,
-                      fatura.arquivo_concessionaria_nome
-                    );
-                  }}
-                  title="Baixar arquivo"
-                >
-                  <Upload className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-
-            <div className="grid w-full items-center gap-2">
-              <Label htmlFor="consumo">Consumo (kWh)</Label>
-              <Input
-                type="number"
-                id="consumo"
-                value={consumo}
-                onChange={(e) => setConsumo(e.target.value)}
-                step="0.01"
-                min="0"
-                required
-              />
-            </div>
-            <div className="grid w-full items-center gap-2">
-              <Label htmlFor="totalFatura">Valor Total Original</Label>
-              <CurrencyInput
-                id="totalFatura"
-                value={totalFatura}
-                onChange={setTotalFatura}
-                required
-              />
-            </div>
-            <div className="grid w-full items-center gap-2">
-              <Label htmlFor="faturaConcessionaria">Valor Conta de Energia</Label>
-              <CurrencyInput
-                id="faturaConcessionaria"
-                value={faturaConcessionaria}
-                onChange={setFaturaConcessionaria}
-                required
-              />
-            </div>
-            <div className="grid w-full items-center gap-2">
-              <Label htmlFor="iluminacaoPublica">Iluminação Pública</Label>
-              <CurrencyInput
-                id="iluminacaoPublica"
-                value={iluminacaoPublica}
-                onChange={setIluminacaoPublica}
-                required
-              />
-            </div>
-            <div className="grid w-full items-center gap-2">
-              <Label htmlFor="outrosValores">Outros Valores</Label>
-              <CurrencyInput
-                id="outrosValores"
-                value={outrosValores}
-                onChange={setOutrosValores}
-                required
-              />
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Salvando..." : "Salvar"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <FaturaUploadModal
-        isOpen={showUploadModal}
-        onClose={() => setShowUploadModal(false)}
-        faturaId={fatura.id}
-        arquivoConcessionariaPath={fatura.arquivo_concessionaria_path}
-        arquivoConcessionariaNome={fatura.arquivo_concessionaria_nome}
-        onUpdateList={onSuccess}
-      />
-    </>
+    <Dialog open={isOpen} onOpenChange={(open) => !isLoading && !open && onClose()}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Editar Fatura</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid w-full items-center gap-2">
+            <Label htmlFor="consumo">Consumo (kWh)</Label>
+            <Input
+              type="number"
+              id="consumo"
+              value={consumo}
+              onChange={(e) => setConsumo(e.target.value)}
+              step="0.01"
+              min="0"
+              required
+            />
+          </div>
+          <div className="grid w-full items-center gap-2">
+            <Label htmlFor="totalFatura">Valor Total Original</Label>
+            <CurrencyInput
+              id="totalFatura"
+              value={totalFatura}
+              onChange={setTotalFatura}
+              required
+            />
+          </div>
+          <div className="grid w-full items-center gap-2">
+            <Label htmlFor="faturaConcessionaria">Valor Conta de Energia</Label>
+            <CurrencyInput
+              id="faturaConcessionaria"
+              value={faturaConcessionaria}
+              onChange={setFaturaConcessionaria}
+              required
+            />
+          </div>
+          <div className="grid w-full items-center gap-2">
+            <Label htmlFor="iluminacaoPublica">Iluminação Pública</Label>
+            <CurrencyInput
+              id="iluminacaoPublica"
+              value={iluminacaoPublica}
+              onChange={setIluminacaoPublica}
+              required
+            />
+          </div>
+          <div className="grid w-full items-center gap-2">
+            <Label htmlFor="outrosValores">Outros Valores</Label>
+            <CurrencyInput
+              id="outrosValores"
+              value={outrosValores}
+              onChange={setOutrosValores}
+              required
+            />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
