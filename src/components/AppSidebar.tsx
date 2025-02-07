@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 import {
   BarChart3,
@@ -26,27 +27,33 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function AppSidebar({ className, children }: SidebarProps) {
+  // Move all hooks to the top level
   const [open, setOpen] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const isMobile = useIsMobile();
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [user, setUser] = useState<SupabaseUser | null>(null);
 
   useEffect(() => {
-    // Get initial user
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-    });
+    const initializeUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+          setUser(session?.user ?? null);
+        });
 
-    return () => {
-      subscription.unsubscribe();
+        return () => {
+          subscription.unsubscribe();
+        };
+      } catch (error) {
+        console.error('Error initializing user:', error);
+      }
     };
+
+    initializeUser();
   }, []);
 
   const routes = [
