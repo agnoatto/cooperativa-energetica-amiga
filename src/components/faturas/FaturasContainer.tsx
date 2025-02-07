@@ -13,6 +13,10 @@ export function FaturasContainer() {
   const { currentDate, handlePreviousMonth, handleNextMonth } = useMonthSelection();
   const { faturas, isLoading, gerarFaturas, isGenerating, deleteFatura } = useFaturas(currentDate);
 
+  const handleDeleteFatura = async (id: string) => {
+    await deleteFatura(id);
+  };
+
   return (
     <div className="space-y-6">
       <FaturasHeader 
@@ -30,7 +34,7 @@ export function FaturasContainer() {
         faturas={faturas}
         isLoading={isLoading}
         onEditFatura={setSelectedFatura}
-        onDeleteFatura={deleteFatura}
+        onDeleteFatura={handleDeleteFatura}
       />
 
       {selectedFatura && (
