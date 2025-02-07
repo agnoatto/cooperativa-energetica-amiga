@@ -25,5 +25,6 @@ export interface Fatura {
   iluminacao_publica: number;
   outros_valores: number;
   valor_desconto: number;
+  economia_acumulada: number;
   unidade_beneficiaria: UnidadeBeneficiaria;
 }

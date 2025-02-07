@@ -41,7 +41,7 @@ export function FaturaPdfButton({ fatura }: FaturaPdfButtonProps) {
       let yPos = 20;
 
       // Adicionar logo
-      const logoPath = '/logo-cogesol.png'; // Certifique-se que a logo está na pasta public
+      const logoPath = '/logo-cogesol.png';
       doc.addImage(logoPath, 'PNG', 20, yPos, 40, 15);
       
       // Título do relatório
@@ -77,10 +77,10 @@ export function FaturaPdfButton({ fatura }: FaturaPdfButtonProps) {
       
       // Boxes destacados com fundo verde claro
       yPos += 35;
-      const boxBgColor = [197, 255, 114]; // #C5FF72
+      const boxBgColor: [number, number, number] = [197, 255, 114];
       
       // Box UC
-      doc.setFillColor(...boxBgColor);
+      doc.setFillColor(boxBgColor[0], boxBgColor[1], boxBgColor[2]);
       doc.roundedRect(20, yPos, 50, 25, 3, 3, 'F');
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(9);
@@ -89,7 +89,7 @@ export function FaturaPdfButton({ fatura }: FaturaPdfButtonProps) {
       doc.text(fatura.unidade_beneficiaria.numero_uc, 25, yPos + 18);
       
       // Box Vencimento
-      doc.setFillColor(...boxBgColor);
+      doc.setFillColor(boxBgColor[0], boxBgColor[1], boxBgColor[2]);
       doc.roundedRect(80, yPos, 50, 25, 3, 3, 'F');
       doc.setFontSize(9);
       doc.text("Data Vencimento", 85, yPos + 8);
@@ -97,7 +97,7 @@ export function FaturaPdfButton({ fatura }: FaturaPdfButtonProps) {
       doc.text(format(new Date(fatura.data_vencimento), 'dd/MM/yyyy'), 85, yPos + 18);
       
       // Box Valor
-      doc.setFillColor(...boxBgColor);
+      doc.setFillColor(boxBgColor[0], boxBgColor[1], boxBgColor[2]);
       doc.roundedRect(140, yPos, 50, 25, 3, 3, 'F');
       doc.setFontSize(9);
       doc.text("Valor a Pagar", 145, yPos + 8);
@@ -173,7 +173,7 @@ export function FaturaPdfButton({ fatura }: FaturaPdfButtonProps) {
       // Economia final
       yPos += 15;
       const economiaFinal = totalSemCogesol - totalComCogesol;
-      doc.setFillColor(...boxBgColor);
+      doc.setFillColor(boxBgColor[0], boxBgColor[1], boxBgColor[2]);
       doc.roundedRect(120, yPos - 5, 70, 15, 3, 3, 'F');
       doc.setFontSize(11);
       doc.setFont("helvetica", "bold");

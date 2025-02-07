@@ -55,6 +55,7 @@ export const useFaturas = (currentDate: Date) => {
           valor_desconto,
           economia_acumulada,
           unidade_beneficiaria:unidade_beneficiaria_id (
+            id,
             numero_uc,
             apelido,
             endereco,
@@ -76,7 +77,7 @@ export const useFaturas = (currentDate: Date) => {
       // Calcular economia acumulada para cada fatura
       return data.map(fatura => {
         const economiaAcumulada = todasFaturasAnteriores
-          .filter(f => f.unidade_beneficiaria_id === fatura.unidade_beneficiaria_id)
+          .filter(f => f.unidade_beneficiaria_id === fatura.unidade_beneficiaria.id)
           .reduce((acc, f) => acc + (f.valor_desconto || 0), 0);
 
         return {
@@ -130,7 +131,7 @@ export const useFaturas = (currentDate: Date) => {
               valor_total: 0,
               status: "pendente",
               data_vencimento: dataVencimento.toISOString().split('T')[0],
-              economia_acumulada: 0, // Inicializar com zero
+              economia_acumulada: 0,
             });
 
           if (insertError) throw insertError;
