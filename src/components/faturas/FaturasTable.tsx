@@ -42,12 +42,10 @@ interface FaturasTableProps {
 
 export function FaturasTable({ faturas, isLoading, onEditFatura }: FaturasTableProps) {
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
+    return value.toLocaleString('pt-BR', {
       style: 'currency',
       currency: 'BRL',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
+    });
   };
 
   const calcularValorAssinatura = (fatura: Fatura) => {

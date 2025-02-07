@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { CurrencyInput } from "./CurrencyInput";
 
 interface FaturaEditModalProps {
   isOpen: boolean;
@@ -32,18 +33,22 @@ interface FaturaEditModalProps {
 
 export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEditModalProps) {
   const [consumo, setConsumo] = useState(fatura.consumo_kwh.toString());
-  const [totalFatura, setTotalFatura] = useState(fatura.total_fatura.toString());
-  const [faturaConcessionaria, setFaturaConcessionaria] = useState(fatura.fatura_concessionaria.toString());
-  const [iluminacaoPublica, setIluminacaoPublica] = useState(fatura.iluminacao_publica.toString());
-  const [outrosValores, setOutrosValores] = useState(fatura.outros_valores.toString());
+  const [totalFatura, setTotalFatura] = useState(fatura.total_fatura.toFixed(2).replace('.', ','));
+  const [faturaConcessionaria, setFaturaConcessionaria] = useState(fatura.fatura_concessionaria.toFixed(2).replace('.', ','));
+  const [iluminacaoPublica, setIluminacaoPublica] = useState(fatura.iluminacao_publica.toFixed(2).replace('.', ','));
+  const [outrosValores, setOutrosValores] = useState(fatura.outros_valores.toFixed(2).replace('.', ','));
   const [isLoading, setIsLoading] = useState(false);
+
+  const parseValue = (value: string): number => {
+    return Number(value.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+  };
 
   // Calcula todos os valores derivados automaticamente
   const calculateValues = () => {
-    const total = Number(totalFatura);
-    const iluminacao = Number(iluminacaoPublica);
-    const outros = Number(outrosValores);
-    const concessionaria = Number(faturaConcessionaria);
+    const total = parseValue(totalFatura);
+    const iluminacao = parseValue(iluminacaoPublica);
+    const outros = parseValue(outrosValores);
+    const concessionaria = parseValue(faturaConcessionaria);
     const percentualDesconto = fatura.unidade_beneficiaria.percentual_desconto / 100;
 
     // Base para cálculo do desconto (excluindo iluminação e outros)
@@ -72,10 +77,10 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
         .from("faturas")
         .update({
           consumo_kwh: Number(consumo),
-          total_fatura: Number(totalFatura),
-          fatura_concessionaria: Number(faturaConcessionaria),
-          iluminacao_publica: Number(iluminacaoPublica),
-          outros_valores: Number(outrosValores),
+          total_fatura: parseValue(totalFatura),
+          fatura_concessionaria: parseValue(faturaConcessionaria),
+          iluminacao_publica: parseValue(iluminacaoPublica),
+          outros_valores: parseValue(outrosValores),
           valor_desconto: calculatedValues.valor_desconto,
           valor_total: calculatedValues.valor_total,
         })
@@ -115,49 +120,37 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
           </div>
           <div className="grid w-full items-center gap-2">
             <Label htmlFor="totalFatura">Valor Total Original</Label>
-            <Input
-              type="number"
+            <CurrencyInput
               id="totalFatura"
               value={totalFatura}
-              onChange={(e) => setTotalFatura(e.target.value)}
-              step="0.01"
-              min="0"
+              onChange={setTotalFatura}
               required
             />
           </div>
           <div className="grid w-full items-center gap-2">
             <Label htmlFor="faturaConcessionaria">Valor Conta de Energia</Label>
-            <Input
-              type="number"
+            <CurrencyInput
               id="faturaConcessionaria"
               value={faturaConcessionaria}
-              onChange={(e) => setFaturaConcessionaria(e.target.value)}
-              step="0.01"
-              min="0"
+              onChange={setFaturaConcessionaria}
               required
             />
           </div>
           <div className="grid w-full items-center gap-2">
             <Label htmlFor="iluminacaoPublica">Iluminação Pública</Label>
-            <Input
-              type="number"
+            <CurrencyInput
               id="iluminacaoPublica"
               value={iluminacaoPublica}
-              onChange={(e) => setIluminacaoPublica(e.target.value)}
-              step="0.01"
-              min="0"
+              onChange={setIluminacaoPublica}
               required
             />
           </div>
           <div className="grid w-full items-center gap-2">
             <Label htmlFor="outrosValores">Outros Valores</Label>
-            <Input
-              type="number"
+            <CurrencyInput
               id="outrosValores"
               value={outrosValores}
-              onChange={(e) => setOutrosValores(e.target.value)}
-              step="0.01"
-              min="0"
+              onChange={setOutrosValores}
               required
             />
           </div>
