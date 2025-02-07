@@ -71,22 +71,33 @@ const UnidadesBeneficiarias = () => {
             ← Voltar para Cooperados
           </Button>
         </div>
+        <Button
+          onClick={() => {
+            setSelectedUnidadeId(null);
+            setSelectedCooperadoId(null);
+            setShowUnidadeForm(true);
+          }}
+        >
+          <Plus className="mr-2 h-4 w-4" /> Nova Unidade
+        </Button>
       </div>
 
-      {selectedCooperadoId && (
-        <UnidadeBeneficiariaForm
-          open={showUnidadeForm}
-          onOpenChange={(open) => {
-            setShowUnidadeForm(open);
-            if (!open) {
-              setSelectedUnidadeId(null);
-            }
-          }}
-          cooperadoId={selectedCooperadoId}
-          unidadeId={selectedUnidadeId || undefined}
-          onSuccess={fetchData}
-        />
-      )}
+      <UnidadeBeneficiariaForm
+        open={showUnidadeForm}
+        onOpenChange={(open) => {
+          setShowUnidadeForm(open);
+          if (!open) {
+            setSelectedUnidadeId(null);
+            setSelectedCooperadoId(null);
+          }
+        }}
+        cooperadoId={selectedCooperadoId}
+        unidadeId={selectedUnidadeId}
+        onSuccess={() => {
+          fetchData();
+          setShowUnidadeForm(false);
+        }}
+      />
       
       <UnidadesTable
         unidades={unidades}

@@ -4,7 +4,19 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -28,6 +40,8 @@ export function UnidadeBeneficiariaForm({
   onSuccess,
 }: UnidadeBeneficiariaFormProps) {
   const [isLoadingCep, setIsLoadingCep] = useState(false);
+  const [cooperados, setCooperados] = useState<any[]>([]);
+  const [selectedCooperadoId, setSelectedCooperadoId] = useState<string | null>(cooperadoId);
   
   const form = useForm<UnidadeBeneficiariaFormValues>({
     resolver: zodResolver(unidadeBeneficiariaFormSchema),
@@ -46,6 +60,25 @@ export function UnidadeBeneficiariaForm({
       data_saida: "",
     },
   });
+
+  useEffect(() => {
+    const fetchCooperados = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('cooperados')
+          .select('id, nome')
+          .is('data_exclusao', null)
+          .order('nome');
+
+        if (error) throw error;
+        setCooperados(data || []);
+      } catch (error: any) {
+        toast.error("Erro ao carregar cooperados: " + error.message);
+      }
+    };
+
+    fetchCooperados();
+  }, []);
 
   const fetchCep = async (cep: string) => {
     try {
@@ -84,6 +117,7 @@ export function UnidadeBeneficiariaForm({
         if (error) throw error;
 
         if (data) {
+          setSelectedCooperadoId(data.cooperado_id);
           form.reset({
             numero_uc: data.numero_uc,
             apelido: data.apelido || "",
@@ -110,11 +144,16 @@ export function UnidadeBeneficiariaForm({
   }, [unidadeId, open, form]);
 
   async function onSubmit(data: UnidadeBeneficiariaFormValues) {
+    if (!selectedCooperadoId) {
+      toast.error("Selecione um cooperado");
+      return;
+    }
+
     try {
       const endereco = `${data.logradouro}, ${data.numero}${data.complemento ? `, ${data.complemento}` : ''} - ${data.bairro}, ${data.cidade} - ${data.uf}, ${data.cep}`;
       
       const unidadeData = {
-        cooperado_id: cooperadoId,
+        cooperado_id: selectedCooperadoId,
         numero_uc: data.numero_uc,
         apelido: data.apelido || null,
         endereco: endereco,
@@ -166,6 +205,30 @@ export function UnidadeBeneficiariaForm({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {!unidadeId && (
+              <FormItem>
+                <FormLabel>Cooperado</FormLabel>
+                <Select
+                  value={selectedCooperadoId || undefined}
+                  onValueChange={(value) => setSelectedCooperadoId(value)}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um cooperado" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {cooperados.map((cooperado) => (
+                      <SelectItem key={cooperado.id} value={cooperado.id}>
+                        {cooperado.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+
             <UnidadeBeneficiariaBasicInfo form={form} />
             <AddressFields 
               form={form}
