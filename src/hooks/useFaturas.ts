@@ -55,6 +55,8 @@ export const useFaturas = (currentDate: Date) => {
           outros_valores,
           valor_desconto,
           economia_acumulada,
+          saldo_energia_kwh,
+          observacao,
           unidade_beneficiaria:unidade_beneficiaria_id (
             id,
             numero_uc,
@@ -145,6 +147,8 @@ export const useFaturas = (currentDate: Date) => {
               status: "pendente",
               data_vencimento: dataVencimento.toISOString().split('T')[0],
               economia_acumulada: 0,
+              saldo_energia_kwh: 0,
+              observacao: null,
             });
 
           if (insertError) throw insertError;
