@@ -16,7 +16,7 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
   const currentYear = currentDate.getFullYear();
 
   // Fetch total active cooperados
-  const { data: cooperadosData, error: cooperadosError } = await supabase
+  const { count: totalCooperados, error: cooperadosError } = await supabase
     .from('cooperados')
     .select('*', { count: 'exact', head: true })
     .is('data_exclusao', null);
@@ -27,7 +27,7 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
   }
 
   // Fetch total active usinas
-  const { data: usinasData, error: usinasError } = await supabase
+  const { count: totalUsinas, error: usinasError } = await supabase
     .from('usinas')
     .select('*', { count: 'exact', head: true })
     .eq('status', 'active');
@@ -38,7 +38,7 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
   }
 
   // Fetch pending faturas for current month
-  const { data: faturasData, error: faturasError } = await supabase
+  const { count: faturasPendentes, error: faturasError } = await supabase
     .from('faturas')
     .select('*', { count: 'exact', head: true })
     .eq('status', 'pendente')
@@ -66,9 +66,9 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
   const totalPagamentos = pagamentos?.reduce((acc, curr) => acc + Number(curr.valor_total), 0) || 0;
 
   return {
-    totalCooperados: cooperadosData?.count || 0,
-    totalUsinas: usinasData?.count || 0,
-    faturasPendentes: faturasData?.count || 0,
+    totalCooperados: totalCooperados || 0,
+    totalUsinas: totalUsinas || 0,
+    faturasPendentes: faturasPendentes || 0,
     totalPagamentos,
   };
 };
@@ -80,13 +80,15 @@ export const useDashboardData = () => {
     queryKey: ['dashboardData'],
     queryFn: fetchDashboardData,
     retry: 1,
-    onError: (error: Error) => {
-      console.error('Dashboard data error:', error);
-      toast({
-        title: "Erro ao carregar dados",
-        description: "Não foi possível carregar os dados do dashboard. Por favor, tente novamente.",
-        variant: "destructive",
-      });
-    },
+    meta: {
+      errorMessage: "Erro ao carregar dados do dashboard",
+      onError: () => {
+        toast({
+          title: "Erro ao carregar dados",
+          description: "Não foi possível carregar os dados do dashboard. Por favor, tente novamente.",
+          variant: "destructive",
+        });
+      }
+    }
   });
 };
