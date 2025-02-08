@@ -1,31 +1,37 @@
 
 import { jsPDF } from "jspdf";
-import { COLORS, FONTS } from "./constants";
+import { COLORS, FONTS, SPACING } from "./constants";
+import { PdfFaturaData } from "@/types/pdf";
+import { formatarDocumento } from "../formatters";
 
-export const addClientInfo = (doc: jsPDF, fatura: any, yPos: number): number => {
+export const addClientInfo = (doc: jsPDF, fatura: PdfFaturaData, yPos: number): number => {
   doc.setTextColor(COLORS.BLACK[0], COLORS.BLACK[1], COLORS.BLACK[2]);
   doc.setFontSize(FONTS.NORMAL);
 
   // Coluna da esquerda
-  doc.text("Cliente:", 20, yPos);
-  doc.text(fatura.unidade_beneficiaria.cooperado.nome, 20, yPos + 7);
-  doc.text("Endereço:", 20, yPos + 20);
-  doc.text(fatura.unidade_beneficiaria.endereco, 20, yPos + 27);
+  doc.text("Cliente:", SPACING.MARGIN, yPos);
+  doc.text(fatura.unidade_beneficiaria.cooperado.nome, SPACING.MARGIN, yPos + 7);
+  doc.text("Endereço:", SPACING.MARGIN, yPos + 20);
+  doc.text(fatura.unidade_beneficiaria.endereco, SPACING.MARGIN, yPos + 27);
 
   // Coluna da direita
   doc.text("CPF/CNPJ:", 120, yPos);
-  doc.text(fatura.unidade_beneficiaria.cooperado.documento || "-", 120, yPos + 7);
+  doc.text(formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento || ""), 120, yPos + 7);
   doc.text("Cidade:", 120, yPos + 20);
-  const cidade = "Cidade"; // Adicionar cidade quando disponível
-  doc.text(cidade, 120, yPos + 27);
+  doc.text("Cidade", 120, yPos + 27);
 
   return yPos + 40;
 };
 
-export const addHighlightBoxes = (doc: jsPDF, config: any, yPos: number): number => {
-  const boxWidth = 50;
-  const boxHeight = 30;
-  const spacing = 10;
+export const addHighlightBoxes = (doc: jsPDF, config: {
+  uc: string;
+  dueDate: string;
+  amount: string;
+}, yPos: number): number => {
+  const boxWidth = 55;
+  const boxHeight = 35;
+  const spacing = 15;
+  const startX = SPACING.MARGIN;
 
   // Função auxiliar para criar box destacado
   const createHighlightBox = (x: number, label: string, value: string) => {
@@ -41,9 +47,9 @@ export const addHighlightBoxes = (doc: jsPDF, config: any, yPos: number): number
   };
 
   // Criar os três boxes
-  createHighlightBox(20, "Unidade Consumidora", config.uc);
-  createHighlightBox(80, "Data Vencimento", config.dueDate);
-  createHighlightBox(140, "Valor a Pagar", config.amount);
+  createHighlightBox(startX, "Unidade Consumidora", config.uc);
+  createHighlightBox(startX + boxWidth + spacing, "Data Vencimento", config.dueDate);
+  createHighlightBox(startX + (boxWidth + spacing) * 2, "Valor a Pagar", config.amount);
 
-  return yPos + boxHeight + spacing;
+  return yPos + boxHeight + 10;
 };
