@@ -14,7 +14,6 @@ import { SPACING } from "./pdf/constants";
 
 export const generateFaturaPdf = async (fatura: PdfFaturaData): Promise<{ doc: jsPDF, fileName: string }> => {
   try {
-    // Criar novo documento PDF
     const doc = new jsPDF({
       orientation: "portrait",
       unit: "mm",
@@ -26,8 +25,7 @@ export const generateFaturaPdf = async (fatura: PdfFaturaData): Promise<{ doc: j
     // Adicionar cabeçalho
     yPos = await addHeader(doc, {
       title: `Relatório Mensal - Ref.: ${format(new Date(fatura.ano, fatura.mes - 1), 'MMMM/yyyy', { locale: ptBR })}`,
-      logoPath: '/lovable-uploads/45144fbd-4ede-4bea-bbe1-722ecd73ccfb.png',
-      status: fatura.status
+      logoPath: '/lovable-uploads/45144fbd-4ede-4bea-bbe1-722ecd73ccfb.png'
     });
 
     // Adicionar informações do cliente
@@ -42,20 +40,27 @@ export const generateFaturaPdf = async (fatura: PdfFaturaData): Promise<{ doc: j
     // Adicionar informações de economia
     yPos = addEconomyInfo(doc, fatura, yPos);
 
-    // Adicionar histórico de status (se existir e houver espaço na página)
+    // Se houver observação, adicionar
+    if (fatura.observacao) {
+      doc.setFontSize(FONTS.SUBTITLE);
+      doc.text("Observações", SPACING.MARGIN, yPos);
+      yPos += 8;
+      doc.setFontSize(FONTS.NORMAL);
+      doc.text(fatura.observacao, SPACING.MARGIN, yPos, {
+        maxWidth: SPACING.PAGE.WIDTH - (SPACING.MARGIN * 2)
+      });
+      yPos += 20;
+    }
+
+    // Adicionar histórico de status em nova página
     if (fatura.historico_status && fatura.historico_status.length > 0) {
-      // Verificar se precisa de nova página
-      if (yPos > SPACING.PAGE.HEIGHT - 100) {
-        doc.addPage();
-        yPos = 20;
-      }
+      doc.addPage();
+      yPos = SPACING.MARGIN;
       yPos = addStatusHistory(doc, fatura.historico_status, yPos);
     }
 
-    // Adicionar rodapé
+    // Adicionar rodapé na última página
     yPos = addCompanyFooter(doc, fatura.valor_total, yPos);
-
-    // Adicionar mensagem de pagamento
     addPaymentData(doc, yPos);
 
     // Nome do arquivo
