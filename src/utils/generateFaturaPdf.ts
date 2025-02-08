@@ -12,6 +12,7 @@ import {
   addCogesolBillAnalysis,
   addEconomySection,
   addCompanyInfo,
+  addPaymentInfo,
   addFooter,
 } from "./pdfSections";
 
@@ -48,68 +49,72 @@ export const generateFaturaPdf = async (fatura: PdfFaturaData): Promise<{ doc: j
   // Header
   yPos = addHeader(doc, fatura, yPos);
   
+  // Divisor após o header
   yPos += 15;
   addDivider(doc, yPos);
   
-  // Client Information
+  // Informações do Cliente
   yPos += 15;
   yPos = addClientInfo(doc, fatura, yPos);
   
-  // Highlighted Info Boxes
+  // Boxes de informação destacados
   yPos += 35;
   
-  // UC Box
+  // Box UC
   addInfoBox(doc, {
     x: 20,
     y: yPos,
     width: 50,
-    height: 25,
+    height: 35,
     label: "Unidade Consumidora",
     value: fatura.unidade_beneficiaria.numero_uc
   });
   
-  // Due Date Box
+  // Box Data Vencimento
   addInfoBox(doc, {
     x: 80,
     y: yPos,
     width: 50,
-    height: 25,
+    height: 35,
     label: "Data Vencimento",
     value: format(new Date(fatura.data_vencimento), 'dd/MM/yyyy')
   });
   
-  // Value Box
+  // Box Valor
   addInfoBox(doc, {
     x: 140,
     y: yPos,
     width: 50,
-    height: 25,
+    height: 35,
     label: "Valor a Pagar",
     value: formatCurrency(fatura.valor_total)
   });
   
-  // Bill Analysis
+  // Análise da Fatura
   yPos += 45;
   yPos = addBillAnalysis(doc, fatura, yPos);
   
-  // Cogesol Bill Analysis
+  // Análise Cogesol
   yPos += 30;
   yPos = addCogesolBillAnalysis(doc, fatura, yPos);
   
-  // Economy Section
+  // Seção de Economia
   yPos += 30;
   yPos = addEconomySection(doc, fatura, yPos);
   
-  // Company Info and Payment Message
+  // Informações da Empresa e Mensagem de Pagamento
   yPos += 15;
   yPos = addCompanyInfo(doc, yPos);
+  
+  // Informações de Pagamento
+  yPos = addPaymentInfo(doc, yPos);
   
   // Footer
   addDivider(doc, yPos);
   yPos += 10;
   addFooter(doc, yPos);
   
-  // Generate filename
+  // Nome do arquivo
   const fileName = `fatura-${fatura.unidade_beneficiaria.numero_uc}-${fatura.mes}-${fatura.ano}.pdf`;
   
   return { doc, fileName };
