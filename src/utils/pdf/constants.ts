@@ -1,9 +1,9 @@
 
 export const COLORS = {
-  DARK_BLUE: [26, 31, 44],      // Background escuro (#1A1F2C)
-  LIME_GREEN: [217, 255, 166],  // Verde claro dos boxes
-  RED: [234, 56, 76],          // Vermelho para valores sem Cogesol (#ea384c)
-  BLUE: [0, 114, 206],         // Azul para valores com Cogesol (#0072CE)
+  DARK_BLUE: [26, 31, 44],      // Fundo do cabeçalho (#1A1F2C)
+  LIME_GREEN: [242, 252, 226],  // Verde claro dos boxes (#F2FCE2)
+  RED: [234, 56, 76],          // Valores sem Cogesol (#ea384c)
+  BLUE: [0, 114, 206],         // Valores com Cogesol (#0072CE)
   WHITE: [255, 255, 255],      // Texto branco
   BLACK: [0, 0, 0],            // Texto preto
   LIGHT_GRAY: [241, 241, 241], // Fundo cinza claro (#F1F1F1)

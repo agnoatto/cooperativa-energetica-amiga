@@ -29,13 +29,17 @@ export const addMonthlyAnalysis = (doc: jsPDF, data: {
 
   // Fatura SEM Cogesol
   doc.setTextColor(COLORS.RED[0], COLORS.RED[1], COLORS.RED[2]);
+  doc.setFontSize(FONTS.SUBTITLE);
   doc.text("Fatura SEM a Cogesol:", SPACING.MARGIN, yPos);
+  doc.setFontSize(FONTS.NORMAL);
   doc.text(formatCurrency(data.valorFaturaSemCogesol), SPACING.MARGIN, yPos + 10);
 
   // Fatura COM Cogesol
   yPos += 30;
   doc.setTextColor(COLORS.BLUE[0], COLORS.BLUE[1], COLORS.BLUE[2]);
+  doc.setFontSize(FONTS.SUBTITLE);
   doc.text("Fatura COM a Cogesol:", SPACING.MARGIN, yPos);
+  doc.setFontSize(FONTS.NORMAL);
   doc.text(`Fatura RGE: ${formatCurrency(data.faturaConcessionaria)}`, SPACING.MARGIN, yPos + 10);
   doc.text(`Fatura Cogesol: ${formatCurrency(data.valorFaturaComCogesol)}`, SPACING.MARGIN, yPos + 20);
 
@@ -44,15 +48,19 @@ export const addMonthlyAnalysis = (doc: jsPDF, data: {
   doc.setTextColor(COLORS.BLACK[0], COLORS.BLACK[1], COLORS.BLACK[2]);
   doc.text("Neste mês você economizou:", SPACING.MARGIN, yPos);
 
+  const economiaMensal = data.valorFaturaSemCogesol - (data.valorFaturaComCogesol + data.faturaConcessionaria);
   doc.setFillColor(COLORS.LIME_GREEN[0], COLORS.LIME_GREEN[1], COLORS.LIME_GREEN[2]);
-  doc.rect(SPACING.MARGIN, yPos + 5, 170, 25, 'F');
-  doc.text(formatCurrency(data.valorFaturaSemCogesol - data.valorFaturaComCogesol), SPACING.MARGIN + 5, yPos + 20);
+  doc.roundedRect(SPACING.MARGIN, yPos + 5, 170, 25, 3, 3, 'F');
+  doc.setFontSize(FONTS.SUBTITLE);
+  doc.text(formatCurrency(economiaMensal), SPACING.MARGIN + 5, yPos + 20);
 
   // Economia acumulada
   yPos += 40;
+  doc.setFontSize(FONTS.NORMAL);
   doc.text("Até agora já economizou:", SPACING.MARGIN, yPos);
   doc.setFillColor(COLORS.LIME_GREEN[0], COLORS.LIME_GREEN[1], COLORS.LIME_GREEN[2]);
-  doc.rect(SPACING.MARGIN, yPos + 5, 170, 25, 'F');
+  doc.roundedRect(SPACING.MARGIN, yPos + 5, 170, 25, 3, 3, 'F');
+  doc.setFontSize(FONTS.SUBTITLE);
   doc.text(formatCurrency(data.economiaAcumulada), SPACING.MARGIN + 5, yPos + 20);
 
   return yPos + 40;
