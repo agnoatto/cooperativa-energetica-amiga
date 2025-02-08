@@ -8,7 +8,7 @@ export const addConsumptionInfo = (doc: jsPDF, fatura: PdfFaturaData, yPos: numb
   doc.setFontSize(FONTS.SUBTITLE);
   doc.text("Informações de Consumo", SPACING.MARGIN, yPos);
   
-  yPos += 10;
+  yPos += 8;
   doc.setFontSize(FONTS.NORMAL);
 
   const info = [
@@ -18,10 +18,10 @@ export const addConsumptionInfo = (doc: jsPDF, fatura: PdfFaturaData, yPos: numb
   ];
 
   info.forEach((item, index) => {
-    const y = yPos + (index * 8);
+    const y = yPos + (index * 6);
     doc.text(item.label, SPACING.MARGIN, y);
     doc.text(item.value, SPACING.MARGIN + 80, y);
   });
 
-  return yPos + 35;
+  return yPos + 25;
 };

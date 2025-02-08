@@ -8,7 +8,7 @@ export const addValueDetails = (doc: jsPDF, fatura: PdfFaturaData, yPos: number)
   doc.setFontSize(FONTS.SUBTITLE);
   doc.text("Detalhamento de Valores", SPACING.MARGIN, yPos);
   
-  yPos += 10;
+  yPos += 8;
   doc.setFontSize(FONTS.NORMAL);
 
   const values = [
@@ -21,7 +21,7 @@ export const addValueDetails = (doc: jsPDF, fatura: PdfFaturaData, yPos: number)
   ];
 
   values.forEach((item, index) => {
-    const y = yPos + (index * 8);
+    const y = yPos + (index * 6);
     
     if (item.highlight) {
       doc.setTextColor(COLORS.GREEN[0], COLORS.GREEN[1], COLORS.GREEN[2]);
@@ -39,7 +39,7 @@ export const addValueDetails = (doc: jsPDF, fatura: PdfFaturaData, yPos: number)
     doc.text(item.value, SPACING.PAGE.WIDTH - SPACING.MARGIN - doc.getTextWidth(item.value), y);
   });
 
-  return yPos + 55;
+  return yPos + 45;
 };
 
 const formatCurrency = (value: number): string => {
