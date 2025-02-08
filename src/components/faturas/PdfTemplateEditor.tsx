@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { Canvas, TEvent, Rect, Textbox } from "fabric";
 import { Card } from "@/components/ui/card";
@@ -6,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Trash2, 
   Move, 
-  Image as ImageIcon, 
   Type, 
   Table2, 
   UndoIcon, 
@@ -18,9 +17,13 @@ import {
   AlignCenter,
   AlignRight,
   Save,
-  Download
+  Download,
+  Plus
 } from "lucide-react";
 import { toast } from "sonner";
+import { DynamicFieldsLibrary } from "./template/DynamicFieldsLibrary";
+import { PdfField, PdfTemplate } from "@/types/pdf-template";
+import { supabase } from "@/integrations/supabase/client";
 
 export function PdfTemplateEditor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -28,6 +31,8 @@ export function PdfTemplateEditor() {
   const [selectedObject, setSelectedObject] = useState<any>(null);
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [activeTab, setActiveTab] = useState<string>("editor");
+  const [template, setTemplate] = useState<PdfTemplate | null>(null);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -43,12 +48,54 @@ export function PdfTemplateEditor() {
     fabricCanvas.on('selection:cleared', () => setSelectedObject(null));
 
     setCanvas(fabricCanvas);
+    loadDefaultTemplate();
     saveState();
 
     return () => {
       fabricCanvas.dispose();
     };
   }, []);
+
+  const loadDefaultTemplate = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('pdf_templates')
+        .select('*, pdf_template_fields(*)')
+        .eq('is_default', true)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setTemplate(data);
+        // Carregar campos do template no canvas
+        data.fields?.forEach(field => addFieldToCanvas(field));
+      }
+    } catch (error) {
+      console.error('Erro ao carregar template:', error);
+      toast.error("Erro ao carregar template padrão");
+    }
+  };
+
+  const addFieldToCanvas = (field: PdfField) => {
+    if (!canvas) return;
+
+    const textbox = new Textbox(field.field_label, {
+      left: field.x_position,
+      top: field.y_position,
+      width: field.width,
+      height: field.height,
+      fontSize: field.font_size,
+      fontFamily: field.font_family,
+      data: {
+        field_key: field.field_key,
+        field_type: field.field_type
+      }
+    });
+
+    canvas.add(textbox);
+    canvas.renderAll();
+  };
 
   const saveState = () => {
     if (!canvas) return;
@@ -161,148 +208,207 @@ export function PdfTemplateEditor() {
     saveState();
   };
 
-  const saveTemplate = () => {
-    if (!canvas) return;
+  const saveTemplate = async () => {
+    if (!canvas || !template) return;
+
     try {
       const templateData = canvas.toJSON();
-      localStorage.setItem('pdfTemplate', JSON.stringify(templateData));
+      const fields = canvas.getObjects().map(obj => ({
+        field_key: obj.data?.field_key || '',
+        field_type: obj.data?.field_type || 'text',
+        field_label: obj.text || '',
+        x_position: Math.round(obj.left || 0),
+        y_position: Math.round(obj.top || 0),
+        width: Math.round(obj.width || 0),
+        height: Math.round(obj.height || 0),
+        font_size: obj.fontSize || 12,
+        font_family: obj.fontFamily || 'Arial'
+      }));
+
+      const { error } = await supabase
+        .from('pdf_templates')
+        .upsert({
+          id: template.id,
+          template_data: templateData,
+          fields: fields,
+          is_default: true,
+          name: template.name || 'Template Padrão',
+          description: template.description || 'Template padrão para faturas'
+        });
+
+      if (error) throw error;
       toast.success("Template salvo com sucesso!");
     } catch (error) {
+      console.error('Erro ao salvar template:', error);
       toast.error("Erro ao salvar o template");
     }
   };
 
+  const handleFieldSelect = (fieldDefinition: any) => {
+    if (!canvas) return;
+
+    const field: PdfField = {
+      field_key: fieldDefinition.key,
+      field_type: fieldDefinition.type,
+      field_label: fieldDefinition.label,
+      x_position: 100,
+      y_position: 100,
+      width: 200,
+      height: 30,
+      font_size: 12,
+      font_family: 'Arial'
+    };
+
+    addFieldToCanvas(field);
+    saveState();
+  };
+
   return (
     <div className="grid grid-cols-[300px_1fr] gap-6">
-      <Card className="p-4 space-y-4">
-        <div className="space-y-2">
-          <h3 className="font-medium">Elementos</h3>
-          <div className="grid grid-cols-2 gap-2">
-            <Button variant="outline" onClick={() => addElement('rectangle')}>
-              <Move className="w-4 h-4 mr-2" />
-              Box
-            </Button>
-            <Button variant="outline" onClick={() => addElement('text')}>
-              <Type className="w-4 h-4 mr-2" />
-              Texto
-            </Button>
-            <Button variant="outline" onClick={() => addElement('table')}>
-              <Table2 className="w-4 h-4 mr-2" />
-              Tabela
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={undo}
-            disabled={historyIndex <= 0}
-          >
-            <UndoIcon className="w-4 h-4" />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={redo}
-            disabled={historyIndex >= history.length - 1}
-          >
-            <RedoIcon className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={saveTemplate}
-          >
-            <Save className="w-4 h-4" />
-          </Button>
-        </div>
-
-        {selectedObject && (
-          <div className="space-y-4">
-            <h3 className="font-medium">Propriedades</h3>
-            <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label>X</Label>
-                  <Input 
-                    type="number"
-                    value={Math.round(selectedObject.left)}
-                    onChange={(e) => updateProperty('left', Number(e.target.value))}
-                  />
-                </div>
-                <div>
-                  <Label>Y</Label>
-                  <Input 
-                    type="number"
-                    value={Math.round(selectedObject.top)}
-                    onChange={(e) => updateProperty('top', Number(e.target.value))}
-                  />
+      <div className="space-y-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full">
+            <TabsTrigger value="editor" className="flex-1">Editor</TabsTrigger>
+            <TabsTrigger value="fields" className="flex-1">Campos</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="editor">
+            <Card className="p-4 space-y-4">
+              <div className="space-y-2">
+                <h3 className="font-medium">Elementos</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="outline" onClick={() => addElement('rectangle')}>
+                    <Move className="w-4 h-4 mr-2" />
+                    Box
+                  </Button>
+                  <Button variant="outline" onClick={() => addElement('text')}>
+                    <Type className="w-4 h-4 mr-2" />
+                    Texto
+                  </Button>
+                  <Button variant="outline" onClick={() => addElement('table')}>
+                    <Table2 className="w-4 h-4 mr-2" />
+                    Tabela
+                  </Button>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label>Largura</Label>
-                  <Input 
-                    type="number"
-                    value={Math.round(selectedObject.width || 0)}
-                    onChange={(e) => updateProperty('width', Number(e.target.value))}
-                  />
-                </div>
-                <div>
-                  <Label>Altura</Label>
-                  <Input 
-                    type="number"
-                    value={Math.round(selectedObject.height || 0)}
-                    onChange={(e) => updateProperty('height', Number(e.target.value))}
-                  />
-                </div>
+
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={undo}
+                  disabled={historyIndex <= 0}
+                >
+                  <UndoIcon className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={redo}
+                  disabled={historyIndex >= history.length - 1}
+                >
+                  <RedoIcon className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={saveTemplate}
+                >
+                  <Save className="w-4 h-4" />
+                </Button>
               </div>
-              {selectedObject.type === 'textbox' && (
-                <div>
-                  <Label>Texto</Label>
-                  <Input 
-                    value={selectedObject.text}
-                    onChange={(e) => updateProperty('text', e.target.value)}
-                  />
+
+              {selectedObject && (
+                <div className="space-y-4">
+                  <h3 className="font-medium">Propriedades</h3>
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label>X</Label>
+                        <Input 
+                          type="number"
+                          value={Math.round(selectedObject.left)}
+                          onChange={(e) => updateProperty('left', Number(e.target.value))}
+                        />
+                      </div>
+                      <div>
+                        <Label>Y</Label>
+                        <Input 
+                          type="number"
+                          value={Math.round(selectedObject.top)}
+                          onChange={(e) => updateProperty('top', Number(e.target.value))}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label>Largura</Label>
+                        <Input 
+                          type="number"
+                          value={Math.round(selectedObject.width || 0)}
+                          onChange={(e) => updateProperty('width', Number(e.target.value))}
+                        />
+                      </div>
+                      <div>
+                        <Label>Altura</Label>
+                        <Input 
+                          type="number"
+                          value={Math.round(selectedObject.height || 0)}
+                          onChange={(e) => updateProperty('height', Number(e.target.value))}
+                        />
+                      </div>
+                    </div>
+                    {selectedObject.type === 'textbox' && (
+                      <div>
+                        <Label>Texto</Label>
+                        <Input 
+                          value={selectedObject.text}
+                          onChange={(e) => updateProperty('text', e.target.value)}
+                        />
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => alignObject('left')}
+                      >
+                        <AlignLeft className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => alignObject('center')}
+                      >
+                        <AlignCenter className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => alignObject('right')}
+                      >
+                        <AlignRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <Button 
+                      variant="destructive" 
+                      onClick={deleteSelected}
+                      className="w-full"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Excluir
+                    </Button>
+                  </div>
                 </div>
               )}
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => alignObject('left')}
-                >
-                  <AlignLeft className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => alignObject('center')}
-                >
-                  <AlignCenter className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => alignObject('right')}
-                >
-                  <AlignRight className="w-4 h-4" />
-                </Button>
-              </div>
-              <Button 
-                variant="destructive" 
-                onClick={deleteSelected}
-                className="w-full"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Excluir
-              </Button>
-            </div>
-          </div>
-        )}
-      </Card>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="fields">
+            <DynamicFieldsLibrary onFieldSelect={handleFieldSelect} />
+          </TabsContent>
+        </Tabs>
+      </div>
 
       <Card className="p-4">
         <ScrollArea className="h-[800px] w-full">
