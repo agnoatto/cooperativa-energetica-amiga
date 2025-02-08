@@ -33,6 +33,7 @@ export function CurrencyInput({ value, onChange, className, ...props }: Currency
       fixedDecimalScale
       prefix="R$ "
       className={cn(className)}
+      type="text"
       {...props}
     />
   );
