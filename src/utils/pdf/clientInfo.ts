@@ -3,54 +3,74 @@ import { jsPDF } from "jspdf";
 import { COLORS, FONTS, SPACING } from "./constants";
 import { PdfFaturaData } from "@/types/pdf";
 import { formatarDocumento } from "../formatters";
+import { format } from "date-fns";
 
 export const addClientInfo = (doc: jsPDF, fatura: PdfFaturaData, yPos: number): number => {
   doc.setTextColor(COLORS.BLACK[0], COLORS.BLACK[1], COLORS.BLACK[2]);
   doc.setFontSize(FONTS.NORMAL);
 
   // Coluna da esquerda
-  doc.text("Cliente:", SPACING.MARGIN, yPos);
-  doc.text(fatura.unidade_beneficiaria.cooperado.nome, SPACING.MARGIN + 60, yPos);
+  doc.text("Nome:", SPACING.MARGIN, yPos);
+  doc.text(fatura.unidade_beneficiaria.cooperado.nome, SPACING.MARGIN + 50, yPos);
   
-  doc.text("Endereço:", SPACING.MARGIN, yPos + 15);
-  doc.text(fatura.unidade_beneficiaria.endereco, SPACING.MARGIN + 60, yPos + 15);
+  doc.text("Endereço:", SPACING.MARGIN, yPos + 8);
+  doc.text(fatura.unidade_beneficiaria.endereco, SPACING.MARGIN + 50, yPos + 8);
 
   // Coluna da direita
-  doc.text("CPF/CNPJ:", 120, yPos);
-  doc.text(formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento || ""), 160, yPos);
+  const rightColumnX = SPACING.PAGE.WIDTH / 2 + 20;
+  doc.text("CPF/CNPJ:", rightColumnX, yPos);
+  doc.text(
+    formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento || ""), 
+    rightColumnX + 50, 
+    yPos
+  );
   
-  doc.text("Cidade:", 120, yPos + 15);
-  doc.text("Nonoai/RS", 160, yPos + 15);
+  doc.text("Cidade:", rightColumnX, yPos + 8);
+  doc.text("Nonoai/RS", rightColumnX + 50, yPos + 8);
 
-  return yPos + 35;
+  return addHighlightBoxes(doc, {
+    uc: fatura.unidade_beneficiaria.numero_uc,
+    dueDate: format(new Date(fatura.data_vencimento), 'dd/MM/yyyy'),
+    amount: formatCurrency(fatura.valor_total)
+  }, yPos + 20);
 };
 
-export const addHighlightBoxes = (doc: jsPDF, config: {
-  uc: string;
-  dueDate: string;
-  amount: string;
-}, yPos: number): number => {
-  const boxWidth = 55;
-  const boxHeight = 25;
-  const spacing = 15;
-  const startX = SPACING.MARGIN;
+const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(value);
+};
 
-  // Função auxiliar para criar box destacado
-  const createHighlightBox = (x: number, label: string, value: string) => {
+const addHighlightBoxes = (
+  doc: jsPDF, 
+  config: { uc: string; dueDate: string; amount: string }, 
+  yPos: number
+): number => {
+  const boxWidth = 60;
+  const boxHeight = 25;
+  const spacing = 10;
+  const boxes = [
+    { label: "Unidade Consumidora:", value: config.uc },
+    { label: "Data de Vencimento:", value: config.dueDate },
+    { label: "Valor a Pagar:", value: config.amount }
+  ];
+
+  boxes.forEach((box, index) => {
+    const xPos = SPACING.MARGIN + (boxWidth + spacing) * index;
+    
     doc.setFillColor(COLORS.LIME_GREEN[0], COLORS.LIME_GREEN[1], COLORS.LIME_GREEN[2]);
-    doc.roundedRect(x, yPos, boxWidth, boxHeight, 3, 3, 'F');
+    doc.roundedRect(xPos, yPos, boxWidth, boxHeight, 3, 3, 'F');
     
     doc.setTextColor(COLORS.BLACK[0], COLORS.BLACK[1], COLORS.BLACK[2]);
     doc.setFontSize(FONTS.SMALL);
-    doc.text(label, x + 5, yPos + 7);
+    doc.text(box.label, xPos + 4, yPos + 7);
     
     doc.setFontSize(FONTS.NORMAL);
-    doc.text(value, x + 5, yPos + 18);
-  };
-
-  createHighlightBox(startX, "Unidade Consumidora:", config.uc);
-  createHighlightBox(startX + boxWidth + spacing, "Data de Vencimento:", config.dueDate);
-  createHighlightBox(startX + (boxWidth + spacing) * 2, "Valor a Pagar:", config.amount);
+    doc.text(box.value, xPos + 4, yPos + 18);
+  });
 
   return yPos + boxHeight + 15;
 };
+
+export { addClientInfo };

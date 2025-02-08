@@ -4,52 +4,45 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PdfFaturaData } from "@/types/pdf";
 import { addHeader } from "./pdf/header";
-import { addClientInfo, addHighlightBoxes } from "./pdf/clientInfo";
+import { addClientInfo } from "./pdf/clientInfo";
 import { addMonthlyAnalysis } from "./pdf/monthlyAnalysis";
 import { addCompanyFooter, addPaymentData } from "./pdf/footer";
 
-const loadImage = (url: string): Promise<HTMLImageElement> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('Falha ao carregar a imagem'));
-    img.src = url;
-  });
-};
-
 export const generateFaturaPdf = async (fatura: PdfFaturaData): Promise<{ doc: jsPDF, fileName: string }> => {
   try {
-    const doc = new jsPDF();
+    // Criar novo documento PDF
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4"
+    });
+
     let yPos = 0;
 
-    // Adiciona o cabeçalho com fundo azul escuro
-    yPos = addHeader(doc, {
+    // Adicionar cabeçalho
+    yPos = await addHeader(doc, {
       title: `Relatório Mensal - Ref.: ${format(new Date(fatura.ano, fatura.mes - 1), 'MMMM/yyyy', { locale: ptBR })}`,
       logoPath: '/lovable-uploads/45144fbd-4ede-4bea-bbe1-722ecd73ccfb.png'
     });
 
-    // Informações do cliente e boxes destacados
+    // Adicionar informações do cliente
     yPos = addClientInfo(doc, fatura, yPos);
-    yPos = addHighlightBoxes(doc, {
-      uc: fatura.unidade_beneficiaria.numero_uc,
-      dueDate: format(new Date(fatura.data_vencimento), 'dd/MM/yyyy'),
-      amount: fatura.valor_total.toString()
-    }, yPos);
 
-    // Análise mensal (consumo, economia, histórico)
+    // Adicionar análise mensal
     yPos = addMonthlyAnalysis(doc, {
       consumo: fatura.consumo_kwh,
       valorFaturaSemCogesol: fatura.total_fatura,
       valorFaturaComCogesol: fatura.valor_total,
       economiaAcumulada: fatura.economia_acumulada,
-      faturaConcessionaria: fatura.fatura_concessionaria
+      faturaConcessionaria: fatura.fatura_concessionaria,
+      iluminacaoPublica: fatura.iluminacao_publica,
+      outrosValores: fatura.outros_valores
     }, yPos);
 
-    // Rodapé com informações da empresa
+    // Adicionar rodapé
     yPos = addCompanyFooter(doc, fatura.valor_total, yPos);
 
-    // Dados de pagamento
+    // Adicionar mensagem de pagamento
     addPaymentData(doc, yPos);
 
     // Nome do arquivo
