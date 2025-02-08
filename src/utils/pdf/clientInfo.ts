@@ -72,5 +72,3 @@ const addHighlightBoxes = (
 
   return yPos + boxHeight + 15;
 };
-
-export { addClientInfo };
