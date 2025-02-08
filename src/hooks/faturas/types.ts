@@ -1,4 +1,6 @@
 
+import { Fatura } from "@/types/fatura";
+
 export interface UnidadeBeneficiaria {
   id: string;
   numero_uc: string;
@@ -31,4 +33,3 @@ export interface UseFaturasResult {
   isGenerating: boolean;
   deleteFatura: (id: string) => void;
 }
-
