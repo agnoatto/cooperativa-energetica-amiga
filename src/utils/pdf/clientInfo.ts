@@ -22,14 +22,17 @@ export const addClientInfo = (doc: jsPDF, fatura: PdfFaturaData, yPos: number): 
   ];
 
   grid.forEach((item, index) => {
-    const y = yPos + (index * 8);
+    const y = yPos + (index * 6);
     doc.text(item.label, SPACING.MARGIN, y);
-    doc.text(item.value, SPACING.MARGIN + 50, y);
+    doc.text(item.value, SPACING.MARGIN + 40, y);
   });
 
-  yPos += 40;
+  yPos += 30;
 
-  // Boxes de destaque
+  // Boxes de destaque com tamanhos uniformes
+  const boxWidth = SPACING.PAGE.CONTENT_WIDTH / 3 - 5; // Divido em 3 com pequeno espaçamento
+  const boxHeight = 25;
+
   const boxes = [
     { 
       label: "Data de Vencimento",
@@ -45,15 +48,11 @@ export const addClientInfo = (doc: jsPDF, fatura: PdfFaturaData, yPos: number): 
     }
   ];
 
-  const boxWidth = 60;
-  const boxHeight = 25;
-  const spacing = 10;
-
   boxes.forEach((box, index) => {
-    const xPos = SPACING.MARGIN + (boxWidth + spacing) * index;
+    const xPos = SPACING.MARGIN + (index * (boxWidth + 5));
     
     doc.setFillColor(COLORS.LIME_GREEN[0], COLORS.LIME_GREEN[1], COLORS.LIME_GREEN[2]);
-    doc.roundedRect(xPos, yPos, boxWidth, boxHeight, 3, 3, 'F');
+    doc.roundedRect(xPos, yPos, boxWidth, boxHeight, 2, 2, 'F');
     
     doc.setFontSize(FONTS.SMALL);
     doc.text(box.label, xPos + 4, yPos + 7);
