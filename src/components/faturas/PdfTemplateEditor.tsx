@@ -1,5 +1,6 @@
+
 import { useEffect, useRef, useState } from "react";
-import { Canvas, TEvent, Rect, Textbox } from "fabric";
+import { Canvas, TEvent, Rect, Textbox, Object as FabricObject } from "fabric";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,8 +18,6 @@ import {
   AlignCenter,
   AlignRight,
   Save,
-  Download,
-  Plus
 } from "lucide-react";
 import { toast } from "sonner";
 import { DynamicFieldsLibrary } from "./template/DynamicFieldsLibrary";
@@ -28,7 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 export function PdfTemplateEditor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [canvas, setCanvas] = useState<Canvas | null>(null);
-  const [selectedObject, setSelectedObject] = useState<any>(null);
+  const [selectedObject, setSelectedObject] = useState<FabricObject | null>(null);
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [activeTab, setActiveTab] = useState<string>("editor");
@@ -38,8 +37,8 @@ export function PdfTemplateEditor() {
     if (!canvasRef.current) return;
 
     const fabricCanvas = new Canvas(canvasRef.current, {
-      width: 595, // A4 width in pixels at 72 DPI
-      height: 842, // A4 height in pixels at 72 DPI
+      width: 595,
+      height: 842,
       backgroundColor: '#ffffff',
     });
 
@@ -67,9 +66,16 @@ export function PdfTemplateEditor() {
       if (error) throw error;
 
       if (data) {
-        setTemplate(data);
-        // Carregar campos do template no canvas
-        data.fields?.forEach(field => addFieldToCanvas(field));
+        const templateData: PdfTemplate = {
+          id: data.id,
+          name: data.name,
+          description: data.description,
+          template_data: data.template_data as Record<string, any>,
+          is_default: data.is_default,
+          fields: data.pdf_template_fields
+        };
+        setTemplate(templateData);
+        templateData.fields?.forEach(field => addFieldToCanvas(field));
       }
     } catch (error) {
       console.error('Erro ao carregar template:', error);
@@ -87,11 +93,13 @@ export function PdfTemplateEditor() {
       height: field.height,
       fontSize: field.font_size,
       fontFamily: field.font_family,
-      data: {
-        field_key: field.field_key,
-        field_type: field.field_type
-      }
     });
+
+    // Add custom data to the object
+    (textbox as any).data = {
+      field_key: field.field_key,
+      field_type: field.field_type
+    };
 
     canvas.add(textbox);
     canvas.renderAll();
@@ -104,9 +112,9 @@ export function PdfTemplateEditor() {
     setHistoryIndex(prev => prev + 1);
   };
 
-  const handleSelectionCreated = (e: TEvent) => {
-    if (!canvas) return;
-    const obj = canvas.getActiveObject();
+  const handleSelectionCreated = (e: { selected: FabricObject[] }) => {
+    if (!canvas || !e.selected) return;
+    const obj = e.selected[0];
     setSelectedObject(obj);
   };
 
@@ -135,7 +143,6 @@ export function PdfTemplateEditor() {
         });
         break;
       case 'table':
-        // Simples representação de tabela usando retângulo
         object = new Rect({
           left: 100,
           top: 100,
@@ -197,10 +204,10 @@ export function PdfTemplateEditor() {
         position = 0;
         break;
       case 'center':
-        position = (canvas.width ?? 0) / 2 - (selectedObject.width ?? 0) / 2;
+        position = (canvas.width ?? 0) / 2 - ((selectedObject as any).width ?? 0) / 2;
         break;
       case 'right':
-        position = (canvas.width ?? 0) - (selectedObject.width ?? 0);
+        position = (canvas.width ?? 0) - ((selectedObject as any).width ?? 0);
         break;
     }
     selectedObject.set('left', position);
@@ -214,15 +221,15 @@ export function PdfTemplateEditor() {
     try {
       const templateData = canvas.toJSON();
       const fields = canvas.getObjects().map(obj => ({
-        field_key: obj.data?.field_key || '',
-        field_type: obj.data?.field_type || 'text',
-        field_label: obj.text || '',
+        field_key: (obj as any).data?.field_key || '',
+        field_type: (obj as any).data?.field_type || 'text',
+        field_label: (obj as any).text || '',
         x_position: Math.round(obj.left || 0),
         y_position: Math.round(obj.top || 0),
-        width: Math.round(obj.width || 0),
-        height: Math.round(obj.height || 0),
-        font_size: obj.fontSize || 12,
-        font_family: obj.fontFamily || 'Arial'
+        width: Math.round((obj as any).width || 0),
+        height: Math.round((obj as any).height || 0),
+        font_size: (obj as any).fontSize || 12,
+        font_family: (obj as any).fontFamily || 'Arial'
       }));
 
       const { error } = await supabase
@@ -327,7 +334,7 @@ export function PdfTemplateEditor() {
                         <Label>X</Label>
                         <Input 
                           type="number"
-                          value={Math.round(selectedObject.left)}
+                          value={Math.round(selectedObject.left || 0)}
                           onChange={(e) => updateProperty('left', Number(e.target.value))}
                         />
                       </div>
@@ -335,7 +342,7 @@ export function PdfTemplateEditor() {
                         <Label>Y</Label>
                         <Input 
                           type="number"
-                          value={Math.round(selectedObject.top)}
+                          value={Math.round(selectedObject.top || 0)}
                           onChange={(e) => updateProperty('top', Number(e.target.value))}
                         />
                       </div>
@@ -345,7 +352,7 @@ export function PdfTemplateEditor() {
                         <Label>Largura</Label>
                         <Input 
                           type="number"
-                          value={Math.round(selectedObject.width || 0)}
+                          value={Math.round((selectedObject as any).width || 0)}
                           onChange={(e) => updateProperty('width', Number(e.target.value))}
                         />
                       </div>
@@ -353,16 +360,16 @@ export function PdfTemplateEditor() {
                         <Label>Altura</Label>
                         <Input 
                           type="number"
-                          value={Math.round(selectedObject.height || 0)}
+                          value={Math.round((selectedObject as any).height || 0)}
                           onChange={(e) => updateProperty('height', Number(e.target.value))}
                         />
                       </div>
                     </div>
-                    {selectedObject.type === 'textbox' && (
+                    {(selectedObject as any).text !== undefined && (
                       <div>
                         <Label>Texto</Label>
                         <Input 
-                          value={selectedObject.text}
+                          value={(selectedObject as any).text}
                           onChange={(e) => updateProperty('text', e.target.value)}
                         />
                       </div>
