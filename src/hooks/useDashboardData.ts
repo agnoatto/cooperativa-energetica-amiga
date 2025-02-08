@@ -83,12 +83,18 @@ export const useDashboardData = () => {
     meta: {
       errorMessage: "Erro ao carregar dados do dashboard"
     },
-    onError: () => {
-      toast({
-        title: "Erro ao carregar dados",
-        description: "Não foi possível carregar os dados do dashboard. Por favor, tente novamente.",
-        variant: "destructive",
-      });
+    networkMode: 'online',
+    gcTime: 0,
+    staleTime: 30000, // 30 seconds
+    throwOnError: true,
+    onSettled: (data, error) => {
+      if (error) {
+        toast({
+          title: "Erro ao carregar dados",
+          description: "Não foi possível carregar os dados do dashboard. Por favor, tente novamente.",
+          variant: "destructive",
+        });
+      }
     }
   });
 };
