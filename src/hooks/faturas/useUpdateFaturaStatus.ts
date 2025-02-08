@@ -10,13 +10,25 @@ export const useUpdateFaturaStatus = () => {
   return useMutation({
     mutationFn: async (data: UpdateFaturaStatusInput) => {
       const now = new Date().toISOString();
-      const updateData: Record<string, any> = {
-        status: data.status,
-        historico_status: supabase.sql`historico_status || ${JSON.stringify([{
+      const { data: fatura } = await supabase
+        .from("faturas")
+        .select('historico_status')
+        .eq('id', data.id)
+        .single();
+
+      const historicoAtual = fatura?.historico_status || [];
+      const novoHistorico = [
+        ...historicoAtual,
+        {
           status: data.status,
           data: now,
           observacao: data.observacao
-        }])}::jsonb`,
+        }
+      ];
+
+      const updateData: Record<string, any> = {
+        status: data.status,
+        historico_status: novoHistorico
       };
 
       // Adicionar campos específicos baseados no status

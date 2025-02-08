@@ -44,6 +44,9 @@ export const useFetchFaturas = (currentDate: Date) => {
           economia_acumulada,
           saldo_energia_kwh,
           observacao,
+          data_envio,
+          data_confirmacao_pagamento,
+          historico_status,
           unidade_beneficiaria:unidade_beneficiaria_id (
             id,
             numero_uc,
@@ -65,16 +68,13 @@ export const useFetchFaturas = (currentDate: Date) => {
       }
 
       // Calcular economia acumulada para cada fatura
-      return data.map(fatura => {
-        const economiaAcumulada = todasFaturasAnteriores
+      return data.map(fatura => ({
+        ...fatura,
+        economia_acumulada: todasFaturasAnteriores
           .filter(f => f.unidade_beneficiaria_id === fatura.unidade_beneficiaria.id)
-          .reduce((acc, f) => acc + (f.valor_desconto || 0), 0);
-
-        return {
-          ...fatura,
-          economia_acumulada: economiaAcumulada
-        };
-      }) as Fatura[];
+          .reduce((acc, f) => acc + (f.valor_desconto || 0), 0),
+        historico_status: fatura.historico_status || []
+      })) as Fatura[];
     },
     {
       revalidateOnFocus: false,
