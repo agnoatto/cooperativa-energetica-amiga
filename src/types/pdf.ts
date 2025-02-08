@@ -1,5 +1,5 @@
 
-import { Fatura } from "./fatura";
+import { Fatura, StatusHistoryEntry } from "./fatura";
 
 export type PdfFaturaData = Pick<
   Fatura,
@@ -15,6 +15,8 @@ export type PdfFaturaData = Pick<
   | "outros_valores"
   | "valor_desconto"
   | "economia_acumulada"
+  | "saldo_energia_kwh"
+  | "historico_status"
 > & {
   unidade_beneficiaria: {
     numero_uc: string;

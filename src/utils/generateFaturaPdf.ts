@@ -5,7 +5,10 @@ import { ptBR } from "date-fns/locale";
 import { PdfFaturaData } from "@/types/pdf";
 import { addHeader } from "./pdf/header";
 import { addClientInfo } from "./pdf/clientInfo";
-import { addMonthlyAnalysis } from "./pdf/monthlyAnalysis";
+import { addConsumptionInfo } from "./pdf/consumptionInfo";
+import { addValueDetails } from "./pdf/valueDetails";
+import { addEconomyInfo } from "./pdf/economyInfo";
+import { addStatusHistory } from "./pdf/statusHistory";
 import { addCompanyFooter, addPaymentData } from "./pdf/footer";
 
 export const generateFaturaPdf = async (fatura: PdfFaturaData): Promise<{ doc: jsPDF, fileName: string }> => {
@@ -22,22 +25,31 @@ export const generateFaturaPdf = async (fatura: PdfFaturaData): Promise<{ doc: j
     // Adicionar cabeçalho
     yPos = await addHeader(doc, {
       title: `Relatório Mensal - Ref.: ${format(new Date(fatura.ano, fatura.mes - 1), 'MMMM/yyyy', { locale: ptBR })}`,
-      logoPath: '/lovable-uploads/45144fbd-4ede-4bea-bbe1-722ecd73ccfb.png'
+      logoPath: '/lovable-uploads/45144fbd-4ede-4bea-bbe1-722ecd73ccfb.png',
+      status: fatura.status
     });
 
     // Adicionar informações do cliente
     yPos = addClientInfo(doc, fatura, yPos);
 
-    // Adicionar análise mensal
-    yPos = addMonthlyAnalysis(doc, {
-      consumo: fatura.consumo_kwh,
-      valorFaturaSemCogesol: fatura.total_fatura,
-      valorFaturaComCogesol: fatura.valor_total,
-      economiaAcumulada: fatura.economia_acumulada,
-      faturaConcessionaria: fatura.fatura_concessionaria,
-      iluminacaoPublica: fatura.iluminacao_publica,
-      outrosValores: fatura.outros_valores
-    }, yPos);
+    // Adicionar informações de consumo
+    yPos = addConsumptionInfo(doc, fatura, yPos);
+
+    // Adicionar detalhamento de valores
+    yPos = addValueDetails(doc, fatura, yPos);
+
+    // Adicionar informações de economia
+    yPos = addEconomyInfo(doc, fatura, yPos);
+
+    // Adicionar histórico de status (se existir e houver espaço na página)
+    if (fatura.historico_status && fatura.historico_status.length > 0) {
+      // Verificar se precisa de nova página
+      if (yPos > SPACING.PAGE.HEIGHT - 100) {
+        doc.addPage();
+        yPos = 20;
+      }
+      yPos = addStatusHistory(doc, fatura.historico_status, yPos);
+    }
 
     // Adicionar rodapé
     yPos = addCompanyFooter(doc, fatura.valor_total, yPos);
