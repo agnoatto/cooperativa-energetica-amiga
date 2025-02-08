@@ -1,5 +1,5 @@
 
-import { useQuery } from "@tanstack/react-query";
+import useSWR from 'swr';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -76,22 +76,27 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
 export const useDashboardData = () => {
   const { toast } = useToast();
 
-  return useQuery({
-    queryKey: ['dashboardData'],
-    queryFn: fetchDashboardData,
-    retry: 1,
-    networkMode: 'online',
-    gcTime: 0,
-    staleTime: 30000,
-    meta: {
-      errorMessage: "Erro ao carregar dados do dashboard"
-    },
-    onError: () => {
-      toast({
-        title: "Erro ao carregar dados",
-        description: "Não foi possível carregar os dados do dashboard. Por favor, tente novamente.",
-        variant: "destructive",
-      });
+  const { data, error, isLoading } = useSWR<DashboardData>(
+    'dashboardData',
+    fetchDashboardData,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      refreshInterval: 30000, // Similar to staleTime: 30000
+      shouldRetryOnError: true,
+      onError: () => {
+        toast({
+          title: "Erro ao carregar dados",
+          description: "Não foi possível carregar os dados do dashboard. Por favor, tente novamente.",
+          variant: "destructive",
+        });
+      }
     }
-  });
+  );
+
+  return {
+    data,
+    isLoading,
+    error,
+  };
 };
