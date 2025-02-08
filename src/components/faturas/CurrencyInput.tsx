@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { NumericFormat } from 'react-number-format';
+import { NumericFormat, NumericFormatProps } from 'react-number-format';
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -20,21 +20,25 @@ export function CurrencyInput({ value, onChange, className, ...props }: Currency
     return val.replace('.', ',');
   };
 
-  return (
-    <NumericFormat
-      customInput={Input}
-      value={value}
-      onValueChange={(values) => {
-        onChange(formatValue(values.value));
-      }}
-      thousandSeparator="."
-      decimalSeparator=","
-      decimalScale={2}
-      fixedDecimalScale
-      prefix="R$ "
-      className={cn(className)}
-      type="text"
-      {...props}
-    />
-  );
+  // Filter out 'type' from props to avoid type conflicts
+  const { type, ...restProps } = props;
+
+  // Create specific props for NumericFormat
+  const numericFormatProps: Partial<NumericFormatProps> = {
+    ...restProps,
+    customInput: Input,
+    value: value,
+    onValueChange: (values) => {
+      onChange(formatValue(values.value));
+    },
+    thousandSeparator: ".",
+    decimalSeparator: ",",
+    decimalScale: 2,
+    fixedDecimalScale: true,
+    prefix: "R$ ",
+    className: cn(className),
+    type: "text"
+  };
+
+  return <NumericFormat {...numericFormatProps} />;
 }
