@@ -1,76 +1,174 @@
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Canvas, IEvent } from "fabric";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Trash2, Move, Image, Type, Table2, UndoIcon, RedoIcon } from "lucide-react";
-
-interface TemplateElement {
-  id: string;
-  type: 'rectangle' | 'text' | 'image' | 'table';
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  content?: string;
-}
+import { 
+  Trash2, 
+  Move, 
+  Image as ImageIcon, 
+  Type, 
+  Table2, 
+  UndoIcon, 
+  RedoIcon,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Save,
+  Download
+} from "lucide-react";
+import { toast } from "sonner";
 
 export function PdfTemplateEditor() {
-  const [elements, setElements] = useState<TemplateElement[]>([]);
-  const [selectedElement, setSelectedElement] = useState<TemplateElement | null>(null);
-  const [history, setHistory] = useState<TemplateElement[][]>([[]]);
-  const [historyIndex, setHistoryIndex] = useState(0);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [canvas, setCanvas] = useState<Canvas | null>(null);
+  const [selectedObject, setSelectedObject] = useState<any>(null);
+  const [history, setHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
 
-  const addElement = (type: TemplateElement['type']) => {
-    const newElement: TemplateElement = {
-      id: Math.random().toString(36).substr(2, 9),
-      type,
-      x: 50,
-      y: 50,
-      width: 100,
-      height: type === 'text' ? 30 : 100,
-      content: type === 'text' ? 'Texto' : undefined
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    const fabricCanvas = new Canvas(canvasRef.current, {
+      width: 595, // A4 width in pixels at 72 DPI
+      height: 842, // A4 height in pixels at 72 DPI
+      backgroundColor: '#ffffff',
+    });
+
+    fabricCanvas.on('object:modified', saveState);
+    fabricCanvas.on('selection:created', handleSelectionCreated);
+    fabricCanvas.on('selection:cleared', () => setSelectedObject(null));
+
+    setCanvas(fabricCanvas);
+    saveState();
+
+    return () => {
+      fabricCanvas.dispose();
     };
+  }, []);
 
-    const newElements = [...elements, newElement];
-    setElements(newElements);
-    addToHistory(newElements);
+  const saveState = () => {
+    if (!canvas) return;
+    const json = JSON.stringify(canvas.toJSON());
+    setHistory(prev => [...prev.slice(0, historyIndex + 1), json]);
+    setHistoryIndex(prev => prev + 1);
   };
 
-  const updateElement = (id: string, updates: Partial<TemplateElement>) => {
-    const newElements = elements.map(el => 
-      el.id === id ? { ...el, ...updates } : el
-    );
-    setElements(newElements);
-    addToHistory(newElements);
+  const handleSelectionCreated = (e: IEvent) => {
+    if (!canvas) return;
+    const obj = canvas.getActiveObject();
+    setSelectedObject(obj);
   };
 
-  const deleteElement = (id: string) => {
-    const newElements = elements.filter(el => el.id !== id);
-    setElements(newElements);
-    setSelectedElement(null);
-    addToHistory(newElements);
-  };
+  const addElement = (type: string) => {
+    if (!canvas) return;
 
-  const addToHistory = (newElements: TemplateElement[]) => {
-    const newHistory = [...history.slice(0, historyIndex + 1), newElements];
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
+    let object;
+    switch (type) {
+      case 'rectangle':
+        object = new fabric.Rect({
+          left: 100,
+          top: 100,
+          width: 100,
+          height: 50,
+          fill: 'transparent',
+          stroke: '#000000',
+          strokeWidth: 1,
+        });
+        break;
+      case 'text':
+        object = new fabric.Textbox('Texto Editável', {
+          left: 100,
+          top: 100,
+          width: 200,
+          fontSize: 16,
+        });
+        break;
+      case 'table':
+        // Simples representação de tabela usando retângulo
+        object = new fabric.Rect({
+          left: 100,
+          top: 100,
+          width: 200,
+          height: 100,
+          fill: 'transparent',
+          stroke: '#000000',
+          strokeWidth: 1,
+        });
+        break;
+    }
+
+    if (object) {
+      canvas.add(object);
+      canvas.setActiveObject(object);
+      saveState();
+    }
   };
 
   const undo = () => {
-    if (historyIndex > 0) {
-      setHistoryIndex(historyIndex - 1);
-      setElements(history[historyIndex - 1]);
+    if (historyIndex > 0 && canvas) {
+      const newIndex = historyIndex - 1;
+      canvas.loadFromJSON(history[newIndex], () => {
+        canvas.renderAll();
+        setHistoryIndex(newIndex);
+      });
     }
   };
 
   const redo = () => {
-    if (historyIndex < history.length - 1) {
-      setHistoryIndex(historyIndex + 1);
-      setElements(history[historyIndex + 1]);
+    if (historyIndex < history.length - 1 && canvas) {
+      const newIndex = historyIndex + 1;
+      canvas.loadFromJSON(history[newIndex], () => {
+        canvas.renderAll();
+        setHistoryIndex(newIndex);
+      });
+    }
+  };
+
+  const deleteSelected = () => {
+    if (!canvas || !selectedObject) return;
+    canvas.remove(selectedObject);
+    setSelectedObject(null);
+    saveState();
+  };
+
+  const updateProperty = (property: string, value: any) => {
+    if (!selectedObject) return;
+    selectedObject.set(property, value);
+    canvas?.renderAll();
+    saveState();
+  };
+
+  const alignObject = (alignment: 'left' | 'center' | 'right') => {
+    if (!canvas || !selectedObject) return;
+    let position;
+    switch (alignment) {
+      case 'left':
+        position = 0;
+        break;
+      case 'center':
+        position = (canvas.width ?? 0) / 2 - (selectedObject.width ?? 0) / 2;
+        break;
+      case 'right':
+        position = (canvas.width ?? 0) - (selectedObject.width ?? 0);
+        break;
+    }
+    selectedObject.set('left', position);
+    canvas.renderAll();
+    saveState();
+  };
+
+  const saveTemplate = () => {
+    if (!canvas) return;
+    try {
+      const templateData = canvas.toJSON();
+      localStorage.setItem('pdfTemplate', JSON.stringify(templateData));
+      toast.success("Template salvo com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao salvar o template");
     }
   };
 
@@ -88,10 +186,6 @@ export function PdfTemplateEditor() {
               <Type className="w-4 h-4 mr-2" />
               Texto
             </Button>
-            <Button variant="outline" onClick={() => addElement('image')}>
-              <Image className="w-4 h-4 mr-2" />
-              Imagem
-            </Button>
             <Button variant="outline" onClick={() => addElement('table')}>
               <Table2 className="w-4 h-4 mr-2" />
               Tabela
@@ -104,7 +198,7 @@ export function PdfTemplateEditor() {
             variant="outline" 
             size="icon"
             onClick={undo}
-            disabled={historyIndex === 0}
+            disabled={historyIndex <= 0}
           >
             <UndoIcon className="w-4 h-4" />
           </Button>
@@ -112,13 +206,20 @@ export function PdfTemplateEditor() {
             variant="outline" 
             size="icon"
             onClick={redo}
-            disabled={historyIndex === history.length - 1}
+            disabled={historyIndex >= history.length - 1}
           >
             <RedoIcon className="w-4 h-4" />
           </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={saveTemplate}
+          >
+            <Save className="w-4 h-4" />
+          </Button>
         </div>
 
-        {selectedElement && (
+        {selectedObject && (
           <div className="space-y-4">
             <h3 className="font-medium">Propriedades</h3>
             <div className="space-y-2">
@@ -127,16 +228,16 @@ export function PdfTemplateEditor() {
                   <Label>X</Label>
                   <Input 
                     type="number"
-                    value={selectedElement.x}
-                    onChange={(e) => updateElement(selectedElement.id, { x: Number(e.target.value) })}
+                    value={Math.round(selectedObject.left)}
+                    onChange={(e) => updateProperty('left', Number(e.target.value))}
                   />
                 </div>
                 <div>
                   <Label>Y</Label>
                   <Input 
                     type="number"
-                    value={selectedElement.y}
-                    onChange={(e) => updateElement(selectedElement.id, { y: Number(e.target.value) })}
+                    value={Math.round(selectedObject.top)}
+                    onChange={(e) => updateProperty('top', Number(e.target.value))}
                   />
                 </div>
               </div>
@@ -145,31 +246,54 @@ export function PdfTemplateEditor() {
                   <Label>Largura</Label>
                   <Input 
                     type="number"
-                    value={selectedElement.width}
-                    onChange={(e) => updateElement(selectedElement.id, { width: Number(e.target.value) })}
+                    value={Math.round(selectedObject.width || 0)}
+                    onChange={(e) => updateProperty('width', Number(e.target.value))}
                   />
                 </div>
                 <div>
                   <Label>Altura</Label>
                   <Input 
                     type="number"
-                    value={selectedElement.height}
-                    onChange={(e) => updateElement(selectedElement.id, { height: Number(e.target.value) })}
+                    value={Math.round(selectedObject.height || 0)}
+                    onChange={(e) => updateProperty('height', Number(e.target.value))}
                   />
                 </div>
               </div>
-              {selectedElement.type === 'text' && (
+              {selectedObject.type === 'textbox' && (
                 <div>
-                  <Label>Conteúdo</Label>
+                  <Label>Texto</Label>
                   <Input 
-                    value={selectedElement.content}
-                    onChange={(e) => updateElement(selectedElement.id, { content: e.target.value })}
+                    value={selectedObject.text}
+                    onChange={(e) => updateProperty('text', e.target.value)}
                   />
                 </div>
               )}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => alignObject('left')}
+                >
+                  <AlignLeft className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => alignObject('center')}
+                >
+                  <AlignCenter className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => alignObject('right')}
+                >
+                  <AlignRight className="w-4 h-4" />
+                </Button>
+              </div>
               <Button 
                 variant="destructive" 
-                onClick={() => deleteElement(selectedElement.id)}
+                onClick={deleteSelected}
                 className="w-full"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
@@ -183,40 +307,10 @@ export function PdfTemplateEditor() {
       <Card className="p-4">
         <ScrollArea className="h-[800px] w-full">
           <div 
-            className="w-[595px] h-[842px] mx-auto bg-white border border-gray-200 relative"
+            className="w-[595px] mx-auto bg-white border border-gray-200"
             style={{ transform: 'scale(0.8)', transformOrigin: 'top center' }}
           >
-            {elements.map((element) => (
-              <div
-                key={element.id}
-                className={`absolute border border-gray-300 cursor-move ${
-                  selectedElement?.id === element.id ? 'border-blue-500' : ''
-                }`}
-                style={{
-                  left: element.x,
-                  top: element.y,
-                  width: element.width,
-                  height: element.height,
-                }}
-                onClick={() => setSelectedElement(element)}
-              >
-                {element.type === 'text' && (
-                  <div className="w-full h-full flex items-center justify-center">
-                    {element.content}
-                  </div>
-                )}
-                {element.type === 'image' && (
-                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                    <Image className="w-6 h-6 text-gray-400" />
-                  </div>
-                )}
-                {element.type === 'table' && (
-                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                    <Table2 className="w-6 h-6 text-gray-400" />
-                  </div>
-                )}
-              </div>
-            ))}
+            <canvas ref={canvasRef} />
           </div>
         </ScrollArea>
       </Card>
