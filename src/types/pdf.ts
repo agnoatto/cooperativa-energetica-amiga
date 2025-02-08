@@ -17,6 +17,7 @@ export type PdfFaturaData = Pick<
   | "economia_acumulada"
   | "saldo_energia_kwh"
   | "historico_status"
+  | "observacao"
 > & {
   unidade_beneficiaria: {
     numero_uc: string;
