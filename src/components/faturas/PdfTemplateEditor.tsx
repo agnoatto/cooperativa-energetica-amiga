@@ -1,6 +1,6 @@
 
 import { useEffect, useRef, useState } from "react";
-import { Canvas, IEvent } from "fabric";
+import { Canvas, TEvent, Rect, Textbox } from "fabric";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,7 +57,7 @@ export function PdfTemplateEditor() {
     setHistoryIndex(prev => prev + 1);
   };
 
-  const handleSelectionCreated = (e: IEvent) => {
+  const handleSelectionCreated = (e: TEvent) => {
     if (!canvas) return;
     const obj = canvas.getActiveObject();
     setSelectedObject(obj);
@@ -69,7 +69,7 @@ export function PdfTemplateEditor() {
     let object;
     switch (type) {
       case 'rectangle':
-        object = new fabric.Rect({
+        object = new Rect({
           left: 100,
           top: 100,
           width: 100,
@@ -80,7 +80,7 @@ export function PdfTemplateEditor() {
         });
         break;
       case 'text':
-        object = new fabric.Textbox('Texto Editável', {
+        object = new Textbox('Texto Editável', {
           left: 100,
           top: 100,
           width: 200,
@@ -89,7 +89,7 @@ export function PdfTemplateEditor() {
         break;
       case 'table':
         // Simples representação de tabela usando retângulo
-        object = new fabric.Rect({
+        object = new Rect({
           left: 100,
           top: 100,
           width: 200,
