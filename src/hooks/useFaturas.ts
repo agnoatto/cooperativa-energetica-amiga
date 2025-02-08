@@ -1,9 +1,9 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { lastDayOfMonth, startOfMonth, isBefore } from "date-fns";
 import { toast } from "sonner";
 import { Fatura } from "@/types/fatura";
+import { calculateValues, parseValue } from "@/components/faturas/utils/calculateValues";
 
 interface UnidadeBeneficiaria {
   id: string;
@@ -13,6 +13,18 @@ interface UnidadeBeneficiaria {
   cooperado: {
     nome: string;
   };
+}
+
+interface UpdateFaturaInput {
+  id: string;
+  consumo_kwh: number;
+  total_fatura: number;
+  fatura_concessionaria: number;
+  iluminacao_publica: number;
+  outros_valores: number;
+  saldo_energia_kwh: number;
+  observacao: string | null;
+  percentual_desconto: number;
 }
 
 export const useFaturas = (currentDate: Date) => {
@@ -88,6 +100,43 @@ export const useFaturas = (currentDate: Date) => {
           economia_acumulada: economiaAcumulada
         };
       }) as Fatura[];
+    },
+  });
+
+  const updateFaturaMutation = useMutation({
+    mutationFn: async (data: UpdateFaturaInput) => {
+      const calculatedValues = calculateValues(
+        data.total_fatura.toFixed(2).replace('.', ','),
+        data.iluminacao_publica.toFixed(2).replace('.', ','),
+        data.outros_valores.toFixed(2).replace('.', ','),
+        data.fatura_concessionaria.toFixed(2).replace('.', ','),
+        data.percentual_desconto
+      );
+
+      const { error } = await supabase
+        .from("faturas")
+        .update({
+          consumo_kwh: data.consumo_kwh,
+          total_fatura: data.total_fatura,
+          fatura_concessionaria: data.fatura_concessionaria,
+          iluminacao_publica: data.iluminacao_publica,
+          outros_valores: data.outros_valores,
+          valor_desconto: calculatedValues.valor_desconto,
+          valor_total: calculatedValues.valor_total,
+          saldo_energia_kwh: data.saldo_energia_kwh,
+          observacao: data.observacao,
+        })
+        .eq("id", data.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["faturas"] });
+      toast.success("Fatura atualizada com sucesso!");
+    },
+    onError: (error) => {
+      console.error("Erro ao atualizar fatura:", error);
+      toast.error("Erro ao atualizar fatura");
     },
   });
 
@@ -195,6 +244,8 @@ export const useFaturas = (currentDate: Date) => {
   return {
     faturas,
     isLoading,
+    updateFatura: updateFaturaMutation.mutate,
+    isUpdating: updateFaturaMutation.isPending,
     gerarFaturas: () => gerarFaturasMutation.mutate(),
     isGenerating: gerarFaturasMutation.isPending,
     deleteFatura: (id: string) => deleteFaturaMutation.mutate(id),

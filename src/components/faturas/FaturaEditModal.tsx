@@ -11,10 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CurrencyInput } from "./CurrencyInput";
-import { calculateValues, parseValue } from "./utils/calculateValues";
+import { parseValue } from "./utils/calculateValues";
 import type { FaturaEditModalProps } from "./types";
 
 export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEditModalProps) {
@@ -31,38 +30,19 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     e.preventDefault();
     setIsLoading(true);
 
-    const calculatedValues = calculateValues(
-      totalFatura,
-      iluminacaoPublica,
-      outrosValores,
-      faturaConcessionaria,
-      fatura.unidade_beneficiaria.percentual_desconto
-    );
-
     try {
-      const { error } = await supabase
-        .from("faturas")
-        .update({
-          consumo_kwh: Number(consumo),
-          total_fatura: parseValue(totalFatura),
-          fatura_concessionaria: parseValue(faturaConcessionaria),
-          iluminacao_publica: parseValue(iluminacaoPublica),
-          outros_valores: parseValue(outrosValores),
-          valor_desconto: calculatedValues.valor_desconto,
-          valor_total: calculatedValues.valor_total,
-          saldo_energia_kwh: Number(saldoEnergiaKwh),
-          observacao: observacao || null,
-        })
-        .eq("id", fatura.id);
-
-      if (error) throw error;
-
-      toast.success("Fatura atualizada com sucesso!");
-      onSuccess();
+      await onSuccess({
+        id: fatura.id,
+        consumo_kwh: Number(consumo),
+        total_fatura: parseValue(totalFatura),
+        fatura_concessionaria: parseValue(faturaConcessionaria),
+        iluminacao_publica: parseValue(iluminacaoPublica),
+        outros_valores: parseValue(outrosValores),
+        saldo_energia_kwh: Number(saldoEnergiaKwh),
+        observacao: observacao || null,
+        percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
+      });
       onClose();
-    } catch (error) {
-      console.error("Erro ao atualizar fatura:", error);
-      toast.error("Erro ao atualizar fatura");
     } finally {
       setIsLoading(false);
     }

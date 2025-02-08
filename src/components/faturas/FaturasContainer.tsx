@@ -11,7 +11,15 @@ import { Fatura } from "@/types/fatura";
 export function FaturasContainer() {
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
   const { currentDate, handlePreviousMonth, handleNextMonth } = useMonthSelection();
-  const { faturas, isLoading, gerarFaturas, isGenerating, deleteFatura } = useFaturas(currentDate);
+  const { 
+    faturas, 
+    isLoading, 
+    updateFatura,
+    isUpdating,
+    gerarFaturas, 
+    isGenerating, 
+    deleteFatura 
+  } = useFaturas(currentDate);
 
   const handleDeleteFatura = async (id: string) => {
     await deleteFatura(id);
@@ -42,10 +50,7 @@ export function FaturasContainer() {
           isOpen={!!selectedFatura}
           onClose={() => setSelectedFatura(null)}
           fatura={selectedFatura}
-          onSuccess={() => {
-            // The query will be invalidated by the mutation
-            setSelectedFatura(null);
-          }}
+          onSuccess={updateFatura}
         />
       )}
     </div>

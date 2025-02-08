@@ -15,5 +15,15 @@ export interface FaturaEditModalProps {
       percentual_desconto: number;
     };
   };
-  onSuccess: () => void;
+  onSuccess: (data: {
+    id: string;
+    consumo_kwh: number;
+    total_fatura: number;
+    fatura_concessionaria: number;
+    iluminacao_publica: number;
+    outros_valores: number;
+    saldo_energia_kwh: number;
+    observacao: string | null;
+    percentual_desconto: number;
+  }) => Promise<void>;
 }
