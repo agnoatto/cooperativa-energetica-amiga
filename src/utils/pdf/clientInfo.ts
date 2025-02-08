@@ -10,17 +10,19 @@ export const addClientInfo = (doc: jsPDF, fatura: PdfFaturaData, yPos: number): 
 
   // Coluna da esquerda
   doc.text("Cliente:", SPACING.MARGIN, yPos);
-  doc.text(fatura.unidade_beneficiaria.cooperado.nome, SPACING.MARGIN, yPos + 7);
-  doc.text("Endereço:", SPACING.MARGIN, yPos + 20);
-  doc.text(fatura.unidade_beneficiaria.endereco, SPACING.MARGIN, yPos + 27);
+  doc.text(fatura.unidade_beneficiaria.cooperado.nome, SPACING.MARGIN + 60, yPos);
+  
+  doc.text("Endereço:", SPACING.MARGIN, yPos + 15);
+  doc.text(fatura.unidade_beneficiaria.endereco, SPACING.MARGIN + 60, yPos + 15);
 
   // Coluna da direita
   doc.text("CPF/CNPJ:", 120, yPos);
-  doc.text(formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento || ""), 120, yPos + 7);
-  doc.text("Cidade:", 120, yPos + 20);
-  doc.text("Cidade", 120, yPos + 27);
+  doc.text(formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento || ""), 160, yPos);
+  
+  doc.text("Cidade:", 120, yPos + 15);
+  doc.text("Nonoai/RS", 160, yPos + 15);
 
-  return yPos + 40;
+  return yPos + 35;
 };
 
 export const addHighlightBoxes = (doc: jsPDF, config: {
@@ -29,7 +31,7 @@ export const addHighlightBoxes = (doc: jsPDF, config: {
   amount: string;
 }, yPos: number): number => {
   const boxWidth = 55;
-  const boxHeight = 35;
+  const boxHeight = 25;
   const spacing = 15;
   const startX = SPACING.MARGIN;
 
@@ -40,16 +42,15 @@ export const addHighlightBoxes = (doc: jsPDF, config: {
     
     doc.setTextColor(COLORS.BLACK[0], COLORS.BLACK[1], COLORS.BLACK[2]);
     doc.setFontSize(FONTS.SMALL);
-    doc.text(label, x + 5, yPos + 10);
+    doc.text(label, x + 5, yPos + 7);
     
     doc.setFontSize(FONTS.NORMAL);
-    doc.text(value, x + 5, yPos + 22);
+    doc.text(value, x + 5, yPos + 18);
   };
 
-  // Criar os três boxes
-  createHighlightBox(startX, "Unidade Consumidora", config.uc);
-  createHighlightBox(startX + boxWidth + spacing, "Data Vencimento", config.dueDate);
-  createHighlightBox(startX + (boxWidth + spacing) * 2, "Valor a Pagar", config.amount);
+  createHighlightBox(startX, "Unidade Consumidora:", config.uc);
+  createHighlightBox(startX + boxWidth + spacing, "Data de Vencimento:", config.dueDate);
+  createHighlightBox(startX + (boxWidth + spacing) * 2, "Valor a Pagar:", config.amount);
 
-  return yPos + boxHeight + 10;
+  return yPos + boxHeight + 15;
 };
