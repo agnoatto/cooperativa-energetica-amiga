@@ -22,6 +22,7 @@ export function CurrencyInput({ value, onChange, className, ...props }: Currency
       decimalScale={2}
       fixedDecimalScale
       prefix="R$ "
+      type="text"
       className={cn(className)}
       {...props}
     />
