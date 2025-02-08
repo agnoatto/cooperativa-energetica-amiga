@@ -23,6 +23,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
   const [outrosValores, setOutrosValores] = useState(fatura.outros_valores.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
   const [saldoEnergiaKwh, setSaldoEnergiaKwh] = useState(fatura.saldo_energia_kwh || 0);
   const [observacao, setObservacao] = useState(fatura.observacao || '');
+  const [dataVencimento, setDataVencimento] = useState(fatura.data_vencimento);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,6 +40,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
         outros_valores: parseValue(outrosValores),
         saldo_energia_kwh: saldoEnergiaKwh,
         observacao: observacao || null,
+        data_vencimento: dataVencimento,
         percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
       });
 
@@ -59,6 +61,16 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
           <DialogTitle>Editar Fatura</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid w-full items-center gap-2">
+            <Label htmlFor="dataVencimento">Data de Vencimento</Label>
+            <Input
+              type="date"
+              id="dataVencimento"
+              value={dataVencimento}
+              onChange={(e) => setDataVencimento(e.target.value)}
+              required
+            />
+          </div>
           <div className="grid w-full items-center gap-2">
             <Label htmlFor="consumo">Consumo (kWh)</Label>
             <Input
@@ -143,3 +155,4 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     </Dialog>
   );
 }
+

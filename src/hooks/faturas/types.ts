@@ -1,6 +1,4 @@
 
-import { Fatura } from "@/types/fatura";
-
 export interface UnidadeBeneficiaria {
   id: string;
   numero_uc: string;
@@ -20,6 +18,7 @@ export interface UpdateFaturaInput {
   outros_valores: number;
   saldo_energia_kwh: number;
   observacao: string | null;
+  data_vencimento: string;
   percentual_desconto: number;
 }
 
@@ -32,3 +31,4 @@ export interface UseFaturasResult {
   isGenerating: boolean;
   deleteFatura: (id: string) => void;
 }
+

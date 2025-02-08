@@ -30,6 +30,7 @@ export const useUpdateFatura = () => {
           valor_total: calculatedValues.valor_total,
           saldo_energia_kwh: data.saldo_energia_kwh,
           observacao: data.observacao,
+          data_vencimento: data.data_vencimento,
         })
         .eq("id", data.id);
 
@@ -45,3 +46,4 @@ export const useUpdateFatura = () => {
     },
   });
 };
+

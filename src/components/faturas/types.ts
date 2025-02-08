@@ -11,6 +11,7 @@ export interface FaturaEditModalProps {
     outros_valores: number;
     saldo_energia_kwh: number | null;
     observacao: string | null;
+    data_vencimento: string;
     unidade_beneficiaria: {
       percentual_desconto: number;
     };
@@ -24,6 +25,8 @@ export interface FaturaEditModalProps {
     outros_valores: number;
     saldo_energia_kwh: number;
     observacao: string | null;
+    data_vencimento: string;
     percentual_desconto: number;
   }) => void | Promise<void>;
 }
+
