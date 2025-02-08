@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -26,7 +27,7 @@ const UnidadesUsina = () => {
         .from("unidades_usina")
         .select(`
           *,
-          investidor:investidores(nome_investidor)
+          titular:investidores(nome_investidor)
         `);
 
       if (error) {
@@ -112,7 +113,7 @@ const UnidadesUsina = () => {
               <TableRow key={unidade.id}>
                 <TableCell>{unidade.numero_uc}</TableCell>
                 <TableCell>{formatAddress(unidade)}</TableCell>
-                <TableCell>{unidade.investidor?.nome_investidor}</TableCell>
+                <TableCell>{unidade.titular?.nome_investidor}</TableCell>
                 <TableCell className="text-right space-x-2">
                   <Button
                     variant="outline"
