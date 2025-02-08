@@ -1,15 +1,6 @@
 
 import { Fatura } from "./fatura";
 
-export type PdfBoxConfig = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  label: string;
-  value: string;
-};
-
 export type PdfFaturaData = Pick<
   Fatura,
   | "consumo_kwh"
