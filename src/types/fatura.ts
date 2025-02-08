@@ -12,11 +12,19 @@ export interface UnidadeBeneficiaria {
   cooperado: Cooperado;
 }
 
+export type FaturaStatus = 'gerada' | 'pendente' | 'enviada' | 'atrasada' | 'paga' | 'finalizada';
+
+export interface StatusHistoryEntry {
+  status: FaturaStatus;
+  data: string;
+  observacao?: string;
+}
+
 export interface Fatura {
   id: string;
   consumo_kwh: number;
   valor_total: number;
-  status: string;
+  status: FaturaStatus;
   data_vencimento: string;
   mes: number;
   ano: number;
@@ -30,5 +38,9 @@ export interface Fatura {
   observacao: string | null;
   arquivo_concessionaria_path?: string | null;
   arquivo_concessionaria_nome?: string | null;
+  data_envio?: string | null;
+  data_confirmacao_pagamento?: string | null;
+  historico_status: StatusHistoryEntry[];
   unidade_beneficiaria: UnidadeBeneficiaria;
 }
+

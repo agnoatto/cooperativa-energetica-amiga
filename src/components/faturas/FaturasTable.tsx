@@ -8,10 +8,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Eye, Trash2 } from "lucide-react";
+import { Edit, Eye, Trash2, Send, CheckCircle2, XCircle } from "lucide-react";
 import { FaturaPdfButton } from "./FaturaPdfButton";
 import { FaturaDetailsDialog } from "./FaturaDetailsDialog";
-import { Fatura } from "@/types/fatura";
+import { Fatura, FaturaStatus } from "@/types/fatura";
 import { useState } from "react";
 
 interface FaturasTableProps {
@@ -19,9 +19,16 @@ interface FaturasTableProps {
   isLoading: boolean;
   onEditFatura: (fatura: Fatura) => void;
   onDeleteFatura: (id: string) => Promise<void>;
+  onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
 }
 
-export function FaturasTable({ faturas, isLoading, onEditFatura, onDeleteFatura }: FaturasTableProps) {
+export function FaturasTable({ 
+  faturas, 
+  isLoading, 
+  onEditFatura, 
+  onDeleteFatura,
+  onUpdateStatus 
+}: FaturasTableProps) {
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
 
   const formatCurrency = (value: number) => {
@@ -31,13 +38,127 @@ export function FaturasTable({ faturas, isLoading, onEditFatura, onDeleteFatura 
     });
   };
 
-  const calcularValorAssinatura = (fatura: Fatura) => {
-    // Base para desconto = Valor Total - Iluminação - Outros
-    const baseDesconto = fatura.total_fatura - fatura.iluminacao_publica - fatura.outros_valores;
-    // Valor após desconto = Base - Valor do Desconto
-    const valorAposDesconto = baseDesconto - fatura.valor_desconto;
-    // Valor final da assinatura = Valor após desconto - Conta de Energia
-    return valorAposDesconto - fatura.fatura_concessionaria;
+  const getStatusColor = (status: FaturaStatus) => {
+    const colors = {
+      gerada: 'bg-gray-100 text-gray-800',
+      pendente: 'bg-yellow-100 text-yellow-800',
+      enviada: 'bg-blue-100 text-blue-800',
+      atrasada: 'bg-red-100 text-red-800',
+      paga: 'bg-green-100 text-green-800',
+      finalizada: 'bg-purple-100 text-purple-800'
+    };
+    return colors[status];
+  };
+
+  const getStatusLabel = (status: FaturaStatus) => {
+    const labels = {
+      gerada: 'Gerada',
+      pendente: 'Pendente',
+      enviada: 'Enviada',
+      atrasada: 'Atrasada',
+      paga: 'Paga',
+      finalizada: 'Finalizada'
+    };
+    return labels[status];
+  };
+
+  const getAvailableActions = (fatura: Fatura) => {
+    const actions = [];
+
+    // Botão de visualizar sempre disponível
+    actions.push(
+      <Button
+        key="view"
+        variant="outline"
+        size="icon"
+        onClick={() => setSelectedFatura(fatura)}
+        title="Visualizar Detalhes"
+      >
+        <Eye className="h-4 w-4" />
+      </Button>
+    );
+
+    // Botão de editar disponível para faturas geradas e pendentes
+    if (['gerada', 'pendente'].includes(fatura.status)) {
+      actions.push(
+        <Button
+          key="edit"
+          variant="outline"
+          size="icon"
+          onClick={() => onEditFatura(fatura)}
+          title="Editar Fatura"
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
+      );
+    }
+
+    // Botão de enviar disponível para faturas pendentes
+    if (fatura.status === 'pendente') {
+      actions.push(
+        <Button
+          key="send"
+          variant="outline"
+          size="icon"
+          onClick={() => onUpdateStatus(fatura, 'enviada', 'Fatura enviada ao cliente')}
+          title="Enviar Fatura"
+        >
+          <Send className="h-4 w-4" />
+        </Button>
+      );
+    }
+
+    // Botão de confirmar pagamento para faturas enviadas ou atrasadas
+    if (['enviada', 'atrasada'].includes(fatura.status)) {
+      actions.push(
+        <Button
+          key="confirm"
+          variant="outline"
+          size="icon"
+          onClick={() => onUpdateStatus(fatura, 'paga', 'Pagamento confirmado pelo cliente')}
+          title="Confirmar Pagamento"
+        >
+          <CheckCircle2 className="h-4 w-4" />
+        </Button>
+      );
+    }
+
+    // Botão de finalizar para faturas pagas
+    if (fatura.status === 'paga') {
+      actions.push(
+        <Button
+          key="finish"
+          variant="outline"
+          size="icon"
+          onClick={() => onUpdateStatus(fatura, 'finalizada', 'Fatura finalizada - pagamento processado')}
+          title="Finalizar Fatura"
+        >
+          <CheckCircle2 className="h-4 w-4" />
+        </Button>
+      );
+    }
+
+    // Botão de excluir disponível apenas para faturas geradas
+    if (fatura.status === 'gerada') {
+      actions.push(
+        <Button
+          key="delete"
+          variant="outline"
+          size="icon"
+          onClick={() => onDeleteFatura(fatura.id)}
+          title="Excluir Fatura"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      );
+    }
+
+    // Botão de PDF sempre disponível
+    actions.push(
+      <FaturaPdfButton key="pdf" fatura={fatura} />
+    );
+
+    return actions;
   };
 
   return (
@@ -82,44 +203,14 @@ export function FaturasTable({ faturas, isLoading, onEditFatura, onDeleteFatura 
                   <TableCell>{formatCurrency(fatura.fatura_concessionaria)}</TableCell>
                   <TableCell>{fatura.unidade_beneficiaria.percentual_desconto}%</TableCell>
                   <TableCell>{formatCurrency(fatura.valor_desconto)}</TableCell>
-                  <TableCell>{formatCurrency(calcularValorAssinatura(fatura))}</TableCell>
+                  <TableCell>{formatCurrency(fatura.valor_total)}</TableCell>
                   <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-sm ${
-                      fatura.status === 'pendente'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : fatura.status === 'paga'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {fatura.status.charAt(0).toUpperCase() + fatura.status.slice(1)}
+                    <span className={`px-2 py-1 rounded-full text-sm ${getStatusColor(fatura.status)}`}>
+                      {getStatusLabel(fatura.status)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right space-x-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setSelectedFatura(fatura)}
-                      title="Visualizar Detalhes"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => onEditFatura(fatura)}
-                      title="Editar Fatura"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => onDeleteFatura(fatura.id)}
-                      title="Excluir Fatura"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                    <FaturaPdfButton fatura={fatura} />
+                    {getAvailableActions(fatura)}
                   </TableCell>
                 </TableRow>
               ))

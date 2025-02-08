@@ -6,7 +6,7 @@ import { MonthSelector } from "@/components/faturas/MonthSelector";
 import { FaturasTable } from "@/components/faturas/FaturasTable";
 import { useFaturas } from "@/hooks/useFaturas";
 import { useMonthSelection } from "@/hooks/useMonthSelection";
-import { Fatura } from "@/types/fatura";
+import { Fatura, FaturaStatus } from "@/types/fatura";
 
 export function FaturasContainer() {
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
@@ -18,11 +18,20 @@ export function FaturasContainer() {
     isUpdating,
     gerarFaturas, 
     isGenerating, 
-    deleteFatura 
+    deleteFatura,
+    updateFaturaStatus
   } = useFaturas(currentDate);
 
   const handleDeleteFatura = async (id: string) => {
     await deleteFatura(id);
+  };
+
+  const handleUpdateStatus = async (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => {
+    await updateFaturaStatus({
+      id: fatura.id,
+      status: newStatus,
+      observacao
+    });
   };
 
   return (
@@ -43,6 +52,7 @@ export function FaturasContainer() {
         isLoading={isLoading}
         onEditFatura={setSelectedFatura}
         onDeleteFatura={handleDeleteFatura}
+        onUpdateStatus={handleUpdateStatus}
       />
 
       {selectedFatura && (

@@ -1,5 +1,5 @@
 
-import { Fatura } from "@/types/fatura";
+import { Fatura, FaturaStatus } from "@/types/fatura";
 
 export interface UnidadeBeneficiaria {
   id: string;
@@ -24,6 +24,12 @@ export interface UpdateFaturaInput {
   percentual_desconto: number;
 }
 
+export interface UpdateFaturaStatusInput {
+  id: string;
+  status: FaturaStatus;
+  observacao?: string;
+}
+
 export interface UseFaturasResult {
   faturas: Fatura[] | undefined;
   isLoading: boolean;
@@ -32,4 +38,5 @@ export interface UseFaturasResult {
   gerarFaturas: () => void;
   isGenerating: boolean;
   deleteFatura: (id: string) => void;
+  updateFaturaStatus: (data: UpdateFaturaStatusInput) => Promise<void>;
 }

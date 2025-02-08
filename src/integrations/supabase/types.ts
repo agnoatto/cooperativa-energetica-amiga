@@ -62,18 +62,21 @@ export type Database = {
           ano: number
           consumo_kwh: number
           created_at: string
+          data_confirmacao_pagamento: string | null
+          data_envio: string | null
           data_pagamento: string | null
           data_vencimento: string
           economia_acumulada: number | null
           economia_mes: number | null
           fatura_concessionaria: number
+          historico_status: Json | null
           id: string
           iluminacao_publica: number
           mes: number
           observacao: string | null
           outros_valores: number
           saldo_energia_kwh: number
-          status: string
+          status: Database["public"]["Enums"]["fatura_status"]
           total_fatura: number
           unidade_beneficiaria_id: string
           updated_at: string
@@ -84,18 +87,21 @@ export type Database = {
           ano: number
           consumo_kwh: number
           created_at?: string
+          data_confirmacao_pagamento?: string | null
+          data_envio?: string | null
           data_pagamento?: string | null
           data_vencimento: string
           economia_acumulada?: number | null
           economia_mes?: number | null
           fatura_concessionaria?: number
+          historico_status?: Json | null
           id?: string
           iluminacao_publica?: number
           mes: number
           observacao?: string | null
           outros_valores?: number
           saldo_energia_kwh?: number
-          status?: string
+          status?: Database["public"]["Enums"]["fatura_status"]
           total_fatura?: number
           unidade_beneficiaria_id: string
           updated_at?: string
@@ -106,18 +112,21 @@ export type Database = {
           ano?: number
           consumo_kwh?: number
           created_at?: string
+          data_confirmacao_pagamento?: string | null
+          data_envio?: string | null
           data_pagamento?: string | null
           data_vencimento?: string
           economia_acumulada?: number | null
           economia_mes?: number | null
           fatura_concessionaria?: number
+          historico_status?: Json | null
           id?: string
           iluminacao_publica?: number
           mes?: number
           observacao?: string | null
           outros_valores?: number
           saldo_energia_kwh?: number
-          status?: string
+          status?: Database["public"]["Enums"]["fatura_status"]
           total_fatura?: number
           unidade_beneficiaria_id?: string
           updated_at?: string
@@ -742,7 +751,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      fatura_status:
+        | "gerada"
+        | "pendente"
+        | "enviada"
+        | "atrasada"
+        | "paga"
+        | "finalizada"
     }
     CompositeTypes: {
       [_ in never]: never
