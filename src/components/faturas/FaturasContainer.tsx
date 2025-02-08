@@ -7,8 +7,6 @@ import { FaturasTable } from "@/components/faturas/FaturasTable";
 import { useFaturas } from "@/hooks/useFaturas";
 import { useMonthSelection } from "@/hooks/useMonthSelection";
 import { Fatura } from "@/types/fatura";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PdfTemplateEditor } from "./PdfTemplateEditor";
 
 export function FaturasContainer() {
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
@@ -29,36 +27,23 @@ export function FaturasContainer() {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="faturas" className="w-full">
-        <TabsList>
-          <TabsTrigger value="faturas">Faturas</TabsTrigger>
-          <TabsTrigger value="editor">Editor de Template</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="faturas" className="space-y-6">
-          <FaturasHeader 
-            onGerarFaturas={gerarFaturas}
-            isGenerating={isGenerating}
-          />
+      <FaturasHeader 
+        onGerarFaturas={gerarFaturas}
+        isGenerating={isGenerating}
+      />
 
-          <MonthSelector
-            currentDate={currentDate}
-            onPreviousMonth={handlePreviousMonth}
-            onNextMonth={handleNextMonth}
-          />
+      <MonthSelector
+        currentDate={currentDate}
+        onPreviousMonth={handlePreviousMonth}
+        onNextMonth={handleNextMonth}
+      />
 
-          <FaturasTable
-            faturas={faturas}
-            isLoading={isLoading}
-            onEditFatura={setSelectedFatura}
-            onDeleteFatura={handleDeleteFatura}
-          />
-        </TabsContent>
-
-        <TabsContent value="editor">
-          <PdfTemplateEditor />
-        </TabsContent>
-      </Tabs>
+      <FaturasTable
+        faturas={faturas}
+        isLoading={isLoading}
+        onEditFatura={setSelectedFatura}
+        onDeleteFatura={handleDeleteFatura}
+      />
 
       {selectedFatura && (
         <FaturaEditModal
