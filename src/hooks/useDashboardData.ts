@@ -18,7 +18,7 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
   // Fetch total active cooperados
   const { count: totalCooperados, error: cooperadosError } = await supabase
     .from('cooperados')
-    .select('*', { count: 'exact', head: true })
+    .select('*', { count: 'exact' })
     .is('data_exclusao', null);
 
   if (cooperadosError) {
@@ -29,7 +29,7 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
   // Fetch total active usinas
   const { count: totalUsinas, error: usinasError } = await supabase
     .from('usinas')
-    .select('*', { count: 'exact', head: true })
+    .select('*', { count: 'exact' })
     .eq('status', 'active');
 
   if (usinasError) {
@@ -40,7 +40,7 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
   // Fetch pending faturas for current month
   const { count: faturasPendentes, error: faturasError } = await supabase
     .from('faturas')
-    .select('*', { count: 'exact', head: true })
+    .select('*', { count: 'exact' })
     .eq('status', 'pendente')
     .eq('mes', currentMonth)
     .eq('ano', currentYear);
