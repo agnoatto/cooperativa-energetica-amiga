@@ -11,18 +11,19 @@ export const COLORS = {
 };
 
 export const FONTS = {
-  TITLE: 18,       // Reduzido para melhor proporção
-  SUBTITLE: 14,    // Reduzido para melhor proporção
-  NORMAL: 10,      // Reduzido para melhor proporção
-  SMALL: 8        // Reduzido para melhor proporção
+  TITLE: 16,       // Reduzido ainda mais para melhor proporção
+  SUBTITLE: 12,    // Reduzido ainda mais para melhor proporção
+  NORMAL: 9,       // Reduzido ainda mais para melhor proporção
+  SMALL: 7         // Reduzido ainda mais para melhor proporção
 };
 
 export const SPACING = {
   MARGIN: 20,      // Margem lateral padrão
-  TOP: 30,        // Reduzido para melhor aproveitamento
+  TOP: 25,        // Reduzido ainda mais para melhor aproveitamento
   PAGE: {
     WIDTH: 210,    // A4 width in mm
     HEIGHT: 297,   // A4 height in mm
     CONTENT_WIDTH: 170  // WIDTH - (2 * MARGIN)
   }
 };
+

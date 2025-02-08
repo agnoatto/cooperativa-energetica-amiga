@@ -8,48 +8,48 @@ export const addEconomyInfo = (doc: jsPDF, fatura: PdfFaturaData, yPos: number):
   doc.setFontSize(FONTS.SUBTITLE);
   doc.text("Economia", SPACING.MARGIN, yPos);
   
-  yPos += 15;
+  yPos += 10;
 
   // Box de economia do mês
   doc.setFillColor(COLORS.LIME_GREEN[0], COLORS.LIME_GREEN[1], COLORS.LIME_GREEN[2]);
-  const boxWidth = (SPACING.PAGE.WIDTH - (SPACING.MARGIN * 3)) / 2;
-  const boxHeight = 40;
+  const boxWidth = (SPACING.PAGE.CONTENT_WIDTH - 5) / 2;
+  const boxHeight = 30;
 
   // Economia do mês
-  doc.roundedRect(SPACING.MARGIN, yPos, boxWidth, boxHeight, 3, 3, 'F');
+  doc.roundedRect(SPACING.MARGIN, yPos, boxWidth, boxHeight, 2, 2, 'F');
   doc.setFontSize(FONTS.SMALL);
-  doc.text("Economia neste mês:", SPACING.MARGIN + 5, yPos + 12);
+  doc.text("Economia neste mês:", SPACING.MARGIN + 4, yPos + 8);
   doc.setFontSize(FONTS.SUBTITLE);
   doc.text(
     formatCurrency(fatura.valor_desconto),
-    SPACING.MARGIN + 5,
-    yPos + 30
+    SPACING.MARGIN + 4,
+    yPos + 22
   );
 
   // Economia acumulada
   doc.roundedRect(
-    SPACING.MARGIN * 2 + boxWidth,
+    SPACING.MARGIN + boxWidth + 5,
     yPos,
     boxWidth,
     boxHeight,
-    3,
-    3,
+    2,
+    2,
     'F'
   );
   doc.setFontSize(FONTS.SMALL);
   doc.text(
     "Economia acumulada:",
-    SPACING.MARGIN * 2 + boxWidth + 5,
-    yPos + 12
+    SPACING.MARGIN + boxWidth + 9,
+    yPos + 8
   );
   doc.setFontSize(FONTS.SUBTITLE);
   doc.text(
     formatCurrency(fatura.economia_acumulada),
-    SPACING.MARGIN * 2 + boxWidth + 5,
-    yPos + 30
+    SPACING.MARGIN + boxWidth + 9,
+    yPos + 22
   );
 
-  return yPos + boxHeight + 15;
+  return yPos + boxHeight + 10;
 };
 
 const formatCurrency = (value: number): string => {
@@ -58,3 +58,4 @@ const formatCurrency = (value: number): string => {
     currency: 'BRL'
   }).format(value);
 };
+
