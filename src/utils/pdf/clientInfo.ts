@@ -10,7 +10,7 @@ export const addClientInfo = (doc: jsPDF, fatura: PdfFaturaData, yPos: number): 
   doc.setFontSize(FONTS.SUBTITLE);
   doc.text("Informações do Cliente", SPACING.MARGIN, yPos);
   
-  yPos += 10;
+  yPos += 8;
   doc.setFontSize(FONTS.NORMAL);
 
   // Grid de informações do cliente
@@ -22,16 +22,16 @@ export const addClientInfo = (doc: jsPDF, fatura: PdfFaturaData, yPos: number): 
   ];
 
   grid.forEach((item, index) => {
-    const y = yPos + (index * 6);
+    const y = yPos + (index * 5);
     doc.text(item.label, SPACING.MARGIN, y);
     doc.text(item.value, SPACING.MARGIN + 40, y);
   });
 
-  yPos += 30;
+  yPos += 25;
 
   // Boxes de destaque com tamanhos uniformes
-  const boxWidth = SPACING.PAGE.CONTENT_WIDTH / 3 - 5; // Divido em 3 com pequeno espaçamento
-  const boxHeight = 25;
+  const boxWidth = SPACING.PAGE.CONTENT_WIDTH / 3 - 5;
+  const boxHeight = 22;
 
   const boxes = [
     { 
@@ -51,17 +51,22 @@ export const addClientInfo = (doc: jsPDF, fatura: PdfFaturaData, yPos: number): 
   boxes.forEach((box, index) => {
     const xPos = SPACING.MARGIN + (index * (boxWidth + 5));
     
+    // Background color for boxes
     doc.setFillColor(COLORS.LIME_GREEN[0], COLORS.LIME_GREEN[1], COLORS.LIME_GREEN[2]);
     doc.roundedRect(xPos, yPos, boxWidth, boxHeight, 2, 2, 'F');
     
+    // Label in black
     doc.setFontSize(FONTS.SMALL);
-    doc.text(box.label, xPos + 4, yPos + 7);
+    doc.setTextColor(COLORS.BLACK[0], COLORS.BLACK[1], COLORS.BLACK[2]);
+    doc.text(box.label, xPos + 4, yPos + 6);
     
-    doc.setFontSize(FONTS.NORMAL);
-    doc.text(box.value, xPos + 4, yPos + 18);
+    // Value in red for emphasis
+    doc.setFontSize(FONTS.SUBTITLE);
+    doc.setTextColor(COLORS.RED[0], COLORS.RED[1], COLORS.RED[2]);
+    doc.text(box.value, xPos + 4, yPos + 16);
   });
 
-  return yPos + boxHeight + 15;
+  return yPos + boxHeight + 12;
 };
 
 const formatCurrency = (value: number): string => {
