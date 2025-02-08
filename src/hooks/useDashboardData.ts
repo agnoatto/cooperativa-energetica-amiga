@@ -1,8 +1,7 @@
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { useEffect } from "react";
 
 interface DashboardData {
   totalCooperados: number;
@@ -76,20 +75,6 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
 
 export const useDashboardData = () => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const unsubscribe = queryClient.getQueryCache().subscribe(event => {
-      if (event.type === 'error' && event.query.queryKey[0] === 'dashboardData') {
-        toast({
-          title: "Erro ao carregar dados",
-          description: "Não foi possível carregar os dados do dashboard. Por favor, tente novamente.",
-          variant: "destructive",
-        });
-      }
-    });
-    return () => unsubscribe();
-  }, [queryClient, toast]);
 
   return useQuery({
     queryKey: ['dashboardData'],
@@ -97,6 +82,16 @@ export const useDashboardData = () => {
     retry: 1,
     networkMode: 'online',
     gcTime: 0,
-    staleTime: 30000
+    staleTime: 30000,
+    meta: {
+      errorMessage: "Erro ao carregar dados do dashboard"
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao carregar dados",
+        description: "Não foi possível carregar os dados do dashboard. Por favor, tente novamente.",
+        variant: "destructive",
+      });
+    }
   });
 };
