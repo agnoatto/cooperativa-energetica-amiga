@@ -13,13 +13,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { CurrencyInput } from "./CurrencyInput";
 import type { FaturaEditModalProps } from "./types";
+import { parseValue } from "./utils/calculateValues";
 
 export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEditModalProps) {
   const [consumo, setConsumo] = useState(fatura.consumo_kwh || 0);
-  const [totalFatura, setTotalFatura] = useState(fatura.total_fatura);
-  const [faturaConcessionaria, setFaturaConcessionaria] = useState(fatura.fatura_concessionaria);
-  const [iluminacaoPublica, setIluminacaoPublica] = useState(fatura.iluminacao_publica);
-  const [outrosValores, setOutrosValores] = useState(fatura.outros_valores);
+  const [totalFatura, setTotalFatura] = useState(fatura.total_fatura.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+  const [faturaConcessionaria, setFaturaConcessionaria] = useState(fatura.fatura_concessionaria.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+  const [iluminacaoPublica, setIluminacaoPublica] = useState(fatura.iluminacao_publica.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+  const [outrosValores, setOutrosValores] = useState(fatura.outros_valores.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
   const [saldoEnergiaKwh, setSaldoEnergiaKwh] = useState(fatura.saldo_energia_kwh || 0);
   const [observacao, setObservacao] = useState(fatura.observacao || '');
   const [isLoading, setIsLoading] = useState(false);
@@ -32,16 +33,15 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
       const result = onSuccess({
         id: fatura.id,
         consumo_kwh: consumo,
-        total_fatura: totalFatura,
-        fatura_concessionaria: faturaConcessionaria,
-        iluminacao_publica: iluminacaoPublica,
-        outros_valores: outrosValores,
+        total_fatura: parseValue(totalFatura),
+        fatura_concessionaria: parseValue(faturaConcessionaria),
+        iluminacao_publica: parseValue(iluminacaoPublica),
+        outros_valores: parseValue(outrosValores),
         saldo_energia_kwh: saldoEnergiaKwh,
         observacao: observacao || null,
         percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
       });
 
-      // Handle both Promise and void returns
       if (result instanceof Promise) {
         await result;
       }
