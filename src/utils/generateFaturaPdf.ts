@@ -3,14 +3,10 @@ import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PdfFaturaData } from "@/types/pdf";
-import {
-  addHeader,
-  addClientInfo,
-  addHighlightBoxes,
-  addMonthlyAnalysis,
-  addCompanyFooter,
-  addPaymentData,
-} from "./pdfSections";
+import { addHeader } from "./pdf/header";
+import { addClientInfo, addHighlightBoxes } from "./pdf/clientInfo";
+import { addMonthlyAnalysis } from "./pdf/monthlyAnalysis";
+import { addCompanyFooter, addPaymentData } from "./pdf/footer";
 
 const loadImage = (url: string): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
