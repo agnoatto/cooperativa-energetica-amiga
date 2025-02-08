@@ -7,6 +7,7 @@ export const COLORS = {
   GRAY: [128, 128, 128],       // #808080
   GREEN: [0, 128, 0],          // #008000
   BLUE: [0, 114, 206],         // #0072CE
+  RED: [234, 56, 76],          // #ea384c
 };
 
 export const FONTS = {

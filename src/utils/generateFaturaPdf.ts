@@ -10,6 +10,7 @@ import { addValueDetails } from "./pdf/valueDetails";
 import { addEconomyInfo } from "./pdf/economyInfo";
 import { addStatusHistory } from "./pdf/statusHistory";
 import { addCompanyFooter, addPaymentData } from "./pdf/footer";
+import { SPACING } from "./pdf/constants";
 
 export const generateFaturaPdf = async (fatura: PdfFaturaData): Promise<{ doc: jsPDF, fileName: string }> => {
   try {
