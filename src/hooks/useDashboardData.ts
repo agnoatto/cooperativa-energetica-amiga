@@ -18,7 +18,7 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
   // Fetch total active cooperados
   const { count: totalCooperados, error: cooperadosError } = await supabase
     .from('cooperados')
-    .select('*', { count: 'exact' })
+    .select('*', { count: 'exact', head: false })
     .is('data_exclusao', null);
 
   if (cooperadosError) {
@@ -29,7 +29,7 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
   // Fetch total active usinas
   const { count: totalUsinas, error: usinasError } = await supabase
     .from('usinas')
-    .select('*', { count: 'exact' })
+    .select('*', { count: 'exact', head: false })
     .eq('status', 'active');
 
   if (usinasError) {
@@ -40,7 +40,7 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
   // Fetch pending faturas for current month
   const { count: faturasPendentes, error: faturasError } = await supabase
     .from('faturas')
-    .select('*', { count: 'exact' })
+    .select('*', { count: 'exact', head: false })
     .eq('status', 'pendente')
     .eq('mes', currentMonth)
     .eq('ano', currentYear);
@@ -81,14 +81,14 @@ export const useDashboardData = () => {
     queryFn: fetchDashboardData,
     retry: 1,
     meta: {
-      errorMessage: "Erro ao carregar dados do dashboard",
-      onError: () => {
-        toast({
-          title: "Erro ao carregar dados",
-          description: "Não foi possível carregar os dados do dashboard. Por favor, tente novamente.",
-          variant: "destructive",
-        });
-      }
+      errorMessage: "Erro ao carregar dados do dashboard"
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao carregar dados",
+        description: "Não foi possível carregar os dados do dashboard. Por favor, tente novamente.",
+        variant: "destructive",
+      });
     }
   });
 };
