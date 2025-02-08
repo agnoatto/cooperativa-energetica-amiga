@@ -12,16 +12,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { CurrencyInput } from "./CurrencyInput";
-import { parseValue } from "./utils/calculateValues";
 import type { FaturaEditModalProps } from "./types";
 
 export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEditModalProps) {
-  const [consumo, setConsumo] = useState(fatura.consumo_kwh?.toString() || "0");
-  const [totalFatura, setTotalFatura] = useState(fatura.total_fatura.toFixed(2).replace('.', ','));
-  const [faturaConcessionaria, setFaturaConcessionaria] = useState(fatura.fatura_concessionaria.toFixed(2).replace('.', ','));
-  const [iluminacaoPublica, setIluminacaoPublica] = useState(fatura.iluminacao_publica.toFixed(2).replace('.', ','));
-  const [outrosValores, setOutrosValores] = useState(fatura.outros_valores.toFixed(2).replace('.', ','));
-  const [saldoEnergiaKwh, setSaldoEnergiaKwh] = useState(fatura.saldo_energia_kwh?.toString() || "0");
+  const [consumo, setConsumo] = useState(fatura.consumo_kwh || 0);
+  const [totalFatura, setTotalFatura] = useState(fatura.total_fatura);
+  const [faturaConcessionaria, setFaturaConcessionaria] = useState(fatura.fatura_concessionaria);
+  const [iluminacaoPublica, setIluminacaoPublica] = useState(fatura.iluminacao_publica);
+  const [outrosValores, setOutrosValores] = useState(fatura.outros_valores);
+  const [saldoEnergiaKwh, setSaldoEnergiaKwh] = useState(fatura.saldo_energia_kwh || 0);
   const [observacao, setObservacao] = useState(fatura.observacao || '');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -32,12 +31,12 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     try {
       const result = onSuccess({
         id: fatura.id,
-        consumo_kwh: Number(consumo),
-        total_fatura: parseValue(totalFatura),
-        fatura_concessionaria: parseValue(faturaConcessionaria),
-        iluminacao_publica: parseValue(iluminacaoPublica),
-        outros_valores: parseValue(outrosValores),
-        saldo_energia_kwh: Number(saldoEnergiaKwh),
+        consumo_kwh: consumo,
+        total_fatura: totalFatura,
+        fatura_concessionaria: faturaConcessionaria,
+        iluminacao_publica: iluminacaoPublica,
+        outros_valores: outrosValores,
+        saldo_energia_kwh: saldoEnergiaKwh,
         observacao: observacao || null,
         percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
       });
@@ -66,7 +65,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               type="number"
               id="consumo"
               value={consumo}
-              onChange={(e) => setConsumo(e.target.value)}
+              onChange={(e) => setConsumo(Number(e.target.value))}
               step="0.01"
               min="0"
               required
@@ -114,7 +113,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               type="number"
               id="saldoEnergiaKwh"
               value={saldoEnergiaKwh}
-              onChange={(e) => setSaldoEnergiaKwh(e.target.value)}
+              onChange={(e) => setSaldoEnergiaKwh(Number(e.target.value))}
               step="0.01"
               min="0"
               required
