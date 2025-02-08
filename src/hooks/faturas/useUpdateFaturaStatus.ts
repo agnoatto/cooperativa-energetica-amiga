@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UpdateFaturaStatusInput } from "./types";
+import { StatusHistoryEntry } from "@/types/fatura";
 
 export const useUpdateFaturaStatus = () => {
   const queryClient = useQueryClient();
@@ -16,8 +17,8 @@ export const useUpdateFaturaStatus = () => {
         .eq('id', data.id)
         .single();
 
-      const historicoAtual = fatura?.historico_status || [];
-      const novoHistorico = [
+      const historicoAtual = (fatura?.historico_status as StatusHistoryEntry[] || []);
+      const novoHistorico: StatusHistoryEntry[] = [
         ...historicoAtual,
         {
           status: data.status,

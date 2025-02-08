@@ -67,13 +67,17 @@ export const useFetchFaturas = (currentDate: Date) => {
         throw error;
       }
 
-      // Calcular economia acumulada para cada fatura
+      // Calcular economia acumulada para cada fatura e garantir o tipo correto do historico_status
       return data.map(fatura => ({
         ...fatura,
         economia_acumulada: todasFaturasAnteriores
           .filter(f => f.unidade_beneficiaria_id === fatura.unidade_beneficiaria.id)
           .reduce((acc, f) => acc + (f.valor_desconto || 0), 0),
-        historico_status: fatura.historico_status || []
+        historico_status: (fatura.historico_status as any[] || []).map(entry => ({
+          status: entry.status,
+          data: entry.data,
+          observacao: entry.observacao
+        }))
       })) as Fatura[];
     },
     {
