@@ -8,16 +8,17 @@ import {
   addHeader,
   addClientInfo,
   addInfoBox,
-  addMonthlyAnalysis,
   addBillAnalysis,
   addCogesolBillAnalysis,
+  addEconomySection,
+  addCompanyInfo,
   addFooter,
 } from "./pdfSections";
 
 const loadImage = (url: string): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = "anonymous";  // Enable CORS
+    img.crossOrigin = "anonymous";
     img.onload = () => resolve(img);
     img.onerror = (e) => reject(new Error('Failed to load image'));
     img.src = url;
@@ -29,7 +30,7 @@ export const generateFaturaPdf = async (fatura: PdfFaturaData): Promise<{ doc: j
   let yPos = 20;
 
   try {
-    // Load logo image
+    // Logo
     const logoImg = await loadImage('/lovable-uploads/45144fbd-4ede-4bea-bbe1-722ecd73ccfb.png');
     const canvas = document.createElement('canvas');
     canvas.width = logoImg.width;
@@ -42,7 +43,6 @@ export const generateFaturaPdf = async (fatura: PdfFaturaData): Promise<{ doc: j
     }
   } catch (error) {
     console.error('Failed to load logo:', error);
-    // Continue without the logo if it fails to load
   }
 
   // Header
@@ -88,36 +88,23 @@ export const generateFaturaPdf = async (fatura: PdfFaturaData): Promise<{ doc: j
     value: formatCurrency(fatura.valor_total)
   });
   
-  // Monthly Analysis
-  yPos += 35;
-  doc.setFont("helvetica", "bold");
-  doc.text("Análise Mensal", 20, yPos);
-  doc.setFont("helvetica", "normal");
-  yPos += 10;
-  
-  yPos = addMonthlyAnalysis(doc, fatura, yPos);
-  
   // Bill Analysis
-  yPos -= 14;
-  const totalSemCogesol = addBillAnalysis(doc, fatura, yPos);
+  yPos += 45;
+  yPos = addBillAnalysis(doc, fatura, yPos);
   
   // Cogesol Bill Analysis
-  yPos += 12;
-  const { yPos: newYPos, totalComCogesol } = addCogesolBillAnalysis(doc, fatura, yPos);
-  yPos = newYPos;
+  yPos += 30;
+  yPos = addCogesolBillAnalysis(doc, fatura, yPos);
   
-  // Final Economy Box
+  // Economy Section
+  yPos += 30;
+  yPos = addEconomySection(doc, fatura, yPos);
+  
+  // Company Info and Payment Message
   yPos += 15;
-  const economiaFinal = totalSemCogesol - totalComCogesol;
-  doc.setFillColor(197, 255, 114);
-  doc.roundedRect(120, yPos - 5, 70, 15, 3, 3, 'F');
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
-  doc.text(`Economia: ${formatCurrency(economiaFinal)}`, 125, yPos + 5);
-  doc.setFont("helvetica", "normal");
+  yPos = addCompanyInfo(doc, yPos);
   
   // Footer
-  yPos = 270;
   addDivider(doc, yPos);
   yPos += 10;
   addFooter(doc, yPos);
