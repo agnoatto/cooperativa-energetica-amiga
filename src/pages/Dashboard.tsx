@@ -1,7 +1,19 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Sun, FileText, CreditCard } from "lucide-react";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Dashboard = () => {
+  const { data, isLoading } = useDashboardData();
+
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    });
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-gray-900">
@@ -17,7 +29,11 @@ const Dashboard = () => {
             <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">127</div>
+            {isLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="text-2xl font-bold">{data?.totalCooperados}</div>
+            )}
           </CardContent>
         </Card>
 
@@ -29,7 +45,11 @@ const Dashboard = () => {
             <Sun className="h-4 w-4 text-secondary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4</div>
+            {isLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="text-2xl font-bold">{data?.totalUsinas}</div>
+            )}
           </CardContent>
         </Card>
 
@@ -41,7 +61,11 @@ const Dashboard = () => {
             <FileText className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">23</div>
+            {isLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="text-2xl font-bold">{data?.faturasPendentes}</div>
+            )}
           </CardContent>
         </Card>
 
@@ -53,7 +77,13 @@ const Dashboard = () => {
             <CreditCard className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R$ 45.289,00</div>
+            {isLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="text-2xl font-bold">
+                {formatCurrency(data?.totalPagamentos || 0)}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -76,7 +106,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-500">
-              Gráfico teste
+              Gráfico de distribuição será implementado aqui
             </p>
           </CardContent>
         </Card>
