@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
-import { toast } from "sonner";
 import { CurrencyInput } from "./CurrencyInput";
 import { parseValue } from "./utils/calculateValues";
 import type { FaturaEditModalProps } from "./types";
@@ -31,7 +30,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     setIsLoading(true);
 
     try {
-      await onSuccess({
+      const result = onSuccess({
         id: fatura.id,
         consumo_kwh: Number(consumo),
         total_fatura: parseValue(totalFatura),
@@ -42,6 +41,12 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
         observacao: observacao || null,
         percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
       });
+
+      // Handle both Promise and void returns
+      if (result instanceof Promise) {
+        await result;
+      }
+      
       onClose();
     } finally {
       setIsLoading(false);

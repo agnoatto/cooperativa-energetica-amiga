@@ -25,5 +25,5 @@ export interface FaturaEditModalProps {
     saldo_energia_kwh: number;
     observacao: string | null;
     percentual_desconto: number;
-  }) => Promise<void>;
+  }) => void | Promise<void>;
 }
