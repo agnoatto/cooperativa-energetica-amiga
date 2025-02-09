@@ -8,7 +8,6 @@ import { addClientInfo } from "./pdf/clientInfo";
 import { addConsumptionInfo } from "./pdf/consumptionInfo";
 import { addValueDetails } from "./pdf/valueDetails";
 import { addEconomyInfo } from "./pdf/economyInfo";
-import { addStatusHistory } from "./pdf/statusHistory";
 import { addCompanyFooter, addPaymentData } from "./pdf/footer";
 import { SPACING, FONTS } from "./pdf/constants";
 
@@ -50,13 +49,6 @@ export const generateFaturaPdf = async (fatura: PdfFaturaData): Promise<{ doc: j
         maxWidth: SPACING.PAGE.WIDTH - (SPACING.MARGIN * 2)
       });
       yPos += 20;
-    }
-
-    // Adicionar histórico de status em nova página
-    if (fatura.historico_status && fatura.historico_status.length > 0) {
-      doc.addPage();
-      yPos = SPACING.MARGIN;
-      yPos = addStatusHistory(doc, fatura.historico_status, yPos);
     }
 
     // Adicionar rodapé na última página
