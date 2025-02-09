@@ -12,20 +12,22 @@ interface MonthSelectorProps {
 
 export function MonthSelector({ currentDate, onPreviousMonth, onNextMonth }: MonthSelectorProps) {
   return (
-    <div className="flex items-center justify-center space-x-4 py-4">
+    <div className="flex items-center justify-center space-x-2 py-2">
       <Button
-        variant="outline"
+        variant="ghost"
         size="icon"
+        className="h-8 w-8"
         onClick={onPreviousMonth}
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
-      <span className="text-lg font-medium min-w-40 text-center">
+      <span className="text-sm font-medium min-w-32 text-center">
         {format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })}
       </span>
       <Button
-        variant="outline"
+        variant="ghost"
         size="icon"
+        className="h-8 w-8"
         onClick={onNextMonth}
       >
         <ChevronRight className="h-4 w-4" />
