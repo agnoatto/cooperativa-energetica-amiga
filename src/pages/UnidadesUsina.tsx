@@ -28,7 +28,7 @@ const UnidadesUsina = () => {
         .select(`
           *,
           titular:investidores(nome_investidor),
-          usinas(id)
+          usinas:usinas(id)
         `);
 
       if (error) {
@@ -52,9 +52,14 @@ const UnidadesUsina = () => {
   const handleDelete = async (unidadeId: string) => {
     try {
       // First check if the unidade has any associated usinas
-      const unidade = unidades?.find(u => u.id === unidadeId);
+      const { data: associatedUsinas, error: checkError } = await supabase
+        .from('usinas')
+        .select('id')
+        .eq('unidade_usina_id', unidadeId);
+
+      if (checkError) throw checkError;
       
-      if (unidade?.usinas && unidade.usinas.length > 0) {
+      if (associatedUsinas && associatedUsinas.length > 0) {
         toast({
           title: "Não é possível excluir esta unidade",
           description: "Existem usinas associadas a esta unidade. Por favor, exclua as usinas primeiro.",
