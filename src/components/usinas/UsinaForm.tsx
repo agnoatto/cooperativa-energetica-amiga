@@ -89,8 +89,16 @@ export function UsinaForm({
     try {
       setIsLoading(true);
       const usinaData = {
-        ...data,
+        investidor_id: data.investidor_id,
+        unidade_usina_id: data.unidade_usina_id,
         valor_kwh: Number(data.valor_kwh),
+        dados_pagamento_nome: data.dados_pagamento_nome,
+        dados_pagamento_documento: data.dados_pagamento_documento,
+        dados_pagamento_banco: data.dados_pagamento_banco,
+        dados_pagamento_agencia: data.dados_pagamento_agencia,
+        dados_pagamento_conta: data.dados_pagamento_conta,
+        dados_pagamento_telefone: data.dados_pagamento_telefone,
+        dados_pagamento_email: data.dados_pagamento_email,
         status: usinaId ? "active" : "draft",
       };
 
@@ -177,3 +185,4 @@ export function UsinaForm({
     </Dialog>
   );
 }
+
