@@ -42,14 +42,14 @@ export function FaturasTable({
 
   return (
     <>
-      <div className="rounded-md border overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="border rounded-md">
+        <div className="overflow-x-auto whitespace-nowrap">
           <Table>
             <FaturasTableHeader />
             {isLoading ? (
               <FaturasLoadingState />
             ) : faturas && faturas.length > 0 ? (
-              <TableBody>
+              <TableBody className="[&_tr]:h-8">
                 {faturas.map((fatura) => (
                   <FaturaTableRow
                     key={fatura.id}
