@@ -1,13 +1,14 @@
 
-import useSWR from 'swr';
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Fatura } from "@/types/fatura";
 
 export const useFetchFaturas = (currentDate: Date) => {
-  const { data, error, isLoading } = useSWR<Fatura[]>(
-    ['faturas', currentDate],
-    async () => {
+  return useQuery({
+    queryKey: ['faturas', currentDate.getMonth() + 1, currentDate.getFullYear()],
+    queryFn: async () => {
+      console.log('Fetching faturas for:', currentDate);
       // Primeiro, buscar todas as faturas anteriores para calcular a economia acumulada
       const { data: faturasAnteriores } = await supabase
         .from("faturas")
@@ -63,6 +64,7 @@ export const useFetchFaturas = (currentDate: Date) => {
         .eq("ano", currentDate.getFullYear());
 
       if (error) {
+        console.error('Erro ao buscar faturas:', error);
         toast.error("Erro ao carregar faturas");
         throw error;
       }
@@ -80,16 +82,7 @@ export const useFetchFaturas = (currentDate: Date) => {
         }))
       })) as Fatura[];
     },
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-      shouldRetryOnError: true
-    }
-  );
-
-  return {
-    data,
-    isLoading,
-    error
-  };
+    staleTime: 1000 * 60, // 1 minuto
+    gcTime: 1000 * 60 * 5, // 5 minutos
+  });
 };

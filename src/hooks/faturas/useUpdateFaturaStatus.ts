@@ -10,12 +10,20 @@ export const useUpdateFaturaStatus = () => {
 
   return useMutation({
     mutationFn: async (data: UpdateFaturaStatusInput) => {
+      console.log('Atualizando status da fatura:', data);
       const now = new Date().toISOString();
-      const { data: fatura } = await supabase
+      
+      // Buscar histórico atual
+      const { data: fatura, error: fetchError } = await supabase
         .from("faturas")
         .select('historico_status')
         .eq('id', data.id)
         .single();
+
+      if (fetchError) {
+        console.error('Erro ao buscar histórico da fatura:', fetchError);
+        throw fetchError;
+      }
 
       // Convert the raw JSON data to our type safely
       const historicoAtual = (fatura?.historico_status as Array<{
@@ -49,15 +57,32 @@ export const useUpdateFaturaStatus = () => {
         updateData.data_confirmacao_pagamento = now;
       }
 
-      const { error } = await supabase
+      console.log('Dados de atualização:', updateData);
+
+      const { error: updateError } = await supabase
         .from("faturas")
         .update(updateData)
         .eq("id", data.id);
 
-      if (error) throw error;
+      if (updateError) {
+        console.error('Erro ao atualizar fatura:', updateError);
+        throw updateError;
+      }
+
+      console.log('Fatura atualizada com sucesso');
+      return { id: data.id, status: data.status };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["faturas"] });
+    onMutate: async (data) => {
+      // Mostrar toast de loading
+      toast.loading("Atualizando status da fatura...");
+    },
+    onSuccess: (result, variables) => {
+      console.log('Mutation concluída com sucesso:', result);
+      // Invalidar a query das faturas para o mês atual
+      const date = new Date();
+      queryClient.invalidateQueries({
+        queryKey: ['faturas', date.getMonth() + 1, date.getFullYear()]
+      });
       toast.success("Status da fatura atualizado com sucesso!");
     },
     onError: (error) => {
