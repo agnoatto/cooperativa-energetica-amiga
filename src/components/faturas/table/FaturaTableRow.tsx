@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Fatura, FaturaStatus } from "@/types/fatura";
@@ -6,6 +7,7 @@ import { FaturaPdfButton } from "../FaturaPdfButton";
 import { useState } from "react";
 import { PaymentConfirmationModal } from "../PaymentConfirmationModal";
 import { ConcessionariaInvoiceUpload } from "../upload/ConcessionariaInvoiceUpload";
+import { FaturaPreviewModal } from "../preview/FaturaPreviewModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +36,7 @@ export function FaturaTableRow({
 }: FaturaTableRowProps) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', {
@@ -170,24 +173,27 @@ export function FaturaTableRow({
       );
     }
 
-    items.push(
-      <DropdownMenuItem 
-        key="upload" 
-        onClick={() => fatura.arquivo_concessionaria_path ? downloadFile() : setShowUploadModal(true)}
-      >
-        {fatura.arquivo_concessionaria_path ? (
-          <>
-            <File className="mr-2 h-4 w-4" />
-            Baixar Fatura da Concessionária
-          </>
-        ) : (
-          <>
-            <Upload className="mr-2 h-4 w-4" />
-            Enviar Fatura da Concessionária
-          </>
-        )}
-      </DropdownMenuItem>
-    );
+    if (fatura.arquivo_concessionaria_path) {
+      items.push(
+        <DropdownMenuItem key="preview" onClick={() => setShowPreviewModal(true)}>
+          <Eye className="mr-2 h-4 w-4" />
+          Visualizar Fatura da Concessionária
+        </DropdownMenuItem>
+      );
+      items.push(
+        <DropdownMenuItem key="download" onClick={downloadFile}>
+          <File className="mr-2 h-4 w-4" />
+          Baixar Fatura da Concessionária
+        </DropdownMenuItem>
+      );
+    } else {
+      items.push(
+        <DropdownMenuItem key="upload" onClick={() => setShowUploadModal(true)}>
+          <Upload className="mr-2 h-4 w-4" />
+          Enviar Fatura da Concessionária
+        </DropdownMenuItem>
+      );
+    }
 
     if (fatura.status === 'gerada') {
       items.push(
@@ -220,15 +226,7 @@ export function FaturaTableRow({
         <TableCell>{fatura.consumo_kwh} kWh</TableCell>
         <TableCell>{formatCurrency(fatura.total_fatura)}</TableCell>
         <TableCell>{formatCurrency(fatura.fatura_concessionaria)}</TableCell>
-        <TableCell>{formatCurrency(fatura.valor_desconto)}</TableCell>
-        <TableCell>
-          {formatCurrency(fatura.valor_total)}
-          {fatura.valor_adicional > 0 && (
-            <span className="text-yellow-600 text-sm block">
-              +{formatCurrency(fatura.valor_adicional)}
-            </span>
-          )}
-        </TableCell>
+        <TableCell>{formatCurrency(fatura.valor_total)}</TableCell>
         <TableCell>
           <span className={`px-2 py-1 rounded-full text-sm ${getStatusColor(fatura.status)}`}>
             {getStatusLabel(fatura.status)}
@@ -241,17 +239,6 @@ export function FaturaTableRow({
         </TableCell>
         <TableCell>
           <FaturaPdfButton fatura={fatura} />
-        </TableCell>
-        <TableCell>
-          <Button
-            variant="outline"
-            size="icon"
-            disabled={!fatura.arquivo_concessionaria_path}
-            onClick={downloadFile}
-            title={fatura.arquivo_concessionaria_path ? "Baixar Fatura da Concessionária" : "Fatura não disponível"}
-          >
-            <File className="h-4 w-4" />
-          </Button>
         </TableCell>
         <TableCell className="text-right">
           <DropdownMenu>
@@ -280,6 +267,15 @@ export function FaturaTableRow({
         faturaId={fatura.id}
         onSuccess={handleFileUploadSuccess}
       />
+
+      {fatura.arquivo_concessionaria_path && (
+        <FaturaPreviewModal
+          isOpen={showPreviewModal}
+          onClose={() => setShowPreviewModal(false)}
+          fileName={fatura.arquivo_concessionaria_nome || 'fatura-concessionaria.pdf'}
+          filePath={fatura.arquivo_concessionaria_path}
+        />
+      )}
     </>
   );
 }
