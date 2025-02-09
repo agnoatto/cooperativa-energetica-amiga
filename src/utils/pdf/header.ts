@@ -1,3 +1,4 @@
+
 import { jsPDF } from "jspdf";
 import { COLORS, FONTS, SPACING } from "./constants";
 
@@ -11,11 +12,6 @@ export const addHeader = async (doc: jsPDF, config: HeaderConfig): Promise<numbe
   doc.setFillColor(COLORS.DARK_BLUE[0], COLORS.DARK_BLUE[1], COLORS.DARK_BLUE[2]);
   doc.rect(0, 0, SPACING.PAGE.WIDTH, SPACING.TOP, 'F');
 
-  // Title
-  doc.setTextColor(COLORS.WHITE[0], COLORS.WHITE[1], COLORS.WHITE[2]);
-  doc.setFontSize(FONTS.TITLE);
-  doc.text(config.title, SPACING.MARGIN, SPACING.TOP/2 + 5);
-
   // Logo
   try {
     const logo = await loadLogo(config.logoPath);
@@ -24,7 +20,7 @@ export const addHeader = async (doc: jsPDF, config: HeaderConfig): Promise<numbe
     doc.addImage(
       logo, 
       'PNG', 
-      SPACING.PAGE.WIDTH - SPACING.MARGIN - logoWidth,
+      SPACING.MARGIN, // Changed from right to left position
       (SPACING.TOP - logoHeight) / 2,
       logoWidth,
       logoHeight
@@ -32,6 +28,11 @@ export const addHeader = async (doc: jsPDF, config: HeaderConfig): Promise<numbe
   } catch (error) {
     console.error('Erro ao carregar logo:', error);
   }
+
+  // Title (moved to the right of the logo)
+  doc.setTextColor(COLORS.WHITE[0], COLORS.WHITE[1], COLORS.WHITE[2]);
+  doc.setFontSize(FONTS.TITLE);
+  doc.text(config.title, SPACING.MARGIN + 40, SPACING.TOP/2 + 5); // Added offset to not overlap with logo
 
   return SPACING.TOP + 10;
 };
@@ -56,3 +57,4 @@ const loadLogo = (url: string): Promise<string> => {
     img.src = url;
   });
 };
+
