@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Fatura, FaturaStatus } from "@/types/fatura";
@@ -16,6 +15,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
+import { formatarDocumento } from "@/utils/formatters";
 
 interface FaturaTableRowProps {
   fatura: Fatura;
@@ -105,7 +105,6 @@ export function FaturaTableRow({
 
       if (error) throw error;
 
-      // Create a download link
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
@@ -171,6 +170,25 @@ export function FaturaTableRow({
       );
     }
 
+    items.push(
+      <DropdownMenuItem 
+        key="upload" 
+        onClick={() => fatura.arquivo_concessionaria_path ? downloadFile() : setShowUploadModal(true)}
+      >
+        {fatura.arquivo_concessionaria_path ? (
+          <>
+            <File className="mr-2 h-4 w-4" />
+            Baixar Fatura da Concessionária
+          </>
+        ) : (
+          <>
+            <Upload className="mr-2 h-4 w-4" />
+            Enviar Fatura da Concessionária
+          </>
+        )}
+      </DropdownMenuItem>
+    );
+
     if (fatura.status === 'gerada') {
       items.push(
         <DropdownMenuItem key="delete" onClick={() => onDelete(fatura)}>
@@ -187,7 +205,7 @@ export function FaturaTableRow({
     <>
       <TableRow>
         <TableCell>{fatura.unidade_beneficiaria.cooperado.nome}</TableCell>
-        <TableCell>{fatura.unidade_beneficiaria.cooperado.documento}</TableCell>
+        <TableCell>{formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)}</TableCell>
         <TableCell>
           {fatura.unidade_beneficiaria.numero_uc}
           {fatura.unidade_beneficiaria.apelido && (
@@ -202,7 +220,6 @@ export function FaturaTableRow({
         <TableCell>{fatura.consumo_kwh} kWh</TableCell>
         <TableCell>{formatCurrency(fatura.total_fatura)}</TableCell>
         <TableCell>{formatCurrency(fatura.fatura_concessionaria)}</TableCell>
-        <TableCell>{fatura.unidade_beneficiaria.percentual_desconto}%</TableCell>
         <TableCell>{formatCurrency(fatura.valor_desconto)}</TableCell>
         <TableCell>
           {formatCurrency(fatura.valor_total)}
@@ -230,23 +247,10 @@ export function FaturaTableRow({
             variant="outline"
             size="icon"
             disabled={!fatura.arquivo_concessionaria_path}
-            title={fatura.arquivo_concessionaria_path ? "Visualizar Fatura da Concessionária" : "Fatura não disponível"}
+            onClick={downloadFile}
+            title={fatura.arquivo_concessionaria_path ? "Baixar Fatura da Concessionária" : "Fatura não disponível"}
           >
             <File className="h-4 w-4" />
-          </Button>
-        </TableCell>
-        <TableCell>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => fatura.arquivo_concessionaria_path ? downloadFile() : setShowUploadModal(true)}
-            title={fatura.arquivo_concessionaria_path ? "Baixar Fatura da Concessionária" : "Enviar Fatura da Concessionária"}
-          >
-            {fatura.arquivo_concessionaria_path ? (
-              <File className="h-4 w-4" />
-            ) : (
-              <Upload className="h-4 w-4" />
-            )}
           </Button>
         </TableCell>
         <TableCell className="text-right">
