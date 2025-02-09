@@ -8,9 +8,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Eye, Trash2, Send, CheckCircle2, XCircle } from "lucide-react";
+import { Edit, Eye, Trash2, Send, CheckCircle2 } from "lucide-react";
 import { FaturaPdfButton } from "./FaturaPdfButton";
 import { FaturaDetailsDialog } from "./FaturaDetailsDialog";
+import { SendFaturaDialog } from "./SendFaturaDialog";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { useState } from "react";
 
@@ -30,6 +31,7 @@ export function FaturasTable({
   onUpdateStatus 
 }: FaturasTableProps) {
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
+  const [sendFatura, setSendFatura] = useState<Fatura | null>(null);
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', {
@@ -60,6 +62,10 @@ export function FaturasTable({
       finalizada: 'Finalizada'
     };
     return labels[status];
+  };
+
+  const handleSendFatura = async (fatura: Fatura, method: "email" | "whatsapp") => {
+    await onUpdateStatus(fatura, 'enviada', `Fatura enviada por ${method}`);
   };
 
   const getAvailableActions = (fatura: Fatura) => {
@@ -100,7 +106,7 @@ export function FaturasTable({
           key="send"
           variant="outline"
           size="icon"
-          onClick={() => onUpdateStatus(fatura, 'enviada', 'Fatura enviada ao cliente')}
+          onClick={() => setSendFatura(fatura)}
           title="Enviar Fatura"
         >
           <Send className="h-4 w-4" />
@@ -230,6 +236,15 @@ export function FaturasTable({
           fatura={selectedFatura}
           isOpen={!!selectedFatura}
           onClose={() => setSelectedFatura(null)}
+        />
+      )}
+
+      {sendFatura && (
+        <SendFaturaDialog
+          fatura={sendFatura}
+          isOpen={!!sendFatura}
+          onClose={() => setSendFatura(null)}
+          onSend={(method) => handleSendFatura(sendFatura, method)}
         />
       )}
     </>
