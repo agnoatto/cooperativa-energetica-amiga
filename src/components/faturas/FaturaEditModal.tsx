@@ -1,29 +1,10 @@
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useEffect, useState } from "react";
-import { CurrencyInput } from "./CurrencyInput";
-import type { FaturaEditModalProps } from "./types";
-import { parseValue } from "./utils/calculateValues";
 
-interface FormState {
-  consumo: number;
-  totalFatura: string;
-  faturaConcessionaria: string;
-  iluminacaoPublica: string;
-  outrosValores: string;
-  saldoEnergiaKwh: number;
-  observacao: string;
-  dataVencimento: string;
-}
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useEffect, useState } from "react";
+import { FaturaForm } from "./FaturaForm";
+import type { FaturaEditModalProps } from "./types";
+import type { FormState } from "./types/fatura-form";
+import { parseValue } from "./utils/calculateValues";
 
 export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEditModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -89,113 +70,24 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px]" onPointerDownOutside={(e) => {
-        if (isSubmitting) {
-          e.preventDefault();
-        }
-      }}>
+      <DialogContent 
+        className="sm:max-w-[425px]" 
+        onPointerDownOutside={(e) => {
+          if (isSubmitting) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Editar Fatura</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="dataVencimento">Data de Vencimento</Label>
-            <Input
-              type="date"
-              id="dataVencimento"
-              value={formState.dataVencimento}
-              onChange={(e) => setFormState(prev => ({ ...prev, dataVencimento: e.target.value }))}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="consumo">Consumo (kWh)</Label>
-            <Input
-              type="number"
-              id="consumo"
-              value={formState.consumo}
-              onChange={(e) => setFormState(prev => ({ ...prev, consumo: Number(e.target.value) }))}
-              step="0.01"
-              min="0"
-              required
-              disabled={isSubmitting}
-            />
-          </div>
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="totalFatura">Valor Total Original</Label>
-            <CurrencyInput
-              id="totalFatura"
-              value={formState.totalFatura}
-              onChange={(value) => setFormState(prev => ({ ...prev, totalFatura: value }))}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="faturaConcessionaria">Valor Conta de Energia</Label>
-            <CurrencyInput
-              id="faturaConcessionaria"
-              value={formState.faturaConcessionaria}
-              onChange={(value) => setFormState(prev => ({ ...prev, faturaConcessionaria: value }))}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="iluminacaoPublica">Iluminação Pública</Label>
-            <CurrencyInput
-              id="iluminacaoPublica"
-              value={formState.iluminacaoPublica}
-              onChange={(value) => setFormState(prev => ({ ...prev, iluminacaoPublica: value }))}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="outrosValores">Outros Valores</Label>
-            <CurrencyInput
-              id="outrosValores"
-              value={formState.outrosValores}
-              onChange={(value) => setFormState(prev => ({ ...prev, outrosValores: value }))}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="saldoEnergiaKwh">Saldo de Energia (kWh)</Label>
-            <Input
-              type="number"
-              id="saldoEnergiaKwh"
-              value={formState.saldoEnergiaKwh}
-              onChange={(e) => setFormState(prev => ({ ...prev, saldoEnergiaKwh: Number(e.target.value) }))}
-              step="0.01"
-              min="0"
-              required
-              disabled={isSubmitting}
-            />
-          </div>
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="observacao">Observações</Label>
-            <Textarea
-              id="observacao"
-              value={formState.observacao}
-              onChange={(e) => setFormState(prev => ({ ...prev, observacao: e.target.value }))}
-              placeholder="Adicione observações relevantes sobre a fatura..."
-              className="resize-none"
-              rows={3}
-              disabled={isSubmitting}
-            />
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Salvando..." : "Salvar"}
-            </Button>
-          </DialogFooter>
-        </form>
+        <FaturaForm
+          formState={formState}
+          setFormState={setFormState}
+          isSubmitting={isSubmitting}
+          onSubmit={handleSubmit}
+          onClose={handleClose}
+        />
       </DialogContent>
     </Dialog>
   );
