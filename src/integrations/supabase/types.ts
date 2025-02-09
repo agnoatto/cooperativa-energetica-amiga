@@ -771,6 +771,51 @@ export type Database = {
           },
         ]
       }
+      usinas_audit: {
+        Row: {
+          changed_at: string | null
+          field_name: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          operation: string
+          usina_id: string | null
+        }
+        Insert: {
+          changed_at?: string | null
+          field_name: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          operation: string
+          usina_id?: string | null
+        }
+        Update: {
+          changed_at?: string | null
+          field_name?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          operation?: string
+          usina_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usinas_audit_usina_id_fkey"
+            columns: ["usina_id"]
+            isOneToOne: false
+            referencedRelation: "usinas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usinas_audit_usina_id_fkey"
+            columns: ["usina_id"]
+            isOneToOne: false
+            referencedRelation: "usinas_ativas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       cooperados_ativos: {
