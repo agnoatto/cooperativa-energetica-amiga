@@ -1,7 +1,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Mail, Send, WhatsappIcon } from "lucide-react";
+import { Mail, Send, MessageSquare } from "lucide-react";
 import { Fatura } from "@/types/fatura";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -63,7 +63,7 @@ export function SendFaturaDialog({
               onClick={() => handleSend('whatsapp')}
               disabled={isSending}
             >
-              <WhatsappIcon className="mr-2 h-4 w-4" />
+              <MessageSquare className="mr-2 h-4 w-4" />
               Enviar por WhatsApp
             </Button>
           </div>
