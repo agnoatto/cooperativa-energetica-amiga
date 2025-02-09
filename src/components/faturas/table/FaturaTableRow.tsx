@@ -6,6 +6,7 @@ import { Edit, Eye, Trash2, Send, CheckCircle2 } from "lucide-react";
 import { FaturaPdfButton } from "../FaturaPdfButton";
 import { useState } from "react";
 import { PaymentConfirmationModal } from "../PaymentConfirmationModal";
+import { formatDateToPtBR } from "@/utils/dateFormatters";
 
 interface FaturaTableRowProps {
   fatura: Fatura;
@@ -173,7 +174,7 @@ export function FaturaTableRow({
           )}
         </TableCell>
         <TableCell>
-          {new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')}
+          {formatDateToPtBR(fatura.data_vencimento)}
         </TableCell>
         <TableCell>{fatura.consumo_kwh} kWh</TableCell>
         <TableCell>{formatCurrency(fatura.total_fatura)}</TableCell>
@@ -194,7 +195,7 @@ export function FaturaTableRow({
           </span>
           {fatura.status === 'paga' && fatura.data_pagamento && (
             <span className="text-gray-500 text-xs block mt-1">
-              Pago em: {new Date(fatura.data_pagamento).toLocaleDateString('pt-BR')}
+              Pago em: {formatDateToPtBR(fatura.data_pagamento)}
             </span>
           )}
         </TableCell>
