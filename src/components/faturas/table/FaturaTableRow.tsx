@@ -2,10 +2,18 @@
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import { Edit, Eye, Trash2, Send, CheckCircle2 } from "lucide-react";
+import { Edit, Eye, File, MoreVertical, Send, Trash2, CheckCircle2 } from "lucide-react";
 import { FaturaPdfButton } from "../FaturaPdfButton";
 import { useState } from "react";
 import { PaymentConfirmationModal } from "../PaymentConfirmationModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface FaturaTableRowProps {
   fatura: Fatura;
@@ -68,102 +76,75 @@ export function FaturaTableRow({
     );
   };
 
-  const getAvailableActions = () => {
-    const actions = [];
+  const getActionsDropdownItems = () => {
+    const items = [];
 
-    actions.push(
-      <Button
-        key="view"
-        variant="outline"
-        size="icon"
-        onClick={() => onViewDetails(fatura)}
-        title="Visualizar Detalhes"
-      >
-        <Eye className="h-4 w-4" />
-      </Button>
+    items.push(
+      <DropdownMenuItem key="view" onClick={() => onViewDetails(fatura)}>
+        <Eye className="mr-2 h-4 w-4" />
+        Visualizar Detalhes
+      </DropdownMenuItem>
     );
 
     if (['gerada', 'pendente'].includes(fatura.status)) {
-      actions.push(
-        <Button
-          key="edit"
-          variant="outline"
-          size="icon"
-          onClick={() => onEdit(fatura)}
-          title="Editar Fatura"
-        >
-          <Edit className="h-4 w-4" />
-        </Button>
+      items.push(
+        <DropdownMenuItem key="edit" onClick={() => onEdit(fatura)}>
+          <Edit className="mr-2 h-4 w-4" />
+          Editar Fatura
+        </DropdownMenuItem>
       );
     }
 
     if (fatura.status === 'pendente') {
-      actions.push(
-        <Button
-          key="send"
-          variant="outline"
-          size="icon"
+      items.push(
+        <DropdownMenuItem 
+          key="send" 
           onClick={() => onUpdateStatus(fatura, 'enviada', 'Fatura enviada ao cliente')}
-          title="Enviar Fatura"
         >
-          <Send className="h-4 w-4" />
-        </Button>
+          <Send className="mr-2 h-4 w-4" />
+          Enviar Fatura
+        </DropdownMenuItem>
       );
     }
 
     if (['enviada', 'atrasada'].includes(fatura.status)) {
-      actions.push(
-        <Button
-          key="confirm"
-          variant="outline"
-          size="icon"
-          onClick={() => setShowPaymentModal(true)}
-          title="Confirmar Pagamento"
-        >
-          <CheckCircle2 className="h-4 w-4" />
-        </Button>
+      items.push(
+        <DropdownMenuItem key="confirm" onClick={() => setShowPaymentModal(true)}>
+          <CheckCircle2 className="mr-2 h-4 w-4" />
+          Confirmar Pagamento
+        </DropdownMenuItem>
       );
     }
 
     if (fatura.status === 'paga') {
-      actions.push(
-        <Button
-          key="finish"
-          variant="outline"
-          size="icon"
+      items.push(
+        <DropdownMenuItem 
+          key="finish" 
           onClick={() => onUpdateStatus(fatura, 'finalizada', 'Fatura finalizada - pagamento processado')}
-          title="Finalizar Fatura"
         >
-          <CheckCircle2 className="h-4 w-4" />
-        </Button>
+          <CheckCircle2 className="mr-2 h-4 w-4" />
+          Finalizar Fatura
+        </DropdownMenuItem>
       );
     }
 
     if (fatura.status === 'gerada') {
-      actions.push(
-        <Button
-          key="delete"
-          variant="outline"
-          size="icon"
-          onClick={() => onDelete(fatura)}
-          title="Excluir Fatura"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+      items.push(
+        <DropdownMenuItem key="delete" onClick={() => onDelete(fatura)}>
+          <Trash2 className="mr-2 h-4 w-4" />
+          Excluir Fatura
+        </DropdownMenuItem>
       );
     }
 
-    actions.push(
-      <FaturaPdfButton key="pdf" fatura={fatura} />
-    );
-
-    return actions;
+    return items;
   };
 
   return (
     <>
       <TableRow>
         <TableCell>{fatura.unidade_beneficiaria.cooperado.nome}</TableCell>
+        <TableCell>{fatura.unidade_beneficiaria.cooperado.documento}</TableCell>
         <TableCell>
           {fatura.unidade_beneficiaria.numero_uc}
           {fatura.unidade_beneficiaria.apelido && (
@@ -171,6 +152,9 @@ export function FaturaTableRow({
               ({fatura.unidade_beneficiaria.apelido})
             </span>
           )}
+        </TableCell>
+        <TableCell>
+          {format(new Date(fatura.data_vencimento), 'dd/MM/yyyy')}
         </TableCell>
         <TableCell>{fatura.consumo_kwh} kWh</TableCell>
         <TableCell>{formatCurrency(fatura.total_fatura)}</TableCell>
@@ -191,12 +175,34 @@ export function FaturaTableRow({
           </span>
           {fatura.status === 'paga' && fatura.data_pagamento && (
             <span className="text-gray-500 text-xs block mt-1">
-              Pago em: {new Date(fatura.data_pagamento).toLocaleDateString('pt-BR')}
+              Pago em: {format(new Date(fatura.data_pagamento), 'dd/MM/yyyy')}
             </span>
           )}
         </TableCell>
-        <TableCell className="text-right space-x-2">
-          {getAvailableActions()}
+        <TableCell>
+          <FaturaPdfButton fatura={fatura} />
+        </TableCell>
+        <TableCell>
+          <Button
+            variant="outline"
+            size="icon"
+            disabled={!fatura.arquivo_concessionaria_path}
+            title={fatura.arquivo_concessionaria_path ? "Visualizar Fatura da Concessionária" : "Fatura não disponível"}
+          >
+            <File className="h-4 w-4" />
+          </Button>
+        </TableCell>
+        <TableCell className="text-right">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {getActionsDropdownItems()}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </TableCell>
       </TableRow>
 
