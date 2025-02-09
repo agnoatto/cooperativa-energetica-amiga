@@ -88,7 +88,7 @@ export const useFetchFaturas = (currentDate: Date) => {
         data_pagamento: fatura.data_pagamento || null
       })) as Fatura[];
     },
-    staleTime: 1000 * 60, // 1 minuto
+    staleTime: 0, // Removido o staleTime para atualização imediata
     gcTime: 1000 * 60 * 5, // 5 minutos
   });
 };

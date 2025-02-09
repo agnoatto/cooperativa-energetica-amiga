@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UpdateFaturaStatusInput } from "./types";
-import { StatusHistoryEntry, FaturaStatus } from "@/types/fatura";
+import { StatusHistoryEntry, FaturaStatus, Fatura } from "@/types/fatura";
 
 export const useUpdateFaturaStatus = () => {
   const queryClient = useQueryClient();
@@ -81,7 +81,54 @@ export const useUpdateFaturaStatus = () => {
       console.log('Fatura atualizada com sucesso');
     },
     onMutate: async (data) => {
+      // Mostra toast de loading
       toast.loading("Atualizando status da fatura...");
+
+      // Cancela queries em andamento para evitar sobrescrever nosso update otimista
+      await queryClient.cancelQueries({
+        queryKey: ['faturas']
+      });
+
+      // Snapshot do estado anterior
+      const date = new Date();
+      const previousFaturas = queryClient.getQueryData(['faturas', date.getMonth() + 1, date.getFullYear()]);
+
+      // Atualiza o cache otimisticamente
+      queryClient.setQueryData(['faturas', date.getMonth() + 1, date.getFullYear()], (old: Fatura[] | undefined) => {
+        if (!old) return old;
+        return old.map(fatura => {
+          if (fatura.id === data.id) {
+            return {
+              ...fatura,
+              status: data.status,
+              historico_status: [
+                ...(fatura.historico_status || []),
+                {
+                  status: data.status,
+                  data: new Date().toISOString(),
+                  observacao: data.observacao
+                }
+              ]
+            };
+          }
+          return fatura;
+        });
+      });
+
+      return { previousFaturas };
+    },
+    onError: (error, variables, context) => {
+      console.error("Erro ao atualizar status da fatura:", error);
+      toast.error("Erro ao atualizar status da fatura");
+      
+      // Reverte para o estado anterior em caso de erro
+      if (context?.previousFaturas) {
+        const date = new Date();
+        queryClient.setQueryData(
+          ['faturas', date.getMonth() + 1, date.getFullYear()],
+          context.previousFaturas
+        );
+      }
     },
     onSuccess: (_, variables) => {
       console.log('Mutation concluída com sucesso');
@@ -90,10 +137,6 @@ export const useUpdateFaturaStatus = () => {
         queryKey: ['faturas', date.getMonth() + 1, date.getFullYear()]
       });
       toast.success("Status da fatura atualizado com sucesso!");
-    },
-    onError: (error) => {
-      console.error("Erro ao atualizar status da fatura:", error);
-      toast.error("Erro ao atualizar status da fatura");
-    },
+    }
   });
 };
