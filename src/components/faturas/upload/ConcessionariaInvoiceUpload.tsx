@@ -49,7 +49,7 @@ export function ConcessionariaInvoiceUpload({
         .upload(filePath, selectedFile, {
           cacheControl: '3600',
           upsert: true,
-          onUploadProgress: (progress) => {
+          onProgress: (progress) => {
             const percentage = (progress.loaded / progress.total) * 100;
             setUploadProgress(Math.round(percentage));
           },

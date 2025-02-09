@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Fatura, FaturaStatus } from "@/types/fatura";
@@ -83,6 +84,8 @@ export function FaturaTableRow({
       .from('faturas')
       .update({
         arquivo_concessionaria_path: filePath,
+        arquivo_concessionaria_nome: fatura.arquivo_concessionaria_nome,
+        arquivo_concessionaria_tipo: 'application/pdf',
       })
       .eq('id', fatura.id);
 
