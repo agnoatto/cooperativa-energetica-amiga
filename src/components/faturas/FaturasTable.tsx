@@ -42,28 +42,30 @@ export function FaturasTable({
 
   return (
     <>
-      <div className="rounded-md border">
-        <Table>
-          <FaturasTableHeader />
-          {isLoading ? (
-            <FaturasLoadingState />
-          ) : faturas && faturas.length > 0 ? (
-            <TableBody>
-              {faturas.map((fatura) => (
-                <FaturaTableRow
-                  key={fatura.id}
-                  fatura={fatura}
-                  onViewDetails={setSelectedFatura}
-                  onEdit={onEditFatura}
-                  onDelete={setFaturaToDelete}
-                  onUpdateStatus={onUpdateStatus}
-                />
-              ))}
-            </TableBody>
-          ) : (
-            <FaturasEmptyState />
-          )}
-        </Table>
+      <div className="rounded-md border overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table>
+            <FaturasTableHeader />
+            {isLoading ? (
+              <FaturasLoadingState />
+            ) : faturas && faturas.length > 0 ? (
+              <TableBody>
+                {faturas.map((fatura) => (
+                  <FaturaTableRow
+                    key={fatura.id}
+                    fatura={fatura}
+                    onViewDetails={setSelectedFatura}
+                    onEdit={onEditFatura}
+                    onDelete={setFaturaToDelete}
+                    onUpdateStatus={onUpdateStatus}
+                  />
+                ))}
+              </TableBody>
+            ) : (
+              <FaturasEmptyState />
+            )}
+          </Table>
+        </div>
       </div>
 
       {selectedFatura && (

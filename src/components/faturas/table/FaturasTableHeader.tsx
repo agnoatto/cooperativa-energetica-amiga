@@ -7,20 +7,20 @@ import {
 
 export function FaturasTableHeader() {
   return (
-    <TableHeader>
-      <TableRow>
-        <TableHead>Cooperado</TableHead>
-        <TableHead>CPF/CNPJ</TableHead>
-        <TableHead>UC</TableHead>
-        <TableHead>Data Vencimento</TableHead>
-        <TableHead>Consumo (kWh)</TableHead>
-        <TableHead>Valor Original</TableHead>
-        <TableHead>Conta de Energia</TableHead>
-        <TableHead>Desconto (%)</TableHead>
-        <TableHead>Valor Desconto</TableHead>
-        <TableHead>Valor da Assinatura</TableHead>
-        <TableHead>Status</TableHead>
-        <TableHead className="text-right">Ações</TableHead>
+    <TableHeader className="bg-gray-100 sticky top-0">
+      <TableRow className="hover:bg-gray-100">
+        <TableHead className="font-semibold text-gray-700">Cooperado</TableHead>
+        <TableHead className="font-semibold text-gray-700">CPF/CNPJ</TableHead>
+        <TableHead className="font-semibold text-gray-700">UC</TableHead>
+        <TableHead className="font-semibold text-gray-700">Data Vencimento</TableHead>
+        <TableHead className="font-semibold text-gray-700 text-right">Consumo (kWh)</TableHead>
+        <TableHead className="font-semibold text-gray-700 text-right">Valor Original</TableHead>
+        <TableHead className="font-semibold text-gray-700 text-right">Conta de Energia</TableHead>
+        <TableHead className="font-semibold text-gray-700 text-right">Desconto (%)</TableHead>
+        <TableHead className="font-semibold text-gray-700 text-right">Valor Desconto</TableHead>
+        <TableHead className="font-semibold text-gray-700 text-right">Valor da Assinatura</TableHead>
+        <TableHead className="font-semibold text-gray-700">Status</TableHead>
+        <TableHead className="font-semibold text-gray-700 text-right">Ações</TableHead>
       </TableRow>
     </TableHeader>
   );
