@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -12,10 +13,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { UsinaForm } from "@/components/usinas/UsinaForm";
 import { useState } from "react";
+import { DeleteUsinaDialog } from "@/components/usinas/DeleteUsinaDialog";
 
 const Usinas = () => {
   const [openForm, setOpenForm] = useState(false);
   const [selectedUsinaId, setSelectedUsinaId] = useState<string | undefined>();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedUsinaName, setSelectedUsinaName] = useState("");
 
   const { data: usinas, refetch } = useQuery({
     queryKey: ['usinas'],
@@ -26,30 +30,23 @@ const Usinas = () => {
           *,
           investidor:investidores(nome_investidor),
           unidade:unidades_usina(numero_uc)
-        `);
+        `)
+        .is('deleted_at', null);
 
       if (error) throw error;
       return data;
     },
   });
 
-  const handleDelete = async (usinaId: string) => {
-    try {
-      const { error } = await supabase
-        .from('usinas')
-        .delete()
-        .eq('id', usinaId);
-
-      if (error) throw error;
-      refetch();
-    } catch (error: any) {
-      console.error('Error deleting usina:', error);
-    }
-  };
-
   const handleEdit = (usinaId: string) => {
     setSelectedUsinaId(usinaId);
     setOpenForm(true);
+  };
+
+  const handleDelete = (usinaId: string, investidorName: string) => {
+    setSelectedUsinaId(usinaId);
+    setSelectedUsinaName(investidorName);
+    setIsDeleteDialogOpen(true);
   };
 
   const handleSuccess = () => {
@@ -96,7 +93,7 @@ const Usinas = () => {
                   <Button 
                     variant="outline" 
                     size="icon"
-                    onClick={() => handleDelete(usina.id)}
+                    onClick={() => handleDelete(usina.id, usina.investidor?.nome_investidor || '')}
                   >
                     <Trash className="h-4 w-4" />
                   </Button>
@@ -113,6 +110,16 @@ const Usinas = () => {
         usinaId={selectedUsinaId}
         onSuccess={handleSuccess}
       />
+
+      {selectedUsinaId && (
+        <DeleteUsinaDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          usinaId={selectedUsinaId}
+          usinaName={selectedUsinaName}
+          onSuccess={handleSuccess}
+        />
+      )}
     </div>
   );
 }

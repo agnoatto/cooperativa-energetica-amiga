@@ -206,6 +206,13 @@ export type Database = {
             referencedRelation: "usinas"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "geracao_prevista_usina_id_fkey"
+            columns: ["usina_id"]
+            isOneToOne: false
+            referencedRelation: "usinas_ativas"
+            referencedColumns: ["id"]
+          },
         ]
       }
       historico_titulares_usina: {
@@ -365,6 +372,13 @@ export type Database = {
             columns: ["usina_id"]
             isOneToOne: false
             referencedRelation: "usinas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagamentos_usina_usina_id_fkey"
+            columns: ["usina_id"]
+            isOneToOne: false
+            referencedRelation: "usinas_ativas"
             referencedColumns: ["id"]
           },
         ]
@@ -528,6 +542,13 @@ export type Database = {
             referencedRelation: "usinas"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "rateios_usina_id_fkey"
+            columns: ["usina_id"]
+            isOneToOne: false
+            referencedRelation: "usinas_ativas"
+            referencedColumns: ["id"]
+          },
         ]
       }
       unidades_beneficiarias: {
@@ -681,6 +702,7 @@ export type Database = {
           dados_pagamento_email: string | null
           dados_pagamento_nome: string | null
           dados_pagamento_telefone: string | null
+          deleted_at: string | null
           id: string
           investidor_id: string
           session_id: string | null
@@ -698,6 +720,7 @@ export type Database = {
           dados_pagamento_email?: string | null
           dados_pagamento_nome?: string | null
           dados_pagamento_telefone?: string | null
+          deleted_at?: string | null
           id?: string
           investidor_id: string
           session_id?: string | null
@@ -715,6 +738,7 @@ export type Database = {
           dados_pagamento_email?: string | null
           dados_pagamento_nome?: string | null
           dados_pagamento_telefone?: string | null
+          deleted_at?: string | null
           id?: string
           investidor_id?: string
           session_id?: string | null
@@ -835,6 +859,85 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      usinas_ativas: {
+        Row: {
+          created_at: string | null
+          dados_pagamento_agencia: string | null
+          dados_pagamento_banco: string | null
+          dados_pagamento_conta: string | null
+          dados_pagamento_documento: string | null
+          dados_pagamento_email: string | null
+          dados_pagamento_nome: string | null
+          dados_pagamento_telefone: string | null
+          deleted_at: string | null
+          id: string | null
+          investidor_id: string | null
+          session_id: string | null
+          status: string | null
+          unidade_usina_id: string | null
+          updated_at: string | null
+          valor_kwh: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          dados_pagamento_agencia?: string | null
+          dados_pagamento_banco?: string | null
+          dados_pagamento_conta?: string | null
+          dados_pagamento_documento?: string | null
+          dados_pagamento_email?: string | null
+          dados_pagamento_nome?: string | null
+          dados_pagamento_telefone?: string | null
+          deleted_at?: string | null
+          id?: string | null
+          investidor_id?: string | null
+          session_id?: string | null
+          status?: string | null
+          unidade_usina_id?: string | null
+          updated_at?: string | null
+          valor_kwh?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          dados_pagamento_agencia?: string | null
+          dados_pagamento_banco?: string | null
+          dados_pagamento_conta?: string | null
+          dados_pagamento_documento?: string | null
+          dados_pagamento_email?: string | null
+          dados_pagamento_nome?: string | null
+          dados_pagamento_telefone?: string | null
+          deleted_at?: string | null
+          id?: string | null
+          investidor_id?: string | null
+          session_id?: string | null
+          status?: string | null
+          unidade_usina_id?: string | null
+          updated_at?: string | null
+          valor_kwh?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usinas_investidor_id_fkey"
+            columns: ["investidor_id"]
+            isOneToOne: false
+            referencedRelation: "investidores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usinas_investidor_id_fkey"
+            columns: ["investidor_id"]
+            isOneToOne: false
+            referencedRelation: "investidores_ativos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usinas_unidade_usina_id_fkey"
+            columns: ["unidade_usina_id"]
+            isOneToOne: false
+            referencedRelation: "unidades_usina"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
