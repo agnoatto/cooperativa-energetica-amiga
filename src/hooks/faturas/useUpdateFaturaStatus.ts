@@ -70,14 +70,14 @@ export const useUpdateFaturaStatus = () => {
       }
 
       console.log('Fatura atualizada com sucesso');
-      return { id: data.id, status: data.status };
+      // Não retornamos nada (void) para corresponder ao tipo definido
     },
     onMutate: async (data) => {
       // Mostrar toast de loading
       toast.loading("Atualizando status da fatura...");
     },
-    onSuccess: (result, variables) => {
-      console.log('Mutation concluída com sucesso:', result);
+    onSuccess: (_, variables) => {
+      console.log('Mutation concluída com sucesso');
       // Invalidar a query das faturas para o mês atual
       const date = new Date();
       queryClient.invalidateQueries({
