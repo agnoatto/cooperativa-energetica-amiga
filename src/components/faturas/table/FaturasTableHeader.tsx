@@ -10,6 +10,7 @@ export function FaturasTableHeader() {
     <TableHeader>
       <TableRow>
         <TableHead>Cooperado</TableHead>
+        <TableHead>CPF/CNPJ</TableHead>
         <TableHead>UC</TableHead>
         <TableHead>Data Vencimento</TableHead>
         <TableHead>Consumo (kWh)</TableHead>

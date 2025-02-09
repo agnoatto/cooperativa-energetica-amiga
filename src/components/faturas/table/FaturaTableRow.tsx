@@ -4,6 +4,7 @@ import { Fatura, FaturaStatus } from "@/types/fatura";
 import { useState } from "react";
 import { PaymentConfirmationModal } from "../PaymentConfirmationModal";
 import { formatDateToPtBR } from "@/utils/dateFormatters";
+import { formatarDocumento } from "@/utils/formatters";
 import { FaturaStatusBadge } from "./FaturaStatusBadge";
 import { FaturaRowActions } from "./FaturaRowActions";
 
@@ -48,6 +49,7 @@ export function FaturaTableRow({
     <>
       <TableRow>
         <TableCell>{fatura.unidade_beneficiaria.cooperado.nome}</TableCell>
+        <TableCell>{formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)}</TableCell>
         <TableCell>
           {fatura.unidade_beneficiaria.numero_uc}
           {fatura.unidade_beneficiaria.apelido && (
