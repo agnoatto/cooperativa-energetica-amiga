@@ -16,6 +16,7 @@ export function FaturasTableHeader() {
         <TableHead>Consumo (kWh)</TableHead>
         <TableHead>Valor Original</TableHead>
         <TableHead>Valor Concessionária</TableHead>
+        <TableHead>Desconto (%)</TableHead>
         <TableHead>Valor Desconto</TableHead>
         <TableHead>Valor da Assinatura</TableHead>
         <TableHead>Status</TableHead>
