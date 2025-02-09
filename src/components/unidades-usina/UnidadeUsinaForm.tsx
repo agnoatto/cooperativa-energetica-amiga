@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -6,42 +7,33 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Form } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from "../ui/use-toast";
+import { AddressFields } from "./AddressFields";
+import { UnidadeUsinaBasicInfo } from "./UnidadeUsinaBasicInfo";
+import { UnidadeUsinaFormValues, ViaCEPResponse } from "./types";
 
 const unidadeUsinaFormSchema = z.object({
   numero_uc: z.string().min(1, "Número UC é obrigatório"),
+  titular_id: z.string().min(1, "Titular é obrigatório"),
+  cep: z.string().min(8, "CEP é obrigatório").max(9, "CEP inválido"),
   logradouro: z.string().min(1, "Logradouro é obrigatório"),
   numero: z.string().min(1, "Número é obrigatório"),
   complemento: z.string().optional(),
   bairro: z.string().min(1, "Bairro é obrigatório"),
   cidade: z.string().min(1, "Cidade é obrigatória"),
-  uf: z.string().min(2, "UF é obrigatória").max(2, "UF deve ter 2 caracteres"),
-  cep: z.string().min(8, "CEP é obrigatório").max(9, "CEP inválido"),
-  titular_id: z.string().min(1, "Titular é obrigatório"),
+  uf: z.enum([
+    "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", 
+    "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"
+  ], {
+    required_error: "UF é obrigatória",
+  }),
 });
-
-type UnidadeUsinaFormData = z.infer<typeof unidadeUsinaFormSchema>;
 
 interface UnidadeUsinaFormProps {
   open: boolean;
@@ -57,18 +49,20 @@ export function UnidadeUsinaForm({
   onSuccess,
 }: UnidadeUsinaFormProps) {
   const { toast } = useToast();
-  const form = useForm<UnidadeUsinaFormData>({
+  const [isLoadingCep, setIsLoadingCep] = useState(false);
+
+  const form = useForm<UnidadeUsinaFormValues>({
     resolver: zodResolver(unidadeUsinaFormSchema),
     defaultValues: {
       numero_uc: "",
+      titular_id: "",
+      cep: "",
       logradouro: "",
       numero: "",
       complemento: "",
       bairro: "",
       cidade: "",
-      uf: "",
-      cep: "",
-      titular_id: "",
+      uf: undefined,
     },
   });
 
@@ -98,36 +92,66 @@ export function UnidadeUsinaForm({
           if (data) {
             form.reset({
               numero_uc: data.numero_uc,
+              titular_id: data.titular_id,
               logradouro: data.logradouro || "",
               numero: data.numero || "",
               complemento: data.complemento || "",
               bairro: data.bairro || "",
               cidade: data.cidade || "",
-              uf: data.uf || "",
+              uf: data.uf as any || undefined,
               cep: data.cep || "",
-              titular_id: data.titular_id,
             });
           }
         });
     } else {
       form.reset({
         numero_uc: "",
+        titular_id: "",
+        cep: "",
         logradouro: "",
         numero: "",
         complemento: "",
         bairro: "",
         cidade: "",
-        uf: "",
-        cep: "",
-        titular_id: "",
+        uf: undefined,
       });
     }
   }, [unidadeId, form]);
 
-  const onSubmit = async (data: UnidadeUsinaFormData) => {
+  const onFetchCep = async (cep: string) => {
+    try {
+      setIsLoadingCep(true);
+      const cleanCep = cep.replace(/\D/g, '');
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data: ViaCEPResponse = await response.json();
+
+      if (data.erro) {
+        toast({
+          title: "CEP não encontrado",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      form.setValue('logradouro', data.logradouro);
+      form.setValue('bairro', data.bairro);
+      form.setValue('cidade', data.localidade);
+      form.setValue('uf', data.uf as any);
+    } catch (error) {
+      toast({
+        title: "Erro ao buscar CEP",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingCep(false);
+    }
+  };
+
+  const onSubmit = async (data: UnidadeUsinaFormValues) => {
     try {
       const submitData = {
         numero_uc: data.numero_uc,
+        titular_id: data.titular_id,
         logradouro: data.logradouro,
         numero: data.numero,
         complemento: data.complemento,
@@ -135,7 +159,6 @@ export function UnidadeUsinaForm({
         cidade: data.cidade,
         uf: data.uf.toUpperCase(),
         cep: data.cep,
-        titular_id: data.titular_id,
         updated_at: new Date().toISOString(),
       };
 
@@ -184,148 +207,11 @@ export function UnidadeUsinaForm({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="numero_uc"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Número UC</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="logradouro"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Logradouro</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="numero"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="complemento"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Complemento</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="bairro"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Bairro</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="cidade"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cidade</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="uf"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>UF</FormLabel>
-                    <FormControl>
-                      <Input {...field} maxLength={2} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="cep"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>CEP</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="titular_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Titular</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o titular" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {investidores?.map((investidor) => (
-                        <SelectItem key={investidor.id} value={investidor.id}>
-                          {investidor.nome_investidor}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <UnidadeUsinaBasicInfo form={form} investidores={investidores} />
+            <AddressFields 
+              form={form}
+              isLoadingCep={isLoadingCep}
+              onFetchCep={onFetchCep}
             />
 
             <Button type="submit">Salvar</Button>
