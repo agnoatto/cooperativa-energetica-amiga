@@ -90,6 +90,7 @@ export function UsinaForm({
       setIsLoading(true);
       const usinaData = {
         ...data,
+        valor_kwh: Number(data.valor_kwh),
         status: usinaId ? "active" : "draft",
       };
 
@@ -117,6 +118,7 @@ export function UsinaForm({
       onSuccess();
       onOpenChange(false);
       setStep(0);
+      form.reset();
     } catch (error: any) {
       console.error("Error saving usina:", error);
       toast({
