@@ -2,20 +2,10 @@
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import { Edit, Eye, File, MoreVertical, Send, Trash2, CheckCircle2, Upload } from "lucide-react";
+import { Edit, Eye, Trash2, Send, CheckCircle2 } from "lucide-react";
 import { FaturaPdfButton } from "../FaturaPdfButton";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { PaymentConfirmationModal } from "../PaymentConfirmationModal";
-import { ConcessionariaInvoiceUpload } from "../upload/ConcessionariaInvoiceUpload";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { format } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 interface FaturaTableRowProps {
   fatura: Fatura;
@@ -33,8 +23,6 @@ export function FaturaTableRow({
   onUpdateStatus,
 }: FaturaTableRowProps) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', {
@@ -67,148 +55,115 @@ export function FaturaTableRow({
     return labels[status];
   };
 
-  const handlePaymentConfirm = useCallback(async (paymentData: {
+  const handlePaymentConfirm = async (paymentData: {
     id: string;
     data_pagamento: string;
     valor_adicional: number;
     observacao_pagamento: string | null;
   }) => {
-    try {
-      await onUpdateStatus(
-        fatura,
-        'paga',
-        'Pagamento confirmado com' + (paymentData.valor_adicional > 0 ? ' valor adicional' : '')
-      );
-      setShowPaymentModal(false);
-      toast.success('Pagamento confirmado com sucesso');
-    } catch (error) {
-      console.error('Error confirming payment:', error);
-      toast.error('Erro ao confirmar pagamento');
-    }
-  }, [fatura, onUpdateStatus]);
+    await onUpdateStatus(
+      fatura,
+      'paga',
+      'Pagamento confirmado com' + (paymentData.valor_adicional > 0 ? ' valor adicional' : '')
+    );
+  };
 
-  const handleFileUploadSuccess = useCallback(async (filePath: string) => {
-    try {
-      const { error } = await supabase
-        .from('faturas')
-        .update({
-          arquivo_concessionaria_path: filePath,
-          arquivo_concessionaria_nome: fatura.arquivo_concessionaria_nome,
-          arquivo_concessionaria_tipo: 'application/pdf',
-        })
-        .eq('id', fatura.id);
+  const getAvailableActions = () => {
+    const actions = [];
 
-      if (error) throw error;
-
-      setShowUploadModal(false);
-      toast.success('Arquivo enviado com sucesso');
-    } catch (error) {
-      console.error('Error updating fatura:', error);
-      toast.error('Erro ao atualizar fatura');
-      throw error;
-    }
-  }, [fatura.id, fatura.arquivo_concessionaria_nome]);
-
-  const downloadFile = useCallback(async () => {
-    if (!fatura.arquivo_concessionaria_path) return;
-
-    setIsDownloading(true);
-    let objectUrl: string | null = null;
-
-    try {
-      const { data, error } = await supabase.storage
-        .from('faturas-concessionaria')
-        .download(fatura.arquivo_concessionaria_path);
-
-      if (error) throw error;
-
-      objectUrl = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = objectUrl;
-      a.download = fatura.arquivo_concessionaria_nome || 'fatura-concessionaria.pdf';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      
-      toast.success('Download iniciado');
-    } catch (error) {
-      console.error('Error downloading file:', error);
-      toast.error('Erro ao baixar arquivo');
-    } finally {
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-      setIsDownloading(false);
-    }
-  }, [fatura.arquivo_concessionaria_path, fatura.arquivo_concessionaria_nome]);
-
-  const getActionsDropdownItems = useCallback(() => {
-    const items = [];
-
-    items.push(
-      <DropdownMenuItem key="view" onClick={() => onViewDetails(fatura)}>
-        <Eye className="mr-2 h-4 w-4" />
-        Visualizar Detalhes
-      </DropdownMenuItem>
+    actions.push(
+      <Button
+        key="view"
+        variant="outline"
+        size="icon"
+        onClick={() => onViewDetails(fatura)}
+        title="Visualizar Detalhes"
+      >
+        <Eye className="h-4 w-4" />
+      </Button>
     );
 
     if (['gerada', 'pendente'].includes(fatura.status)) {
-      items.push(
-        <DropdownMenuItem key="edit" onClick={() => onEdit(fatura)}>
-          <Edit className="mr-2 h-4 w-4" />
-          Editar Fatura
-        </DropdownMenuItem>
+      actions.push(
+        <Button
+          key="edit"
+          variant="outline"
+          size="icon"
+          onClick={() => onEdit(fatura)}
+          title="Editar Fatura"
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
       );
     }
 
     if (fatura.status === 'pendente') {
-      items.push(
-        <DropdownMenuItem 
-          key="send" 
+      actions.push(
+        <Button
+          key="send"
+          variant="outline"
+          size="icon"
           onClick={() => onUpdateStatus(fatura, 'enviada', 'Fatura enviada ao cliente')}
+          title="Enviar Fatura"
         >
-          <Send className="mr-2 h-4 w-4" />
-          Enviar Fatura
-        </DropdownMenuItem>
+          <Send className="h-4 w-4" />
+        </Button>
       );
     }
 
     if (['enviada', 'atrasada'].includes(fatura.status)) {
-      items.push(
-        <DropdownMenuItem key="confirm" onClick={() => setShowPaymentModal(true)}>
-          <CheckCircle2 className="mr-2 h-4 w-4" />
-          Confirmar Pagamento
-        </DropdownMenuItem>
+      actions.push(
+        <Button
+          key="confirm"
+          variant="outline"
+          size="icon"
+          onClick={() => setShowPaymentModal(true)}
+          title="Confirmar Pagamento"
+        >
+          <CheckCircle2 className="h-4 w-4" />
+        </Button>
       );
     }
 
     if (fatura.status === 'paga') {
-      items.push(
-        <DropdownMenuItem 
-          key="finish" 
+      actions.push(
+        <Button
+          key="finish"
+          variant="outline"
+          size="icon"
           onClick={() => onUpdateStatus(fatura, 'finalizada', 'Fatura finalizada - pagamento processado')}
+          title="Finalizar Fatura"
         >
-          <CheckCircle2 className="mr-2 h-4 w-4" />
-          Finalizar Fatura
-        </DropdownMenuItem>
+          <CheckCircle2 className="h-4 w-4" />
+        </Button>
       );
     }
 
     if (fatura.status === 'gerada') {
-      items.push(
-        <DropdownMenuItem key="delete" onClick={() => onDelete(fatura)}>
-          <Trash2 className="mr-2 h-4 w-4" />
-          Excluir Fatura
-        </DropdownMenuItem>
+      actions.push(
+        <Button
+          key="delete"
+          variant="outline"
+          size="icon"
+          onClick={() => onDelete(fatura)}
+          title="Excluir Fatura"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       );
     }
 
-    return items;
-  }, [fatura, onViewDetails, onEdit, onUpdateStatus, onDelete]);
+    actions.push(
+      <FaturaPdfButton key="pdf" fatura={fatura} />
+    );
+
+    return actions;
+  };
 
   return (
     <>
       <TableRow>
         <TableCell>{fatura.unidade_beneficiaria.cooperado.nome}</TableCell>
-        <TableCell>{fatura.unidade_beneficiaria.cooperado.documento}</TableCell>
         <TableCell>
           {fatura.unidade_beneficiaria.numero_uc}
           {fatura.unidade_beneficiaria.apelido && (
@@ -216,9 +171,6 @@ export function FaturaTableRow({
               ({fatura.unidade_beneficiaria.apelido})
             </span>
           )}
-        </TableCell>
-        <TableCell>
-          {format(new Date(fatura.data_vencimento), 'dd/MM/yyyy')}
         </TableCell>
         <TableCell>{fatura.consumo_kwh} kWh</TableCell>
         <TableCell>{formatCurrency(fatura.total_fatura)}</TableCell>
@@ -239,52 +191,12 @@ export function FaturaTableRow({
           </span>
           {fatura.status === 'paga' && fatura.data_pagamento && (
             <span className="text-gray-500 text-xs block mt-1">
-              Pago em: {format(new Date(fatura.data_pagamento), 'dd/MM/yyyy')}
+              Pago em: {new Date(fatura.data_pagamento).toLocaleDateString('pt-BR')}
             </span>
           )}
         </TableCell>
-        <TableCell>
-          <FaturaPdfButton fatura={fatura} />
-        </TableCell>
-        <TableCell>
-          <Button
-            variant="outline"
-            size="icon"
-            disabled={!fatura.arquivo_concessionaria_path}
-            title={fatura.arquivo_concessionaria_path ? "Visualizar Fatura da Concessionária" : "Fatura não disponível"}
-            onClick={downloadFile}
-          >
-            <File className="h-4 w-4" />
-          </Button>
-        </TableCell>
-        <TableCell>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => fatura.arquivo_concessionaria_path ? downloadFile() : setShowUploadModal(true)}
-            disabled={isDownloading}
-            title={fatura.arquivo_concessionaria_path ? "Baixar Fatura da Concessionária" : "Enviar Fatura da Concessionária"}
-          >
-            {isDownloading ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            ) : fatura.arquivo_concessionaria_path ? (
-              <File className="h-4 w-4" />
-            ) : (
-              <Upload className="h-4 w-4" />
-            )}
-          </Button>
-        </TableCell>
-        <TableCell className="text-right">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {getActionsDropdownItems()}
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <TableCell className="text-right space-x-2">
+          {getAvailableActions()}
         </TableCell>
       </TableRow>
 
@@ -293,13 +205,6 @@ export function FaturaTableRow({
         onClose={() => setShowPaymentModal(false)}
         fatura={fatura}
         onConfirm={handlePaymentConfirm}
-      />
-
-      <ConcessionariaInvoiceUpload
-        isOpen={showUploadModal}
-        onClose={() => setShowUploadModal(false)}
-        faturaId={fatura.id}
-        onSuccess={handleFileUploadSuccess}
       />
     </>
   );
