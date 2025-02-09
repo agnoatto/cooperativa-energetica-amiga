@@ -35,16 +35,10 @@ export const useUpdateFatura = () => {
         .eq("id", data.id);
 
       if (error) throw error;
-
-      // Aguardar um momento antes de retornar
-      await new Promise(resolve => setTimeout(resolve, 100));
     },
     onSuccess: () => {
-      // Invalidar o cache após um pequeno delay
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ["faturas"] });
-        toast.success("Fatura atualizada com sucesso!");
-      }, 200);
+      queryClient.invalidateQueries({ queryKey: ["faturas"] });
+      toast.success("Fatura atualizada com sucesso!");
     },
     onError: (error) => {
       console.error("Erro ao atualizar fatura:", error);

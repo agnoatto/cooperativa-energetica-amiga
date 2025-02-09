@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -39,7 +38,6 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     dataVencimento: fatura.data_vencimento,
   });
 
-  // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
       setFormState({
@@ -58,13 +56,12 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (isSubmitting) return;
     
     setIsSubmitting(true);
     
     try {
-      const result = await onSuccess({
+      await onSuccess({
         id: fatura.id,
         consumo_kwh: formState.consumo,
         total_fatura: parseValue(formState.totalFatura),
@@ -76,14 +73,10 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
         data_vencimento: formState.dataVencimento,
         percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
       });
-
-      // Add a small delay before closing to ensure state updates are complete
-      setTimeout(() => {
-        onClose();
-        setIsSubmitting(false);
-      }, 100);
+      onClose();
     } catch (error) {
       console.error('Error updating fatura:', error);
+    } finally {
       setIsSubmitting(false);
     }
   };
