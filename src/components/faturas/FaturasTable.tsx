@@ -14,6 +14,8 @@ import { FaturaActions } from "./FaturaActions";
 import { FaturaDetailsDialog } from "./FaturaDetailsDialog";
 import { SendFaturaDialog } from "./SendFaturaDialog";
 import { format } from "date-fns";
+import { Eye } from "lucide-react";
+import { Button } from "../ui/button";
 
 interface FaturasTableProps {
   faturas: Fatura[] | undefined;
@@ -55,13 +57,14 @@ export function FaturasTable({
                 <TableHead className="h-9 px-2 text-xs font-medium text-gray-600">Valor Total</TableHead>
                 <TableHead className="h-9 px-2 text-xs font-medium text-gray-600">Data Vencimento</TableHead>
                 <TableHead className="h-9 px-2 text-xs font-medium text-gray-600">Status</TableHead>
+                <TableHead className="h-9 px-2 text-xs font-medium text-gray-600 text-center">Visualizar</TableHead>
                 <TableHead className="h-9 px-2 text-xs font-medium text-gray-600 text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center">
+                  <TableCell colSpan={6} className="text-center">
                     Carregando...
                   </TableCell>
                 </TableRow>
@@ -69,8 +72,7 @@ export function FaturasTable({
                 faturas.map((fatura) => (
                   <TableRow 
                     key={fatura.id}
-                    className="border-b border-gray-100 hover:bg-gray-50/50 cursor-pointer transition-colors"
-                    onClick={() => setSelectedFatura(fatura)}
+                    className="border-b border-gray-100 hover:bg-gray-50/50"
                   >
                     <TableCell className="py-2 px-2">
                       <div>
@@ -92,7 +94,17 @@ export function FaturasTable({
                     <TableCell className="py-2 px-2">
                       <FaturaStatusBadge status={fatura.status} />
                     </TableCell>
-                    <TableCell className="py-2 px-2 text-right" onClick={(e) => e.stopPropagation()}>
+                    <TableCell className="py-2 px-2 text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedFatura(fatura)}
+                        className="hover:bg-gray-100"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                    <TableCell className="py-2 px-2 text-right">
                       <FaturaActions
                         fatura={fatura}
                         onView={setSelectedFatura}
@@ -106,7 +118,7 @@ export function FaturasTable({
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-sm text-gray-500">
+                  <TableCell colSpan={6} className="text-center text-sm text-gray-500">
                     Nenhuma fatura encontrada para este mês
                   </TableCell>
                 </TableRow>

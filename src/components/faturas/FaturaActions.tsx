@@ -49,13 +49,6 @@ export function FaturaActions({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const actions = [];
 
-  // Botão de visualizar sempre disponível
-  actions.push({
-    label: "Visualizar",
-    icon: Eye,
-    onClick: () => onView(fatura)
-  });
-
   // Botão de editar disponível para faturas geradas e pendentes
   if (['gerada', 'pendente'].includes(fatura.status)) {
     actions.push({
