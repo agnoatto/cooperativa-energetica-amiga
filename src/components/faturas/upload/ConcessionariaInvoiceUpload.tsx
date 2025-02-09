@@ -31,11 +31,18 @@ export function ConcessionariaInvoiceUpload({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleFileSelect = (file: File) => {
+    if (file.type !== 'application/pdf') {
+      toast.error('Por favor, selecione um arquivo PDF');
+      return;
+    }
     setSelectedFile(file);
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile) {
+      toast.error('Selecione um arquivo para enviar');
+      return;
+    }
 
     setIsUploading(true);
     setUploadProgress(0);
@@ -44,53 +51,25 @@ export function ConcessionariaInvoiceUpload({
       const fileExt = selectedFile.name.split('.').pop();
       const filePath = `${faturaId}_${Date.now()}.${fileExt}`;
 
-      // Create FormData with the file
-      const formData = new FormData();
-      formData.append('file', selectedFile);
+      // Simular progresso durante upload
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 10, 90));
+      }, 200);
 
-      // Create XHR request to track progress
-      const xhr = new XMLHttpRequest();
-      
-      // Create a Promise to handle the XHR upload
-      const uploadPromise = new Promise<void>((resolve, reject) => {
-        xhr.upload.addEventListener('progress', (event) => {
-          if (event.lengthComputable) {
-            const percentage = (event.loaded / event.total) * 100;
-            setUploadProgress(Math.round(percentage));
-          }
-        });
-
-        xhr.addEventListener('load', async () => {
-          if (xhr.status === 200) {
-            resolve();
-          } else {
-            reject(new Error('Upload failed'));
-          }
-        });
-
-        xhr.addEventListener('error', () => {
-          reject(new Error('Upload failed'));
-        });
-      });
-
-      // Get the pre-signed URL for upload
-      const { data: { signedUrl } } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('faturas-concessionaria')
-        .createSignedUploadUrl(filePath);
+        .upload(filePath, selectedFile, {
+          contentType: 'application/pdf',
+          upsert: false
+        });
 
-      if (!signedUrl) {
-        throw new Error('Failed to get upload URL');
-      }
+      clearInterval(progressInterval);
 
-      // Configure and send XHR request
-      xhr.open('PUT', signedUrl);
-      xhr.setRequestHeader('Content-Type', 'application/pdf');
-      xhr.send(selectedFile);
+      if (uploadError) throw uploadError;
 
-      // Wait for upload to complete
-      await uploadPromise;
-
+      setUploadProgress(100);
       await onSuccess(filePath);
+      
       toast.success('Arquivo enviado com sucesso!');
       onClose();
     } catch (error) {
@@ -104,7 +83,7 @@ export function ConcessionariaInvoiceUpload({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !isUploading && !open && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Enviar Fatura da Concessionária</DialogTitle>
@@ -124,14 +103,18 @@ export function ConcessionariaInvoiceUpload({
                 </div>
               )}
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={onClose}>
+                <Button 
+                  variant="outline" 
+                  onClick={onClose}
+                  disabled={isUploading}
+                >
                   Cancelar
                 </Button>
                 <Button
                   onClick={handleUpload}
                   disabled={!selectedFile || isUploading}
                 >
-                  Enviar
+                  {isUploading ? "Enviando..." : "Enviar"}
                 </Button>
               </div>
             </>

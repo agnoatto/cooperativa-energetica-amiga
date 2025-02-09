@@ -4,7 +4,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { Edit, Eye, File, MoreVertical, Send, Trash2, CheckCircle2, Upload } from "lucide-react";
 import { FaturaPdfButton } from "../FaturaPdfButton";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { PaymentConfirmationModal } from "../PaymentConfirmationModal";
 import { ConcessionariaInvoiceUpload } from "../upload/ConcessionariaInvoiceUpload";
 import {
@@ -14,8 +14,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface FaturaTableRowProps {
   fatura: Fatura;
@@ -34,6 +34,7 @@ export function FaturaTableRow({
 }: FaturaTableRowProps) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', {
@@ -66,37 +67,53 @@ export function FaturaTableRow({
     return labels[status];
   };
 
-  const handlePaymentConfirm = async (paymentData: {
+  const handlePaymentConfirm = useCallback(async (paymentData: {
     id: string;
     data_pagamento: string;
     valor_adicional: number;
     observacao_pagamento: string | null;
   }) => {
-    await onUpdateStatus(
-      fatura,
-      'paga',
-      'Pagamento confirmado com' + (paymentData.valor_adicional > 0 ? ' valor adicional' : '')
-    );
-  };
+    try {
+      await onUpdateStatus(
+        fatura,
+        'paga',
+        'Pagamento confirmado com' + (paymentData.valor_adicional > 0 ? ' valor adicional' : '')
+      );
+      setShowPaymentModal(false);
+      toast.success('Pagamento confirmado com sucesso');
+    } catch (error) {
+      console.error('Error confirming payment:', error);
+      toast.error('Erro ao confirmar pagamento');
+    }
+  }, [fatura, onUpdateStatus]);
 
-  const handleFileUploadSuccess = async (filePath: string) => {
-    const { error } = await supabase
-      .from('faturas')
-      .update({
-        arquivo_concessionaria_path: filePath,
-        arquivo_concessionaria_nome: fatura.arquivo_concessionaria_nome,
-        arquivo_concessionaria_tipo: 'application/pdf',
-      })
-      .eq('id', fatura.id);
+  const handleFileUploadSuccess = useCallback(async (filePath: string) => {
+    try {
+      const { error } = await supabase
+        .from('faturas')
+        .update({
+          arquivo_concessionaria_path: filePath,
+          arquivo_concessionaria_nome: fatura.arquivo_concessionaria_nome,
+          arquivo_concessionaria_tipo: 'application/pdf',
+        })
+        .eq('id', fatura.id);
 
-    if (error) {
+      if (error) throw error;
+
+      setShowUploadModal(false);
+      toast.success('Arquivo enviado com sucesso');
+    } catch (error) {
       console.error('Error updating fatura:', error);
+      toast.error('Erro ao atualizar fatura');
       throw error;
     }
-  };
+  }, [fatura.id, fatura.arquivo_concessionaria_nome]);
 
-  const downloadFile = async () => {
+  const downloadFile = useCallback(async () => {
     if (!fatura.arquivo_concessionaria_path) return;
+
+    setIsDownloading(true);
+    let objectUrl: string | null = null;
 
     try {
       const { data, error } = await supabase.storage
@@ -105,21 +122,25 @@ export function FaturaTableRow({
 
       if (error) throw error;
 
-      // Create a download link
-      const url = URL.createObjectURL(data);
+      objectUrl = URL.createObjectURL(data);
       const a = document.createElement('a');
-      a.href = url;
+      a.href = objectUrl;
       a.download = fatura.arquivo_concessionaria_nome || 'fatura-concessionaria.pdf';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      
+      toast.success('Download iniciado');
     } catch (error) {
       console.error('Error downloading file:', error);
+      toast.error('Erro ao baixar arquivo');
+    } finally {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      setIsDownloading(false);
     }
-  };
+  }, [fatura.arquivo_concessionaria_path, fatura.arquivo_concessionaria_nome]);
 
-  const getActionsDropdownItems = () => {
+  const getActionsDropdownItems = useCallback(() => {
     const items = [];
 
     items.push(
@@ -181,7 +202,7 @@ export function FaturaTableRow({
     }
 
     return items;
-  };
+  }, [fatura, onViewDetails, onEdit, onUpdateStatus, onDelete]);
 
   return (
     <>
@@ -231,6 +252,7 @@ export function FaturaTableRow({
             size="icon"
             disabled={!fatura.arquivo_concessionaria_path}
             title={fatura.arquivo_concessionaria_path ? "Visualizar Fatura da Concessionária" : "Fatura não disponível"}
+            onClick={downloadFile}
           >
             <File className="h-4 w-4" />
           </Button>
@@ -240,9 +262,12 @@ export function FaturaTableRow({
             variant="outline"
             size="icon"
             onClick={() => fatura.arquivo_concessionaria_path ? downloadFile() : setShowUploadModal(true)}
+            disabled={isDownloading}
             title={fatura.arquivo_concessionaria_path ? "Baixar Fatura da Concessionária" : "Enviar Fatura da Concessionária"}
           >
-            {fatura.arquivo_concessionaria_path ? (
+            {isDownloading ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            ) : fatura.arquivo_concessionaria_path ? (
               <File className="h-4 w-4" />
             ) : (
               <Upload className="h-4 w-4" />
