@@ -28,6 +28,9 @@ export interface UpdateFaturaStatusInput {
   id: string;
   status: FaturaStatus;
   observacao?: string;
+  data_pagamento?: string;
+  valor_adicional?: number;
+  observacao_pagamento?: string;
 }
 
 export interface UseFaturasResult {

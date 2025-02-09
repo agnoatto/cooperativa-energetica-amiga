@@ -74,6 +74,7 @@ export type Database = {
           iluminacao_publica: number
           mes: number
           observacao: string | null
+          observacao_pagamento: string | null
           outros_valores: number
           saldo_energia_kwh: number
           send_method:
@@ -83,6 +84,7 @@ export type Database = {
           total_fatura: number
           unidade_beneficiaria_id: string
           updated_at: string
+          valor_adicional: number | null
           valor_desconto: number
           valor_total: number
         }
@@ -102,6 +104,7 @@ export type Database = {
           iluminacao_publica?: number
           mes: number
           observacao?: string | null
+          observacao_pagamento?: string | null
           outros_valores?: number
           saldo_energia_kwh?: number
           send_method?:
@@ -111,6 +114,7 @@ export type Database = {
           total_fatura?: number
           unidade_beneficiaria_id: string
           updated_at?: string
+          valor_adicional?: number | null
           valor_desconto?: number
           valor_total: number
         }
@@ -130,6 +134,7 @@ export type Database = {
           iluminacao_publica?: number
           mes?: number
           observacao?: string | null
+          observacao_pagamento?: string | null
           outros_valores?: number
           saldo_energia_kwh?: number
           send_method?:
@@ -139,6 +144,7 @@ export type Database = {
           total_fatura?: number
           unidade_beneficiaria_id?: string
           updated_at?: string
+          valor_adicional?: number | null
           valor_desconto?: number
           valor_total?: number
         }

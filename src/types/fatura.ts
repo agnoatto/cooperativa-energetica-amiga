@@ -36,6 +36,9 @@ export interface Fatura {
   economia_acumulada: number;
   saldo_energia_kwh: number;
   observacao: string | null;
+  valor_adicional: number;
+  observacao_pagamento: string | null;
+  data_pagamento: string | null;
   arquivo_concessionaria_path?: string | null;
   arquivo_concessionaria_nome?: string | null;
   data_envio?: string | null;
@@ -43,4 +46,3 @@ export interface Fatura {
   historico_status: StatusHistoryEntry[];
   unidade_beneficiaria: UnidadeBeneficiaria;
 }
-

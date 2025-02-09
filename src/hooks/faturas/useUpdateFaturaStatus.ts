@@ -50,11 +50,20 @@ export const useUpdateFaturaStatus = () => {
         historico_status: novoHistorico
       };
 
-      // Adicionar campos específicos baseados no status
+      // Adicionar campos específicos baseados no status e dados de pagamento
       if (data.status === 'enviada') {
         updateData.data_envio = now;
       } else if (data.status === 'paga') {
         updateData.data_confirmacao_pagamento = now;
+        if (data.data_pagamento) {
+          updateData.data_pagamento = data.data_pagamento;
+        }
+        if (data.valor_adicional !== undefined) {
+          updateData.valor_adicional = data.valor_adicional;
+        }
+        if (data.observacao_pagamento !== undefined) {
+          updateData.observacao_pagamento = data.observacao_pagamento;
+        }
       }
 
       console.log('Dados de atualização:', updateData);
@@ -70,15 +79,12 @@ export const useUpdateFaturaStatus = () => {
       }
 
       console.log('Fatura atualizada com sucesso');
-      // Não retornamos nada (void) para corresponder ao tipo definido
     },
     onMutate: async (data) => {
-      // Mostrar toast de loading
       toast.loading("Atualizando status da fatura...");
     },
     onSuccess: (_, variables) => {
       console.log('Mutation concluída com sucesso');
-      // Invalidar a query das faturas para o mês atual
       const date = new Date();
       queryClient.invalidateQueries({
         queryKey: ['faturas', date.getMonth() + 1, date.getFullYear()]
