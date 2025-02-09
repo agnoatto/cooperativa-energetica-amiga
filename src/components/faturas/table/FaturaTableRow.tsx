@@ -172,6 +172,9 @@ export function FaturaTableRow({
             </span>
           )}
         </TableCell>
+        <TableCell>
+          {new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')}
+        </TableCell>
         <TableCell>{fatura.consumo_kwh} kWh</TableCell>
         <TableCell>{formatCurrency(fatura.total_fatura)}</TableCell>
         <TableCell>{formatCurrency(fatura.fatura_concessionaria)}</TableCell>
