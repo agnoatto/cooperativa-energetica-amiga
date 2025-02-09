@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import { format } from "date-fns";
 
 interface FaturaActionsProps {
   fatura: Fatura;
@@ -91,8 +92,8 @@ export function FaturaActions({
     });
   }
 
-  // Botão de excluir disponível apenas para faturas geradas
-  if (fatura.status === 'gerada') {
+  // Botão de excluir disponível para faturas geradas e pendentes
+  if (['gerada', 'pendente'].includes(fatura.status)) {
     actions.push({
       label: "Excluir",
       icon: Trash2,
@@ -106,6 +107,13 @@ export function FaturaActions({
     icon: FaturaPdfButton,
     component: <FaturaPdfButton key="pdf" fatura={fatura} />
   });
+
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    });
+  };
 
   return (
     <>
@@ -143,8 +151,17 @@ export function FaturaActions({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Fatura</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir esta fatura? Esta ação não pode ser desfeita.
+            <AlertDialogDescription className="space-y-2">
+              <p>Você está prestes a excluir a fatura:</p>
+              <div className="bg-muted p-4 rounded-md space-y-1 text-sm">
+                <p><strong>UC:</strong> {fatura.unidade_beneficiaria.numero_uc}</p>
+                <p><strong>Cooperado:</strong> {fatura.unidade_beneficiaria.cooperado.nome}</p>
+                <p><strong>Vencimento:</strong> {format(new Date(fatura.data_vencimento), 'dd/MM/yyyy')}</p>
+                <p><strong>Valor:</strong> {formatCurrency(fatura.valor_total)}</p>
+              </div>
+              <p className="text-destructive mt-4">
+                Esta ação não pode ser desfeita. A fatura será permanentemente removida do sistema.
+              </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
