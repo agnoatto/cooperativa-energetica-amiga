@@ -40,6 +40,13 @@ export const useGerarFaturas = (currentDate: Date) => {
         return [];
       }
 
+      const now = new Date().toISOString();
+      const historicoStatusInicial = [{
+        status: "gerada" as const,
+        data: now,
+        observacao: "Fatura gerada automaticamente pelo sistema"
+      }];
+
       const unidadesComFatura = await Promise.all(
         unidadesElegiveis.map(async (unidade) => {
           const { data: faturasExistentes } = await supabase
@@ -61,11 +68,12 @@ export const useGerarFaturas = (currentDate: Date) => {
               ano,
               consumo_kwh: 0,
               valor_total: 0,
-              status: "pendente",
+              status: "gerada",
               data_vencimento: dataVencimento.toISOString().split('T')[0],
               economia_acumulada: 0,
               saldo_energia_kwh: 0,
               observacao: null,
+              historico_status: historicoStatusInicial
             });
 
           if (insertError) throw insertError;
