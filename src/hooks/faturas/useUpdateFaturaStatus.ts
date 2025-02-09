@@ -13,7 +13,7 @@ export const useUpdateFaturaStatus = () => {
       const now = new Date().toISOString();
       const { data: fatura } = await supabase
         .from("faturas")
-        .select('historico_status, send_method')
+        .select('historico_status')
         .eq('id', data.id)
         .single();
 
@@ -45,12 +45,6 @@ export const useUpdateFaturaStatus = () => {
       // Adicionar campos específicos baseados no status
       if (data.status === 'enviada') {
         updateData.data_envio = now;
-        // Detect send method from observacao
-        if (data.observacao?.includes('email')) {
-          updateData.send_method = ['email'];
-        } else if (data.observacao?.includes('whatsapp')) {
-          updateData.send_method = ['whatsapp'];
-        }
       } else if (data.status === 'paga') {
         updateData.data_confirmacao_pagamento = now;
       }

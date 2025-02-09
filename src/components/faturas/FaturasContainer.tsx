@@ -35,7 +35,7 @@ export function FaturasContainer() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <FaturasHeader 
         onGerarFaturas={gerarFaturas}
         isGenerating={isGenerating}

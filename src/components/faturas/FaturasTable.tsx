@@ -7,15 +7,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Edit, Eye, Trash2, Send, CheckCircle2, XCircle } from "lucide-react";
+import { FaturaPdfButton } from "./FaturaPdfButton";
+import { FaturaDetailsDialog } from "./FaturaDetailsDialog";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { useState } from "react";
-import { FaturaStatusBadge } from "./FaturaStatusBadge";
-import { FaturaActions } from "./FaturaActions";
-import { FaturaDetailsDialog } from "./FaturaDetailsDialog";
-import { SendFaturaDialog } from "./SendFaturaDialog";
-import { format } from "date-fns";
-import { Eye } from "lucide-react";
-import { Button } from "../ui/button";
 
 interface FaturasTableProps {
   faturas: Fatura[] | undefined;
@@ -33,7 +30,6 @@ export function FaturasTable({
   onUpdateStatus 
 }: FaturasTableProps) {
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
-  const [sendFatura, setSendFatura] = useState<Fatura | null>(null);
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', {
@@ -42,90 +38,191 @@ export function FaturasTable({
     });
   };
 
-  const handleSendFatura = async (fatura: Fatura, method: "email" | "whatsapp") => {
-    await onUpdateStatus(fatura, 'enviada', `Fatura enviada por ${method}`);
+  const getStatusColor = (status: FaturaStatus) => {
+    const colors = {
+      gerada: 'bg-gray-100 text-gray-800',
+      pendente: 'bg-yellow-100 text-yellow-800',
+      enviada: 'bg-blue-100 text-blue-800',
+      atrasada: 'bg-red-100 text-red-800',
+      paga: 'bg-green-100 text-green-800',
+      finalizada: 'bg-purple-100 text-purple-800'
+    };
+    return colors[status];
+  };
+
+  const getStatusLabel = (status: FaturaStatus) => {
+    const labels = {
+      gerada: 'Gerada',
+      pendente: 'Pendente',
+      enviada: 'Enviada',
+      atrasada: 'Atrasada',
+      paga: 'Paga',
+      finalizada: 'Finalizada'
+    };
+    return labels[status];
+  };
+
+  const getAvailableActions = (fatura: Fatura) => {
+    const actions = [];
+
+    // Botão de visualizar sempre disponível
+    actions.push(
+      <Button
+        key="view"
+        variant="outline"
+        size="icon"
+        onClick={() => setSelectedFatura(fatura)}
+        title="Visualizar Detalhes"
+      >
+        <Eye className="h-4 w-4" />
+      </Button>
+    );
+
+    // Botão de editar disponível para faturas geradas e pendentes
+    if (['gerada', 'pendente'].includes(fatura.status)) {
+      actions.push(
+        <Button
+          key="edit"
+          variant="outline"
+          size="icon"
+          onClick={() => onEditFatura(fatura)}
+          title="Editar Fatura"
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
+      );
+    }
+
+    // Botão de enviar disponível para faturas pendentes
+    if (fatura.status === 'pendente') {
+      actions.push(
+        <Button
+          key="send"
+          variant="outline"
+          size="icon"
+          onClick={() => onUpdateStatus(fatura, 'enviada', 'Fatura enviada ao cliente')}
+          title="Enviar Fatura"
+        >
+          <Send className="h-4 w-4" />
+        </Button>
+      );
+    }
+
+    // Botão de confirmar pagamento para faturas enviadas ou atrasadas
+    if (['enviada', 'atrasada'].includes(fatura.status)) {
+      actions.push(
+        <Button
+          key="confirm"
+          variant="outline"
+          size="icon"
+          onClick={() => onUpdateStatus(fatura, 'paga', 'Pagamento confirmado pelo cliente')}
+          title="Confirmar Pagamento"
+        >
+          <CheckCircle2 className="h-4 w-4" />
+        </Button>
+      );
+    }
+
+    // Botão de finalizar para faturas pagas
+    if (fatura.status === 'paga') {
+      actions.push(
+        <Button
+          key="finish"
+          variant="outline"
+          size="icon"
+          onClick={() => onUpdateStatus(fatura, 'finalizada', 'Fatura finalizada - pagamento processado')}
+          title="Finalizar Fatura"
+        >
+          <CheckCircle2 className="h-4 w-4" />
+        </Button>
+      );
+    }
+
+    // Botão de excluir disponível apenas para faturas geradas
+    if (fatura.status === 'gerada') {
+      actions.push(
+        <Button
+          key="delete"
+          variant="outline"
+          size="icon"
+          onClick={() => onDeleteFatura(fatura.id)}
+          title="Excluir Fatura"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      );
+    }
+
+    // Botão de PDF sempre disponível
+    actions.push(
+      <FaturaPdfButton key="pdf" fatura={fatura} />
+    );
+
+    return actions;
   };
 
   return (
     <>
-      <div className="overflow-x-auto border border-gray-200 rounded-md">
-        <div className="min-w-[800px]">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-b border-gray-200 bg-gray-50">
-                <TableHead className="h-9 px-2 text-xs font-medium text-gray-600">Cooperado</TableHead>
-                <TableHead className="h-9 px-2 text-xs font-medium text-gray-600">Valor Total</TableHead>
-                <TableHead className="h-9 px-2 text-xs font-medium text-gray-600">Data Vencimento</TableHead>
-                <TableHead className="h-9 px-2 text-xs font-medium text-gray-600">Status</TableHead>
-                <TableHead className="h-9 px-2 text-xs font-medium text-gray-600 text-center">Visualizar</TableHead>
-                <TableHead className="h-9 px-2 text-xs font-medium text-gray-600 text-right">Ações</TableHead>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Cooperado</TableHead>
+              <TableHead>UC</TableHead>
+              <TableHead>Consumo (kWh)</TableHead>
+              <TableHead>Valor Original</TableHead>
+              <TableHead>Conta de Energia</TableHead>
+              <TableHead>Desconto (%)</TableHead>
+              <TableHead>Valor Desconto</TableHead>
+              <TableHead>Valor da Assinatura</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={10} className="text-center">
+                  Carregando...
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center">
-                    Carregando...
+            ) : faturas && faturas.length > 0 ? (
+              faturas.map((fatura) => (
+                <TableRow key={fatura.id}>
+                  <TableCell>{fatura.unidade_beneficiaria.cooperado.nome}</TableCell>
+                  <TableCell>
+                    {fatura.unidade_beneficiaria.numero_uc}
+                    {fatura.unidade_beneficiaria.apelido && (
+                      <span className="text-gray-500 text-sm ml-1">
+                        ({fatura.unidade_beneficiaria.apelido})
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>{fatura.consumo_kwh} kWh</TableCell>
+                  <TableCell>{formatCurrency(fatura.total_fatura)}</TableCell>
+                  <TableCell>{formatCurrency(fatura.fatura_concessionaria)}</TableCell>
+                  <TableCell>{fatura.unidade_beneficiaria.percentual_desconto}%</TableCell>
+                  <TableCell>{formatCurrency(fatura.valor_desconto)}</TableCell>
+                  <TableCell>{formatCurrency(fatura.valor_total)}</TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 rounded-full text-sm ${getStatusColor(fatura.status)}`}>
+                      {getStatusLabel(fatura.status)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right space-x-2">
+                    {getAvailableActions(fatura)}
                   </TableCell>
                 </TableRow>
-              ) : faturas && faturas.length > 0 ? (
-                faturas.map((fatura) => (
-                  <TableRow 
-                    key={fatura.id}
-                    className="border-b border-gray-100 hover:bg-gray-50/50"
-                  >
-                    <TableCell className="py-2 px-2">
-                      <div>
-                        <span className="font-medium text-sm text-gray-900">
-                          {fatura.unidade_beneficiaria.cooperado.nome}
-                        </span>
-                        <div className="text-xs text-gray-500">
-                          UC: {fatura.unidade_beneficiaria.numero_uc}
-                          {fatura.unidade_beneficiaria.apelido && ` - ${fatura.unidade_beneficiaria.apelido}`}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-2 px-2 text-sm whitespace-nowrap">
-                      {formatCurrency(fatura.valor_total)}
-                    </TableCell>
-                    <TableCell className="py-2 px-2 text-sm whitespace-nowrap">
-                      {format(new Date(fatura.data_vencimento), 'dd/MM/yyyy')}
-                    </TableCell>
-                    <TableCell className="py-2 px-2">
-                      <FaturaStatusBadge status={fatura.status} />
-                    </TableCell>
-                    <TableCell className="py-2 px-2 text-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedFatura(fatura)}
-                        className="hover:bg-gray-100"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                    <TableCell className="py-2 px-2 text-right">
-                      <FaturaActions
-                        fatura={fatura}
-                        onView={setSelectedFatura}
-                        onEdit={onEditFatura}
-                        onSend={setSendFatura}
-                        onDelete={onDeleteFatura}
-                        onUpdateStatus={onUpdateStatus}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-sm text-gray-500">
-                    Nenhuma fatura encontrada para este mês
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={10} className="text-center text-gray-500">
+                  Nenhuma fatura encontrada para este mês
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
 
       {selectedFatura && (
@@ -133,15 +230,6 @@ export function FaturasTable({
           fatura={selectedFatura}
           isOpen={!!selectedFatura}
           onClose={() => setSelectedFatura(null)}
-        />
-      )}
-
-      {sendFatura && (
-        <SendFaturaDialog
-          fatura={sendFatura}
-          isOpen={!!sendFatura}
-          onClose={() => setSendFatura(null)}
-          onSend={(method) => handleSendFatura(sendFatura, method)}
         />
       )}
     </>

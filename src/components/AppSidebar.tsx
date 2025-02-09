@@ -12,7 +12,6 @@ import { useToast } from "./ui/use-toast";
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { NavigationMenu } from "./sidebar/NavigationMenu";
 import { UserSection } from "./sidebar/UserSection";
-import { SidebarProvider } from "./ui/sidebar";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -72,14 +71,12 @@ export function AppSidebar({ className, children }: SidebarProps) {
 
   if (!isMobile) {
     return (
-      <SidebarProvider>
-        <div className="flex w-full">
-          <div className="hidden w-[200px] flex-col md:flex">
-            <ScrollArea className="flex-1">{sidebar}</ScrollArea>
-          </div>
-          <main className="flex-1 p-8 pt-6">{children}</main>
+      <div className="flex">
+        <div className="hidden w-[200px] flex-col md:flex">
+          <ScrollArea className="flex-1">{sidebar}</ScrollArea>
         </div>
-      </SidebarProvider>
+        <main className="flex-1 p-8 pt-6">{children}</main>
+      </div>
     );
   }
 
