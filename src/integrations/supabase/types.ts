@@ -76,6 +76,9 @@ export type Database = {
           observacao: string | null
           outros_valores: number
           saldo_energia_kwh: number
+          send_method:
+            | Database["public"]["Enums"]["communication_method"][]
+            | null
           status: Database["public"]["Enums"]["fatura_status"]
           total_fatura: number
           unidade_beneficiaria_id: string
@@ -101,6 +104,9 @@ export type Database = {
           observacao?: string | null
           outros_valores?: number
           saldo_energia_kwh?: number
+          send_method?:
+            | Database["public"]["Enums"]["communication_method"][]
+            | null
           status?: Database["public"]["Enums"]["fatura_status"]
           total_fatura?: number
           unidade_beneficiaria_id: string
@@ -126,6 +132,9 @@ export type Database = {
           observacao?: string | null
           outros_valores?: number
           saldo_energia_kwh?: number
+          send_method?:
+            | Database["public"]["Enums"]["communication_method"][]
+            | null
           status?: Database["public"]["Enums"]["fatura_status"]
           total_fatura?: number
           unidade_beneficiaria_id?: string
@@ -751,6 +760,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      communication_method: "email" | "whatsapp"
       fatura_status:
         | "gerada"
         | "pendente"
