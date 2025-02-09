@@ -53,9 +53,16 @@ export const useFetchFaturas = (currentDate: Date) => {
                 .reduce((acc, f) => acc + (f.valor_desconto || 0), 0)
             : 0;
 
-          const historico_status = Array.isArray(fatura.historico_status) 
-            ? (fatura.historico_status as StatusHistoryEntry[]).map(entry => ({
-                status: entry.status,
+          // Type assertion and validation for historico_status
+          const rawHistorico = fatura.historico_status as unknown as Array<{
+            status: string;
+            data: string;
+            observacao?: string;
+          }> | null;
+
+          const historico_status: StatusHistoryEntry[] = Array.isArray(rawHistorico)
+            ? rawHistorico.map(entry => ({
+                status: entry.status as StatusHistoryEntry['status'],
                 data: entry.data,
                 observacao: entry.observacao
               }))
@@ -68,8 +75,8 @@ export const useFetchFaturas = (currentDate: Date) => {
             valor_adicional: fatura.valor_adicional || 0,
             observacao_pagamento: fatura.observacao_pagamento || null,
             data_pagamento: fatura.data_pagamento || null
-          };
-        }) as Fatura[];
+          } as Fatura;
+        });
       } catch (error) {
         console.error('Erro ao buscar faturas:', error);
         toast.error("Erro ao carregar faturas");
