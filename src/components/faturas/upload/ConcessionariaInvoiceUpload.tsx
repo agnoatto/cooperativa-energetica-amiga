@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -30,15 +30,15 @@ export function ConcessionariaInvoiceUpload({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = useCallback((file: File) => {
     if (file.type !== 'application/pdf') {
       toast.error('Por favor, selecione um arquivo PDF');
       return;
     }
     setSelectedFile(file);
-  };
+  }, []);
 
-  const handleUpload = async () => {
+  const handleUpload = useCallback(async () => {
     if (!selectedFile) {
       toast.error('Selecione um arquivo para enviar');
       return;
@@ -80,10 +80,18 @@ export function ConcessionariaInvoiceUpload({
       setSelectedFile(null);
       setUploadProgress(0);
     }
-  };
+  }, [selectedFile, faturaId, onSuccess, onClose]);
+
+  const handleClose = useCallback(() => {
+    if (!isUploading) {
+      setSelectedFile(null);
+      setUploadProgress(0);
+      onClose();
+    }
+  }, [isUploading, onClose]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !isUploading && !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Enviar Fatura da Concessionária</DialogTitle>
@@ -105,7 +113,7 @@ export function ConcessionariaInvoiceUpload({
               <div className="flex justify-end gap-2">
                 <Button 
                   variant="outline" 
-                  onClick={onClose}
+                  onClick={handleClose}
                   disabled={isUploading}
                 >
                   Cancelar

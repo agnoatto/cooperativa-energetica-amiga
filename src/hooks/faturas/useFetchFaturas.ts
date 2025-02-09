@@ -3,58 +3,29 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Fatura } from "@/types/fatura";
+import { useMemo } from "react";
 
 export const useFetchFaturas = (currentDate: Date) => {
+  const queryKey = useMemo(() => ['faturas', currentDate.getMonth() + 1, currentDate.getFullYear()], [currentDate]);
+
   return useQuery({
-    queryKey: ['faturas', currentDate.getMonth() + 1, currentDate.getFullYear()],
+    queryKey,
     queryFn: async () => {
-      console.log('Fetching faturas for:', currentDate);
       try {
-        // Primeiro, buscar todas as faturas anteriores para calcular a economia acumulada
-        const { data: faturasAnteriores } = await supabase
+        // Buscar todas as faturas anteriores em uma única query
+        const { data: todasFaturasAnteriores, error: errorAnteriores } = await supabase
           .from("faturas")
           .select('valor_desconto, unidade_beneficiaria_id')
-          .lt('ano', currentDate.getFullYear())
+          .or(`ano.lt.${currentDate.getFullYear()},and(ano.eq.${currentDate.getFullYear()},mes.lt.${currentDate.getMonth() + 1})`)
           .order('ano', { ascending: false });
 
-        const { data: faturasAnoAtual } = await supabase
-          .from("faturas")
-          .select('valor_desconto, unidade_beneficiaria_id, mes')
-          .eq('ano', currentDate.getFullYear())
-          .lt('mes', currentDate.getMonth() + 1)
-          .order('mes', { ascending: false });
+        if (errorAnteriores) throw errorAnteriores;
 
-        // Combinar todas as faturas anteriores
-        const todasFaturasAnteriores = [...(faturasAnteriores || []), ...(faturasAnoAtual || [])];
-
-        // Buscar faturas do mês atual
-        const { data, error } = await supabase
+        // Buscar faturas do mês atual em uma única query
+        const { data: faturasAtuais, error: errorAtuais } = await supabase
           .from("faturas")
           .select(`
-            id,
-            consumo_kwh,
-            valor_total,
-            status,
-            data_vencimento,
-            mes,
-            ano,
-            fatura_concessionaria,
-            total_fatura,
-            iluminacao_publica,
-            outros_valores,
-            valor_desconto,
-            economia_acumulada,
-            saldo_energia_kwh,
-            observacao,
-            data_envio,
-            data_confirmacao_pagamento,
-            historico_status,
-            valor_adicional,
-            observacao_pagamento,
-            data_pagamento,
-            arquivo_concessionaria_path,
-            arquivo_concessionaria_nome,
-            arquivo_concessionaria_tipo,
+            *,
             unidade_beneficiaria:unidade_beneficiaria_id (
               id,
               numero_uc,
@@ -70,32 +41,42 @@ export const useFetchFaturas = (currentDate: Date) => {
           .eq("mes", currentDate.getMonth() + 1)
           .eq("ano", currentDate.getFullYear());
 
-        if (error) throw error;
+        if (errorAtuais) throw errorAtuais;
 
-        // Calcular economia acumulada para cada fatura e garantir o tipo correto do historico_status
-        return data.map(fatura => ({
-          ...fatura,
-          economia_acumulada: todasFaturasAnteriores
-            .filter(f => f.unidade_beneficiaria_id === fatura.unidade_beneficiaria.id)
-            .reduce((acc, f) => acc + (f.valor_desconto || 0), 0),
-          historico_status: (fatura.historico_status as any[] || []).map(entry => ({
-            status: entry.status,
-            data: entry.data,
-            observacao: entry.observacao
-          })),
-          valor_adicional: fatura.valor_adicional || 0,
-          observacao_pagamento: fatura.observacao_pagamento || null,
-          data_pagamento: fatura.data_pagamento || null
-        })) as Fatura[];
+        if (!faturasAtuais) return [];
+
+        // Processar os dados de forma mais eficiente
+        return faturasAtuais.map(fatura => {
+          const economiaAcumulada = todasFaturasAnteriores
+            ? todasFaturasAnteriores
+                .filter(f => f.unidade_beneficiaria_id === fatura.unidade_beneficiaria.id)
+                .reduce((acc, f) => acc + (f.valor_desconto || 0), 0)
+            : 0;
+
+          return {
+            ...fatura,
+            economia_acumulada: economiaAcumulada,
+            historico_status: Array.isArray(fatura.historico_status) 
+              ? fatura.historico_status.map(entry => ({
+                  status: entry.status,
+                  data: entry.data,
+                  observacao: entry.observacao
+                }))
+              : [],
+            valor_adicional: fatura.valor_adicional || 0,
+            observacao_pagamento: fatura.observacao_pagamento || null,
+            data_pagamento: fatura.data_pagamento || null
+          };
+        }) as Fatura[];
       } catch (error) {
         console.error('Erro ao buscar faturas:', error);
         toast.error("Erro ao carregar faturas");
         throw error;
       }
     },
-    staleTime: 0,
-    gcTime: 1000 * 60 * 5, // 5 minutos
-    retry: 2,
-    retryDelay: 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    gcTime: 10 * 60 * 1000,   // 10 minutos
+    retry: 1,
+    retryDelay: 3000,
   });
 };
