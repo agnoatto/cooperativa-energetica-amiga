@@ -10,53 +10,97 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CurrencyInput } from "./CurrencyInput";
 import type { FaturaEditModalProps } from "./types";
 import { parseValue } from "./utils/calculateValues";
 
+interface FormState {
+  consumo: number;
+  totalFatura: string;
+  faturaConcessionaria: string;
+  iluminacaoPublica: string;
+  outrosValores: string;
+  saldoEnergiaKwh: number;
+  observacao: string;
+  dataVencimento: string;
+}
+
 export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEditModalProps) {
-  const [consumo, setConsumo] = useState(fatura.consumo_kwh || 0);
-  const [totalFatura, setTotalFatura] = useState(fatura.total_fatura.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-  const [faturaConcessionaria, setFaturaConcessionaria] = useState(fatura.fatura_concessionaria.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-  const [iluminacaoPublica, setIluminacaoPublica] = useState(fatura.iluminacao_publica.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-  const [outrosValores, setOutrosValores] = useState(fatura.outros_valores.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-  const [saldoEnergiaKwh, setSaldoEnergiaKwh] = useState(fatura.saldo_energia_kwh || 0);
-  const [observacao, setObservacao] = useState(fatura.observacao || '');
-  const [dataVencimento, setDataVencimento] = useState(fatura.data_vencimento);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formState, setFormState] = useState<FormState>({
+    consumo: fatura.consumo_kwh || 0,
+    totalFatura: fatura.total_fatura.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    faturaConcessionaria: fatura.fatura_concessionaria.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    iluminacaoPublica: fatura.iluminacao_publica.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    outrosValores: fatura.outros_valores.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    saldoEnergiaKwh: fatura.saldo_energia_kwh || 0,
+    observacao: fatura.observacao || '',
+    dataVencimento: fatura.data_vencimento,
+  });
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setFormState({
+        consumo: fatura.consumo_kwh || 0,
+        totalFatura: fatura.total_fatura.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        faturaConcessionaria: fatura.fatura_concessionaria.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        iluminacaoPublica: fatura.iluminacao_publica.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        outrosValores: fatura.outros_valores.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        saldoEnergiaKwh: fatura.saldo_energia_kwh || 0,
+        observacao: fatura.observacao || '',
+        dataVencimento: fatura.data_vencimento,
+      });
+      setIsSubmitting(false);
+    }
+  }, [isOpen, fatura]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
+    
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    
     try {
-      const result = onSuccess({
+      const result = await onSuccess({
         id: fatura.id,
-        consumo_kwh: consumo,
-        total_fatura: parseValue(totalFatura),
-        fatura_concessionaria: parseValue(faturaConcessionaria),
-        iluminacao_publica: parseValue(iluminacaoPublica),
-        outros_valores: parseValue(outrosValores),
-        saldo_energia_kwh: saldoEnergiaKwh,
-        observacao: observacao || null,
-        data_vencimento: dataVencimento,
+        consumo_kwh: formState.consumo,
+        total_fatura: parseValue(formState.totalFatura),
+        fatura_concessionaria: parseValue(formState.faturaConcessionaria),
+        iluminacao_publica: parseValue(formState.iluminacaoPublica),
+        outros_valores: parseValue(formState.outrosValores),
+        saldo_energia_kwh: formState.saldoEnergiaKwh,
+        observacao: formState.observacao || null,
+        data_vencimento: formState.dataVencimento,
         percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
       });
 
-      if (result instanceof Promise) {
-        await result;
-      }
-      
+      // Add a small delay before closing to ensure state updates are complete
+      setTimeout(() => {
+        onClose();
+        setIsSubmitting(false);
+      }, 100);
+    } catch (error) {
+      console.error('Error updating fatura:', error);
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    if (!isSubmitting) {
       onClose();
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !isLoading && !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[425px]" onPointerDownOutside={(e) => {
+        if (isSubmitting) {
+          e.preventDefault();
+        }
+      }}>
         <DialogHeader>
           <DialogTitle>Editar Fatura</DialogTitle>
         </DialogHeader>
@@ -66,9 +110,10 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
             <Input
               type="date"
               id="dataVencimento"
-              value={dataVencimento}
-              onChange={(e) => setDataVencimento(e.target.value)}
+              value={formState.dataVencimento}
+              onChange={(e) => setFormState(prev => ({ ...prev, dataVencimento: e.target.value }))}
               required
+              disabled={isSubmitting}
             />
           </div>
           <div className="grid w-full items-center gap-2">
@@ -76,47 +121,52 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
             <Input
               type="number"
               id="consumo"
-              value={consumo}
-              onChange={(e) => setConsumo(Number(e.target.value))}
+              value={formState.consumo}
+              onChange={(e) => setFormState(prev => ({ ...prev, consumo: Number(e.target.value) }))}
               step="0.01"
               min="0"
               required
+              disabled={isSubmitting}
             />
           </div>
           <div className="grid w-full items-center gap-2">
             <Label htmlFor="totalFatura">Valor Total Original</Label>
             <CurrencyInput
               id="totalFatura"
-              value={totalFatura}
-              onChange={setTotalFatura}
+              value={formState.totalFatura}
+              onChange={(value) => setFormState(prev => ({ ...prev, totalFatura: value }))}
               required
+              disabled={isSubmitting}
             />
           </div>
           <div className="grid w-full items-center gap-2">
             <Label htmlFor="faturaConcessionaria">Valor Conta de Energia</Label>
             <CurrencyInput
               id="faturaConcessionaria"
-              value={faturaConcessionaria}
-              onChange={setFaturaConcessionaria}
+              value={formState.faturaConcessionaria}
+              onChange={(value) => setFormState(prev => ({ ...prev, faturaConcessionaria: value }))}
               required
+              disabled={isSubmitting}
             />
           </div>
           <div className="grid w-full items-center gap-2">
             <Label htmlFor="iluminacaoPublica">Iluminação Pública</Label>
             <CurrencyInput
               id="iluminacaoPublica"
-              value={iluminacaoPublica}
-              onChange={setIluminacaoPublica}
+              value={formState.iluminacaoPublica}
+              onChange={(value) => setFormState(prev => ({ ...prev, iluminacaoPublica: value }))}
               required
+              disabled={isSubmitting}
             />
           </div>
           <div className="grid w-full items-center gap-2">
             <Label htmlFor="outrosValores">Outros Valores</Label>
             <CurrencyInput
               id="outrosValores"
-              value={outrosValores}
-              onChange={setOutrosValores}
+              value={formState.outrosValores}
+              onChange={(value) => setFormState(prev => ({ ...prev, outrosValores: value }))}
               required
+              disabled={isSubmitting}
             />
           </div>
           <div className="grid w-full items-center gap-2">
@@ -124,30 +174,32 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
             <Input
               type="number"
               id="saldoEnergiaKwh"
-              value={saldoEnergiaKwh}
-              onChange={(e) => setSaldoEnergiaKwh(Number(e.target.value))}
+              value={formState.saldoEnergiaKwh}
+              onChange={(e) => setFormState(prev => ({ ...prev, saldoEnergiaKwh: Number(e.target.value) }))}
               step="0.01"
               min="0"
               required
+              disabled={isSubmitting}
             />
           </div>
           <div className="grid w-full items-center gap-2">
             <Label htmlFor="observacao">Observações</Label>
             <Textarea
               id="observacao"
-              value={observacao}
-              onChange={(e) => setObservacao(e.target.value)}
+              value={formState.observacao}
+              onChange={(e) => setFormState(prev => ({ ...prev, observacao: e.target.value }))}
               placeholder="Adicione observações relevantes sobre a fatura..."
               className="resize-none"
               rows={3}
+              disabled={isSubmitting}
             />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Salvando..." : "Salvar"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Salvando..." : "Salvar"}
             </Button>
           </DialogFooter>
         </form>
@@ -155,4 +207,3 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     </Dialog>
   );
 }
-
