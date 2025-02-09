@@ -16,6 +16,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
 
 interface FaturaActionsProps {
   fatura: Fatura;
@@ -34,6 +45,7 @@ export function FaturaActions({
   onDelete,
   onUpdateStatus
 }: FaturaActionsProps) {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const actions = [];
 
   // Botão de visualizar sempre disponível
@@ -84,7 +96,7 @@ export function FaturaActions({
     actions.push({
       label: "Excluir",
       icon: Trash2,
-      onClick: () => onDelete(fatura.id)
+      onClick: () => setShowDeleteDialog(true)
     });
   }
 
@@ -96,34 +108,59 @@ export function FaturaActions({
   });
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="sm"
-          className="h-8 w-8 p-0"
-        >
-          <MoreVertical className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {actions.map((action, index) => (
-          action.component ? (
-            <div key={index} className="px-2 py-1.5">
-              {action.component}
-            </div>
-          ) : (
-            <DropdownMenuItem
-              key={index}
-              onClick={action.onClick}
-              className="flex items-center gap-2"
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className="h-8 w-8 p-0"
+          >
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {actions.map((action, index) => (
+            action.component ? (
+              <div key={index} className="px-2 py-1.5">
+                {action.component}
+              </div>
+            ) : (
+              <DropdownMenuItem
+                key={index}
+                onClick={action.onClick}
+                className="flex items-center gap-2"
+              >
+                <action.icon className="h-4 w-4" />
+                <span>{action.label}</span>
+              </DropdownMenuItem>
+            )
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Fatura</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta fatura? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                onDelete(fatura.id);
+                setShowDeleteDialog(false);
+              }}
+              className="bg-red-600 hover:bg-red-700"
             >
-              <action.icon className="h-4 w-4" />
-              <span>{action.label}</span>
-            </DropdownMenuItem>
-          )
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
