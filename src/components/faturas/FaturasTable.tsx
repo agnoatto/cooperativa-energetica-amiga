@@ -8,9 +8,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Eye, Trash2, Send, CheckCircle2, XCircle } from "lucide-react";
+import { Edit, Eye, Trash2, Send, CheckCircle2 } from "lucide-react";
 import { FaturaPdfButton } from "./FaturaPdfButton";
 import { FaturaDetailsDialog } from "./FaturaDetailsDialog";
+import { DeleteFaturaDialog } from "./DeleteFaturaDialog";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { useState } from "react";
 
@@ -30,12 +31,26 @@ export function FaturasTable({
   onUpdateStatus 
 }: FaturasTableProps) {
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
+  const [faturaToDelete, setFaturaToDelete] = useState<Fatura | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!faturaToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await onDeleteFatura(faturaToDelete.id);
+    } finally {
+      setIsDeleting(false);
+      setFaturaToDelete(null);
+    }
   };
 
   const getStatusColor = (status: FaturaStatus) => {
@@ -145,7 +160,7 @@ export function FaturasTable({
           key="delete"
           variant="outline"
           size="icon"
-          onClick={() => onDeleteFatura(fatura.id)}
+          onClick={() => setFaturaToDelete(fatura)}
           title="Excluir Fatura"
         >
           <Trash2 className="h-4 w-4" />
@@ -230,6 +245,16 @@ export function FaturasTable({
           fatura={selectedFatura}
           isOpen={!!selectedFatura}
           onClose={() => setSelectedFatura(null)}
+        />
+      )}
+
+      {faturaToDelete && (
+        <DeleteFaturaDialog
+          fatura={faturaToDelete}
+          isOpen={!!faturaToDelete}
+          isDeleting={isDeleting}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setFaturaToDelete(null)}
         />
       )}
     </>
