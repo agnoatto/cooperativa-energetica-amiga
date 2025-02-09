@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -13,10 +14,13 @@ import { InvestidorForm } from "@/components/investidores/InvestidorForm";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
+import { DeleteInvestidorDialog } from "@/components/investidores/DeleteInvestidorDialog";
 
 const Investidores = () => {
   const [selectedInvestidorId, setSelectedInvestidorId] = useState<string | undefined>();
+  const [selectedInvestidorName, setSelectedInvestidorName] = useState<string>("");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: investidores, refetch } = useQuery({
@@ -25,6 +29,7 @@ const Investidores = () => {
       const { data, error } = await supabase
         .from("investidores")
         .select("*")
+        .is("deleted_at", null)
         .ilike("nome_investidor", `%${searchTerm}%`);
       
       if (error) throw error;
@@ -35,6 +40,12 @@ const Investidores = () => {
   const handleEdit = (investidorId: string) => {
     setSelectedInvestidorId(investidorId);
     setIsFormOpen(true);
+  };
+
+  const handleDelete = (investidorId: string, nome_investidor: string) => {
+    setSelectedInvestidorId(investidorId);
+    setSelectedInvestidorName(nome_investidor);
+    setIsDeleteDialogOpen(true);
   };
 
   return (
@@ -79,13 +90,21 @@ const Investidores = () => {
                 <TableCell>{investidor.documento}</TableCell>
                 <TableCell>{investidor.telefone}</TableCell>
                 <TableCell>{investidor.email}</TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleEdit(investidor.id)}
                   >
                     Editar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-red-200 text-red-600 hover:bg-red-50"
+                    onClick={() => handleDelete(investidor.id, investidor.nome_investidor)}
+                  >
+                    Excluir
                   </Button>
                 </TableCell>
               </TableRow>
@@ -100,6 +119,16 @@ const Investidores = () => {
         investidorId={selectedInvestidorId}
         onSuccess={refetch}
       />
+
+      {selectedInvestidorId && (
+        <DeleteInvestidorDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          investidorId={selectedInvestidorId}
+          investidorName={selectedInvestidorName}
+          onSuccess={refetch}
+        />
+      )}
     </div>
   );
 };
