@@ -48,6 +48,9 @@ export const useFetchFaturas = (currentDate: Date) => {
           data_envio,
           data_confirmacao_pagamento,
           historico_status,
+          valor_adicional,
+          observacao_pagamento,
+          data_pagamento,
           unidade_beneficiaria:unidade_beneficiaria_id (
             id,
             numero_uc,
@@ -79,7 +82,10 @@ export const useFetchFaturas = (currentDate: Date) => {
           status: entry.status,
           data: entry.data,
           observacao: entry.observacao
-        }))
+        })),
+        valor_adicional: fatura.valor_adicional || 0,
+        observacao_pagamento: fatura.observacao_pagamento || null,
+        data_pagamento: fatura.data_pagamento || null
       })) as Fatura[];
     },
     staleTime: 1000 * 60, // 1 minuto
