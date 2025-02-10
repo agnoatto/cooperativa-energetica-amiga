@@ -25,7 +25,6 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
         const { data, error } = await supabase
           .from("unidades_usina")
           .select("id, numero_uc, logradouro, numero")
-          .is("deleted_at", null)
           .eq("status", "active")
           .order("numero_uc")
           .limit(100);

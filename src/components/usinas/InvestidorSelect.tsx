@@ -23,7 +23,6 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
         const { data, error } = await supabase
           .from("investidores")
           .select("id, nome_investidor")
-          .is("deleted_at", null)
           .eq("status", "active")
           .order("nome_investidor")
           .limit(100);
