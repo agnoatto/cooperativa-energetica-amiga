@@ -29,41 +29,50 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+type Cooperativa = {
+  id: string;
+  configuracoes: FormValues;
+};
+
 export function SystemSettingsForm() {
   const { toast } = useToast();
 
-  const { data: cooperativa } = useQuery({
+  const { data: cooperativa, isLoading } = useQuery({
     queryKey: ["cooperativa"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("cooperativas")
-        .select("configuracoes")
+        .select("id, configuracoes")
         .single();
 
       if (error) throw error;
-      return data;
+      return data as Cooperativa;
     },
   });
 
+  const defaultValues: FormValues = {
+    notificacoes: {
+      email_faturas: cooperativa?.configuracoes?.notificacoes?.email_faturas ?? true,
+      email_pagamentos: cooperativa?.configuracoes?.notificacoes?.email_pagamentos ?? true,
+    },
+    relatorios: {
+      incluir_logo: cooperativa?.configuracoes?.relatorios?.incluir_logo ?? true,
+    },
+  };
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      notificacoes: {
-        email_faturas: cooperativa?.configuracoes?.notificacoes?.email_faturas ?? true,
-        email_pagamentos: cooperativa?.configuracoes?.notificacoes?.email_pagamentos ?? true,
-      },
-      relatorios: {
-        incluir_logo: cooperativa?.configuracoes?.relatorios?.incluir_logo ?? true,
-      },
-    },
+    defaultValues,
   });
 
   const mutation = useMutation({
     mutationFn: async (values: FormValues) => {
+      if (!cooperativa?.id) throw new Error("Cooperativa não encontrada");
+      
       const { error } = await supabase
         .from("cooperativas")
         .update({ configuracoes: values })
-        .eq("id", cooperativa?.id);
+        .eq("id", cooperativa.id);
 
       if (error) throw error;
     },
@@ -85,6 +94,10 @@ export function SystemSettingsForm() {
   const onSubmit = (values: FormValues) => {
     mutation.mutate(values);
   };
+
+  if (isLoading) {
+    return <div>Carregando...</div>;
+  }
 
   return (
     <Card>
