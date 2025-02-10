@@ -6,19 +6,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { supabase } from "@/integrations/supabase/client";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { InvestidorSelect } from "./InvestidorSelect";
-import { UnidadeUsinaSelect } from "./UnidadeUsinaSelect";
-import { DadosPagamentoFields } from "./DadosPagamentoFields";
-import { usinaFormSchema, type UsinaFormData } from "./schema";
-import { useEffect, useState } from "react";
+import { Form } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
-import { CurrencyInput } from "@/components/faturas/CurrencyInput";
+import { useEffect } from "react";
+import { DadosPagamentoFields } from "./DadosPagamentoFields";
+import { type UsinaFormData } from "./schema";
+import { useUsinaForm } from "./hooks/useUsinaForm";
+import { UsinaBasicInfoFields } from "./UsinaBasicInfoFields";
 
 interface UsinaFormProps {
   open: boolean;
@@ -33,101 +27,15 @@ export function UsinaForm({
   usinaId,
   onSuccess,
 }: UsinaFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
-
-  const form = useForm<UsinaFormData>({
-    resolver: zodResolver(usinaFormSchema),
-    defaultValues: {
-      investidor_id: "",
-      unidade_usina_id: "",
-      valor_kwh: "0",
-      data_inicio: undefined,
-      dados_pagamento_nome: "",
-      dados_pagamento_documento: "",
-      dados_pagamento_banco: "",
-      dados_pagamento_agencia: "",
-      dados_pagamento_conta: "",
-      dados_pagamento_telefone: "",
-      dados_pagamento_email: "",
-    },
+  const { form, isLoading, onSubmit, fetchUsinaData } = useUsinaForm({
+    usinaId,
+    onSuccess,
+    onOpenChange,
   });
 
   useEffect(() => {
-    async function fetchUsinaData() {
-      if (usinaId && open) {
-        setIsLoading(true);
-        try {
-          const { data, error } = await supabase
-            .from("usinas")
-            .select("*")
-            .eq("id", usinaId)
-            .maybeSingle();
-
-          if (error) throw error;
-          
-          if (data) {
-            form.reset({
-              ...data,
-              valor_kwh: data.valor_kwh.toString(),
-              data_inicio: data.data_inicio ? new Date(data.data_inicio) : undefined,
-            });
-          }
-        } catch (error) {
-          console.error("Error fetching usina:", error);
-          toast.error("Erro ao carregar dados da usina");
-        } finally {
-          setIsLoading(false);
-        }
-      } else if (!open) {
-        form.reset();
-      }
-    }
-
-    fetchUsinaData();
-  }, [usinaId, open, form]);
-
-  const onSubmit = async (data: UsinaFormData) => {
-    setIsLoading(true);
-    try {
-      const usinaData = {
-        investidor_id: data.investidor_id,
-        unidade_usina_id: data.unidade_usina_id,
-        valor_kwh: data.valor_kwh,
-        data_inicio: data.data_inicio ? data.data_inicio.toISOString().split('T')[0] : null,
-        dados_pagamento_nome: data.dados_pagamento_nome,
-        dados_pagamento_documento: data.dados_pagamento_documento,
-        dados_pagamento_banco: data.dados_pagamento_banco,
-        dados_pagamento_agencia: data.dados_pagamento_agencia,
-        dados_pagamento_conta: data.dados_pagamento_conta,
-        dados_pagamento_telefone: data.dados_pagamento_telefone,
-        dados_pagamento_email: data.dados_pagamento_email,
-        status: usinaId ? "active" : "draft",
-      };
-
-      if (usinaId) {
-        const { error } = await supabase
-          .from("usinas")
-          .update(usinaData)
-          .eq("id", usinaId);
-
-        if (error) throw error;
-        toast.success("Usina atualizada com sucesso!");
-      } else {
-        const { error } = await supabase.from("usinas").insert(usinaData);
-
-        if (error) throw error;
-        toast.success("Usina cadastrada com sucesso!");
-      }
-
-      onSuccess();
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Error saving usina:", error);
-      toast.error("Erro ao salvar usina");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    fetchUsinaData(open);
+  }, [usinaId, open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -138,52 +46,7 @@ export function UsinaForm({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <InvestidorSelect form={form} />
-              <UnidadeUsinaSelect form={form} />
-
-              <FormField
-                control={form.control}
-                name="valor_kwh"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Valor do kWh</FormLabel>
-                    <FormControl>
-                      <CurrencyInput
-                        value={field.value}
-                        onChange={(value) => {
-                          field.onChange(value);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="data_inicio"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data de Início</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        {...field}
-                        value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : ''}
-                        onChange={(e) => {
-                          const date = e.target.value ? new Date(e.target.value) : undefined;
-                          field.onChange(date);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
+            <UsinaBasicInfoFields form={form} />
             <DadosPagamentoFields form={form} />
 
             <Button type="submit" disabled={isLoading}>
