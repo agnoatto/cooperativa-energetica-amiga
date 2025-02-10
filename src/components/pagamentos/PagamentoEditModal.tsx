@@ -1,12 +1,13 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { CurrencyInput } from "@/components/faturas/CurrencyInput";
+import { Input } from "@/components/ui/input";
 
 interface PagamentoEditModalProps {
   pagamento: {
@@ -31,7 +32,41 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
     conta_energia: 0,
     valor_total: 0,
     status: 'pendente',
+    data_pagamento: null,
   });
+
+  // Função para converter valor em string formatado para número
+  const parseCurrencyToNumber = (value: string): number => {
+    return Number(value.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+  };
+
+  // Função para calcular o valor total
+  const calculateTotal = (geracaoKwh: number, tusdFioB: number, contaEnergia: number) => {
+    // Buscar o valor_kwh da usina (por enquanto vamos usar um valor fixo como exemplo)
+    const valorKwh = 0.80; // Este valor deve vir da usina
+    const valorPorKwh = valorKwh - tusdFioB;
+    return (geracaoKwh * valorPorKwh) - contaEnergia;
+  };
+
+  // Atualizar valores e recalcular total quando os campos mudarem
+  useEffect(() => {
+    const total = calculateTotal(
+      form.geracao_kwh,
+      parseCurrencyToNumber(form.valor_tusd_fio_b.toString()),
+      parseCurrencyToNumber(form.conta_energia.toString())
+    );
+    setForm(prev => ({ ...prev, valor_total: total }));
+  }, [form.geracao_kwh, form.valor_tusd_fio_b, form.conta_energia]);
+
+  // Atualizar data de pagamento quando status mudar para 'pago'
+  useEffect(() => {
+    if (form.status === 'pago' && !form.data_pagamento) {
+      setForm(prev => ({
+        ...prev,
+        data_pagamento: new Date().toISOString().split('T')[0]
+      }));
+    }
+  }, [form.status]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,11 +75,11 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
         .from('pagamentos_usina')
         .update({
           geracao_kwh: Number(form.geracao_kwh),
-          valor_tusd_fio_b: Number(form.valor_tusd_fio_b),
-          conta_energia: Number(form.conta_energia),
-          valor_total: Number(form.valor_total),
+          valor_tusd_fio_b: parseCurrencyToNumber(form.valor_tusd_fio_b.toString()),
+          conta_energia: parseCurrencyToNumber(form.conta_energia.toString()),
+          valor_total: form.valor_total,
           status: form.status,
-          data_pagamento: form.status === 'pago' ? new Date().toISOString().split('T')[0] : null,
+          data_pagamento: form.data_pagamento,
         })
         .eq('id', pagamento?.id);
 
@@ -74,34 +109,35 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
               id="geracao_kwh"
               type="number"
               value={form.geracao_kwh}
-              onChange={(e) => setForm({ ...form, geracao_kwh: e.target.valueAsNumber })}
+              onChange={(e) => setForm({ ...form, geracao_kwh: e.target.valueAsNumber || 0 })}
             />
           </div>
           <div>
-            <Label htmlFor="valor_tusd_fio_b">TUSD Fio B</Label>
-            <Input
+            <Label htmlFor="valor_tusd_fio_b">TUSD Fio B (R$/kWh)</Label>
+            <CurrencyInput
               id="valor_tusd_fio_b"
-              type="number"
               value={form.valor_tusd_fio_b}
-              onChange={(e) => setForm({ ...form, valor_tusd_fio_b: e.target.valueAsNumber })}
+              onChange={(value) => setForm({ ...form, valor_tusd_fio_b: parseCurrencyToNumber(value) })}
+              className="w-full"
             />
           </div>
           <div>
-            <Label htmlFor="conta_energia">Conta de Energia</Label>
-            <Input
+            <Label htmlFor="conta_energia">Conta de Energia (R$)</Label>
+            <CurrencyInput
               id="conta_energia"
-              type="number"
               value={form.conta_energia}
-              onChange={(e) => setForm({ ...form, conta_energia: e.target.valueAsNumber })}
+              onChange={(value) => setForm({ ...form, conta_energia: parseCurrencyToNumber(value) })}
+              className="w-full"
             />
           </div>
           <div>
             <Label htmlFor="valor_total">Valor Total</Label>
-            <Input
+            <CurrencyInput
               id="valor_total"
-              type="number"
               value={form.valor_total}
-              onChange={(e) => setForm({ ...form, valor_total: e.target.valueAsNumber })}
+              onChange={() => {}} // Somente leitura
+              className="w-full bg-gray-100"
+              readOnly
             />
           </div>
           <div>
