@@ -30,9 +30,9 @@ export function CooperadosTable({
   onViewDetails,
 }: CooperadosTableProps) {
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
+    <div className="rounded-md border border-gray-200">
+      <Table className="w-full border-collapse [&_tr:hover]:bg-gray-50">
+        <TableHeader className="[&_tr]:h-8 [&_th]:p-2 [&_th]:border-x [&_th]:border-gray-200 [&_tr]:border-b [&_tr]:border-gray-200">
           <TableRow>
             <TableHead>Nome/Razão Social</TableHead>
             <TableHead>Nº Cadastro</TableHead>
@@ -43,11 +43,11 @@ export function CooperadosTable({
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody className="[&_tr]:h-8 [&_td]:p-2 [&_td]:border-x [&_td]:border-gray-200 [&_tr]:border-b [&_tr]:border-gray-200">
           {cooperados.map((cooperado) => (
             <TableRow 
               key={cooperado.id} 
-              className="cursor-pointer hover:bg-gray-50"
+              className="cursor-pointer"
               onClick={() => onViewDetails(cooperado.id)}
             >
               <TableCell>{cooperado.nome}</TableCell>
@@ -57,7 +57,7 @@ export function CooperadosTable({
                 {cooperado.tipo_pessoa === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física'}
               </TableCell>
               <TableCell>
-                <div>
+                <div className="leading-tight">
                   {formatarTelefone(cooperado.telefone)}
                   <br />
                   {cooperado.email || '-'}
@@ -74,12 +74,13 @@ export function CooperadosTable({
                       onAddUnidade(cooperado.id);
                     }}
                     title="Adicionar Unidade Beneficiária"
+                    className="h-6 w-6"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-3 w-3" />
                   </Button>
                 </div>
               </TableCell>
-              <TableCell className="text-right space-x-2">
+              <TableCell className="text-right space-x-1">
                 <Button 
                   variant="outline" 
                   size="icon"
@@ -87,8 +88,9 @@ export function CooperadosTable({
                     e.stopPropagation();
                     onViewDetails(cooperado.id);
                   }}
+                  className="h-6 w-6"
                 >
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-3 w-3" />
                 </Button>
                 <Button 
                   variant="outline" 
@@ -97,8 +99,9 @@ export function CooperadosTable({
                     e.stopPropagation();
                     onEdit(cooperado.id);
                   }}
+                  className="h-6 w-6"
                 >
-                  <Edit className="h-4 w-4" />
+                  <Edit className="h-3 w-3" />
                 </Button>
                 <Button 
                   variant="outline" 
@@ -107,8 +110,9 @@ export function CooperadosTable({
                     e.stopPropagation();
                     onDelete(cooperado.id);
                   }}
+                  className="h-6 w-6"
                 >
-                  <Trash className="h-4 w-4" />
+                  <Trash className="h-3 w-3" />
                 </Button>
                 <CooperadoPdfButton
                   cooperado={cooperado}
