@@ -50,71 +50,74 @@ export function PagamentosTable({ pagamentos, isLoading, onEditPagamento }: Paga
   };
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Usina</TableHead>
-            <TableHead>Investidor</TableHead>
-            <TableHead>Geração (kWh)</TableHead>
-            <TableHead>TUSD Fio B</TableHead>
-            <TableHead>Conta de Energia</TableHead>
-            <TableHead>Valor Total</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading ? (
+    <div className="rounded-md border border-gray-200 overflow-hidden">
+      <div className="overflow-x-auto">
+        <Table className="w-full border-collapse [&_tr:hover]:bg-gray-50">
+          <TableHeader className="[&_tr]:h-8 [&_th]:p-2 [&_th]:border-x [&_th]:border-gray-200 [&_tr]:border-b [&_tr]:border-gray-200">
             <TableRow>
-              <TableCell colSpan={8} className="text-center">
-                Carregando...
-              </TableCell>
+              <TableHead>Usina</TableHead>
+              <TableHead>Investidor</TableHead>
+              <TableHead>Geração (kWh)</TableHead>
+              <TableHead>TUSD Fio B</TableHead>
+              <TableHead>Conta de Energia</TableHead>
+              <TableHead>Valor Total</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
-          ) : pagamentos && pagamentos.length > 0 ? (
-            pagamentos.map((pagamento) => (
-              <TableRow key={pagamento.id}>
-                <TableCell>{pagamento.usina?.unidade_usina?.numero_uc || 'N/A'}</TableCell>
-                <TableCell>{pagamento.usina?.investidor?.nome_investidor || 'N/A'}</TableCell>
-                <TableCell>{pagamento.geracao_kwh} kWh</TableCell>
-                <TableCell>{formatCurrency(pagamento.valor_tusd_fio_b)}</TableCell>
-                <TableCell>{formatCurrency(pagamento.conta_energia)}</TableCell>
-                <TableCell>{formatCurrency(pagamento.valor_total)}</TableCell>
-                <TableCell>
-                  <span className={`px-2 py-1 rounded-full text-sm ${
-                    pagamento.status === 'pendente'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : pagamento.status === 'pago'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {pagamento.status.charAt(0).toUpperCase() + pagamento.status.slice(1)}
-                  </span>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => onEditPagamento(pagamento)}
-                      title="Editar Pagamento"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <PagamentoPdfButton pagamento={pagamento} />
-                  </div>
+          </TableHeader>
+          <TableBody className="[&_tr]:h-8 [&_td]:p-2 [&_td]:border-x [&_td]:border-gray-200 [&_tr]:border-b [&_tr]:border-gray-200">
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center">
+                  Carregando...
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={8} className="text-center text-gray-500">
-                Nenhum pagamento encontrado para este mês
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            ) : pagamentos && pagamentos.length > 0 ? (
+              pagamentos.map((pagamento) => (
+                <TableRow key={pagamento.id}>
+                  <TableCell className="whitespace-nowrap">{pagamento.usina?.unidade_usina?.numero_uc || 'N/A'}</TableCell>
+                  <TableCell className="whitespace-nowrap">{pagamento.usina?.investidor?.nome_investidor || 'N/A'}</TableCell>
+                  <TableCell className="whitespace-nowrap">{pagamento.geracao_kwh} kWh</TableCell>
+                  <TableCell className="whitespace-nowrap">{formatCurrency(pagamento.valor_tusd_fio_b)}</TableCell>
+                  <TableCell className="whitespace-nowrap">{formatCurrency(pagamento.conta_energia)}</TableCell>
+                  <TableCell className="whitespace-nowrap">{formatCurrency(pagamento.valor_total)}</TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    <span className={`px-2 py-1 rounded-full text-sm ${
+                      pagamento.status === 'pendente'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : pagamento.status === 'pago'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {pagamento.status.charAt(0).toUpperCase() + pagamento.status.slice(1)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right whitespace-nowrap">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => onEditPagamento(pagamento)}
+                        title="Editar Pagamento"
+                        className="h-6 w-6"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <PagamentoPdfButton pagamento={pagamento} className="h-6 w-6" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center text-gray-500">
+                  Nenhum pagamento encontrado para este mês
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
