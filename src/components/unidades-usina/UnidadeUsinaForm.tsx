@@ -54,6 +54,16 @@ export function UnidadeUsinaForm({
     },
   });
 
+  // Limpa o titular_id quando o tipo de titular muda
+  React.useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "titular_tipo") {
+        form.setValue("titular_id", "");
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
   React.useEffect(() => {
     if (unidadeId) {
       supabase
@@ -208,4 +218,3 @@ export function UnidadeUsinaForm({
     </Dialog>
   );
 }
-
