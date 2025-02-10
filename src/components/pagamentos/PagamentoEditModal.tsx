@@ -3,21 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { usePagamentoForm } from "./hooks/usePagamentoForm";
 import { PagamentoFormFields } from "./PagamentoFormFields";
+import { PagamentoData } from "./types/pagamento";
 
 interface PagamentoEditModalProps {
-  pagamento: {
-    id: string;
-    geracao_kwh: number;
-    valor_total: number;
-    status: string;
-    data_pagamento: string | null;
-    tusd_fio_b: number | null;
-    valor_tusd_fio_b: number | null;
-    valor_concessionaria: number;
-    usina: {
-      valor_kwh: number;
-    };
-  } | null;
+  pagamento: PagamentoData | null;
   isOpen: boolean;
   onClose: () => void;
   onSave: () => void;

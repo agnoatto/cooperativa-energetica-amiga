@@ -1,17 +1,12 @@
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CurrencyInput } from "@/components/faturas/CurrencyInput";
+import { PagamentoFormValues } from "./types/pagamento";
 
 interface PagamentoFormFieldsProps {
-  form: {
-    geracao_kwh: number;
-    status: string;
-    tusd_fio_b: number;
-    valor_concessionaria: number;
-  };
-  setForm: (form: any) => void;
+  form: PagamentoFormValues;
+  setForm: (form: PagamentoFormValues) => void;
   valorKwh: number;
   valorBruto: number;
   valorEfetivo: number;
