@@ -10,7 +10,6 @@ import { Fatura, FaturaStatus } from "@/types/fatura";
 
 export function FaturasContainer() {
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { currentDate, handlePreviousMonth, handleNextMonth } = useMonthSelection();
   const { 
     faturas, 
@@ -22,16 +21,6 @@ export function FaturasContainer() {
     deleteFatura,
     updateFaturaStatus
   } = useFaturas(currentDate);
-
-  const handleEditFatura = (fatura: Fatura) => {
-    setSelectedFatura(fatura);
-    setIsEditModalOpen(true);
-  };
-
-  const handleCloseEditModal = () => {
-    setIsEditModalOpen(false);
-    setSelectedFatura(null); // Removido o setTimeout
-  };
 
   const handleDeleteFatura = async (id: string) => {
     await deleteFatura(id);
@@ -61,15 +50,15 @@ export function FaturasContainer() {
       <FaturasTable
         faturas={faturas}
         isLoading={isLoading}
-        onEditFatura={handleEditFatura}
+        onEditFatura={setSelectedFatura}
         onDeleteFatura={handleDeleteFatura}
         onUpdateStatus={handleUpdateStatus}
       />
 
       {selectedFatura && (
         <FaturaEditModal
-          isOpen={isEditModalOpen}
-          onClose={handleCloseEditModal}
+          isOpen={!!selectedFatura}
+          onClose={() => setSelectedFatura(null)}
           fatura={selectedFatura}
           onSuccess={updateFatura}
         />

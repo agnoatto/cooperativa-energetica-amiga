@@ -16,10 +16,3 @@ export const formatarTelefone = (telefone: string) => {
   }
   return numero.replace(/(\d{2})(\d{4})(\d{4})/g, '($1) $2-$3');
 };
-
-export const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(value);
-};
