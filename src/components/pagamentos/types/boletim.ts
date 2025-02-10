@@ -13,4 +13,3 @@ export interface BoletimMedicaoData {
   data_emissao: Date;
   valor_receber: number;
 }
-

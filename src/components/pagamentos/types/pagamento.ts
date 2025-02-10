@@ -8,8 +8,18 @@ export interface PagamentoData {
   tusd_fio_b: number | null;
   valor_tusd_fio_b: number | null;
   valor_concessionaria: number;
+  mes: number;
+  ano: number;
+  data_vencimento: string;
+  conta_energia: number;
   usina: {
     valor_kwh: number;
+    unidade_usina: {
+      numero_uc: string;
+    };
+    investidor: {
+      nome_investidor: string;
+    };
   };
 }
 
