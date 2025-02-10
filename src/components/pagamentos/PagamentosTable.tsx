@@ -15,6 +15,7 @@ interface Pagamento {
   id: string;
   geracao_kwh: number;
   tusd_fio_b: number | null;
+  valor_tusd_fio_b: number | null;
   valor_concessionaria: number;
   valor_total: number;
   conta_energia: number;
@@ -80,7 +81,7 @@ export function PagamentosTable({ pagamentos, isLoading, onEditPagamento }: Paga
                   <TableCell className="whitespace-nowrap">{pagamento.usina?.unidade_usina?.numero_uc || 'N/A'}</TableCell>
                   <TableCell className="whitespace-nowrap">{pagamento.usina?.investidor?.nome_investidor || 'N/A'}</TableCell>
                   <TableCell className="whitespace-nowrap">{pagamento.geracao_kwh} kWh</TableCell>
-                  <TableCell className="whitespace-nowrap">{formatCurrency(pagamento.tusd_fio_b || 0)}</TableCell>
+                  <TableCell className="whitespace-nowrap">{formatCurrency(pagamento.valor_tusd_fio_b || pagamento.tusd_fio_b || 0)}</TableCell>
                   <TableCell className="whitespace-nowrap">{formatCurrency(pagamento.valor_concessionaria)}</TableCell>
                   <TableCell className="whitespace-nowrap">{formatCurrency(pagamento.valor_total)}</TableCell>
                   <TableCell className="whitespace-nowrap">
