@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +14,7 @@ import { useForm } from "react-hook-form";
 import { useToast } from "../ui/use-toast";
 import { InvestidorFormFields } from "./InvestidorFormFields";
 import { investidorFormSchema, type InvestidorFormData } from "./types";
+import { Loader2 } from "lucide-react";
 
 interface InvestidorFormProps {
   open: boolean;
@@ -28,6 +30,8 @@ export function InvestidorForm({
   onSuccess,
 }: InvestidorFormProps) {
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = React.useState(false);
+
   const form = useForm<InvestidorFormData>({
     resolver: zodResolver(investidorFormSchema),
     defaultValues: {
@@ -38,8 +42,22 @@ export function InvestidorForm({
     },
   });
 
+  // Reset form when dialog closes
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      form.reset({
+        nome_investidor: "",
+        documento: "",
+        telefone: "",
+        email: "",
+      });
+    }
+    onOpenChange(open);
+  };
+
   React.useEffect(() => {
-    if (investidorId) {
+    if (open && investidorId) {
+      setIsLoading(true);
       supabase
         .from("investidores")
         .select("*")
@@ -48,6 +66,11 @@ export function InvestidorForm({
         .then(({ data, error }) => {
           if (error) {
             console.error("Error fetching investidor:", error);
+            toast({
+              title: "Erro ao carregar investidor",
+              description: error.message,
+              variant: "destructive",
+            });
             return;
           }
           if (data) {
@@ -58,8 +81,12 @@ export function InvestidorForm({
               email: data.email || "",
             });
           }
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
-    } else {
+    } else if (open) {
+      // Reset form when opening for new record
       form.reset({
         nome_investidor: "",
         documento: "",
@@ -67,10 +94,11 @@ export function InvestidorForm({
         email: "",
       });
     }
-  }, [investidorId, form]);
+  }, [investidorId, form, open, toast]);
 
   const onSubmit = async (data: InvestidorFormData) => {
     try {
+      setIsLoading(true);
       const submitData = {
         nome_investidor: data.nome_investidor,
         documento: data.documento.replace(/\D/g, ""),
@@ -91,7 +119,7 @@ export function InvestidorForm({
       } else {
         const { error } = await supabase.from("investidores").insert({
           ...submitData,
-          status: "draft",
+          status: "active",
           session_id: crypto.randomUUID(),
         });
         if (error) throw error;
@@ -100,7 +128,7 @@ export function InvestidorForm({
         });
       }
       onSuccess();
-      onOpenChange(false);
+      handleOpenChange(false);
     } catch (error: any) {
       console.error("Error saving investidor:", error);
       toast({
@@ -108,11 +136,13 @@ export function InvestidorForm({
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
@@ -123,7 +153,16 @@ export function InvestidorForm({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <InvestidorFormFields form={form} />
-            <Button type="submit">Salvar</Button>
+            <Button disabled={isLoading} type="submit">
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                "Salvar"
+              )}
+            </Button>
           </form>
         </Form>
       </DialogContent>

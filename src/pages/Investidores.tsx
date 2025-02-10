@@ -47,6 +47,13 @@ const Investidores = () => {
     await refetch();
   };
 
+  const handleFormClose = (open: boolean) => {
+    setIsFormOpen(open);
+    if (!open) {
+      setSelectedInvestidorId(undefined);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -79,12 +86,12 @@ const Investidores = () => {
 
       <InvestidorForm
         open={isFormOpen}
-        onOpenChange={setIsFormOpen}
+        onOpenChange={handleFormClose}
         investidorId={selectedInvestidorId}
         onSuccess={refetch}
       />
     </div>
   );
-};
+}
 
 export default Investidores;
