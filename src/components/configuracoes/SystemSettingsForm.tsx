@@ -43,9 +43,13 @@ export function SystemSettingsForm() {
       const { data, error } = await supabase
         .from("cooperativas")
         .select("id, configuracoes")
-        .single();
+        .is("deleted_at", null)
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error("Nenhuma cooperativa encontrada");
+      }
       return data as Cooperativa;
     },
   });
@@ -72,7 +76,8 @@ export function SystemSettingsForm() {
       const { error } = await supabase
         .from("cooperativas")
         .update({ configuracoes: values })
-        .eq("id", cooperativa.id);
+        .eq("id", cooperativa.id)
+        .is("deleted_at", null);
 
       if (error) throw error;
     },

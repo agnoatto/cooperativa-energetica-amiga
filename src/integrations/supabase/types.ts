@@ -59,6 +59,7 @@ export type Database = {
       }
       cooperativas: {
         Row: {
+          configuracoes: Json | null
           created_at: string
           deleted_at: string | null
           documento: string
@@ -70,6 +71,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          configuracoes?: Json | null
           created_at?: string
           deleted_at?: string | null
           documento: string
@@ -81,6 +83,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          configuracoes?: Json | null
           created_at?: string
           deleted_at?: string | null
           documento?: string
