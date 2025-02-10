@@ -149,7 +149,11 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
             <Input
               id="valor_kwh"
               type="text"
-              value={valorKwh.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              value={valorKwh.toLocaleString('pt-BR', { 
+                minimumFractionDigits: 4, 
+                maximumFractionDigits: 4,
+                useGrouping: true
+              })}
               disabled
               className="bg-gray-100"
             />
@@ -168,7 +172,11 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
             <Input
               id="valor_kwh_efetivo"
               type="text"
-              value={valorKwhEfetivo.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              value={valorKwhEfetivo.toLocaleString('pt-BR', { 
+                minimumFractionDigits: 4, 
+                maximumFractionDigits: 4,
+                useGrouping: true
+              })}
               disabled
               className="bg-gray-100"
             />
