@@ -647,15 +647,7 @@ export type Database = {
           uf?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_titular_investidor"
-            columns: ["titular_id"]
-            isOneToOne: false
-            referencedRelation: "investidores"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       usinas: {
         Row: {
