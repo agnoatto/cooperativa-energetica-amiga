@@ -23,26 +23,33 @@ const UnidadesUsina = () => {
   const { data: unidades, refetch } = useQuery({
     queryKey: ["unidades_usina"],
     queryFn: async () => {
-      let query = supabase
+      const { data: unidadesData, error: unidadesError } = await supabase
         .from("unidades_usina")
-        .select(`
-          *,
-          cooperado:cooperados(nome),
-          investidor:investidores(nome_investidor)
-        `);
+        .select("*");
 
-      const { data, error } = await query;
+      if (unidadesError) throw unidadesError;
 
-      if (error) {
-        console.error("Error fetching unidades:", error);
-        toast({
-          title: "Erro ao carregar unidades",
-          description: error.message,
-          variant: "destructive",
-        });
-        throw error;
-      }
-      return data;
+      // Fetch related data separately
+      const titularesPromises = unidadesData.map(async (unidade) => {
+        if (unidade.titular_tipo === 'cooperativa') {
+          const { data: cooperativa } = await supabase
+            .from("cooperativas")
+            .select("nome")
+            .eq("id", unidade.titular_id)
+            .single();
+          return { ...unidade, titular_nome: cooperativa?.nome };
+        } else {
+          const { data: cooperado } = await supabase
+            .from("cooperados")
+            .select("nome")
+            .eq("id", unidade.titular_id)
+            .single();
+          return { ...unidade, titular_nome: cooperado?.nome };
+        }
+      });
+
+      const unidadesWithTitulares = await Promise.all(titularesPromises);
+      return unidadesWithTitulares;
     },
   });
 
@@ -104,14 +111,6 @@ const UnidadesUsina = () => {
     return parts.join(", ");
   };
 
-  const getTitularNome = (unidade: any) => {
-    if (unidade.titular_tipo === 'cooperativa') {
-      return unidade.investidor?.nome_investidor;
-    } else {
-      return unidade.cooperado?.nome;
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -145,7 +144,7 @@ const UnidadesUsina = () => {
                 <TableCell>
                   {unidade.titular_tipo === 'cooperativa' ? 'Cooperativa' : 'Cooperado'}
                 </TableCell>
-                <TableCell>{getTitularNome(unidade)}</TableCell>
+                <TableCell>{unidade.titular_nome}</TableCell>
                 <TableCell className="text-right space-x-2">
                   <Button
                     variant="outline"
