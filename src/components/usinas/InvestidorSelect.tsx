@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef, useState } from "react";
 import { SapSelectBase } from "../ui/sap-select/SapSelectBase";
+import { toast } from "sonner";
 
 interface InvestidorSelectProps {
   form: UseFormReturn<UsinaFormData>;
@@ -23,33 +24,33 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
   const [search, setSearch] = useState("");
   const parentRef = useRef<HTMLDivElement>(null);
 
-  const { data: investidores = [], isLoading } = useQuery<Investidor[]>({
-    queryKey: ["investidores"],
+  const { data: investidores = [], isLoading } = useQuery({
+    queryKey: ["investidores", search],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("investidores")
-        .select("id, nome_investidor")
-        .eq("status", "active")
-        .order("nome_investidor");
+      try {
+        const query = supabase
+          .from("investidores")
+          .select("id, nome_investidor")
+          .eq("status", "active");
 
-      if (error) {
+        if (search.trim()) {
+          query.ilike("nome_investidor", `%${search.trim()}%`);
+        }
+
+        const { data, error } = await query.order("nome_investidor");
+
+        if (error) throw error;
+        return data || [];
+      } catch (error) {
         console.error("Error fetching investidores:", error);
-        throw error;
+        toast.error("Erro ao carregar investidores");
+        return [];
       }
-      return data || [];
     },
   });
 
-  const filteredInvestidores = isLoading 
-    ? [] 
-    : search.trim() === ""
-      ? investidores
-      : investidores.filter((investidor) =>
-          investidor.nome_investidor.toLowerCase().includes(search.toLowerCase().trim())
-        );
-
   const rowVirtualizer = useVirtualizer({
-    count: filteredInvestidores.length,
+    count: investidores.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 40,
     overscan: 5,
@@ -73,9 +74,9 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
       open={open}
       onOpenChange={setOpen}
     >
-      {filteredInvestidores.length === 0 ? (
+      {investidores.length === 0 ? (
         <div className="py-6 text-center text-sm text-gray-500">
-          Nenhum investidor encontrado.
+          Nenhum investidor encontrado
         </div>
       ) : (
         <div
@@ -87,7 +88,7 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
           }}
         >
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-            const investidor = filteredInvestidores[virtualRow.index];
+            const investidor = investidores[virtualRow.index];
             const isSelected = investidor.id === form.getValues("investidor_id");
             return (
               <div

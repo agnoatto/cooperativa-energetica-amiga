@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef, useState } from "react";
 import { SapSelectBase } from "../ui/sap-select/SapSelectBase";
+import { toast } from "sonner";
 
 interface UnidadeUsinaSelectProps {
   form: UseFormReturn<UsinaFormData>;
@@ -25,34 +26,33 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
   const [search, setSearch] = useState("");
   const parentRef = useRef<HTMLDivElement>(null);
 
-  const { data: unidades = [], isLoading } = useQuery<UnidadeUsina[]>({
-    queryKey: ["unidades_usina"],
+  const { data: unidades = [], isLoading } = useQuery({
+    queryKey: ["unidades_usina", search],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("unidades_usina")
-        .select("id, numero_uc, logradouro, numero")
-        .or('status.eq.active,status.is.null')
-        .order("numero_uc");
+      try {
+        const query = supabase
+          .from("unidades_usina")
+          .select("id, numero_uc, logradouro, numero")
+          .or('status.eq.active,status.is.null');
 
-      if (error) {
+        if (search.trim()) {
+          query.or(`numero_uc.ilike.%${search.trim()}%,logradouro.ilike.%${search.trim()}%`);
+        }
+
+        const { data, error } = await query.order("numero_uc");
+
+        if (error) throw error;
+        return data || [];
+      } catch (error) {
         console.error("Error fetching unidades:", error);
-        throw error;
+        toast.error("Erro ao carregar unidades");
+        return [];
       }
-      return data || [];
     },
   });
 
-  const filteredUnidades = isLoading 
-    ? [] 
-    : search.trim() === ""
-      ? unidades
-      : unidades.filter((unidade) =>
-          unidade.numero_uc.toLowerCase().includes(search.toLowerCase().trim()) ||
-          (unidade.logradouro && unidade.logradouro.toLowerCase().includes(search.toLowerCase().trim()))
-        );
-
   const rowVirtualizer = useVirtualizer({
-    count: filteredUnidades.length,
+    count: unidades.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 40,
     overscan: 5,
@@ -63,7 +63,7 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
   );
 
   const getUnidadeLabel = (unidade: UnidadeUsina) => 
-    `UC ${unidade.numero_uc} - ${unidade.logradouro || ''}, ${unidade.numero || ''}`;
+    `UC ${unidade.numero_uc} - ${unidade.logradouro || ''}, ${unidade.numero || ''}`.trim();
 
   return (
     <SapSelectBase
@@ -79,9 +79,9 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
       open={open}
       onOpenChange={setOpen}
     >
-      {filteredUnidades.length === 0 ? (
+      {unidades.length === 0 ? (
         <div className="py-6 text-center text-sm text-gray-500">
-          Nenhuma unidade encontrada.
+          Nenhuma unidade encontrada
         </div>
       ) : (
         <div
@@ -93,7 +93,7 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
           }}
         >
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-            const unidade = filteredUnidades[virtualRow.index];
+            const unidade = unidades[virtualRow.index];
             const isSelected = unidade.id === form.getValues("unidade_usina_id");
             return (
               <div
