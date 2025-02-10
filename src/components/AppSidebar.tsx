@@ -1,7 +1,7 @@
 
+import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
@@ -18,13 +18,13 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function AppSidebar({ className, children }: SidebarProps) {
-  const [open, setOpen] = useState(false);
-  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [open, setOpen] = React.useState(false);
+  const [user, setUser] = React.useState<SupabaseUser | null>(null);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
+  React.useEffect(() => {
     const initializeUser = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
