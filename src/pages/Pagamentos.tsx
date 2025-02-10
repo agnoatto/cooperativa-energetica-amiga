@@ -44,6 +44,7 @@ const Pagamentos = () => {
           economia_acumulada,
           usina:usinas!inner(
             id,
+            valor_kwh,
             unidade_usina:unidades_usina!inner(
               numero_uc
             ),

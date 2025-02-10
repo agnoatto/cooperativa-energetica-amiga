@@ -11,8 +11,9 @@ interface PagamentoFormData {
   valor_total: number;
   status: string;
   data_pagamento: string | null;
-  usina_id?: string;
-  data_vencimento?: string;
+  usina?: {
+    valor_kwh: number;
+  };
 }
 
 export function usePagamentoForm(pagamento: PagamentoFormData | null, onSave: () => void, onClose: () => void) {
@@ -25,34 +26,9 @@ export function usePagamentoForm(pagamento: PagamentoFormData | null, onSave: ()
     data_pagamento: null,
   });
 
-  const [valorKwh, setValorKwh] = useState<number>(0);
+  const [valorKwh, setValorKwh] = useState<number>(pagamento?.usina?.valor_kwh || 0);
   const [valorKwhEfetivo, setValorKwhEfetivo] = useState<number>(0);
   const [valorBruto, setValorBruto] = useState<number>(0);
-
-  // Buscar valor_kwh da usina
-  useEffect(() => {
-    if (pagamento?.usina_id) {
-      const fetchValorKwh = async () => {
-        const { data, error } = await supabase
-          .from('usinas')
-          .select('valor_kwh')
-          .eq('id', pagamento.usina_id)
-          .single();
-
-        if (error) {
-          console.error('Erro ao buscar valor_kwh:', error);
-          toast.error('Erro ao buscar valor do kWh da usina');
-          return;
-        }
-
-        if (data) {
-          setValorKwh(data.valor_kwh);
-        }
-      };
-
-      fetchValorKwh();
-    }
-  }, [pagamento?.usina_id]);
 
   // Função para converter valor em string formatado para número
   const parseCurrencyToNumber = (value: string): number => {
