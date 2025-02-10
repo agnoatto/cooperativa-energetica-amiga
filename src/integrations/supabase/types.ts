@@ -260,13 +260,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_historico_investidor"
-            columns: ["titular_id"]
-            isOneToOne: false
-            referencedRelation: "investidores_ativos"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "historico_titulares_usina_unidade_usina_id_fkey"
             columns: ["unidade_usina_id"]
             isOneToOne: false
@@ -284,7 +277,6 @@ export type Database = {
           id: string
           nome_investidor: string
           session_id: string | null
-          status: string | null
           telefone: string | null
           updated_at: string
         }
@@ -296,7 +288,6 @@ export type Database = {
           id?: string
           nome_investidor: string
           session_id?: string | null
-          status?: string | null
           telefone?: string | null
           updated_at?: string
         }
@@ -308,7 +299,6 @@ export type Database = {
           id?: string
           nome_investidor?: string
           session_id?: string | null
-          status?: string | null
           telefone?: string | null
           updated_at?: string
         }
@@ -683,13 +673,6 @@ export type Database = {
             referencedRelation: "investidores"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fk_titular_investidor"
-            columns: ["titular_id"]
-            isOneToOne: false
-            referencedRelation: "investidores_ativos"
-            referencedColumns: ["id"]
-          },
         ]
       }
       usinas: {
@@ -753,13 +736,6 @@ export type Database = {
             columns: ["investidor_id"]
             isOneToOne: false
             referencedRelation: "investidores"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "usinas_investidor_id_fkey"
-            columns: ["investidor_id"]
-            isOneToOne: false
-            referencedRelation: "investidores_ativos"
             referencedColumns: ["id"]
           },
           {
@@ -866,45 +842,6 @@ export type Database = {
         }
         Relationships: []
       }
-      investidores_ativos: {
-        Row: {
-          created_at: string | null
-          deleted_at: string | null
-          documento: string | null
-          email: string | null
-          id: string | null
-          nome_investidor: string | null
-          session_id: string | null
-          status: string | null
-          telefone: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          deleted_at?: string | null
-          documento?: string | null
-          email?: string | null
-          id?: string | null
-          nome_investidor?: string | null
-          session_id?: string | null
-          status?: string | null
-          telefone?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          deleted_at?: string | null
-          documento?: string | null
-          email?: string | null
-          id?: string | null
-          nome_investidor?: string | null
-          session_id?: string | null
-          status?: string | null
-          telefone?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       usinas_ativas: {
         Row: {
           created_at: string | null
@@ -966,13 +903,6 @@ export type Database = {
             columns: ["investidor_id"]
             isOneToOne: false
             referencedRelation: "investidores"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "usinas_investidor_id_fkey"
-            columns: ["investidor_id"]
-            isOneToOne: false
-            referencedRelation: "investidores_ativos"
             referencedColumns: ["id"]
           },
           {

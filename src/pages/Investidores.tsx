@@ -22,6 +22,7 @@ const Investidores = () => {
       const { data, error } = await supabase
         .from("investidores")
         .select("*")
+        .is("deleted_at", null)
         .ilike("nome_investidor", `%${searchTerm}%`);
 
       if (error) throw error;
