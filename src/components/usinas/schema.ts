@@ -4,10 +4,18 @@ import * as z from "zod";
 export const usinaFormSchema = z.object({
   investidor_id: z.string().min(1, "Investidor é obrigatório"),
   unidade_usina_id: z.string().min(1, "Unidade é obrigatória"),
-  valor_kwh: z.coerce
-    .number()
-    .min(0, "Valor deve ser maior que zero")
-    .nonnegative("Valor não pode ser negativo"),
+  valor_kwh: z.string()
+    .transform((val) => {
+      // Remove formatação e converte para número
+      const numericValue = Number(val.replace(/[^\d,]/g, '').replace(',', '.'));
+      if (isNaN(numericValue)) return 0;
+      return numericValue;
+    })
+    .pipe(
+      z.number()
+        .min(0, "Valor deve ser maior que zero")
+        .nonnegative("Valor não pode ser negativo")
+    ),
   data_inicio: z.coerce.date().optional(),
   dados_pagamento_nome: z.string().optional(),
   dados_pagamento_documento: z.string().optional(),
@@ -19,3 +27,4 @@ export const usinaFormSchema = z.object({
 });
 
 export type UsinaFormData = z.infer<typeof usinaFormSchema>;
+

@@ -18,6 +18,7 @@ import { DadosPagamentoFields } from "./DadosPagamentoFields";
 import { usinaFormSchema, type UsinaFormData } from "./schema";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { CurrencyInput } from "@/components/faturas/CurrencyInput";
 
 interface UsinaFormProps {
   open: boolean;
@@ -39,7 +40,7 @@ export function UsinaForm({
     defaultValues: {
       investidor_id: "",
       unidade_usina_id: "",
-      valor_kwh: 0,
+      valor_kwh: "0",
       data_inicio: undefined,
       dados_pagamento_nome: "",
       dados_pagamento_documento: "",
@@ -67,6 +68,7 @@ export function UsinaForm({
           if (data) {
             form.reset({
               ...data,
+              valor_kwh: data.valor_kwh.toString(),
               data_inicio: data.data_inicio ? new Date(data.data_inicio) : undefined,
             });
           }
@@ -147,12 +149,11 @@ export function UsinaForm({
                   <FormItem>
                     <FormLabel>Valor do kWh</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      <CurrencyInput
+                        value={field.value}
+                        onChange={(value) => {
+                          field.onChange(value);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
