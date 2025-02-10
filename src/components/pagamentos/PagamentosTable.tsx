@@ -14,8 +14,8 @@ import { PagamentoPdfButton } from "./PagamentoPdfButton";
 interface Pagamento {
   id: string;
   geracao_kwh: number;
-  valor_tusd_fio_b: number;
-  conta_energia: number;
+  tusd_fio_b: number;
+  valor_concessionaria: number;
   valor_total: number;
   status: string;
   data_vencimento: string;
@@ -59,7 +59,7 @@ export function PagamentosTable({ pagamentos, isLoading, onEditPagamento }: Paga
               <TableHead>Investidor</TableHead>
               <TableHead>Geração (kWh)</TableHead>
               <TableHead>TUSD Fio B</TableHead>
-              <TableHead>Conta de Energia</TableHead>
+              <TableHead>Valor Concessionária</TableHead>
               <TableHead>Valor Total</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
@@ -78,8 +78,8 @@ export function PagamentosTable({ pagamentos, isLoading, onEditPagamento }: Paga
                   <TableCell className="whitespace-nowrap">{pagamento.usina?.unidade_usina?.numero_uc || 'N/A'}</TableCell>
                   <TableCell className="whitespace-nowrap">{pagamento.usina?.investidor?.nome_investidor || 'N/A'}</TableCell>
                   <TableCell className="whitespace-nowrap">{pagamento.geracao_kwh} kWh</TableCell>
-                  <TableCell className="whitespace-nowrap">{formatCurrency(pagamento.valor_tusd_fio_b)}</TableCell>
-                  <TableCell className="whitespace-nowrap">{formatCurrency(pagamento.conta_energia)}</TableCell>
+                  <TableCell className="whitespace-nowrap">{formatCurrency(pagamento.tusd_fio_b)}</TableCell>
+                  <TableCell className="whitespace-nowrap">{formatCurrency(pagamento.valor_concessionaria)}</TableCell>
                   <TableCell className="whitespace-nowrap">{formatCurrency(pagamento.valor_total)}</TableCell>
                   <TableCell className="whitespace-nowrap">
                     <span className={`px-2 py-1 rounded-full text-sm ${

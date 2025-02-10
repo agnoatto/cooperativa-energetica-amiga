@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,8 +31,8 @@ const Pagamentos = () => {
         .select(`
           id,
           geracao_kwh,
-          valor_tusd_fio_b,
-          conta_energia,
+          tusd_fio_b,
+          valor_concessionaria,
           valor_total,
           status,
           data_vencimento,
@@ -107,8 +106,8 @@ const Pagamentos = () => {
               mes,
               ano,
               geracao_kwh: 0,
-              valor_tusd_fio_b: 0,
-              conta_energia: 0,
+              tusd_fio_b: 0,
+              valor_concessionaria: 0,
               valor_total: 0,
               status: "pendente",
               data_vencimento: dataVencimento.toISOString().split('T')[0],
