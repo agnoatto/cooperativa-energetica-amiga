@@ -27,7 +27,8 @@ const UnidadesUsina = () => {
         .from("unidades_usina")
         .select(`
           *,
-          titular:investidores(nome_investidor),
+          titular_cooperativa:investidores(nome_investidor),
+          titular_cooperado:cooperados(nome),
           usinas:usinas(id)
         `);
 
@@ -102,6 +103,14 @@ const UnidadesUsina = () => {
     return parts.join(", ");
   };
 
+  const getTitularNome = (unidade: any) => {
+    if (unidade.titular_tipo === 'cooperativa') {
+      return unidade.titular_cooperativa?.nome_investidor;
+    } else {
+      return unidade.titular_cooperado?.nome;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -122,6 +131,7 @@ const UnidadesUsina = () => {
             <TableRow>
               <TableHead>Número UC</TableHead>
               <TableHead>Endereço</TableHead>
+              <TableHead>Tipo</TableHead>
               <TableHead>Titular</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -131,7 +141,10 @@ const UnidadesUsina = () => {
               <TableRow key={unidade.id}>
                 <TableCell>{unidade.numero_uc}</TableCell>
                 <TableCell>{formatAddress(unidade)}</TableCell>
-                <TableCell>{unidade.titular?.nome_investidor}</TableCell>
+                <TableCell>
+                  {unidade.titular_tipo === 'cooperativa' ? 'Cooperativa' : 'Cooperado'}
+                </TableCell>
+                <TableCell>{getTitularNome(unidade)}</TableCell>
                 <TableCell className="text-right space-x-2">
                   <Button
                     variant="outline"

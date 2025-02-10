@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,10 +25,11 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from "../ui/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 const unidadeUsinaFormSchema = z.object({
   numero_uc: z.string().min(1, "Número UC é obrigatório"),
@@ -39,6 +41,7 @@ const unidadeUsinaFormSchema = z.object({
   uf: z.string().min(2, "UF é obrigatória").max(2, "UF deve ter 2 caracteres"),
   cep: z.string().min(8, "CEP é obrigatório").max(9, "CEP inválido"),
   titular_id: z.string().min(1, "Titular é obrigatório"),
+  titular_tipo: z.enum(["cooperado", "cooperativa"]),
 });
 
 type UnidadeUsinaFormData = z.infer<typeof unidadeUsinaFormSchema>;
@@ -69,6 +72,7 @@ export function UnidadeUsinaForm({
       uf: "",
       cep: "",
       titular_id: "",
+      titular_tipo: "cooperativa",
     },
   });
 
@@ -77,7 +81,22 @@ export function UnidadeUsinaForm({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("investidores")
-        .select("id, nome_investidor");
+        .select("id, nome_investidor")
+        .is("deleted_at", null)
+        .order("nome_investidor");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: cooperados } = useQuery({
+    queryKey: ["cooperados"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cooperados")
+        .select("id, nome")
+        .is("data_exclusao", null)
+        .order("nome");
       if (error) throw error;
       return data;
     },
@@ -106,6 +125,7 @@ export function UnidadeUsinaForm({
               uf: data.uf || "",
               cep: data.cep || "",
               titular_id: data.titular_id,
+              titular_tipo: data.titular_tipo as "cooperado" | "cooperativa",
             });
           }
         });
@@ -120,6 +140,7 @@ export function UnidadeUsinaForm({
         uf: "",
         cep: "",
         titular_id: "",
+        titular_tipo: "cooperativa",
       });
     }
   }, [unidadeId, form]);
@@ -136,31 +157,60 @@ export function UnidadeUsinaForm({
         uf: data.uf.toUpperCase(),
         cep: data.cep,
         titular_id: data.titular_id,
-        updated_at: new Date().toISOString(),
+        titular_tipo: data.titular_tipo,
+        status: 'draft',
+        session_id: crypto.randomUUID(),
       };
 
+      let response;
+      
       if (unidadeId) {
-        const { error } = await supabase
+        response = await supabase
           .from("unidades_usina")
           .update(submitData)
           .eq("id", unidadeId);
-        if (error) throw error;
+
+        if (response.error) throw response.error;
+
+        // Registrar alteração no histórico
+        const { error: historicoError } = await supabase
+          .from("historico_titulares_usina")
+          .insert({
+            unidade_usina_id: unidadeId,
+            titular_id: data.titular_id,
+            titular_tipo: data.titular_tipo,
+          });
+
+        if (historicoError) throw historicoError;
+
         toast({
           title: "Unidade atualizada com sucesso!",
         });
       } else {
-        const { error } = await supabase
+        response = await supabase
           .from("unidades_usina")
+          .insert(submitData)
+          .select()
+          .single();
+
+        if (response.error) throw response.error;
+
+        // Registrar criação no histórico
+        const { error: historicoError } = await supabase
+          .from("historico_titulares_usina")
           .insert({
-            ...submitData,
-            status: 'draft',
-            session_id: crypto.randomUUID(),
+            unidade_usina_id: response.data.id,
+            titular_id: data.titular_id,
+            titular_tipo: data.titular_tipo,
           });
-        if (error) throw error;
+
+        if (historicoError) throw historicoError;
+
         toast({
           title: "Unidade criada com sucesso!",
         });
       }
+
       onSuccess();
       onOpenChange(false);
     } catch (error: any) {
@@ -184,6 +234,75 @@ export function UnidadeUsinaForm({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="titular_tipo"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>Tipo de Titular</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="cooperativa" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          Cooperativa
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="cooperado" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          Cooperado
+                        </FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="titular_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Titular</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o titular" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {form.watch("titular_tipo") === "cooperativa" 
+                        ? investidores?.map((investidor) => (
+                            <SelectItem key={investidor.id} value={investidor.id}>
+                              {investidor.nome_investidor}
+                            </SelectItem>
+                          ))
+                        : cooperados?.map((cooperado) => (
+                            <SelectItem key={cooperado.id} value={cooperado.id}>
+                              {cooperado.nome}
+                            </SelectItem>
+                          ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="numero_uc"
@@ -295,34 +414,6 @@ export function UnidadeUsinaForm({
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="titular_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Titular</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o titular" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {investidores?.map((investidor) => (
-                        <SelectItem key={investidor.id} value={investidor.id}>
-                          {investidor.nome_investidor}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

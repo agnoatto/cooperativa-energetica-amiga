@@ -239,27 +239,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_historico_cooperado"
-            columns: ["titular_id"]
-            isOneToOne: false
-            referencedRelation: "cooperados"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_historico_cooperado"
-            columns: ["titular_id"]
-            isOneToOne: false
-            referencedRelation: "cooperados_ativos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_historico_investidor"
-            columns: ["titular_id"]
-            isOneToOne: false
-            referencedRelation: "investidores"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "historico_titulares_usina_unidade_usina_id_fkey"
             columns: ["unidade_usina_id"]
             isOneToOne: false
@@ -630,6 +609,7 @@ export type Database = {
           session_id: string | null
           status: string | null
           titular_id: string
+          titular_tipo: string
           uf: string | null
           updated_at: string
         }
@@ -646,6 +626,7 @@ export type Database = {
           session_id?: string | null
           status?: string | null
           titular_id: string
+          titular_tipo?: string
           uf?: string | null
           updated_at?: string
         }
@@ -662,6 +643,7 @@ export type Database = {
           session_id?: string | null
           status?: string | null
           titular_id?: string
+          titular_tipo?: string
           uf?: string | null
           updated_at?: string
         }
