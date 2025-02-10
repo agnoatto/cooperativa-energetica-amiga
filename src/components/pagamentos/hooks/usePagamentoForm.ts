@@ -30,12 +30,6 @@ export function usePagamentoForm(pagamento: PagamentoFormData | null, onSave: ()
   const [valorKwhEfetivo, setValorKwhEfetivo] = useState<number>(0);
   const [valorBruto, setValorBruto] = useState<number>(0);
 
-  useEffect(() => {
-    if (pagamento?.usina?.valor_kwh) {
-      setValorKwh(pagamento.usina.valor_kwh);
-    }
-  }, [pagamento]);
-
   // Função para converter valor em string formatado para número
   const parseCurrencyToNumber = (value: string): number => {
     return Number(value.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
