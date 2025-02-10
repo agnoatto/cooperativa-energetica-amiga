@@ -30,10 +30,7 @@ export function FaturasContainer() {
 
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false);
-    // Delay na limpeza do estado da fatura selecionada para evitar flash visual
-    setTimeout(() => {
-      setSelectedFatura(null);
-    }, 300);
+    setSelectedFatura(null); // Removido o setTimeout
   };
 
   const handleDeleteFatura = async (id: string) => {

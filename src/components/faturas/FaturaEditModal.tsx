@@ -28,7 +28,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
 
   // Inicializa os campos quando o modal abre com uma nova fatura
   useEffect(() => {
-    if (isOpen && fatura) {
+    if (fatura) {
       setConsumo(fatura.consumo_kwh || 0);
       setTotalFatura(fatura.total_fatura.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
       setFaturaConcessionaria(fatura.fatura_concessionaria.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
@@ -38,26 +38,19 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
       setObservacao(fatura.observacao || '');
       setDataVencimento(fatura.data_vencimento);
     }
-  }, [isOpen, fatura]);
+  }, [fatura]);
 
-  // Limpa os campos quando o modal fecha
-  useEffect(() => {
-    if (!isOpen) {
-      const timeoutId = setTimeout(() => {
-        setConsumo(0);
-        setTotalFatura("0,00");
-        setFaturaConcessionaria("0,00");
-        setIluminacaoPublica("0,00");
-        setOutrosValores("0,00");
-        setSaldoEnergiaKwh(0);
-        setObservacao("");
-        setDataVencimento("");
-        setIsLoading(false);
-      }, 300); // Pequeno delay para garantir que a animação do modal termine
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [isOpen]);
+  const resetForm = () => {
+    setConsumo(0);
+    setTotalFatura("0,00");
+    setFaturaConcessionaria("0,00");
+    setIluminacaoPublica("0,00");
+    setOutrosValores("0,00");
+    setSaldoEnergiaKwh(0);
+    setObservacao("");
+    setDataVencimento("");
+    setIsLoading(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +58,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
 
     setIsLoading(true);
     try {
-      const result = onSuccess({
+      await onSuccess({
         id: fatura.id,
         consumo_kwh: consumo,
         total_fatura: parseValue(totalFatura),
@@ -77,24 +70,18 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
         data_vencimento: dataVencimento,
         percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
       });
-
-      if (result instanceof Promise) {
-        await result;
-      }
       
-      // Delay no fechamento para garantir que todas as operações terminaram
-      setTimeout(() => {
-        onClose();
-        setIsLoading(false);
-      }, 300);
+      onClose();
     } catch (error) {
       console.error('Erro ao salvar fatura:', error);
+    } finally {
       setIsLoading(false);
     }
   };
 
   const handleClose = () => {
     if (!isLoading) {
+      resetForm();
       onClose();
     }
   };
