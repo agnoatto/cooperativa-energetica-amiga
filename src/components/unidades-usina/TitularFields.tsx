@@ -33,7 +33,7 @@ export function TitularFields() {
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
-                defaultValue={field.value}
+                value={field.value}
                 className="flex flex-col space-y-1"
               >
                 <FormItem className="flex items-center space-x-3 space-y-0">
@@ -61,7 +61,7 @@ export function TitularFields() {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Titular</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o titular" />
@@ -88,4 +88,3 @@ export function TitularFields() {
     </>
   );
 }
-

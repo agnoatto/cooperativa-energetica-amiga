@@ -15,4 +15,3 @@ export const unidadeUsinaFormSchema = z.object({
 });
 
 export type UnidadeUsinaFormData = z.infer<typeof unidadeUsinaFormSchema>;
-
