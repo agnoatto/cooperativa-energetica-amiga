@@ -26,9 +26,9 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
   const [dataVencimento, setDataVencimento] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Inicializa os campos quando o modal abre com uma nova fatura
   useEffect(() => {
-    if (fatura) {
+    if (fatura && isOpen) {
+      console.log('Inicializando campos do modal com fatura:', fatura);
       setConsumo(fatura.consumo_kwh || 0);
       setTotalFatura(fatura.total_fatura.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
       setFaturaConcessionaria(fatura.fatura_concessionaria.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
@@ -38,9 +38,10 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
       setObservacao(fatura.observacao || '');
       setDataVencimento(fatura.data_vencimento);
     }
-  }, [fatura]);
+  }, [fatura, isOpen]);
 
   const resetForm = () => {
+    console.log('Resetando formulário');
     setConsumo(0);
     setTotalFatura("0,00");
     setFaturaConcessionaria("0,00");
@@ -56,7 +57,9 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     e.preventDefault();
     if (isLoading) return;
 
+    console.log('Iniciando submissão do formulário');
     setIsLoading(true);
+    
     try {
       await onSuccess({
         id: fatura.id,
@@ -71,16 +74,17 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
         percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
       });
       
+      console.log('Submissão bem-sucedida, fechando modal');
       onClose();
     } catch (error) {
       console.error('Erro ao salvar fatura:', error);
-    } finally {
       setIsLoading(false);
     }
   };
 
   const handleClose = () => {
     if (!isLoading) {
+      console.log('Fechando modal');
       resetForm();
       onClose();
     }
@@ -212,3 +216,4 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     </Dialog>
   );
 }
+
