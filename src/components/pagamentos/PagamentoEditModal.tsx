@@ -19,6 +19,7 @@ interface PagamentoEditModalProps {
     status: string;
     data_vencimento: string;
     data_pagamento: string | null;
+    usina_id: string;
   } | null;
   isOpen: boolean;
   onClose: () => void;
@@ -35,6 +36,33 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
     data_pagamento: null,
   });
 
+  const [valorKwh, setValorKwh] = useState<number>(0);
+
+  // Buscar valor_kwh da usina
+  useEffect(() => {
+    if (pagamento?.usina_id) {
+      const fetchValorKwh = async () => {
+        const { data, error } = await supabase
+          .from('usinas')
+          .select('valor_kwh')
+          .eq('id', pagamento.usina_id)
+          .single();
+
+        if (error) {
+          console.error('Erro ao buscar valor_kwh:', error);
+          toast.error('Erro ao buscar valor do kWh da usina');
+          return;
+        }
+
+        if (data) {
+          setValorKwh(data.valor_kwh);
+        }
+      };
+
+      fetchValorKwh();
+    }
+  }, [pagamento?.usina_id]);
+
   // Função para converter valor em string formatado para número
   const parseCurrencyToNumber = (value: string): number => {
     return Number(value.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
@@ -42,8 +70,6 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
 
   // Função para calcular o valor total
   const calculateTotal = (geracaoKwh: number, tusdFioB: number, contaEnergia: number) => {
-    // Buscar o valor_kwh da usina (por enquanto vamos usar um valor fixo como exemplo)
-    const valorKwh = 0.80; // Este valor deve vir da usina
     const valorPorKwh = valorKwh - tusdFioB;
     return (geracaoKwh * valorPorKwh) - contaEnergia;
   };
@@ -56,7 +82,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
       parseCurrencyToNumber(form.conta_energia.toString())
     );
     setForm(prev => ({ ...prev, valor_total: total }));
-  }, [form.geracao_kwh, form.valor_tusd_fio_b, form.conta_energia]);
+  }, [form.geracao_kwh, form.valor_tusd_fio_b, form.conta_energia, valorKwh]);
 
   // Atualizar data de pagamento quando status mudar para 'pago'
   useEffect(() => {
