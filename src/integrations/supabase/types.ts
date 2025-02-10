@@ -338,6 +338,7 @@ export type Database = {
           tusd_fio_b: number | null
           updated_at: string
           usina_id: string | null
+          valor_concessionaria: number
           valor_total: number
           valor_tusd_fio_b: number
         }
@@ -356,6 +357,7 @@ export type Database = {
           tusd_fio_b?: number | null
           updated_at?: string
           usina_id?: string | null
+          valor_concessionaria?: number
           valor_total: number
           valor_tusd_fio_b: number
         }
@@ -374,6 +376,7 @@ export type Database = {
           tusd_fio_b?: number | null
           updated_at?: string
           usina_id?: string | null
+          valor_concessionaria?: number
           valor_total?: number
           valor_tusd_fio_b?: number
         }
