@@ -16,35 +16,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { useToast } from "../ui/use-toast";
-import { useQuery } from "@tanstack/react-query";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-
-const unidadeUsinaFormSchema = z.object({
-  numero_uc: z.string().min(1, "Número UC é obrigatório"),
-  logradouro: z.string().min(1, "Logradouro é obrigatório"),
-  numero: z.string().min(1, "Número é obrigatório"),
-  complemento: z.string().optional(),
-  bairro: z.string().min(1, "Bairro é obrigatório"),
-  cidade: z.string().min(1, "Cidade é obrigatória"),
-  uf: z.string().min(2, "UF é obrigatória").max(2, "UF deve ter 2 caracteres"),
-  cep: z.string().min(8, "CEP é obrigatório").max(9, "CEP inválido"),
-  titular_id: z.string().min(1, "Titular é obrigatório"),
-  titular_tipo: z.enum(["cooperado", "cooperativa"]),
-});
-
-type UnidadeUsinaFormData = z.infer<typeof unidadeUsinaFormSchema>;
+import { TitularFields } from "./TitularFields";
+import { AddressFields } from "./AddressFields";
+import { unidadeUsinaFormSchema, type UnidadeUsinaFormData } from "./schema";
 
 interface UnidadeUsinaFormProps {
   open: boolean;
@@ -73,32 +51,6 @@ export function UnidadeUsinaForm({
       cep: "",
       titular_id: "",
       titular_tipo: "cooperativa",
-    },
-  });
-
-  const { data: investidores } = useQuery({
-    queryKey: ["investidores"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("investidores")
-        .select("id, nome_investidor")
-        .is("deleted_at", null)
-        .order("nome_investidor");
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: cooperados } = useQuery({
-    queryKey: ["cooperados"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("cooperados")
-        .select("id, nome")
-        .is("data_exclusao", null)
-        .order("nome");
-      if (error) throw error;
-      return data;
     },
   });
 
@@ -172,7 +124,6 @@ export function UnidadeUsinaForm({
 
         if (response.error) throw response.error;
 
-        // Registrar alteração no histórico
         const { error: historicoError } = await supabase
           .from("historico_titulares_usina")
           .insert({
@@ -195,7 +146,6 @@ export function UnidadeUsinaForm({
 
         if (response.error) throw response.error;
 
-        // Registrar criação no histórico
         const { error: historicoError } = await supabase
           .from("historico_titulares_usina")
           .insert({
@@ -236,75 +186,6 @@ export function UnidadeUsinaForm({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="titular_tipo"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>Tipo de Titular</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="cooperativa" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          Cooperativa
-                        </FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="cooperado" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          Cooperado
-                        </FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="titular_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Titular</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o titular" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {form.watch("titular_tipo") === "cooperativa" 
-                        ? investidores?.map((investidor) => (
-                            <SelectItem key={investidor.id} value={investidor.id}>
-                              {investidor.nome_investidor}
-                            </SelectItem>
-                          ))
-                        : cooperados?.map((cooperado) => (
-                            <SelectItem key={cooperado.id} value={cooperado.id}>
-                              {cooperado.nome}
-                            </SelectItem>
-                          ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="numero_uc"
               render={({ field }) => (
                 <FormItem>
@@ -317,107 +198,8 @@ export function UnidadeUsinaForm({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="logradouro"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Logradouro</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="numero"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="complemento"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Complemento</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="bairro"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Bairro</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="cidade"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cidade</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="uf"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>UF</FormLabel>
-                    <FormControl>
-                      <Input {...field} maxLength={2} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="cep"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>CEP</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <TitularFields />
+            <AddressFields />
 
             <Button type="submit">Salvar</Button>
           </form>
@@ -426,3 +208,4 @@ export function UnidadeUsinaForm({
     </Dialog>
   );
 }
+
