@@ -335,6 +335,7 @@ export type Database = {
           id: string
           mes: number
           status: string
+          tusd_fio_b: number | null
           updated_at: string
           usina_id: string | null
           valor_total: number
@@ -352,6 +353,7 @@ export type Database = {
           id?: string
           mes: number
           status?: string
+          tusd_fio_b?: number | null
           updated_at?: string
           usina_id?: string | null
           valor_total: number
@@ -369,6 +371,7 @@ export type Database = {
           id?: string
           mes?: number
           status?: string
+          tusd_fio_b?: number | null
           updated_at?: string
           usina_id?: string | null
           valor_total?: number

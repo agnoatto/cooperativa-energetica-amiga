@@ -11,6 +11,8 @@ interface PagamentoEditModalProps {
     valor_total: number;
     status: string;
     data_pagamento: string | null;
+    tusd_fio_b: number;
+    valor_concessionaria: number;
     usina: {
       valor_kwh: number;
     };
@@ -26,6 +28,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
     setForm,
     valorKwh,
     valorBruto,
+    valorEfetivo,
     handleSubmit,
   } = usePagamentoForm(pagamento, onSave, onClose);
 
@@ -43,6 +46,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
             setForm={setForm}
             valorKwh={valorKwh}
             valorBruto={valorBruto}
+            valorEfetivo={valorEfetivo}
           />
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onClose}>

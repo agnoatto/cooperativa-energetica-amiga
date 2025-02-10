@@ -9,6 +9,7 @@ interface PagamentoFormFieldsProps {
   setForm: (form: any) => void;
   valorKwh: number;
   valorBruto: number;
+  valorEfetivo: number;
 }
 
 export function PagamentoFormFields({
@@ -16,6 +17,7 @@ export function PagamentoFormFields({
   setForm,
   valorKwh,
   valorBruto,
+  valorEfetivo,
 }: PagamentoFormFieldsProps) {
   return (
     <div className="space-y-4">
@@ -55,11 +57,32 @@ export function PagamentoFormFields({
         />
       </div>
       <div>
-        <Label htmlFor="valor_bruto">Valor Bruto a Receber (R$)</Label>
+        <Label htmlFor="valor_bruto">Valor Bruto (R$)</Label>
         <Input
           id="valor_bruto"
           type="text"
           value={valorBruto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+          disabled
+          className="bg-gray-100"
+        />
+      </div>
+      <div>
+        <Label htmlFor="valor_concessionaria">Valor Fatura Concessionária (R$)</Label>
+        <CurrencyInput
+          id="valor_concessionaria"
+          value={form.valor_concessionaria}
+          onChange={(value) => {
+            const numericValue = Number(value.replace(/[^\d,]/g, '').replace(',', '.'));
+            setForm({ ...form, valor_concessionaria: numericValue });
+          }}
+        />
+      </div>
+      <div>
+        <Label htmlFor="valor_efetivo">Valor Efetivo a Receber (R$)</Label>
+        <Input
+          id="valor_efetivo"
+          type="text"
+          value={valorEfetivo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
           disabled
           className="bg-gray-100"
         />
