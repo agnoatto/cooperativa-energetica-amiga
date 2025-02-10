@@ -3,7 +3,7 @@ import { UseFormReturn } from "react-hook-form";
 import { type UsinaFormData } from "./schema";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleSelect } from "../ui/simple-select";
+import { ReactSelectField } from "../ui/react-select";
 import { toast } from "sonner";
 
 interface InvestidorSelectProps {
@@ -43,14 +43,15 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
   }));
 
   return (
-    <SimpleSelect
+    <ReactSelectField
       form={form}
       name="investidor_id"
       label="Investidor"
       options={options}
       isLoading={isLoading}
       placeholder="Selecione um investidor"
+      isClearable
+      isSearchable
     />
   );
 }
-

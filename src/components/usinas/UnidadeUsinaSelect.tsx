@@ -3,7 +3,7 @@ import { UseFormReturn } from "react-hook-form";
 import { type UsinaFormData } from "./schema";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleSelect } from "../ui/simple-select";
+import { ReactSelectField } from "../ui/react-select";
 import { toast } from "sonner";
 
 interface UnidadeUsinaSelectProps {
@@ -45,14 +45,15 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
   }));
 
   return (
-    <SimpleSelect
+    <ReactSelectField
       form={form}
       name="unidade_usina_id"
       label="Unidade da Usina"
       options={options}
       isLoading={isLoading}
       placeholder="Selecione uma unidade"
+      isClearable
+      isSearchable
     />
   );
 }
-
