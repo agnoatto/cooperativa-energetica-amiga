@@ -26,6 +26,7 @@ interface Pagamento {
   economia_acumulada: number | null;
   usina: {
     id: string;
+    valor_kwh: number;
     unidade_usina: {
       numero_uc: string;
     };
