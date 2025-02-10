@@ -10,38 +10,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Edit } from "lucide-react";
 import { PagamentoPdfButton } from "./PagamentoPdfButton";
-
-interface Pagamento {
-  id: string;
-  geracao_kwh: number;
-  tusd_fio_b: number | null;
-  valor_tusd_fio_b: number | null;
-  valor_concessionaria: number;
-  valor_total: number;
-  conta_energia: number;
-  status: string;
-  data_vencimento: string;
-  data_pagamento: string | null;
-  mes: number;
-  ano: number;
-  economia_mes: number | null;
-  economia_acumulada: number | null;
-  usina: {
-    id: string;
-    valor_kwh: number;
-    unidade_usina: {
-      numero_uc: string;
-    };
-    investidor: {
-      nome_investidor: string;
-    };
-  };
-}
+import { BoletimMedicaoButton } from "./BoletimMedicaoButton";
+import { PagamentoData } from "./types/pagamento";
+import { BoletimMedicaoData } from "./types/boletim";
 
 interface PagamentosTableProps {
-  pagamentos: Pagamento[] | undefined;
+  pagamentos: PagamentoData[] | undefined;
   isLoading: boolean;
-  onEditPagamento: (pagamento: Pagamento) => void;
+  onEditPagamento: (pagamento: PagamentoData) => void;
 }
 
 export function PagamentosTable({ pagamentos, isLoading, onEditPagamento }: PagamentosTableProps) {
@@ -50,6 +26,21 @@ export function PagamentosTable({ pagamentos, isLoading, onEditPagamento }: Paga
       style: 'currency',
       currency: 'BRL',
     });
+  };
+
+  const prepareBoletimData = (pagamento: PagamentoData): BoletimMedicaoData => {
+    return {
+      usina: {
+        nome_investidor: pagamento.usina?.investidor?.nome_investidor || '',
+        numero_uc: pagamento.usina?.unidade_usina?.numero_uc || '',
+        concessionaria: 'RGE', // Hardcoded por enquanto
+        modalidade: 'GD2', // Hardcoded por enquanto
+        valor_kwh: pagamento.usina?.valor_kwh || 0,
+      },
+      pagamentos: [pagamento],
+      data_emissao: new Date(),
+      valor_receber: pagamento.valor_total,
+    };
   };
 
   return (
@@ -107,6 +98,7 @@ export function PagamentosTable({ pagamentos, isLoading, onEditPagamento }: Paga
                         <Edit className="h-3 w-3" />
                       </Button>
                       <PagamentoPdfButton pagamento={pagamento} className="h-6 w-6" />
+                      <BoletimMedicaoButton boletimData={prepareBoletimData(pagamento)} />
                     </div>
                   </TableCell>
                 </TableRow>
