@@ -26,9 +26,10 @@ interface PagamentoPdfButtonProps {
       };
     };
   };
+  className?: string;
 }
 
-export function PagamentoPdfButton({ pagamento }: PagamentoPdfButtonProps) {
+export function PagamentoPdfButton({ pagamento, className }: PagamentoPdfButtonProps) {
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', {
       style: 'currency',
@@ -96,8 +97,10 @@ export function PagamentoPdfButton({ pagamento }: PagamentoPdfButtonProps) {
       size="icon"
       onClick={gerarPDF}
       title="Imprimir Pagamento"
+      className={className}
     >
       <Printer className="h-4 w-4" />
     </Button>
   );
 }
+
