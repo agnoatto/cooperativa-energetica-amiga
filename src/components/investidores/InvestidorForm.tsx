@@ -58,33 +58,34 @@ export function InvestidorForm({
   React.useEffect(() => {
     if (open && investidorId) {
       setIsLoading(true);
-      supabase
-        .from("investidores")
-        .select("*")
-        .eq("id", investidorId)
-        .single()
-        .then(({ data, error }) => {
-          if (error) {
-            console.error("Error fetching investidor:", error);
-            toast({
-              title: "Erro ao carregar investidor",
-              description: error.message,
-              variant: "destructive",
-            });
-            return;
-          }
-          if (data) {
-            form.reset({
-              nome_investidor: data.nome_investidor,
-              documento: data.documento,
-              telefone: data.telefone || "",
-              email: data.email || "",
-            });
-          }
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
+      Promise.resolve(
+        supabase
+          .from("investidores")
+          .select("*")
+          .eq("id", investidorId)
+          .single()
+      ).then(({ data, error }) => {
+        if (error) {
+          console.error("Error fetching investidor:", error);
+          toast({
+            title: "Erro ao carregar investidor",
+            description: error.message,
+            variant: "destructive",
+          });
+          return;
+        }
+        if (data) {
+          form.reset({
+            nome_investidor: data.nome_investidor,
+            documento: data.documento,
+            telefone: data.telefone || "",
+            email: data.email || "",
+          });
+        }
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
     } else if (open) {
       // Reset form when opening for new record
       form.reset({
