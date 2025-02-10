@@ -1,3 +1,4 @@
+
 import * as z from "zod";
 
 export const usinaFormSchema = z.object({
@@ -7,6 +8,7 @@ export const usinaFormSchema = z.object({
     .number()
     .min(0, "Valor deve ser maior que zero")
     .nonnegative("Valor não pode ser negativo"),
+  data_inicio: z.coerce.date().optional(),
   dados_pagamento_nome: z.string().optional(),
   dados_pagamento_documento: z.string().optional(),
   dados_pagamento_banco: z.string().optional(),

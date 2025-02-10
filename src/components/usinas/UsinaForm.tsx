@@ -40,6 +40,7 @@ export function UsinaForm({
       investidor_id: "",
       unidade_usina_id: "",
       valor_kwh: 0,
+      data_inicio: undefined,
       dados_pagamento_nome: "",
       dados_pagamento_documento: "",
       dados_pagamento_banco: "",
@@ -64,7 +65,10 @@ export function UsinaForm({
           if (error) throw error;
           
           if (data) {
-            form.reset(data);
+            form.reset({
+              ...data,
+              data_inicio: data.data_inicio ? new Date(data.data_inicio) : undefined,
+            });
           }
         } catch (error) {
           console.error("Error fetching usina:", error);
@@ -87,6 +91,7 @@ export function UsinaForm({
         investidor_id: data.investidor_id,
         unidade_usina_id: data.unidade_usina_id,
         valor_kwh: data.valor_kwh,
+        data_inicio: data.data_inicio,
         dados_pagamento_nome: data.dados_pagamento_nome,
         dados_pagamento_documento: data.dados_pagamento_documento,
         dados_pagamento_banco: data.dados_pagamento_banco,
@@ -148,6 +153,24 @@ export function UsinaForm({
                         placeholder="0.00"
                         {...field}
                         onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="data_inicio"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Data de Início</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        {...field}
+                        value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
                       />
                     </FormControl>
                     <FormMessage />

@@ -695,6 +695,7 @@ export type Database = {
           dados_pagamento_email: string | null
           dados_pagamento_nome: string | null
           dados_pagamento_telefone: string | null
+          data_inicio: string | null
           deleted_at: string | null
           id: string
           investidor_id: string
@@ -713,6 +714,7 @@ export type Database = {
           dados_pagamento_email?: string | null
           dados_pagamento_nome?: string | null
           dados_pagamento_telefone?: string | null
+          data_inicio?: string | null
           deleted_at?: string | null
           id?: string
           investidor_id: string
@@ -731,6 +733,7 @@ export type Database = {
           dados_pagamento_email?: string | null
           dados_pagamento_nome?: string | null
           dados_pagamento_telefone?: string | null
+          data_inicio?: string | null
           deleted_at?: string | null
           id?: string
           investidor_id?: string
