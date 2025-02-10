@@ -17,6 +17,7 @@ interface Pagamento {
   tusd_fio_b: number | null;
   valor_concessionaria: number;
   valor_total: number;
+  conta_energia: number;
   status: string;
   data_vencimento: string;
   data_pagamento: string | null;

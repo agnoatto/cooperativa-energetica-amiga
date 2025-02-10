@@ -35,6 +35,7 @@ const Pagamentos = () => {
           tusd_fio_b,
           valor_concessionaria,
           valor_total,
+          conta_energia,
           status,
           data_vencimento,
           data_pagamento,
@@ -110,6 +111,7 @@ const Pagamentos = () => {
               tusd_fio_b: 0,
               valor_concessionaria: 0,
               valor_total: 0,
+              conta_energia: 0,
               status: "pendente",
               data_vencimento: dataVencimento.toISOString().split('T')[0],
             });
