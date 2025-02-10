@@ -23,14 +23,15 @@ const UnidadesUsina = () => {
   const { data: unidades, refetch } = useQuery({
     queryKey: ["unidades_usina"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("unidades_usina")
         .select(`
           *,
-          titular_cooperativa:investidores(nome_investidor),
-          titular_cooperado:cooperados(nome),
-          usinas:usinas(id)
+          cooperado:cooperados(nome),
+          investidor:investidores(nome_investidor)
         `);
+
+      const { data, error } = await query;
 
       if (error) {
         console.error("Error fetching unidades:", error);
@@ -105,9 +106,9 @@ const UnidadesUsina = () => {
 
   const getTitularNome = (unidade: any) => {
     if (unidade.titular_tipo === 'cooperativa') {
-      return unidade.titular_cooperativa?.nome_investidor;
+      return unidade.investidor?.nome_investidor;
     } else {
-      return unidade.titular_cooperado?.nome;
+      return unidade.cooperado?.nome;
     }
   };
 

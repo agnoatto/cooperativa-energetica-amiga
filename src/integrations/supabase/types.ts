@@ -647,7 +647,29 @@ export type Database = {
           uf?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_titular_cooperado"
+            columns: ["titular_id"]
+            isOneToOne: false
+            referencedRelation: "cooperados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_titular_cooperado"
+            columns: ["titular_id"]
+            isOneToOne: false
+            referencedRelation: "cooperados_ativos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_titular_investidor"
+            columns: ["titular_id"]
+            isOneToOne: false
+            referencedRelation: "investidores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       usinas: {
         Row: {
