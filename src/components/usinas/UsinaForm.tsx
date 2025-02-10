@@ -91,7 +91,7 @@ export function UsinaForm({
         investidor_id: data.investidor_id,
         unidade_usina_id: data.unidade_usina_id,
         valor_kwh: data.valor_kwh,
-        data_inicio: data.data_inicio,
+        data_inicio: data.data_inicio ? data.data_inicio.toISOString().split('T')[0] : null,
         dados_pagamento_nome: data.dados_pagamento_nome,
         dados_pagamento_documento: data.dados_pagamento_documento,
         dados_pagamento_banco: data.dados_pagamento_banco,
@@ -170,7 +170,7 @@ export function UsinaForm({
                       <Input
                         type="date"
                         {...field}
-                        value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
+                        value={field.value ? field.value.toISOString().split('T')[0] : ''}
                       />
                     </FormControl>
                     <FormMessage />
