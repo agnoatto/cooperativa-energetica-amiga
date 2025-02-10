@@ -13,6 +13,7 @@ import Pagamentos from "./pages/Pagamentos";
 import UnidadesUsina from "./pages/UnidadesUsina";
 import Usinas from "./pages/Usinas";
 import Investidores from "./pages/Investidores";
+import Configuracoes from "./pages/Configuracoes";
 import { useEffect, useState } from "react";
 import { supabase } from "./integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
@@ -97,6 +98,10 @@ function App() {
           <Route
             path="/pagamentos"
             element={session ? <Pagamentos /> : <Navigate to="/auth" replace />}
+          />
+          <Route
+            path="/configuracoes"
+            element={session ? <Configuracoes /> : <Navigate to="/auth" replace />}
           />
           <Route path="*" element={<NotFound />} />
         </Routes>

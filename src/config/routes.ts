@@ -7,6 +7,7 @@ import {
   Users,
   Wallet,
   User,
+  Settings,
   LucideIcon,
 } from "lucide-react";
 
@@ -76,5 +77,11 @@ export const routes: readonly RouteItem[] = [
     icon: Wallet,
     href: "/pagamentos",
     color: "text-green-500",
+  },
+  {
+    label: "Configurações",
+    icon: Settings,
+    href: "/configuracoes",
+    color: "text-gray-500",
   },
 ];
