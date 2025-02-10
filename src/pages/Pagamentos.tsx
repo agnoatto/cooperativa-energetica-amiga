@@ -185,6 +185,6 @@ const Pagamentos = () => {
       />
     </div>
   );
-};
+}
 
 export default Pagamentos;
