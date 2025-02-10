@@ -13,12 +13,9 @@ import Pagamentos from "./pages/Pagamentos";
 import UnidadesUsina from "./pages/UnidadesUsina";
 import Usinas from "./pages/Usinas";
 import Investidores from "./pages/Investidores";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { supabase } from "./integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
-
-const queryClient = new QueryClient();
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -50,64 +47,62 @@ function App() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AppSidebar>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                session ? (
-                  <Navigate to="/dashboard" replace />
-                ) : (
-                  <Navigate to="/auth" replace />
-                )
-              }
-            />
-            <Route
-              path="/auth"
-              element={session ? <Navigate to="/dashboard" replace /> : <Auth />}
-            />
-            <Route
-              path="/dashboard"
-              element={session ? <Dashboard /> : <Navigate to="/auth" replace />}
-            />
-            <Route
-              path="/cooperados"
-              element={session ? <Cooperados /> : <Navigate to="/auth" replace />}
-            />
-            <Route
-              path="/cooperados/unidades"
-              element={session ? <UnidadesBeneficiarias /> : <Navigate to="/auth" replace />}
-            />
-            <Route
-              path="/usinas"
-              element={session ? <Usinas /> : <Navigate to="/auth" replace />}
-            />
-            <Route
-              path="/usinas/investidores"
-              element={session ? <Investidores /> : <Navigate to="/auth" replace />}
-            />
-            <Route
-              path="/unidades-usina"
-              element={
-                session ? <UnidadesUsina /> : <Navigate to="/auth" replace />
-              }
-            />
-            <Route
-              path="/faturas"
-              element={session ? <Faturas /> : <Navigate to="/auth" replace />}
-            />
-            <Route
-              path="/pagamentos"
-              element={session ? <Pagamentos /> : <Navigate to="/auth" replace />}
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppSidebar>
-        <Toaster />
-      </BrowserRouter>
-    </QueryClientProvider>
+    <BrowserRouter>
+      <AppSidebar>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              session ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <Navigate to="/auth" replace />
+              )
+            }
+          />
+          <Route
+            path="/auth"
+            element={session ? <Navigate to="/dashboard" replace /> : <Auth />}
+          />
+          <Route
+            path="/dashboard"
+            element={session ? <Dashboard /> : <Navigate to="/auth" replace />}
+          />
+          <Route
+            path="/cooperados"
+            element={session ? <Cooperados /> : <Navigate to="/auth" replace />}
+          />
+          <Route
+            path="/cooperados/unidades"
+            element={session ? <UnidadesBeneficiarias /> : <Navigate to="/auth" replace />}
+          />
+          <Route
+            path="/usinas"
+            element={session ? <Usinas /> : <Navigate to="/auth" replace />}
+          />
+          <Route
+            path="/usinas/investidores"
+            element={session ? <Investidores /> : <Navigate to="/auth" replace />}
+          />
+          <Route
+            path="/unidades-usina"
+            element={
+              session ? <UnidadesUsina /> : <Navigate to="/auth" replace />
+            }
+          />
+          <Route
+            path="/faturas"
+            element={session ? <Faturas /> : <Navigate to="/auth" replace />}
+          />
+          <Route
+            path="/pagamentos"
+            element={session ? <Pagamentos /> : <Navigate to="/auth" replace />}
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AppSidebar>
+      <Toaster />
+    </BrowserRouter>
   );
 }
 
