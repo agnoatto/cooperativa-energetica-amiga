@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
@@ -36,6 +36,7 @@ type Cooperativa = {
 
 export function SystemSettingsForm() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: cooperativa, isLoading } = useQuery({
     queryKey: ["cooperativa"],
@@ -54,19 +55,18 @@ export function SystemSettingsForm() {
     },
   });
 
-  const defaultValues: FormValues = {
-    notificacoes: {
-      email_faturas: cooperativa?.configuracoes?.notificacoes?.email_faturas ?? true,
-      email_pagamentos: cooperativa?.configuracoes?.notificacoes?.email_pagamentos ?? true,
-    },
-    relatorios: {
-      incluir_logo: cooperativa?.configuracoes?.relatorios?.incluir_logo ?? true,
-    },
-  };
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues,
+    defaultValues: {
+      notificacoes: {
+        email_faturas: cooperativa?.configuracoes?.notificacoes?.email_faturas ?? true,
+        email_pagamentos: cooperativa?.configuracoes?.notificacoes?.email_pagamentos ?? true,
+      },
+      relatorios: {
+        incluir_logo: cooperativa?.configuracoes?.relatorios?.incluir_logo ?? true,
+      },
+    },
+    values: cooperativa?.configuracoes, // This ensures form updates when data changes
   });
 
   const mutation = useMutation({
@@ -82,6 +82,9 @@ export function SystemSettingsForm() {
       if (error) throw error;
     },
     onSuccess: () => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ["cooperativa"] });
+      
       toast({
         title: "Configurações atualizadas",
         description: "As configurações do sistema foram atualizadas com sucesso",
