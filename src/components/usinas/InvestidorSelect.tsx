@@ -37,7 +37,9 @@ export function InvestidorSelect({ form }: InvestidorSelectProps) {
           query.ilike("nome_investidor", `%${search.trim()}%`);
         }
 
-        const { data, error } = await query.order("nome_investidor");
+        const { data, error } = await query
+          .order("nome_investidor")
+          .limit(100);
 
         if (error) throw error;
         return data || [];

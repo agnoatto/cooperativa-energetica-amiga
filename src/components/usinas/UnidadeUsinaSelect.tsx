@@ -39,7 +39,9 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
           query.or(`numero_uc.ilike.%${search.trim()}%,logradouro.ilike.%${search.trim()}%`);
         }
 
-        const { data, error } = await query.order("numero_uc");
+        const { data, error } = await query
+          .order("numero_uc")
+          .limit(100);
 
         if (error) throw error;
         return data || [];
