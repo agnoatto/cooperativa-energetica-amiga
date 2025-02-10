@@ -9,7 +9,8 @@ interface PagamentoFormData {
   valor_total: number;
   status: string;
   data_pagamento: string | null;
-  tusd_fio_b: number;
+  tusd_fio_b: number | null;
+  valor_tusd_fio_b: number | null;
   valor_concessionaria: number;
   usina: {
     valor_kwh: number;
@@ -22,7 +23,7 @@ export function usePagamentoForm(pagamento: PagamentoFormData | null, onSave: ()
     valor_total: pagamento?.valor_total || 0,
     status: pagamento?.status || 'pendente',
     data_pagamento: pagamento?.data_pagamento || null,
-    tusd_fio_b: pagamento?.tusd_fio_b || 0,
+    tusd_fio_b: pagamento?.valor_tusd_fio_b || pagamento?.tusd_fio_b || 0,
     valor_concessionaria: pagamento?.valor_concessionaria || 0,
   });
 
@@ -45,7 +46,7 @@ export function usePagamentoForm(pagamento: PagamentoFormData | null, onSave: ()
           valor_total: valorEfetivo,
           status: form.status,
           data_pagamento: form.data_pagamento,
-          tusd_fio_b: Number(form.tusd_fio_b),
+          valor_tusd_fio_b: Number(form.tusd_fio_b),
           valor_concessionaria: Number(form.valor_concessionaria),
         })
         .eq('id', pagamento?.id);

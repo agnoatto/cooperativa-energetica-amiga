@@ -5,7 +5,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CurrencyInput } from "@/components/faturas/CurrencyInput";
 
 interface PagamentoFormFieldsProps {
-  form: any;
+  form: {
+    geracao_kwh: number;
+    status: string;
+    tusd_fio_b: number;
+    valor_concessionaria: number;
+  };
   setForm: (form: any) => void;
   valorKwh: number;
   valorBruto: number;
