@@ -37,6 +37,8 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
   });
 
   const [valorKwh, setValorKwh] = useState<number>(0);
+  const [valorKwhEfetivo, setValorKwhEfetivo] = useState<number>(0);
+  const [valorBruto, setValorBruto] = useState<number>(0);
 
   // Buscar valor_kwh da usina
   useEffect(() => {
@@ -68,21 +70,25 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
     return Number(value.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
   };
 
-  // Função para calcular o valor total
-  const calculateTotal = (geracaoKwh: number, tusdFioB: number, contaEnergia: number) => {
-    const valorPorKwh = valorKwh - tusdFioB;
-    return (geracaoKwh * valorPorKwh) - contaEnergia;
-  };
-
-  // Atualizar valores e recalcular total quando os campos mudarem
+  // Calcular valor efetivo do kWh
   useEffect(() => {
-    const total = calculateTotal(
-      form.geracao_kwh,
-      parseCurrencyToNumber(form.valor_tusd_fio_b.toString()),
-      parseCurrencyToNumber(form.conta_energia.toString())
-    );
-    setForm(prev => ({ ...prev, valor_total: total }));
-  }, [form.geracao_kwh, form.valor_tusd_fio_b, form.conta_energia, valorKwh]);
+    const tusdFioB = parseCurrencyToNumber(form.valor_tusd_fio_b.toString());
+    const valorEfetivo = valorKwh - tusdFioB;
+    setValorKwhEfetivo(valorEfetivo);
+  }, [valorKwh, form.valor_tusd_fio_b]);
+
+  // Calcular valor bruto
+  useEffect(() => {
+    const valorBrutoCalculado = form.geracao_kwh * valorKwhEfetivo;
+    setValorBruto(valorBrutoCalculado);
+  }, [form.geracao_kwh, valorKwhEfetivo]);
+
+  // Calcular valor total líquido
+  useEffect(() => {
+    const contaEnergia = parseCurrencyToNumber(form.conta_energia.toString());
+    const valorTotal = valorBruto - contaEnergia;
+    setForm(prev => ({ ...prev, valor_total: valorTotal }));
+  }, [valorBruto, form.conta_energia]);
 
   // Atualizar data de pagamento quando status mudar para 'pago'
   useEffect(() => {
@@ -139,12 +145,42 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
             />
           </div>
           <div>
+            <Label htmlFor="valor_kwh">Valor do kWh (R$)</Label>
+            <Input
+              id="valor_kwh"
+              type="text"
+              value={valorKwh.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              disabled
+              className="bg-gray-100"
+            />
+          </div>
+          <div>
             <Label htmlFor="valor_tusd_fio_b">TUSD Fio B (R$/kWh)</Label>
             <CurrencyInput
               id="valor_tusd_fio_b"
               value={form.valor_tusd_fio_b}
               onChange={(value) => setForm({ ...form, valor_tusd_fio_b: parseCurrencyToNumber(value) })}
               className="w-full"
+            />
+          </div>
+          <div>
+            <Label htmlFor="valor_kwh_efetivo">Valor kWh Efetivo (R$)</Label>
+            <Input
+              id="valor_kwh_efetivo"
+              type="text"
+              value={valorKwhEfetivo.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              disabled
+              className="bg-gray-100"
+            />
+          </div>
+          <div>
+            <Label htmlFor="valor_bruto">Valor Bruto a Receber (R$)</Label>
+            <Input
+              id="valor_bruto"
+              type="text"
+              value={valorBruto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              disabled
+              className="bg-gray-100"
             />
           </div>
           <div>
@@ -157,7 +193,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
             />
           </div>
           <div>
-            <Label htmlFor="valor_total">Valor Total</Label>
+            <Label htmlFor="valor_total">Valor Total Líquido</Label>
             <CurrencyInput
               id="valor_total"
               value={form.valor_total}
