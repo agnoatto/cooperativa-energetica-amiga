@@ -1,21 +1,18 @@
+
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Plus, Search } from "lucide-react";
 import { useState } from "react";
 import { InvestidorForm } from "@/components/investidores/InvestidorForm";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
+import { InvestidoresTable } from "@/components/investidores/InvestidoresTable";
+import { toast } from "sonner";
 
 const Investidores = () => {
-  const [selectedInvestidorId, setSelectedInvestidorId] = useState<string | undefined>();
+  const [selectedInvestidorId, setSelectedInvestidorId] = useState<
+    string | undefined
+  >();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -26,7 +23,7 @@ const Investidores = () => {
         .from("investidores")
         .select("*")
         .ilike("nome_investidor", `%${searchTerm}%`);
-      
+
       if (error) throw error;
       return data;
     },
@@ -35,6 +32,19 @@ const Investidores = () => {
   const handleEdit = (investidorId: string) => {
     setSelectedInvestidorId(investidorId);
     setIsFormOpen(true);
+  };
+
+  const handleDelete = async (investidorId: string) => {
+    const { error } = await supabase
+      .from("investidores")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", investidorId);
+
+    if (error) {
+      throw error;
+    }
+
+    await refetch();
   };
 
   return (
@@ -61,38 +71,11 @@ const Investidores = () => {
         />
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Documento</TableHead>
-              <TableHead>Telefone</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {investidores?.map((investidor) => (
-              <TableRow key={investidor.id}>
-                <TableCell>{investidor.nome_investidor}</TableCell>
-                <TableCell>{investidor.documento}</TableCell>
-                <TableCell>{investidor.telefone}</TableCell>
-                <TableCell>{investidor.email}</TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(investidor.id)}
-                  >
-                    Editar
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <InvestidoresTable
+        investidores={investidores || []}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
 
       <InvestidorForm
         open={isFormOpen}
