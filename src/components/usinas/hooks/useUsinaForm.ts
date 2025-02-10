@@ -20,7 +20,7 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
     defaultValues: {
       investidor_id: "",
       unidade_usina_id: "",
-      valor_kwh: "0",
+      valor_kwh: 0,
       data_inicio: undefined,
       dados_pagamento_nome: "",
       dados_pagamento_documento: "",
@@ -47,7 +47,7 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
         if (data) {
           form.reset({
             ...data,
-            valor_kwh: data.valor_kwh.toString(),
+            valor_kwh: Number(data.valor_kwh),
             data_inicio: data.data_inicio ? new Date(data.data_inicio) : undefined,
           });
         }
