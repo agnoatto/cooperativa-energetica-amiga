@@ -29,13 +29,14 @@ const UnidadesUsina = () => {
 
       if (unidadesError) throw unidadesError;
 
-      // Fetch related data separately
+      // Fetch related data separately based on titular_tipo
       const titularesPromises = unidadesData.map(async (unidade) => {
         if (unidade.titular_tipo === 'cooperativa') {
           const { data: cooperativa } = await supabase
             .from("cooperativas")
             .select("nome")
             .eq("id", unidade.titular_id)
+            .is("deleted_at", null)
             .single();
           return { ...unidade, titular_nome: cooperativa?.nome };
         } else {
@@ -43,6 +44,7 @@ const UnidadesUsina = () => {
             .from("cooperados")
             .select("nome")
             .eq("id", unidade.titular_id)
+            .is("data_exclusao", null)
             .single();
           return { ...unidade, titular_nome: cooperado?.nome };
         }
