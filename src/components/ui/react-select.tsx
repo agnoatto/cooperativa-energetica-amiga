@@ -9,6 +9,7 @@ import { UseFormReturn } from "react-hook-form";
 interface Option {
   label: string;
   value: string;
+  status?: string;
 }
 
 interface ReactSelectFieldProps extends Omit<ReactSelectProps<Option>, "form"> {
@@ -18,6 +19,7 @@ interface ReactSelectFieldProps extends Omit<ReactSelectProps<Option>, "form"> {
   options?: Option[];
   loadOptions?: (inputValue: string) => Promise<Option[]>;
   isAsync?: boolean;
+  formatOptionLabel?: (data: { label: string; status?: string }) => React.ReactNode;
 }
 
 export function ReactSelectField({
@@ -28,6 +30,7 @@ export function ReactSelectField({
   loadOptions,
   isAsync = false,
   className,
+  formatOptionLabel,
   ...props
 }: ReactSelectFieldProps) {
   const { theme } = useTheme();
@@ -97,6 +100,7 @@ export function ReactSelectField({
               loadOptions={loadOptions}
               styles={customStyles}
               className="react-select"
+              formatOptionLabel={formatOptionLabel}
             />
           </FormControl>
           <FormMessage />
