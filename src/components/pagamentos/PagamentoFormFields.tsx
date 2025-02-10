@@ -2,6 +2,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CurrencyInput } from "@/components/faturas/CurrencyInput";
 
 interface PagamentoFormFieldsProps {
   form: any;
@@ -33,12 +34,24 @@ export function PagamentoFormFields({
           id="valor_kwh"
           type="text"
           value={valorKwh.toLocaleString('pt-BR', { 
-            minimumFractionDigits: 4, 
-            maximumFractionDigits: 4,
-            useGrouping: true
+            style: 'currency', 
+            currency: 'BRL',
+            minimumFractionDigits: 4,
+            maximumFractionDigits: 4
           })}
           disabled
           className="bg-gray-100"
+        />
+      </div>
+      <div>
+        <Label htmlFor="tusd_fio_b">TUSD Fio B (R$)</Label>
+        <CurrencyInput
+          id="tusd_fio_b"
+          value={form.tusd_fio_b}
+          onChange={(value) => {
+            const numericValue = Number(value.replace(/[^\d,]/g, '').replace(',', '.'));
+            setForm({ ...form, tusd_fio_b: numericValue });
+          }}
         />
       </div>
       <div>
