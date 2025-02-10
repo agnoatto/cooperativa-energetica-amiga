@@ -14,7 +14,16 @@ interface PagamentoEditModalProps {
     status: string;
     data_vencimento: string;
     data_pagamento: string | null;
-    usina_id: string;
+    usina: {
+      id: string;
+      valor_kwh: number;
+      unidade_usina: {
+        numero_uc: string;
+      };
+      investidor: {
+        nome_investidor: string;
+      };
+    };
   } | null;
   isOpen: boolean;
   onClose: () => void;
