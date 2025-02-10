@@ -10,26 +10,60 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CurrencyInput } from "./CurrencyInput";
 import type { FaturaEditModalProps } from "./types";
 import { parseValue } from "./utils/calculateValues";
 
 export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEditModalProps) {
-  const [consumo, setConsumo] = useState(fatura.consumo_kwh || 0);
-  const [totalFatura, setTotalFatura] = useState(fatura.total_fatura.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-  const [faturaConcessionaria, setFaturaConcessionaria] = useState(fatura.fatura_concessionaria.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-  const [iluminacaoPublica, setIluminacaoPublica] = useState(fatura.iluminacao_publica.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-  const [outrosValores, setOutrosValores] = useState(fatura.outros_valores.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-  const [saldoEnergiaKwh, setSaldoEnergiaKwh] = useState(fatura.saldo_energia_kwh || 0);
-  const [observacao, setObservacao] = useState(fatura.observacao || '');
-  const [dataVencimento, setDataVencimento] = useState(fatura.data_vencimento);
+  const [consumo, setConsumo] = useState(0);
+  const [totalFatura, setTotalFatura] = useState("0,00");
+  const [faturaConcessionaria, setFaturaConcessionaria] = useState("0,00");
+  const [iluminacaoPublica, setIluminacaoPublica] = useState("0,00");
+  const [outrosValores, setOutrosValores] = useState("0,00");
+  const [saldoEnergiaKwh, setSaldoEnergiaKwh] = useState(0);
+  const [observacao, setObservacao] = useState("");
+  const [dataVencimento, setDataVencimento] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Inicializa os campos quando o modal abre com uma nova fatura
+  useEffect(() => {
+    if (isOpen && fatura) {
+      setConsumo(fatura.consumo_kwh || 0);
+      setTotalFatura(fatura.total_fatura.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+      setFaturaConcessionaria(fatura.fatura_concessionaria.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+      setIluminacaoPublica(fatura.iluminacao_publica.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+      setOutrosValores(fatura.outros_valores.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+      setSaldoEnergiaKwh(fatura.saldo_energia_kwh || 0);
+      setObservacao(fatura.observacao || '');
+      setDataVencimento(fatura.data_vencimento);
+    }
+  }, [isOpen, fatura]);
+
+  // Limpa os campos quando o modal fecha
+  useEffect(() => {
+    if (!isOpen) {
+      const timeoutId = setTimeout(() => {
+        setConsumo(0);
+        setTotalFatura("0,00");
+        setFaturaConcessionaria("0,00");
+        setIluminacaoPublica("0,00");
+        setOutrosValores("0,00");
+        setSaldoEnergiaKwh(0);
+        setObservacao("");
+        setDataVencimento("");
+        setIsLoading(false);
+      }, 300); // Pequeno delay para garantir que a animação do modal termine
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (isLoading) return;
 
+    setIsLoading(true);
     try {
       const result = onSuccess({
         id: fatura.id,
@@ -48,15 +82,38 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
         await result;
       }
       
-      onClose();
-    } finally {
+      // Delay no fechamento para garantir que todas as operações terminaram
+      setTimeout(() => {
+        onClose();
+        setIsLoading(false);
+      }, 300);
+    } catch (error) {
+      console.error('Erro ao salvar fatura:', error);
       setIsLoading(false);
     }
   };
 
+  const handleClose = () => {
+    if (!isLoading) {
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !isLoading && !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={(open) => {
+        if (!open) handleClose();
+      }}
+    >
+      <DialogContent 
+        className="sm:max-w-[425px]"
+        onInteractOutside={(e) => {
+          if (isLoading) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Editar Fatura</DialogTitle>
         </DialogHeader>
@@ -68,6 +125,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               id="dataVencimento"
               value={dataVencimento}
               onChange={(e) => setDataVencimento(e.target.value)}
+              disabled={isLoading}
               required
             />
           </div>
@@ -80,6 +138,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               onChange={(e) => setConsumo(Number(e.target.value))}
               step="0.01"
               min="0"
+              disabled={isLoading}
               required
             />
           </div>
@@ -89,6 +148,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               id="totalFatura"
               value={totalFatura}
               onChange={setTotalFatura}
+              disabled={isLoading}
               required
             />
           </div>
@@ -98,6 +158,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               id="faturaConcessionaria"
               value={faturaConcessionaria}
               onChange={setFaturaConcessionaria}
+              disabled={isLoading}
               required
             />
           </div>
@@ -107,6 +168,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               id="iluminacaoPublica"
               value={iluminacaoPublica}
               onChange={setIluminacaoPublica}
+              disabled={isLoading}
               required
             />
           </div>
@@ -116,6 +178,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               id="outrosValores"
               value={outrosValores}
               onChange={setOutrosValores}
+              disabled={isLoading}
               required
             />
           </div>
@@ -128,6 +191,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               onChange={(e) => setSaldoEnergiaKwh(Number(e.target.value))}
               step="0.01"
               min="0"
+              disabled={isLoading}
               required
             />
           </div>
@@ -139,11 +203,17 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               onChange={(e) => setObservacao(e.target.value)}
               placeholder="Adicione observações relevantes sobre a fatura..."
               className="resize-none"
+              disabled={isLoading}
               rows={3}
             />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleClose} 
+              disabled={isLoading}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading}>
@@ -155,4 +225,3 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     </Dialog>
   );
 }
-
