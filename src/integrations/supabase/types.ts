@@ -646,7 +646,6 @@ export type Database = {
           numero: string | null
           numero_uc: string
           session_id: string | null
-          status: string | null
           titular_id: string
           titular_tipo: string
           uf: string | null
@@ -663,7 +662,6 @@ export type Database = {
           numero?: string | null
           numero_uc: string
           session_id?: string | null
-          status?: string | null
           titular_id: string
           titular_tipo?: string
           uf?: string | null
@@ -680,7 +678,6 @@ export type Database = {
           numero?: string | null
           numero_uc?: string
           session_id?: string | null
-          status?: string | null
           titular_id?: string
           titular_tipo?: string
           uf?: string | null
