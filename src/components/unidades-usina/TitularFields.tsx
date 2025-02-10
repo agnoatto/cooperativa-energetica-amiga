@@ -20,7 +20,7 @@ import { useUnidadeUsinaData } from "./hooks/useUnidadeUsinaData";
 
 export function TitularFields() {
   const form = useFormContext();
-  const { investidores, cooperados } = useUnidadeUsinaData();
+  const { cooperativas, cooperados } = useUnidadeUsinaData();
 
   return (
     <>
@@ -69,9 +69,9 @@ export function TitularFields() {
               </FormControl>
               <SelectContent>
                 {form.watch("titular_tipo") === "cooperativa"
-                  ? investidores?.map((investidor) => (
-                      <SelectItem key={investidor.id} value={investidor.id}>
-                        {investidor.nome_investidor}
+                  ? cooperativas?.map((cooperativa) => (
+                      <SelectItem key={cooperativa.id} value={cooperativa.id}>
+                        {cooperativa.nome} ({cooperativa.documento})
                       </SelectItem>
                     ))
                   : cooperados?.map((cooperado) => (

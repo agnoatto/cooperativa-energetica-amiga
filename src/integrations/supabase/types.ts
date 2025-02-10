@@ -57,6 +57,42 @@ export type Database = {
         }
         Relationships: []
       }
+      cooperativas: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          documento: string
+          email: string | null
+          id: string
+          nome: string
+          telefone: string | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          documento: string
+          email?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          documento?: string
+          email?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       faturas: {
         Row: {
           ano: number
@@ -647,29 +683,7 @@ export type Database = {
           uf?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_titular_cooperado"
-            columns: ["titular_id"]
-            isOneToOne: false
-            referencedRelation: "cooperados"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_titular_cooperado"
-            columns: ["titular_id"]
-            isOneToOne: false
-            referencedRelation: "cooperados_ativos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_titular_investidor"
-            columns: ["titular_id"]
-            isOneToOne: false
-            referencedRelation: "investidores"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       usinas: {
         Row: {

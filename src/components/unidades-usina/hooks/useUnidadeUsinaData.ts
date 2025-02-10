@@ -3,14 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export const useUnidadeUsinaData = (unidadeId?: string) => {
-  const { data: investidores } = useQuery({
-    queryKey: ["investidores"],
+  const { data: cooperativas } = useQuery({
+    queryKey: ["cooperativas"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("investidores")
-        .select("id, nome_investidor")
+        .from("cooperativas")
+        .select("id, nome, documento")
         .is("deleted_at", null)
-        .order("nome_investidor");
+        .order("nome");
       if (error) throw error;
       return data;
     },
@@ -30,8 +30,7 @@ export const useUnidadeUsinaData = (unidadeId?: string) => {
   });
 
   return {
-    investidores,
+    cooperativas,
     cooperados,
   };
 };
-
