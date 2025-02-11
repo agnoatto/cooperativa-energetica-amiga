@@ -1,3 +1,4 @@
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -36,13 +37,6 @@ export function PagamentoFormFields({
     });
   };
 
-  const parseCurrencyValue = (value: string): number => {
-    // Remove o prefixo "R$ " e mantém apenas dígitos, vírgula e ponto
-    const cleanValue = value.replace('R$ ', '').replace(/\./g, '').replace(',', '.');
-    // Converte para número mantendo 4 casas decimais
-    return parseFloat(parseFloat(cleanValue).toFixed(4));
-  };
-
   return (
     <div className="space-y-4">
       <div>
@@ -74,10 +68,7 @@ export function PagamentoFormFields({
         <CurrencyInput
           id="tusd_fio_b"
           value={form.tusd_fio_b}
-          onChange={(value) => {
-            const numericValue = parseCurrencyValue(value);
-            setForm({ ...form, tusd_fio_b: numericValue });
-          }}
+          onChange={(value) => setForm({ ...form, tusd_fio_b: value })}
         />
       </div>
       <div>
@@ -100,10 +91,7 @@ export function PagamentoFormFields({
         <CurrencyInput
           id="valor_concessionaria"
           value={form.valor_concessionaria}
-          onChange={(value) => {
-            const numericValue = parseCurrencyValue(value);
-            setForm({ ...form, valor_concessionaria: numericValue });
-          }}
+          onChange={(value) => setForm({ ...form, valor_concessionaria: value })}
         />
       </div>
       <div>

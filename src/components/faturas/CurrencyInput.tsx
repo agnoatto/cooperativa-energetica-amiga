@@ -1,36 +1,21 @@
 
 import React from 'react';
-import { NumericFormat, NumberFormatValues } from 'react-number-format';
+import { NumericFormat } from 'react-number-format';
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
   value: string | number;
-  onChange: (value: string) => void;
+  onChange: (value: number) => void;
 }
 
 export function CurrencyInput({ value, onChange, className, ...props }: CurrencyInputProps) {
-  const handleValueChange = (values: NumberFormatValues) => {
-    // Garante que sempre teremos 4 casas decimais
-    const formattedValue = values.floatValue !== undefined
-      ? `R$ ${values.floatValue.toLocaleString('pt-BR', {
-          minimumFractionDigits: 4,
-          maximumFractionDigits: 4,
-          useGrouping: true
-        }).replace(/\./g, '#').replace(/,/g, '.').replace(/#/g, ',')}`
-      : 'R$ 0,0000';
-    
-    onChange(formattedValue);
+  const handleValueChange = (values: { floatValue: number | undefined }) => {
+    onChange(values.floatValue || 0);
   };
 
-  // Converte o valor inicial para o formato correto se for number
-  const initialValue = typeof value === 'number'
-    ? value.toLocaleString('pt-BR', {
-        minimumFractionDigits: 4,
-        maximumFractionDigits: 4,
-        useGrouping: true
-      })
-    : value;
+  // Converte o valor inicial para número se for string
+  const initialValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
 
   return (
     <NumericFormat
@@ -43,7 +28,6 @@ export function CurrencyInput({ value, onChange, className, ...props }: Currency
       fixedDecimalScale
       prefix="R$ "
       className={cn(className)}
-      valueIsNumericString
       allowNegative={false}
     />
   );
