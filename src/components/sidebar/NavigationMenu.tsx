@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { routes } from "@/config/routes";
-import { ChevronRight, MenuIcon } from "lucide-react";
+import { MenuIcon } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -12,6 +12,7 @@ import {
 } from "../ui/tooltip";
 import { useState, useEffect } from "react";
 import { Separator } from "../ui/separator";
+import { useSidebar } from "../ui/sidebar";
 
 interface NavigationMenuProps {
   onClose?: () => void;
@@ -19,34 +20,11 @@ interface NavigationMenuProps {
 
 export function NavigationMenu({ onClose }: NavigationMenuProps) {
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  // Carregar estado do menu do localStorage
-  useEffect(() => {
-    const savedState = localStorage.getItem("sidebarCollapsed");
-    if (savedState) {
-      setIsCollapsed(JSON.parse(savedState));
-    }
-  }, []);
-
-  // Salvar estado do menu no localStorage
-  const toggleCollapse = () => {
-    const newState = !isCollapsed;
-    setIsCollapsed(newState);
-    localStorage.setItem("sidebarCollapsed", JSON.stringify(newState));
-  };
+  const { state: sidebarState } = useSidebar();
+  const isCollapsed = sidebarState === "collapsed";
 
   return (
     <div className="flex flex-col">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="self-end mr-2 mt-2"
-        onClick={toggleCollapse}
-      >
-        <MenuIcon className="h-4 w-4" />
-      </Button>
-
       <div className="space-y-4 py-4">
         {routes.map((section, idx) => (
           <div key={section.label} className="px-3 py-2">
@@ -84,7 +62,7 @@ export function NavigationMenu({ onClose }: NavigationMenuProps) {
                           >
                             <route.icon
                               className={cn(
-                                "h-4 w-4 transition-transform",
+                                "h-4 w-4",
                                 route.color,
                                 route.subItems?.length && "group-hover:rotate-180"
                               )}

@@ -12,6 +12,11 @@ import { useToast } from "./ui/use-toast";
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { NavigationMenu } from "./sidebar/NavigationMenu";
 import { UserSection } from "./sidebar/UserSection";
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarContent,
+} from "@/components/ui/sidebar";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -62,37 +67,48 @@ export function AppSidebar({ className, children }: SidebarProps) {
     }
   };
 
-  const sidebar = (
-    <div className={cn("pb-12", className)}>
-      <NavigationMenu onClose={() => setOpen(false)} />
-      <UserSection user={user} onLogout={handleLogout} />
-    </div>
-  );
-
   if (!isMobile) {
     return (
-      <div className="flex">
-        <div className="hidden w-[200px] flex-col md:flex">
-          <ScrollArea className="flex-1">{sidebar}</ScrollArea>
+      <SidebarProvider defaultOpen={true}>
+        <div className="flex min-h-screen w-full">
+          <Sidebar className="border-r border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <SidebarContent>
+              <ScrollArea className="h-[calc(100vh-4rem)]">
+                <NavigationMenu onClose={() => setOpen(false)} />
+                <UserSection user={user} onLogout={handleLogout} />
+              </ScrollArea>
+            </SidebarContent>
+          </Sidebar>
+          <main className="flex-1 overflow-hidden">
+            <div className="h-full px-4 py-6 lg:px-8">
+              {children}
+            </div>
+          </main>
         </div>
-        <main className="flex-1 p-8 pt-6">{children}</main>
-      </div>
+      </SidebarProvider>
     );
   }
 
   return (
-    <div className="flex">
+    <div className="flex min-h-screen w-full">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button variant="outline" size="icon" className="ml-2 mt-2">
             <Menu className="h-4 w-4" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-[300px] sm:w-[400px]">
-          <nav className="flex flex-col">{sidebar}</nav>
+        <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0">
+          <ScrollArea className="h-full">
+            <NavigationMenu onClose={() => setOpen(false)} />
+            <UserSection user={user} onLogout={handleLogout} />
+          </ScrollArea>
         </SheetContent>
       </Sheet>
-      <main className="flex-1 p-8 pt-6">{children}</main>
+      <main className="flex-1 overflow-hidden">
+        <div className="h-full px-4 py-6 lg:px-8">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }
