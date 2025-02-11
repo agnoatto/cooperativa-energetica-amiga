@@ -4,10 +4,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CurrencyInput } from "@/components/faturas/CurrencyInput";
 import { PagamentoFormValues } from "./types/pagamento";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { CalendarIcon } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -27,19 +23,18 @@ export function PagamentoFormFields({
   valorBruto,
   valorEfetivo,
 }: PagamentoFormFieldsProps) {
-  const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-      // Format the date for database (YYYY-MM-DD)
-      const data_emissao = date.toISOString().split('T')[0];
-      const data_pagamento = addDays(date, 90).toISOString().split('T')[0];
-      
-      setForm({
-        ...form,
-        data_emissao,
-        data_pagamento,
-        status: 'pendente'
-      });
-    }
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const dataEmissao = e.target.value;
+    const dataPagamento = dataEmissao ? 
+      addDays(new Date(dataEmissao), 90).toISOString().split('T')[0] : 
+      null;
+    
+    setForm({
+      ...form,
+      data_emissao: dataEmissao || null,
+      data_pagamento: dataPagamento,
+      status: 'pendente'
+    });
   };
 
   return (
@@ -110,46 +105,28 @@ export function PagamentoFormFields({
           className="bg-gray-100"
         />
       </div>
-      <div className="grid gap-2">
-        <Label>Data de Emissão da Conta</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full pl-3 text-left font-normal",
-                !form.data_emissao && "text-muted-foreground"
-              )}
-            >
-              {form.data_emissao ? (
-                <>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(new Date(form.data_emissao), "dd/MM/yyyy", { locale: ptBR })}
-                </>
-              ) : (
-                <>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  <span>Selecione a data de emissão</span>
-                </>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={form.data_emissao ? new Date(form.data_emissao) : undefined}
-              onSelect={handleDateSelect}
-              initialFocus
-              locale={ptBR}
-            />
-          </PopoverContent>
-        </Popover>
+      <div>
+        <Label htmlFor="data_emissao">Data de Emissão da Conta</Label>
+        <Input
+          id="data_emissao"
+          type="date"
+          value={form.data_emissao || ''}
+          onChange={handleDateChange}
+          className={cn(
+            "w-full",
+            !form.data_emissao && "text-muted-foreground"
+          )}
+        />
       </div>
       <div>
-        <Label>Data de Pagamento Prevista</Label>
+        <Label htmlFor="data_pagamento">Data de Pagamento Prevista</Label>
         <Input
+          id="data_pagamento"
           type="text"
-          value={form.data_pagamento ? format(new Date(form.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : 'Aguardando data de emissão'}
+          value={form.data_pagamento ? 
+            format(new Date(form.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : 
+            'Aguardando data de emissão'
+          }
           disabled
           className="bg-gray-100"
         />
