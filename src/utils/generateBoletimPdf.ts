@@ -1,39 +1,54 @@
-
 import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BoletimMedicaoData } from "@/components/pagamentos/types/boletim";
 import { COLORS, FONTS, SPACING } from "./pdf/constants";
 import { formatCurrency } from "./pdfUtils";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts';
 
-export const generateBoletimPdf = async (data: BoletimMedicaoData): Promise<{ doc: jsPDF, fileName: string }> => {
-  const doc = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4"
-  });
+const generateChartImage = async (data: any[], config: { 
+  width: number;
+  height: number;
+  dataKey: string;
+  yAxisLabel: string;
+  formatter?: (value: number) => string;
+}) => {
+  const chartRef = document.createElement('div');
+  chartRef.style.width = `${config.width}px`;
+  chartRef.style.height = `${config.height}px`;
+  document.body.appendChild(chartRef);
 
-  let yPos = 0;
+  const chart = (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={data} margin={{ top: 10, right: 30, left: 20, bottom: 20 }}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="name" />
+        <YAxis 
+          label={{ 
+            value: config.yAxisLabel, 
+            angle: -90, 
+            position: 'insideLeft' 
+          }}
+          tickFormatter={config.formatter}
+        />
+        <Tooltip formatter={config.formatter} />
+        <Bar dataKey={config.dataKey} fill="#0EA5E9" />
+      </BarChart>
+    </ResponsiveContainer>
+  );
 
-  // Adicionar cabeçalho
-  yPos = await addHeader(doc, {
-    title: "Boletim de Medição",
-    logoPath: '/lovable-uploads/254317ca-d03e-40a5-9286-a175e9dd8bbf.png'
-  });
-
-  // Informações da Usina
-  yPos = addUsinaInfo(doc, data, yPos);
-
-  // Adicionar gráficos
-  yPos = await addCharts(doc, data, yPos);
-
-  // Adicionar tabela de dados
-  yPos = addDataTable(doc, data, yPos);
-
-  // Nome do arquivo
-  const fileName = `boletim-medicao-${data.usina.numero_uc}-${format(new Date(), 'MM-yyyy')}.pdf`;
-
-  return { doc, fileName };
+  // Convert chart to canvas
+  const canvas = await html2canvas(chartRef);
+  document.body.removeChild(chartRef);
+  return canvas.toDataURL('image/png');
 };
 
 const addHeader = async (doc: jsPDF, config: { title: string; logoPath: string }): Promise<number> => {
@@ -86,8 +101,58 @@ const addUsinaInfo = (doc: jsPDF, data: BoletimMedicaoData, yPos: number): numbe
 };
 
 const addCharts = async (doc: jsPDF, data: BoletimMedicaoData, yPos: number): Promise<number> => {
-  // Esta função será implementada quando adicionarmos os gráficos
-  return yPos + 80; // Espaço reservado para os gráficos
+  // Prepare data for last 12 months
+  const last12Months = data.pagamentos
+    .slice(-12)
+    .map(p => ({
+      name: format(new Date(p.ano, p.mes - 1), 'MMM/yy', { locale: ptBR }),
+      geracao: p.geracao_kwh,
+      valor: p.valor_total
+    }));
+
+  // Generation Chart
+  doc.setFontSize(FONTS.SUBTITLE);
+  doc.text("Geração (kWh/mês)", SPACING.MARGIN, yPos);
+  
+  const geracaoChart = await generateChartImage(last12Months, {
+    width: 500,
+    height: 200,
+    dataKey: "geracao",
+    yAxisLabel: "kWh",
+    formatter: (value: number) => value.toLocaleString('pt-BR')
+  });
+  
+  doc.addImage(
+    geracaoChart,
+    'PNG',
+    SPACING.MARGIN,
+    yPos + 10,
+    SPACING.PAGE.CONTENT_WIDTH,
+    80
+  );
+
+  // Payments Chart
+  yPos += 100;
+  doc.text("Recebimentos (R$)", SPACING.MARGIN, yPos);
+  
+  const recebimentosChart = await generateChartImage(last12Months, {
+    width: 500,
+    height: 200,
+    dataKey: "valor",
+    yAxisLabel: "R$",
+    formatter: (value: number) => formatCurrency(value)
+  });
+  
+  doc.addImage(
+    recebimentosChart,
+    'PNG',
+    SPACING.MARGIN,
+    yPos + 10,
+    SPACING.PAGE.CONTENT_WIDTH,
+    80
+  );
+
+  return yPos + 100;
 };
 
 const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number): number => {
@@ -154,4 +219,42 @@ const loadLogo = (url: string): Promise<string> => {
     img.onerror = () => reject(new Error('Failed to load image'));
     img.src = url;
   });
+};
+
+export const generateBoletimPdf = async (data: BoletimMedicaoData): Promise<{ doc: jsPDF, fileName: string }> => {
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4"
+  });
+
+  let yPos = 0;
+
+  // Header with company info
+  doc.setFontSize(FONTS.TITLE);
+  doc.text("Cooperativa Cogesol", SPACING.PAGE.WIDTH/2, 20, { align: "center" });
+  doc.setFontSize(FONTS.NORMAL);
+  doc.text("CNPJ: 57.658.963/0001-02", SPACING.PAGE.WIDTH/2, 30, { align: "center" });
+  
+  // Reference month
+  doc.setFillColor(240, 249, 255);
+  doc.rect(SPACING.PAGE.WIDTH - 80, 40, 60, 20, 'F');
+  doc.text("Mês de Referência", SPACING.PAGE.WIDTH - 75, 50);
+  doc.text(format(data.data_emissao, 'MMM/yy', { locale: ptBR }), SPACING.PAGE.WIDTH - 75, 55);
+
+  yPos = 70;
+
+  // Usina Info
+  yPos = addUsinaInfo(doc, data, yPos);
+
+  // Charts
+  yPos = await addCharts(doc, data, yPos);
+
+  // Data Table
+  yPos = addDataTable(doc, data, yPos);
+
+  // Nome do arquivo
+  const fileName = `boletim-medicao-${data.usina.numero_uc}-${format(new Date(), 'MM-yyyy')}.pdf`;
+
+  return { doc, fileName };
 };
