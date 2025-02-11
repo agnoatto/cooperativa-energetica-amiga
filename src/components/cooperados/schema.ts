@@ -61,6 +61,15 @@ export const unidadeBeneficiariaFormSchema = z.object({
   percentual_desconto: z.string().min(1, "Percentual de desconto é obrigatório"),
   data_entrada: z.string().min(1, "Data de entrada é obrigatória"),
   data_saida: z.string().optional(),
+  // Novos campos
+  possui_geracao_propria: z.boolean().default(false),
+  potencia_instalada: z.number().optional().nullable(),
+  data_inicio_geracao: z.string().optional().nullable(),
+  observacao_geracao: z.string().optional().nullable(),
+  recebe_creditos_proprios: z.boolean().default(false),
+  uc_origem_creditos: z.string().optional().nullable(),
+  data_inicio_creditos: z.string().optional().nullable(),
+  observacao_creditos: z.string().optional().nullable(),
 });
 
 export type CooperadoFormValues = z.infer<typeof cooperadoFormSchema>;

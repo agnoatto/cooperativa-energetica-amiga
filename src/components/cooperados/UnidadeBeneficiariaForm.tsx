@@ -29,6 +29,7 @@ import { useEffect, useState } from "react";
 import { AddressFields } from "./AddressFields";
 import { UnidadeBeneficiariaBasicInfo } from "./UnidadeBeneficiariaBasicInfo";
 import { UnidadeBeneficiariaDateFields } from "./UnidadeBeneficiariaDateFields";
+import { GeracaoCreditosFields } from "./GeracaoCreditosFields";
 import { UnidadeBeneficiariaFormProps, UnidadeBeneficiariaFormValues, ViaCEPResponse } from "./types";
 import { unidadeBeneficiariaFormSchema } from "./schema";
 
@@ -58,6 +59,14 @@ export function UnidadeBeneficiariaForm({
       percentual_desconto: "",
       data_entrada: new Date().toISOString().split('T')[0],
       data_saida: "",
+      possui_geracao_propria: false,
+      potencia_instalada: null,
+      data_inicio_geracao: null,
+      observacao_geracao: null,
+      recebe_creditos_proprios: false,
+      uc_origem_creditos: null,
+      data_inicio_creditos: null,
+      observacao_creditos: null,
     },
   });
 
@@ -131,6 +140,14 @@ export function UnidadeBeneficiariaForm({
             percentual_desconto: data.percentual_desconto.toString(),
             data_entrada: new Date(data.data_entrada).toISOString().split('T')[0],
             data_saida: data.data_saida ? new Date(data.data_saida).toISOString().split('T')[0] : "",
+            possui_geracao_propria: data.possui_geracao_propria || false,
+            potencia_instalada: data.potencia_instalada,
+            data_inicio_geracao: data.data_inicio_geracao ? new Date(data.data_inicio_geracao).toISOString().split('T')[0] : null,
+            observacao_geracao: data.observacao_geracao,
+            recebe_creditos_proprios: data.recebe_creditos_proprios || false,
+            uc_origem_creditos: data.uc_origem_creditos,
+            data_inicio_creditos: data.data_inicio_creditos ? new Date(data.data_inicio_creditos).toISOString().split('T')[0] : null,
+            observacao_creditos: data.observacao_creditos,
           });
         }
       } catch (error: any) {
@@ -167,6 +184,14 @@ export function UnidadeBeneficiariaForm({
         percentual_desconto: parseFloat(data.percentual_desconto),
         data_entrada: new Date(data.data_entrada).toISOString(),
         data_saida: data.data_saida ? new Date(data.data_saida).toISOString() : null,
+        possui_geracao_propria: data.possui_geracao_propria,
+        potencia_instalada: data.potencia_instalada,
+        data_inicio_geracao: data.data_inicio_geracao ? new Date(data.data_inicio_geracao).toISOString() : null,
+        observacao_geracao: data.observacao_geracao,
+        recebe_creditos_proprios: data.recebe_creditos_proprios,
+        uc_origem_creditos: data.uc_origem_creditos,
+        data_inicio_creditos: data.data_inicio_creditos ? new Date(data.data_inicio_creditos).toISOString() : null,
+        observacao_creditos: data.observacao_creditos,
       };
 
       if (unidadeId) {
@@ -236,6 +261,7 @@ export function UnidadeBeneficiariaForm({
               onFetchCep={fetchCep}
             />
             <UnidadeBeneficiariaDateFields form={form} />
+            <GeracaoCreditosFields form={form} />
 
             <div className="flex justify-end gap-2">
               <Button type="submit">Salvar</Button>

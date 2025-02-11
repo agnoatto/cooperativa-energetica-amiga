@@ -572,13 +572,21 @@ export type Database = {
           cooperado_id: string
           created_at: string
           data_entrada: string
+          data_inicio_creditos: string | null
+          data_inicio_geracao: string | null
           data_saida: string | null
           endereco: string
           id: string
           logradouro: string | null
           numero: string | null
           numero_uc: string
+          observacao_creditos: string | null
+          observacao_geracao: string | null
           percentual_desconto: number
+          possui_geracao_propria: boolean | null
+          potencia_instalada: number | null
+          recebe_creditos_proprios: boolean | null
+          uc_origem_creditos: string | null
           uf: string | null
           updated_at: string
         }
@@ -591,13 +599,21 @@ export type Database = {
           cooperado_id: string
           created_at?: string
           data_entrada: string
+          data_inicio_creditos?: string | null
+          data_inicio_geracao?: string | null
           data_saida?: string | null
           endereco: string
           id?: string
           logradouro?: string | null
           numero?: string | null
           numero_uc: string
+          observacao_creditos?: string | null
+          observacao_geracao?: string | null
           percentual_desconto: number
+          possui_geracao_propria?: boolean | null
+          potencia_instalada?: number | null
+          recebe_creditos_proprios?: boolean | null
+          uc_origem_creditos?: string | null
           uf?: string | null
           updated_at?: string
         }
@@ -610,13 +626,21 @@ export type Database = {
           cooperado_id?: string
           created_at?: string
           data_entrada?: string
+          data_inicio_creditos?: string | null
+          data_inicio_geracao?: string | null
           data_saida?: string | null
           endereco?: string
           id?: string
           logradouro?: string | null
           numero?: string | null
           numero_uc?: string
+          observacao_creditos?: string | null
+          observacao_geracao?: string | null
           percentual_desconto?: number
+          possui_geracao_propria?: boolean | null
+          potencia_instalada?: number | null
+          recebe_creditos_proprios?: boolean | null
+          uc_origem_creditos?: string | null
           uf?: string | null
           updated_at?: string
         }

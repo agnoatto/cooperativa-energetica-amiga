@@ -25,6 +25,14 @@ export interface UnidadeBeneficiariaFormValues {
   percentual_desconto: string;
   data_entrada: string;
   data_saida?: string;
+  possui_geracao_propria: boolean;
+  potencia_instalada?: number | null;
+  data_inicio_geracao?: string | null;
+  observacao_geracao?: string | null;
+  recebe_creditos_proprios: boolean;
+  uc_origem_creditos?: string | null;
+  data_inicio_creditos?: string | null;
+  observacao_creditos?: string | null;
 }
 
 export interface AddressFieldsProps {
