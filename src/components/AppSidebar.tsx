@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu } from "lucide-react";
@@ -5,22 +6,16 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./ui/use-toast";
 import { User as SupabaseUser } from '@supabase/supabase-js';
-import { NavigationMenu } from "./sidebar/NavigationMenu";
-import { UserSection } from "./sidebar/UserSection";
-import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarContent,
-  SidebarRail,
-} from "@/components/ui/sidebar";
+import { Button } from "./ui/button";
+import { SidebarNavigation } from "./sidebar/SidebarNavigation";
+import { SidebarUserSection } from "./sidebar/SidebarUserSection";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
 }
 
-export function AppSidebar({ className, children }: SidebarProps) {
+export function AppSidebar({ children }: SidebarProps) {
   const [open, setOpen] = React.useState(false);
   const [user, setUser] = React.useState<SupabaseUser | null>(null);
   const isMobile = useIsMobile();
@@ -67,32 +62,26 @@ export function AppSidebar({ className, children }: SidebarProps) {
 
   if (!isMobile) {
     return (
-      <SidebarProvider defaultOpen={true}>
-        <div className="flex min-h-screen w-full">
-          <Sidebar 
-            collapsible="icon"
-            variant="floating"
-            className="border-r border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-          >
-            <SidebarContent>
-              <div className="h-full">
-                <NavigationMenu onClose={() => setOpen(false)} />
-                <UserSection user={user} onLogout={handleLogout} />
-              </div>
-            </SidebarContent>
-            <SidebarRail />
-          </Sidebar>
-          <main className="flex-1 overflow-hidden">
-            <div className="h-full px-4 py-6 lg:px-8">
-              {children}
+      <div className="flex min-h-screen">
+        <aside className="fixed left-0 top-0 h-screen w-16 hover:w-64 group/sidebar 
+                         transition-all duration-300 ease-in-out z-50">
+          <nav className="h-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60
+                         border-r border-border/40">
+            <div className="flex flex-col h-full">
+              <SidebarNavigation />
+              <SidebarUserSection user={user} onLogout={handleLogout} />
             </div>
-          </main>
-        </div>
-      </SidebarProvider>
+          </nav>
+        </aside>
+        <main className="flex-1 pl-16">
+          <div className="h-full px-4 py-6 lg:px-8">
+            {children}
+          </div>
+        </main>
+      </div>
     );
   }
 
-  // Mobile view (mantendo o drawer atual)
   return (
     <div className="flex min-h-screen w-full">
       <Sheet open={open} onOpenChange={setOpen}>
@@ -103,8 +92,8 @@ export function AppSidebar({ className, children }: SidebarProps) {
         </SheetTrigger>
         <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0">
           <div className="h-full">
-            <NavigationMenu onClose={() => setOpen(false)} />
-            <UserSection user={user} onLogout={handleLogout} />
+            <SidebarNavigation />
+            <SidebarUserSection user={user} onLogout={handleLogout} />
           </div>
         </SheetContent>
       </Sheet>
