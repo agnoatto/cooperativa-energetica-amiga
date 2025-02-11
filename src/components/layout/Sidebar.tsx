@@ -9,7 +9,9 @@ import {
   Database,
   Settings,
   FileText,
-  Table
+  Table,
+  Building2,
+  User
 } from 'lucide-react';
 
 interface SidebarLinkProps {
@@ -17,21 +19,50 @@ interface SidebarLinkProps {
   icon: React.ElementType;
   children: React.ReactNode;
   isActive?: boolean;
+  subItems?: {
+    href: string;
+    icon: React.ElementType;
+    label: string;
+  }[];
 }
 
-const SidebarLink = ({ href, icon: Icon, children, isActive }: SidebarLinkProps) => {
+const SidebarLink = ({ href, icon: Icon, children, isActive, subItems }: SidebarLinkProps) => {
+  const location = useLocation();
+  const isParentOfActive = subItems?.some(item => location.pathname === item.href);
+
   return (
-    <Link
-      to={href}
-      className={cn(
-        "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap",
-        "hover:bg-gray-100 dark:hover:bg-gray-800",
-        isActive && "bg-gray-100 dark:bg-gray-800"
+    <div className="space-y-1">
+      <Link
+        to={href}
+        className={cn(
+          "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap w-full",
+          "hover:bg-gray-100 dark:hover:bg-gray-800",
+          (isActive || isParentOfActive) && "bg-gray-100 dark:bg-gray-800"
+        )}
+      >
+        <Icon className="h-5 w-5 mr-3 shrink-0" />
+        <span className="truncate">{children}</span>
+      </Link>
+      
+      {subItems && (
+        <div className="pl-8 space-y-1">
+          {subItems.map((item) => (
+            <Link
+              key={item.href}
+              to={item.href}
+              className={cn(
+                "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap",
+                "hover:bg-gray-100 dark:hover:bg-gray-800",
+                location.pathname === item.href && "bg-gray-100 dark:bg-gray-800"
+              )}
+            >
+              <item.icon className="h-4 w-4 mr-3 shrink-0" />
+              <span className="truncate">{item.label}</span>
+            </Link>
+          ))}
+        </div>
       )}
-    >
-      <Icon className="h-5 w-5 mr-3 shrink-0" />
-      <span className="truncate">{children}</span>
-    </Link>
+    </div>
   );
 };
 
@@ -59,27 +90,42 @@ export function Sidebar() {
             >
               Dashboard
             </SidebarLink>
+
             <SidebarLink 
               href="/cooperados" 
               icon={Users}
               isActive={location.pathname === '/cooperados'}
+              subItems={[
+                {
+                  href: "/cooperados/unidades",
+                  icon: Building2,
+                  label: "Unidades Beneficiárias"
+                }
+              ]}
             >
               Cooperados
             </SidebarLink>
+
             <SidebarLink 
               href="/usinas" 
               icon={Server}
               isActive={location.pathname === '/usinas'}
+              subItems={[
+                {
+                  href: "/usinas/investidores",
+                  icon: User,
+                  label: "Investidores"
+                },
+                {
+                  href: "/unidades-usina",
+                  icon: Building2,
+                  label: "Unidades de Usina"
+                }
+              ]}
             >
               Usinas
             </SidebarLink>
-            <SidebarLink 
-              href="/unidades-usina" 
-              icon={Database}
-              isActive={location.pathname === '/unidades-usina'}
-            >
-              Unidades Usina
-            </SidebarLink>
+
             <SidebarLink 
               href="/faturas" 
               icon={FileText}
@@ -87,6 +133,7 @@ export function Sidebar() {
             >
               Faturas
             </SidebarLink>
+
             <SidebarLink 
               href="/pagamentos" 
               icon={Table}
@@ -96,6 +143,7 @@ export function Sidebar() {
             </SidebarLink>
           </nav>
         </div>
+
         <div className="p-2 border-t">
           <SidebarLink 
             href="/configuracoes" 
