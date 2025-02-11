@@ -12,7 +12,7 @@ interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
 export function CurrencyInput({ value, onChange, className, ...props }: CurrencyInputProps) {
   // Converte o valor inicial para string formatada se for number
   const initialValue = typeof value === 'number' 
-    ? value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    ? value.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })
     : value;
 
   return (
@@ -25,7 +25,7 @@ export function CurrencyInput({ value, onChange, className, ...props }: Currency
       }}
       thousandSeparator="."
       decimalSeparator=","
-      decimalScale={2}
+      decimalScale={4}
       fixedDecimalScale
       prefix="R$ "
       className={cn(className)}
