@@ -2,6 +2,7 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster } from "./components/ui/toaster";
 import { Sidebar } from "./components/layout/Sidebar";
+import { cn } from "@/lib/utils"; // Adicionando a importação do cn
 import Auth from "./pages/Auth";
 import Cooperados from "./pages/Cooperados";
 import UnidadesBeneficiarias from "./pages/UnidadesBeneficiarias";
