@@ -5,7 +5,6 @@ import { ptBR } from "date-fns/locale";
 import { BoletimMedicaoData } from "@/components/pagamentos/types/boletim";
 import { COLORS, FONTS, SPACING } from "./constants";
 import { formatCurrency } from "../pdfUtils";
-import { generateChartImage } from "./chartUtils";
 
 export const addUsinaInfo = (doc: jsPDF, data: BoletimMedicaoData, yPos: number): number => {
   doc.setTextColor(COLORS.BLACK[0], COLORS.BLACK[1], COLORS.BLACK[2]);
@@ -29,120 +28,120 @@ export const addUsinaInfo = (doc: jsPDF, data: BoletimMedicaoData, yPos: number)
   return yPos + (info.length * 7) + 10;
 };
 
-export const addCharts = async (doc: jsPDF, data: BoletimMedicaoData, yPos: number): Promise<number> => {
-  const chartHeight = 45; // Reduced chart height
-  
-  doc.setFontSize(FONTS.SUBTITLE);
-  doc.text("Geração (kWh/mês)", SPACING.MARGIN, yPos);
-  
-  const geracaoChart = await generateChartImage(data.pagamentos, {
-    width: 400,
-    height: 150,
-    dataKey: "geracao",
-    yAxisLabel: "kWh",
-    formatter: (value: number) => value.toLocaleString('pt-BR')
-  });
-  
-  doc.addImage(
-    geracaoChart,
-    'PNG',
-    SPACING.MARGIN,
-    yPos + 5,
-    SPACING.PAGE.CONTENT_WIDTH - 20,
-    chartHeight
-  );
-
-  const nextYPos = yPos + chartHeight + 15;
-  doc.text("Recebimentos (R$)", SPACING.MARGIN, nextYPos);
-  
-  const recebimentosChart = await generateChartImage(data.pagamentos, {
-    width: 400,
-    height: 150,
-    dataKey: "valor",
-    yAxisLabel: "R$",
-    formatter: (value: number) => formatCurrency(value)
-  });
-  
-  doc.addImage(
-    recebimentosChart,
-    'PNG',
-    SPACING.MARGIN,
-    nextYPos + 5,
-    SPACING.PAGE.CONTENT_WIDTH - 20,
-    chartHeight
-  );
-
-  return nextYPos + chartHeight + 15;
-};
-
 export const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number): number => {
   doc.setFontSize(FONTS.SUBTITLE);
-  doc.text("Dados de Medição", SPACING.MARGIN, yPos);
+  doc.text("Histórico de Medição e Faturamento", SPACING.MARGIN, yPos);
 
   const headers = [
-    "Mês",
+    "Mês/Ano",
     "Geração (kWh)",
     "TUSD Fio B",
-    "Valor Concessionária",
-    "Valor Total"
+    "Valor Bruto",
+    "Valor Conc.",
+    "Valor Líquido"
   ];
 
-  const rows = data.pagamentos.slice(-12).map(pagamento => [
-    format(new Date(pagamento.ano, pagamento.mes - 1), 'MMM/yyyy', { locale: ptBR }),
-    pagamento.geracao_kwh.toString(),
-    formatCurrency(pagamento.tusd_fio_b || 0),
-    formatCurrency(pagamento.valor_concessionaria),
-    formatCurrency(pagamento.valor_total)
-  ]);
-
-  doc.setFontSize(FONTS.SMALL);
-  const cellPadding = 2;
-  const cellHeight = 7;
-  const columnWidths = [30, 35, 35, 35, 35]; // Widths for each column
-  let currentX = SPACING.MARGIN;
-
-  // Draw header background
-  doc.setFillColor(240, 240, 240);
-  doc.rect(SPACING.MARGIN, yPos + 5, SPACING.PAGE.CONTENT_WIDTH - 20, cellHeight, 'F');
-
-  // Draw headers
-  doc.setFontSize(FONTS.SMALL);
-  doc.setFont("helvetica", "bold"); // Changed from setFontStyle to setFont with style parameter
-  headers.forEach((header, index) => {
-    doc.text(header, currentX, yPos + 10);
-    currentX += columnWidths[index];
+  // Calcula os totais
+  const totals = data.pagamentos.reduce((acc, pagamento) => {
+    const valorBruto = (pagamento.geracao_kwh * data.usina.valor_kwh) - 
+                      ((pagamento.tusd_fio_b || 0) * pagamento.geracao_kwh);
+    return {
+      geracao: acc.geracao + pagamento.geracao_kwh,
+      tusd: acc.tusd + (pagamento.tusd_fio_b || 0) * pagamento.geracao_kwh,
+      bruto: acc.bruto + valorBruto,
+      concessionaria: acc.concessionaria + pagamento.valor_concessionaria,
+      liquido: acc.liquido + pagamento.valor_total
+    };
+  }, {
+    geracao: 0,
+    tusd: 0,
+    bruto: 0,
+    concessionaria: 0,
+    liquido: 0
   });
 
-  // Draw rows with alternating background
-  doc.setFont("helvetica", "normal"); // Reset font style to normal for row data
+  const rows = data.pagamentos.slice(-12).map(pagamento => {
+    const valorBruto = (pagamento.geracao_kwh * data.usina.valor_kwh) - 
+                      ((pagamento.tusd_fio_b || 0) * pagamento.geracao_kwh);
+    return [
+      format(new Date(pagamento.ano, pagamento.mes - 1), 'MMM/yyyy', { locale: ptBR }),
+      pagamento.geracao_kwh.toLocaleString('pt-BR'),
+      formatCurrency(pagamento.tusd_fio_b ? pagamento.tusd_fio_b * pagamento.geracao_kwh : 0),
+      formatCurrency(valorBruto),
+      formatCurrency(pagamento.valor_concessionaria),
+      formatCurrency(pagamento.valor_total)
+    ];
+  });
+
+  // Adiciona linha de totais
+  rows.push([
+    'TOTAL',
+    totals.geracao.toLocaleString('pt-BR'),
+    formatCurrency(totals.tusd),
+    formatCurrency(totals.bruto),
+    formatCurrency(totals.concessionaria),
+    formatCurrency(totals.liquido)
+  ]);
+
+  doc.setFontSize(FONTS.NORMAL);
+  const cellPadding = 3;
+  const cellHeight = 8;
+  const columnWidths = [30, 25, 30, 30, 30, 30];
+  let currentX = SPACING.MARGIN;
+  let currentY = yPos + 10;
+
+  // Desenha o cabeçalho com fundo
+  doc.setFillColor(240, 240, 240);
+  doc.rect(SPACING.MARGIN, currentY, SPACING.PAGE.CONTENT_WIDTH - 20, cellHeight, 'F');
+
+  // Títulos das colunas
+  doc.setFont("helvetica", "bold");
+  headers.forEach((header, index) => {
+    const xPos = currentX + (index === 0 ? 0 : columnWidths[index - 1]);
+    doc.text(header, xPos + cellPadding, currentY + 6);
+    currentX = xPos;
+  });
+
+  // Dados das linhas
+  doc.setFont("helvetica", "normal");
   rows.forEach((row, rowIndex) => {
-    const rowY = yPos + 12 + ((rowIndex + 1) * cellHeight);
-    
-    // Add alternating row background
+    currentY += cellHeight;
+    currentX = SPACING.MARGIN;
+
+    // Fundo alternado para as linhas
     if (rowIndex % 2 === 0) {
-      doc.setFillColor(245, 245, 245);
-      doc.rect(SPACING.MARGIN, rowY - 5, SPACING.PAGE.CONTENT_WIDTH - 20, cellHeight, 'F');
+      doc.setFillColor(248, 248, 248);
+      doc.rect(SPACING.MARGIN, currentY, SPACING.PAGE.CONTENT_WIDTH - 20, cellHeight, 'F');
     }
 
-    // Draw cell borders
-    doc.setDrawColor(220, 220, 220);
-    currentX = SPACING.MARGIN;
+    // Destaque para a linha de totais
+    if (rowIndex === rows.length - 1) {
+      doc.setFillColor(240, 249, 255);
+      doc.rect(SPACING.MARGIN, currentY, SPACING.PAGE.CONTENT_WIDTH - 20, cellHeight, 'F');
+      doc.setFont("helvetica", "bold");
+    }
+
     row.forEach((cell, cellIndex) => {
-      doc.text(cell, currentX, rowY);
-      currentX += columnWidths[cellIndex];
+      const xPos = currentX + (cellIndex === 0 ? 0 : columnWidths[cellIndex - 1]);
+      const align = cellIndex === 0 ? 'left' : 'right';
+      const textX = align === 'right' ? 
+        xPos + columnWidths[cellIndex] - cellPadding : 
+        xPos + cellPadding;
+      
+      doc.text(cell.toString(), textX, currentY + 6, { align });
+      currentX = xPos;
     });
   });
 
-  // Draw outer border
-  doc.setDrawColor(200, 200, 200);
+  // Borda externa da tabela
+  doc.setDrawColor(220, 220, 220);
   doc.rect(
     SPACING.MARGIN,
-    yPos + 5,
+    yPos + 10,
     SPACING.PAGE.CONTENT_WIDTH - 20,
     (rows.length + 1) * cellHeight,
     'S'
   );
 
-  return yPos + 15 + ((rows.length + 1) * cellHeight);
+  return currentY + cellHeight + 10;
 };
-

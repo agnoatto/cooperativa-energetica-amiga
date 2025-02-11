@@ -5,7 +5,7 @@ import { ptBR } from "date-fns/locale";
 import { BoletimMedicaoData } from "@/components/pagamentos/types/boletim";
 import { COLORS, FONTS, SPACING } from "./pdf/constants";
 import { addHeader } from "./pdf/pdfHeader";
-import { addUsinaInfo, addCharts, addDataTable } from "./pdf/boletimSections";
+import { addUsinaInfo, addDataTable } from "./pdf/boletimSections";
 
 export const generateBoletimPdf = async (data: BoletimMedicaoData): Promise<{ doc: jsPDF, fileName: string }> => {
   const doc = new jsPDF({
@@ -31,11 +31,9 @@ export const generateBoletimPdf = async (data: BoletimMedicaoData): Promise<{ do
   yPos = 70;
 
   yPos = addUsinaInfo(doc, data, yPos);
-  yPos = await addCharts(doc, data, yPos);
   yPos = addDataTable(doc, data, yPos);
 
   const fileName = `boletim-medicao-${data.usina.numero_uc}-${format(new Date(), 'MM-yyyy')}.pdf`;
 
   return { doc, fileName };
 };
-
