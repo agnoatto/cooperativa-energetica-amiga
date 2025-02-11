@@ -41,7 +41,55 @@ export const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number)
     "Valor Líquido"
   ];
 
-  // Calcula os totais
+  // Configuração das colunas
+  const columnWidths = {
+    mesAno: 25,
+    geracao: 30,
+    tusd: 30,
+    bruto: 30,
+    conc: 30,
+    liquido: 30
+  };
+
+  const startX = SPACING.MARGIN;
+  const tableWidth = Object.values(columnWidths).reduce((a, b) => a + b, 0);
+  const cellHeight = 10;
+  let currentY = yPos + 10;
+
+  // Função helper para desenhar células
+  const drawCell = (text: string, x: number, width: number, align: 'left' | 'right' = 'left') => {
+    const textX = align === 'right' ? x + width - 2 : x + 2;
+    doc.text(text, textX, currentY + 6, { align });
+  };
+
+  // Cabeçalho da tabela
+  doc.setFillColor(240, 240, 240);
+  doc.rect(startX, currentY, tableWidth, cellHeight, 'F');
+  doc.setFont("helvetica", "bold");
+
+  let currentX = startX;
+  headers.forEach((header, index) => {
+    const width = Object.values(columnWidths)[index];
+    drawCell(header, currentX, width);
+    currentX += width;
+  });
+
+  // Dados da tabela
+  doc.setFont("helvetica", "normal");
+  const rows = data.pagamentos.map(pagamento => {
+    const valorBruto = (pagamento.geracao_kwh * data.usina.valor_kwh) - 
+                      ((pagamento.tusd_fio_b || 0) * pagamento.geracao_kwh);
+    return {
+      mesAno: format(new Date(pagamento.ano, pagamento.mes - 1), 'MMM/yyyy', { locale: ptBR }),
+      geracao: pagamento.geracao_kwh.toLocaleString('pt-BR'),
+      tusd: formatCurrency(pagamento.tusd_fio_b ? pagamento.tusd_fio_b * pagamento.geracao_kwh : 0),
+      bruto: formatCurrency(valorBruto),
+      conc: formatCurrency(pagamento.valor_concessionaria),
+      liquido: formatCurrency(pagamento.valor_total)
+    };
+  });
+
+  // Totais
   const totals = data.pagamentos.reduce((acc, pagamento) => {
     const valorBruto = (pagamento.geracao_kwh * data.usina.valor_kwh) - 
                       ((pagamento.tusd_fio_b || 0) * pagamento.geracao_kwh);
@@ -49,99 +97,75 @@ export const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number)
       geracao: acc.geracao + pagamento.geracao_kwh,
       tusd: acc.tusd + (pagamento.tusd_fio_b || 0) * pagamento.geracao_kwh,
       bruto: acc.bruto + valorBruto,
-      concessionaria: acc.concessionaria + pagamento.valor_concessionaria,
+      conc: acc.conc + pagamento.valor_concessionaria,
       liquido: acc.liquido + pagamento.valor_total
     };
-  }, {
-    geracao: 0,
-    tusd: 0,
-    bruto: 0,
-    concessionaria: 0,
-    liquido: 0
-  });
+  }, { geracao: 0, tusd: 0, bruto: 0, conc: 0, liquido: 0 });
 
-  const rows = data.pagamentos.slice(-12).map(pagamento => {
-    const valorBruto = (pagamento.geracao_kwh * data.usina.valor_kwh) - 
-                      ((pagamento.tusd_fio_b || 0) * pagamento.geracao_kwh);
-    return [
-      format(new Date(pagamento.ano, pagamento.mes - 1), 'MMM/yyyy', { locale: ptBR }),
-      pagamento.geracao_kwh.toLocaleString('pt-BR'),
-      formatCurrency(pagamento.tusd_fio_b ? pagamento.tusd_fio_b * pagamento.geracao_kwh : 0),
-      formatCurrency(valorBruto),
-      formatCurrency(pagamento.valor_concessionaria),
-      formatCurrency(pagamento.valor_total)
-    ];
-  });
-
-  // Adiciona linha de totais
-  rows.push([
-    'TOTAL',
-    totals.geracao.toLocaleString('pt-BR'),
-    formatCurrency(totals.tusd),
-    formatCurrency(totals.bruto),
-    formatCurrency(totals.concessionaria),
-    formatCurrency(totals.liquido)
-  ]);
-
-  doc.setFontSize(FONTS.NORMAL);
-  const cellPadding = 3;
-  const cellHeight = 8;
-  const columnWidths = [30, 25, 30, 30, 30, 30];
-  let currentX = SPACING.MARGIN;
-  let currentY = yPos + 10;
-
-  // Desenha o cabeçalho com fundo
-  doc.setFillColor(240, 240, 240);
-  doc.rect(SPACING.MARGIN, currentY, SPACING.PAGE.CONTENT_WIDTH - 20, cellHeight, 'F');
-
-  // Títulos das colunas
-  doc.setFont("helvetica", "bold");
-  headers.forEach((header, index) => {
-    const xPos = currentX + (index === 0 ? 0 : columnWidths[index - 1]);
-    doc.text(header, xPos + cellPadding, currentY + 6);
-    currentX = xPos;
-  });
-
-  // Dados das linhas
-  doc.setFont("helvetica", "normal");
+  // Adiciona linhas de dados
   rows.forEach((row, rowIndex) => {
     currentY += cellHeight;
-    currentX = SPACING.MARGIN;
-
-    // Fundo alternado para as linhas
+    
+    // Fundo alternado
     if (rowIndex % 2 === 0) {
       doc.setFillColor(248, 248, 248);
-      doc.rect(SPACING.MARGIN, currentY, SPACING.PAGE.CONTENT_WIDTH - 20, cellHeight, 'F');
+      doc.rect(startX, currentY, tableWidth, cellHeight, 'F');
     }
 
-    // Destaque para a linha de totais
-    if (rowIndex === rows.length - 1) {
-      doc.setFillColor(240, 249, 255);
-      doc.rect(SPACING.MARGIN, currentY, SPACING.PAGE.CONTENT_WIDTH - 20, cellHeight, 'F');
-      doc.setFont("helvetica", "bold");
-    }
-
-    row.forEach((cell, cellIndex) => {
-      const xPos = currentX + (cellIndex === 0 ? 0 : columnWidths[cellIndex - 1]);
-      const align = cellIndex === 0 ? 'left' : 'right';
-      const textX = align === 'right' ? 
-        xPos + columnWidths[cellIndex] - cellPadding : 
-        xPos + cellPadding;
-      
-      doc.text(cell.toString(), textX, currentY + 6, { align });
-      currentX = xPos;
-    });
+    currentX = startX;
+    drawCell(row.mesAno, currentX, columnWidths.mesAno);
+    currentX += columnWidths.mesAno;
+    drawCell(row.geracao, currentX, columnWidths.geracao, 'right');
+    currentX += columnWidths.geracao;
+    drawCell(row.tusd, currentX, columnWidths.tusd, 'right');
+    currentX += columnWidths.tusd;
+    drawCell(row.bruto, currentX, columnWidths.bruto, 'right');
+    currentX += columnWidths.bruto;
+    drawCell(row.conc, currentX, columnWidths.conc, 'right');
+    currentX += columnWidths.conc;
+    drawCell(row.liquido, currentX, columnWidths.liquido, 'right');
   });
 
-  // Borda externa da tabela
+  // Linha de totais
+  currentY += cellHeight;
+  doc.setFillColor(240, 249, 255);
+  doc.rect(startX, currentY, tableWidth, cellHeight, 'F');
+  doc.setFont("helvetica", "bold");
+
+  currentX = startX;
+  drawCell("TOTAL", currentX, columnWidths.mesAno);
+  currentX += columnWidths.mesAno;
+  drawCell(totals.geracao.toLocaleString('pt-BR'), currentX, columnWidths.geracao, 'right');
+  currentX += columnWidths.geracao;
+  drawCell(formatCurrency(totals.tusd), currentX, columnWidths.tusd, 'right');
+  currentX += columnWidths.tusd;
+  drawCell(formatCurrency(totals.bruto), currentX, columnWidths.bruto, 'right');
+  currentX += columnWidths.bruto;
+  drawCell(formatCurrency(totals.conc), currentX, columnWidths.conc, 'right');
+  currentX += columnWidths.conc;
+  drawCell(formatCurrency(totals.liquido), currentX, columnWidths.liquido, 'right');
+
+  // Borda da tabela
   doc.setDrawColor(220, 220, 220);
-  doc.rect(
-    SPACING.MARGIN,
-    yPos + 10,
-    SPACING.PAGE.CONTENT_WIDTH - 20,
-    (rows.length + 1) * cellHeight,
-    'S'
-  );
+  doc.rect(startX, yPos + 10, tableWidth, (rows.length + 2) * cellHeight, 'S');
+
+  // Linhas verticais internas
+  currentX = startX;
+  for (let i = 0; i < Object.keys(columnWidths).length - 1; i++) {
+    currentX += Object.values(columnWidths)[i];
+    doc.line(
+      currentX,
+      yPos + 10,
+      currentX,
+      yPos + 10 + ((rows.length + 2) * cellHeight)
+    );
+  }
+
+  // Linhas horizontais
+  for (let i = 1; i < rows.length + 2; i++) {
+    const lineY = yPos + 10 + (i * cellHeight);
+    doc.line(startX, lineY, startX + tableWidth, lineY);
+  }
 
   return currentY + cellHeight + 10;
 };
