@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu } from "lucide-react";
@@ -14,7 +13,6 @@ import {
   SidebarProvider,
   Sidebar,
   SidebarContent,
-  SidebarTrigger,
   SidebarRail,
 } from "@/components/ui/sidebar";
 
@@ -77,10 +75,7 @@ export function AppSidebar({ className, children }: SidebarProps) {
             className="border-r border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
           >
             <SidebarContent>
-              <div className="flex justify-end p-2">
-                <SidebarTrigger />
-              </div>
-              <div className="h-[calc(100vh-4rem)]">
+              <div className="h-full">
                 <NavigationMenu onClose={() => setOpen(false)} />
                 <UserSection user={user} onLogout={handleLogout} />
               </div>
