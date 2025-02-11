@@ -1,6 +1,5 @@
 
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
-import { AppSidebar } from "./components/AppSidebar";
 import { Toaster } from "./components/ui/toaster";
 import Auth from "./pages/Auth";
 import Cooperados from "./pages/Cooperados";
@@ -49,7 +48,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <AppSidebar>
+      <div className="min-h-screen">
         <Routes>
           <Route
             path="/"
@@ -105,7 +104,7 @@ function App() {
           />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </AppSidebar>
+      </div>
       <Toaster />
     </BrowserRouter>
   );
