@@ -42,14 +42,14 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-30 h-screen bg-white dark:bg-gray-900 border-r shadow-sm",
+        "fixed left-0 top-0 z-40 h-screen bg-white dark:bg-gray-900 border-r shadow-sm",
         "transition-all duration-300 ease-in-out",
         isExpanded ? "w-64" : "w-16 hover:w-64"
       )}
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
     >
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full overflow-hidden">
         <div className="flex-1 py-6 space-y-1">
           <nav className="px-2 space-y-1">
             <SidebarLink 
