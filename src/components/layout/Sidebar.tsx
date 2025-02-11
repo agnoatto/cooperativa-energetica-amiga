@@ -40,8 +40,10 @@ const SidebarLink = ({ href, icon: Icon, children, isActive, subItems }: Sidebar
           (isActive || isParentOfActive) && "bg-gray-100 dark:bg-gray-800"
         )}
       >
-        <Icon className="h-5 w-5 mr-3 shrink-0" />
-        <span className="truncate">{children}</span>
+        <div className="w-5 flex justify-center">
+          <Icon className="h-5 w-5 shrink-0" />
+        </div>
+        <span className="ml-3 truncate">{children}</span>
       </Link>
       
       {subItems && (
@@ -56,8 +58,10 @@ const SidebarLink = ({ href, icon: Icon, children, isActive, subItems }: Sidebar
                 location.pathname === item.href && "bg-gray-100 dark:bg-gray-800"
               )}
             >
-              <item.icon className="h-4 w-4 mr-3 shrink-0" />
-              <span className="truncate">{item.label}</span>
+              <div className="w-4 flex justify-center">
+                <item.icon className="h-4 w-4 shrink-0" />
+              </div>
+              <span className="ml-3 truncate">{item.label}</span>
             </Link>
           ))}
         </div>
