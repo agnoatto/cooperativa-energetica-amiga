@@ -18,17 +18,49 @@ export const generateChartImage = async (data: any[], config: {
     throw new Error('Failed to get canvas context');
   }
 
-  const maxValue = Math.max(...data.map(item => item[config.dataKey]));
-  const barWidth = (config.width - 60) / data.length;
-  const barHeightRatio = (config.height - 60) / maxValue;
+  // Fill 12 months of data, using empty values for missing months
+  const now = new Date();
+  const last12Months = Array.from({ length: 12 }, (_, i) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - i);
+    const existingData = data.find(d => 
+      d.month === date.getMonth() + 1 && 
+      d.year === date.getFullYear()
+    );
+    return {
+      month: date.getMonth() + 1,
+      year: date.getFullYear(),
+      [config.dataKey]: existingData ? existingData[config.dataKey] : 0
+    };
+  }).reverse();
 
+  const maxValue = Math.max(...last12Months.map(item => item[config.dataKey]));
+  const barWidth = (config.width - 60) / 12; // Always show 12 bars
+  const barHeightRatio = (config.height - 60) / (maxValue || 1); // Prevent division by zero
+
+  // Draw axes
   ctx.beginPath();
-  ctx.moveTo(30, 30);
-  ctx.lineTo(30, config.height - 30);
-  ctx.lineTo(config.width - 30, config.height - 30);
-  ctx.stroke();
+  ctx.strokeStyle = '#E5E7EB'; // Light gray for grid
+  ctx.lineWidth = 0.5;
+  
+  // Draw horizontal grid lines
+  const gridLines = 5;
+  for (let i = 0; i <= gridLines; i++) {
+    const y = config.height - 30 - ((config.height - 60) * (i / gridLines));
+    ctx.moveTo(30, y);
+    ctx.lineTo(config.width - 30, y);
+    ctx.stroke();
+  }
 
-  data.forEach((item, index) => {
+  // Draw vertical grid lines
+  last12Months.forEach((_, index) => {
+    const x = 40 + (index * barWidth);
+    ctx.moveTo(x, 30);
+    ctx.lineTo(x, config.height - 30);
+    ctx.stroke();
+  });
+
+  // Draw bars
+  last12Months.forEach((item, index) => {
     const barHeight = item[config.dataKey] * barHeightRatio;
     ctx.fillStyle = '#0EA5E9';
     ctx.fillRect(
@@ -38,6 +70,7 @@ export const generateChartImage = async (data: any[], config: {
       barHeight
     );
 
+    // Draw month labels
     ctx.save();
     ctx.translate(45 + (index * barWidth), config.height - 15);
     ctx.rotate(-Math.PI / 4);
@@ -53,4 +86,3 @@ export const generateChartImage = async (data: any[], config: {
 
   return chartCanvas.toDataURL('image/png');
 };
-

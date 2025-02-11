@@ -30,19 +30,12 @@ export const addUsinaInfo = (doc: jsPDF, data: BoletimMedicaoData, yPos: number)
 };
 
 export const addCharts = async (doc: jsPDF, data: BoletimMedicaoData, yPos: number): Promise<number> => {
-  const last12Months = data.pagamentos
-    .slice(-12)
-    .map(p => ({
-      month: p.mes,
-      year: p.ano,
-      geracao: p.geracao_kwh,
-      valor: p.valor_total
-    }));
-
+  const chartHeight = 45; // Reduced chart height
+  
   doc.setFontSize(FONTS.SUBTITLE);
   doc.text("Geração (kWh/mês)", SPACING.MARGIN, yPos);
   
-  const geracaoChart = await generateChartImage(last12Months, {
+  const geracaoChart = await generateChartImage(data.pagamentos, {
     width: 400,
     height: 150,
     dataKey: "geracao",
@@ -54,15 +47,15 @@ export const addCharts = async (doc: jsPDF, data: BoletimMedicaoData, yPos: numb
     geracaoChart,
     'PNG',
     SPACING.MARGIN,
-    yPos + 10,
+    yPos + 5,
     SPACING.PAGE.CONTENT_WIDTH - 20,
-    60
+    chartHeight
   );
 
-  const nextYPos = yPos + 80;
+  const nextYPos = yPos + chartHeight + 15;
   doc.text("Recebimentos (R$)", SPACING.MARGIN, nextYPos);
   
-  const recebimentosChart = await generateChartImage(last12Months, {
+  const recebimentosChart = await generateChartImage(data.pagamentos, {
     width: 400,
     height: 150,
     dataKey: "valor",
@@ -74,12 +67,12 @@ export const addCharts = async (doc: jsPDF, data: BoletimMedicaoData, yPos: numb
     recebimentosChart,
     'PNG',
     SPACING.MARGIN,
-    nextYPos + 10,
+    nextYPos + 5,
     SPACING.PAGE.CONTENT_WIDTH - 20,
-    60
+    chartHeight
   );
 
-  return nextYPos + 80;
+  return nextYPos + chartHeight + 15;
 };
 
 export const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number): number => {
@@ -103,24 +96,51 @@ export const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number)
   ]);
 
   doc.setFontSize(FONTS.SMALL);
-  const cellPadding = 3;
-  const cellHeight = 8;
-  const columnWidth = (SPACING.PAGE.CONTENT_WIDTH) / headers.length;
+  const cellPadding = 2;
+  const cellHeight = 7;
+  const columnWidths = [30, 35, 35, 35, 35]; // Widths for each column
+  let currentX = SPACING.MARGIN;
 
+  // Draw header background
+  doc.setFillColor(240, 240, 240);
+  doc.rect(SPACING.MARGIN, yPos + 5, SPACING.PAGE.CONTENT_WIDTH - 20, cellHeight, 'F');
+
+  // Draw headers
+  doc.setFontSize(FONTS.SMALL);
+  doc.setFontStyle('bold');
   headers.forEach((header, index) => {
-    doc.text(header, SPACING.MARGIN + (columnWidth * index), yPos + 10);
+    doc.text(header, currentX, yPos + 10);
+    currentX += columnWidths[index];
   });
 
+  // Draw rows with alternating background
   rows.forEach((row, rowIndex) => {
+    const rowY = yPos + 12 + ((rowIndex + 1) * cellHeight);
+    
+    // Add alternating row background
+    if (rowIndex % 2 === 0) {
+      doc.setFillColor(245, 245, 245);
+      doc.rect(SPACING.MARGIN, rowY - 5, SPACING.PAGE.CONTENT_WIDTH - 20, cellHeight, 'F');
+    }
+
+    // Draw cell borders
+    doc.setDrawColor(220, 220, 220);
+    currentX = SPACING.MARGIN;
     row.forEach((cell, cellIndex) => {
-      doc.text(
-        cell,
-        SPACING.MARGIN + (columnWidth * cellIndex),
-        yPos + 20 + (rowIndex * cellHeight)
-      );
+      doc.text(cell, currentX, rowY);
+      currentX += columnWidths[cellIndex];
     });
   });
 
-  return yPos + 20 + (rows.length * cellHeight) + cellPadding;
-};
+  // Draw outer border
+  doc.setDrawColor(200, 200, 200);
+  doc.rect(
+    SPACING.MARGIN,
+    yPos + 5,
+    SPACING.PAGE.CONTENT_WIDTH - 20,
+    (rows.length + 1) * cellHeight,
+    'S'
+  );
 
+  return yPos + 15 + ((rows.length + 1) * cellHeight);
+};
