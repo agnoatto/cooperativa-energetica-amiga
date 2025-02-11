@@ -1,3 +1,4 @@
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -33,11 +34,14 @@ export function PagamentoFormFields({
   );
 
   const handleDataEmissaoChange = (date: Date | undefined) => {
-    setSelectedDate(date);
+    if (date) {
+      setSelectedDate(date);
+    }
   };
 
   const handleConfirmDate = () => {
     if (selectedDate) {
+      // Format the date for database (YYYY-MM-DD)
       const data_emissao = selectedDate.toISOString().split('T')[0];
       const data_pagamento = addDays(selectedDate, 90).toISOString().split('T')[0];
       
@@ -45,10 +49,11 @@ export function PagamentoFormFields({
         ...form,
         data_emissao,
         data_pagamento,
-        status: data_pagamento ? 'pendente' : form.status
+        status: 'pendente'
       });
+      
+      setIsCalendarOpen(false);
     }
-    setIsCalendarOpen(false);
   };
 
   return (
@@ -130,11 +135,16 @@ export function PagamentoFormFields({
                 !form.data_emissao && "text-muted-foreground"
               )}
             >
-              <CalendarIcon className="mr-2 h-4 w-4" />
               {form.data_emissao ? (
-                format(new Date(form.data_emissao), "dd/MM/yyyy", { locale: ptBR })
+                <>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {format(new Date(form.data_emissao), "dd/MM/yyyy", { locale: ptBR })}
+                </>
               ) : (
-                <span>Selecione a data de emissão</span>
+                <>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <span>Selecione a data de emissão</span>
+                </>
               )}
             </Button>
           </PopoverTrigger>
@@ -147,9 +157,9 @@ export function PagamentoFormFields({
                 initialFocus
                 locale={ptBR}
               />
-              <div className="mt-4 flex justify-end gap-2 border-t pt-4">
-                <Button 
-                  onClick={handleConfirmDate} 
+              <div className="mt-4 flex justify-end border-t pt-4">
+                <Button
+                  onClick={handleConfirmDate}
                   size="sm"
                   className="flex items-center gap-2"
                 >
