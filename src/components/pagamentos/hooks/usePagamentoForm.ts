@@ -10,6 +10,7 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
     valor_total: pagamento?.valor_total || 0,
     status: pagamento?.status || 'pendente',
     data_pagamento: pagamento?.data_pagamento || null,
+    data_emissao: pagamento?.data_emissao || null,
     tusd_fio_b: pagamento?.tusd_fio_b || 0,
     valor_concessionaria: pagamento?.valor_concessionaria || 0,
   });
@@ -33,6 +34,7 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
           valor_total: valorEfetivo,
           status: form.status,
           data_pagamento: form.data_pagamento,
+          data_emissao: form.data_emissao,
           tusd_fio_b: Number(form.tusd_fio_b),
           valor_concessionaria: Number(form.valor_concessionaria),
         })

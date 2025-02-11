@@ -5,12 +5,13 @@ export interface PagamentoData {
   valor_total: number;
   status: string;
   data_pagamento: string | null;
+  data_emissao: string | null;
+  data_vencimento: string;
   tusd_fio_b: number | null;
   valor_tusd_fio_b: number | null;
   valor_concessionaria: number;
   mes: number;
   ano: number;
-  data_vencimento: string;
   conta_energia: number;
   usina: {
     valor_kwh: number;
@@ -28,6 +29,7 @@ export interface PagamentoFormValues {
   valor_total: number;
   status: string;
   data_pagamento: string | null;
+  data_emissao: string | null;
   tusd_fio_b: number;
   valor_concessionaria: number;
 }

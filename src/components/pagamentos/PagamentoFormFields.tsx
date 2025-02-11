@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +27,18 @@ export function PagamentoFormFields({
   valorBruto,
   valorEfetivo,
 }: PagamentoFormFieldsProps) {
+  const handleDataEmissaoChange = (date: Date | null) => {
+    const data_emissao = date ? date.toISOString().split('T')[0] : null;
+    const data_pagamento = date ? addDays(date, 90).toISOString().split('T')[0] : null;
+    
+    setForm({
+      ...form,
+      data_emissao,
+      data_pagamento,
+      status: data_pagamento ? 'pendente' : form.status
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div>
@@ -96,6 +108,45 @@ export function PagamentoFormFields({
         />
       </div>
       <div>
+        <Label>Data de Emissão da Conta</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !form.data_emissao && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {form.data_emissao ? (
+                format(new Date(form.data_emissao), "dd/MM/yyyy", { locale: ptBR })
+              ) : (
+                <span>Selecione a data de emissão</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={form.data_emissao ? new Date(form.data_emissao) : undefined}
+              onSelect={handleDataEmissaoChange}
+              initialFocus
+              locale={ptBR}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+      <div>
+        <Label>Data de Pagamento Prevista</Label>
+        <Input
+          type="text"
+          value={form.data_pagamento ? format(new Date(form.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : 'Aguardando data de emissão'}
+          disabled
+          className="bg-gray-100"
+        />
+      </div>
+      <div>
         <Label htmlFor="status">Status</Label>
         <Select
           value={form.status}
@@ -110,40 +161,6 @@ export function PagamentoFormFields({
             <SelectItem value="atrasado">Atrasado</SelectItem>
           </SelectContent>
         </Select>
-      </div>
-      <div>
-        <Label>Data de Pagamento</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !form.data_pagamento && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {form.data_pagamento ? (
-                format(new Date(form.data_pagamento), "dd/MM/yyyy", { locale: ptBR })
-              ) : (
-                <span>Selecione uma data</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={form.data_pagamento ? new Date(form.data_pagamento) : undefined}
-              onSelect={(date) => setForm({ 
-                ...form, 
-                data_pagamento: date ? date.toISOString().split('T')[0] : null,
-                status: date ? 'pago' : form.status
-              })}
-              initialFocus
-              locale={ptBR}
-            />
-          </PopoverContent>
-        </Popover>
       </div>
     </div>
   );
