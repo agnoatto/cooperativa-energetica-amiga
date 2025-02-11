@@ -11,8 +11,8 @@ export function useUnidadesUsinaQuery() {
         .from("unidades_usina")
         .select(`
           *,
-          cooperativa:cooperativas!titular_id(id, nome, documento),
-          cooperado:cooperados!titular_id(id, nome)
+          cooperativa:cooperativas!inner(id, nome, documento),
+          cooperado:cooperados!inner(id, nome)
         `)
         .order("created_at", { ascending: false });
 
