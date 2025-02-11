@@ -1,6 +1,8 @@
 
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { formatCurrency } from "../pdfUtils";
 
 export const generateChartImage = async (data: any[], config: { 
   width: number;
@@ -9,121 +11,74 @@ export const generateChartImage = async (data: any[], config: {
   yAxisLabel: string;
   formatter?: (value: number) => string;
 }) => {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("width", config.width.toString());
-  svg.setAttribute("height", config.height.toString());
-  svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-
-  // Fill 12 months of data, using empty values for missing months
+  // Fill 12 months of data
   const now = new Date();
   const last12Months = Array.from({ length: 12 }, (_, i) => {
     const date = new Date(now.getFullYear(), now.getMonth() - i);
     const existingData = data.find(d => 
-      d.month === date.getMonth() + 1 && 
-      d.year === date.getFullYear()
+      d.mes === date.getMonth() + 1 && 
+      d.ano === date.getFullYear()
     );
     return {
+      date,
       month: date.getMonth() + 1,
       year: date.getFullYear(),
       [config.dataKey]: existingData ? existingData[config.dataKey] : 0
     };
   }).reverse();
 
-  const maxValue = Math.max(...last12Months.map(item => item[config.dataKey]));
-  const yAxisMax = Math.ceil(maxValue * 1.1); // Add 10% padding to max value
-  const barWidth = Math.min(35, (config.width - 100) / 12); // Maximum bar width of 35px
-  const barGap = 2; // Gap between bars
-  const chartHeight = config.height - 60; // Reserve space for labels
-  const barHeightRatio = chartHeight / yAxisMax;
+  // Create a container div for Recharts
+  const container = document.createElement('div');
+  container.style.width = `${config.width}px`;
+  container.style.height = `${config.height}px`;
+  document.body.appendChild(container);
 
-  // Background
-  const background = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  background.setAttribute("width", "100%");
-  background.setAttribute("height", "100%");
-  background.setAttribute("fill", "#ffffff");
-  svg.appendChild(background);
+  // Create and render the chart
+  const chart = (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart
+        data={last12Months}
+        margin={{ top: 20, right: 30, left: 40, bottom: 25 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+        <XAxis
+          dataKey="date"
+          tickFormatter={(date) => format(date, 'MMM/yy', { locale: ptBR })}
+          tick={{ fill: '#6B7280', fontSize: 10 }}
+          axisLine={{ stroke: '#E5E7EB' }}
+          tickLine={false}
+        />
+        <YAxis
+          tickFormatter={config.formatter || ((value) => value.toLocaleString('pt-BR'))}
+          tick={{ fill: '#6B7280', fontSize: 10 }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <Bar
+          dataKey={config.dataKey}
+          fill="#4F46E5"
+          radius={[2, 2, 0, 0]}
+          label={{
+            position: 'top',
+            fill: '#4B5563',
+            fontSize: 10,
+            formatter: config.formatter || ((value: any) => value.toLocaleString('pt-BR')),
+          }}
+        />
+      </BarChart>
+    </ResponsiveContainer>
+  );
 
-  // Grid lines and Y-axis labels
-  const gridLines = 8; // Increase number of grid lines
-  const gridGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  
-  for (let i = 0; i <= gridLines; i++) {
-    const y = 20 + (chartHeight * (1 - i / gridLines));
-    const value = (yAxisMax * i) / gridLines;
-
-    // Grid line
-    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    line.setAttribute("x1", "60");
-    line.setAttribute("y1", y.toString());
-    line.setAttribute("x2", (config.width - 20).toString());
-    line.setAttribute("y2", y.toString());
-    line.setAttribute("stroke", "#E5E7EB");
-    line.setAttribute("stroke-width", "1");
-    gridGroup.appendChild(line);
-
-    // Y-axis label
-    const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    label.setAttribute("x", "55");
-    label.setAttribute("y", y.toString());
-    label.setAttribute("text-anchor", "end");
-    label.setAttribute("dominant-baseline", "middle");
-    label.setAttribute("font-size", "10");
-    label.setAttribute("font-family", "Arial");
-    label.setAttribute("fill", "#6B7280");
-    label.textContent = config.formatter ? config.formatter(value) : value.toLocaleString('pt-BR');
-    gridGroup.appendChild(label);
+  // Convert chart to SVG string
+  const svgString = container.querySelector('svg')?.outerHTML;
+  if (!svgString) {
+    throw new Error('Failed to generate chart SVG');
   }
-  svg.appendChild(gridGroup);
 
-  // Bars
-  const barsGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  last12Months.forEach((item, index) => {
-    const value = item[config.dataKey];
-    const barHeight = value * barHeightRatio;
-    const x = 70 + (index * (barWidth + barGap));
-    const y = 20 + (chartHeight - barHeight);
-
-    // Bar
-    const bar = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    bar.setAttribute("x", x.toString());
-    bar.setAttribute("y", y.toString());
-    bar.setAttribute("width", barWidth.toString());
-    bar.setAttribute("height", barHeight.toString());
-    bar.setAttribute("fill", "#4F46E5");
-    bar.setAttribute("rx", "1");
-    barsGroup.appendChild(bar);
-
-    // Month label
-    const monthLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    monthLabel.setAttribute("x", (x + barWidth / 2).toString());
-    monthLabel.setAttribute("y", (config.height - 25).toString());
-    monthLabel.setAttribute("text-anchor", "middle");
-    monthLabel.setAttribute("font-size", "10");
-    monthLabel.setAttribute("font-family", "Arial");
-    monthLabel.setAttribute("fill", "#4B5563");
-    monthLabel.textContent = format(new Date(item.year, item.month - 1), 'MMM/yy', { locale: ptBR });
-    barsGroup.appendChild(monthLabel);
-
-    // Value label (only show if value > 0)
-    if (value > 0) {
-      const valueLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      valueLabel.setAttribute("x", (x + barWidth / 2).toString());
-      valueLabel.setAttribute("y", (y - 5).toString());
-      valueLabel.setAttribute("text-anchor", "middle");
-      valueLabel.setAttribute("font-size", "10");
-      valueLabel.setAttribute("font-family", "Arial");
-      valueLabel.setAttribute("fill", "#4B5563");
-      const formattedValue = config.formatter 
-        ? config.formatter(value)
-        : value.toLocaleString('pt-BR');
-      valueLabel.textContent = formattedValue;
-      barsGroup.appendChild(valueLabel);
-    }
-  });
-  svg.appendChild(barsGroup);
+  // Clean up
+  document.body.removeChild(container);
 
   // Convert SVG to image
-  const svgString = new XMLSerializer().serializeToString(svg);
   const blob = new Blob([svgString], { type: 'image/svg+xml' });
   const url = URL.createObjectURL(blob);
   
