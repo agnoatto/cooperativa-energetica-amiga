@@ -8,7 +8,6 @@ import Cooperados from "./pages/Cooperados";
 import UnidadesBeneficiarias from "./pages/UnidadesBeneficiarias";
 import Dashboard from "./pages/Dashboard";
 import Faturas from "./pages/Faturas";
-import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Pagamentos from "./pages/Pagamentos";
 import UnidadesUsina from "./pages/UnidadesUsina";
@@ -42,11 +41,22 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Carregando...</p>
+        </div>
       </div>
     );
   }
+
+  // Função auxiliar para proteger rotas
+  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+    if (!session) {
+      return <Navigate to="/auth" replace />;
+    }
+    return <>{children}</>;
+  };
 
   return (
     <BrowserRouter>
@@ -54,12 +64,13 @@ function App() {
         {session && <Sidebar />}
         <main
           className={cn(
-            "flex-1 min-h-screen transition-all duration-300",
-            session && "pl-16 lg:pl-16" // Ajuste para garantir o espaço correto em desktop
+            "flex-1 min-h-screen transition-all duration-300 bg-gray-50 dark:bg-gray-900",
+            session && "pl-16 lg:pl-16"
           )}
         >
           <div className="p-6">
             <Routes>
+              {/* Rota inicial redireciona para dashboard ou auth */}
               <Route
                 path="/"
                 element={
@@ -70,48 +81,88 @@ function App() {
                   )
                 }
               />
+
+              {/* Rota de autenticação */}
               <Route
                 path="/auth"
                 element={session ? <Navigate to="/dashboard" replace /> : <Auth />}
               />
+
+              {/* Rotas protegidas */}
               <Route
                 path="/dashboard"
-                element={session ? <Dashboard /> : <Navigate to="/auth" replace />}
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
               />
               <Route
                 path="/cooperados"
-                element={session ? <Cooperados /> : <Navigate to="/auth" replace />}
+                element={
+                  <ProtectedRoute>
+                    <Cooperados />
+                  </ProtectedRoute>
+                }
               />
               <Route
                 path="/cooperados/unidades"
-                element={session ? <UnidadesBeneficiarias /> : <Navigate to="/auth" replace />}
+                element={
+                  <ProtectedRoute>
+                    <UnidadesBeneficiarias />
+                  </ProtectedRoute>
+                }
               />
               <Route
                 path="/usinas"
-                element={session ? <Usinas /> : <Navigate to="/auth" replace />}
+                element={
+                  <ProtectedRoute>
+                    <Usinas />
+                  </ProtectedRoute>
+                }
               />
               <Route
                 path="/usinas/investidores"
-                element={session ? <Investidores /> : <Navigate to="/auth" replace />}
+                element={
+                  <ProtectedRoute>
+                    <Investidores />
+                  </ProtectedRoute>
+                }
               />
               <Route
                 path="/unidades-usina"
                 element={
-                  session ? <UnidadesUsina /> : <Navigate to="/auth" replace />
+                  <ProtectedRoute>
+                    <UnidadesUsina />
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/faturas"
-                element={session ? <Faturas /> : <Navigate to="/auth" replace />}
+                element={
+                  <ProtectedRoute>
+                    <Faturas />
+                  </ProtectedRoute>
+                }
               />
               <Route
                 path="/pagamentos"
-                element={session ? <Pagamentos /> : <Navigate to="/auth" replace />}
+                element={
+                  <ProtectedRoute>
+                    <Pagamentos />
+                  </ProtectedRoute>
+                }
               />
               <Route
                 path="/configuracoes"
-                element={session ? <Configuracoes /> : <Navigate to="/auth" replace />}
+                element={
+                  <ProtectedRoute>
+                    <Configuracoes />
+                  </ProtectedRoute>
+                }
               />
+
+              {/* Rota 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
