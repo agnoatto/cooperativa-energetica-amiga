@@ -1,6 +1,7 @@
 
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster } from "./components/ui/toaster";
+import { Sidebar } from "./components/layout/Sidebar";
 import Auth from "./pages/Auth";
 import Cooperados from "./pages/Cooperados";
 import UnidadesBeneficiarias from "./pages/UnidadesBeneficiarias";
@@ -49,61 +50,67 @@ function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen">
-        <Routes>
-          <Route
-            path="/"
-            element={
-              session ? (
-                <Navigate to="/dashboard" replace />
-              ) : (
-                <Navigate to="/auth" replace />
-              )
-            }
-          />
-          <Route
-            path="/auth"
-            element={session ? <Navigate to="/dashboard" replace /> : <Auth />}
-          />
-          <Route
-            path="/dashboard"
-            element={session ? <Dashboard /> : <Navigate to="/auth" replace />}
-          />
-          <Route
-            path="/cooperados"
-            element={session ? <Cooperados /> : <Navigate to="/auth" replace />}
-          />
-          <Route
-            path="/cooperados/unidades"
-            element={session ? <UnidadesBeneficiarias /> : <Navigate to="/auth" replace />}
-          />
-          <Route
-            path="/usinas"
-            element={session ? <Usinas /> : <Navigate to="/auth" replace />}
-          />
-          <Route
-            path="/usinas/investidores"
-            element={session ? <Investidores /> : <Navigate to="/auth" replace />}
-          />
-          <Route
-            path="/unidades-usina"
-            element={
-              session ? <UnidadesUsina /> : <Navigate to="/auth" replace />
-            }
-          />
-          <Route
-            path="/faturas"
-            element={session ? <Faturas /> : <Navigate to="/auth" replace />}
-          />
-          <Route
-            path="/pagamentos"
-            element={session ? <Pagamentos /> : <Navigate to="/auth" replace />}
-          />
-          <Route
-            path="/configuracoes"
-            element={session ? <Configuracoes /> : <Navigate to="/auth" replace />}
-          />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        {session && <Sidebar />}
+        <main className={cn(
+          "min-h-screen transition-all duration-300",
+          session && "pl-16" // Mantém espaço para o menu recolhido
+        )}>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                session ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <Navigate to="/auth" replace />
+                )
+              }
+            />
+            <Route
+              path="/auth"
+              element={session ? <Navigate to="/dashboard" replace /> : <Auth />}
+            />
+            <Route
+              path="/dashboard"
+              element={session ? <Dashboard /> : <Navigate to="/auth" replace />}
+            />
+            <Route
+              path="/cooperados"
+              element={session ? <Cooperados /> : <Navigate to="/auth" replace />}
+            />
+            <Route
+              path="/cooperados/unidades"
+              element={session ? <UnidadesBeneficiarias /> : <Navigate to="/auth" replace />}
+            />
+            <Route
+              path="/usinas"
+              element={session ? <Usinas /> : <Navigate to="/auth" replace />}
+            />
+            <Route
+              path="/usinas/investidores"
+              element={session ? <Investidores /> : <Navigate to="/auth" replace />}
+            />
+            <Route
+              path="/unidades-usina"
+              element={
+                session ? <UnidadesUsina /> : <Navigate to="/auth" replace />
+              }
+            />
+            <Route
+              path="/faturas"
+              element={session ? <Faturas /> : <Navigate to="/auth" replace />}
+            />
+            <Route
+              path="/pagamentos"
+              element={session ? <Pagamentos /> : <Navigate to="/auth" replace />}
+            />
+            <Route
+              path="/configuracoes"
+              element={session ? <Configuracoes /> : <Navigate to="/auth" replace />}
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </main>
       </div>
       <Toaster />
     </BrowserRouter>
