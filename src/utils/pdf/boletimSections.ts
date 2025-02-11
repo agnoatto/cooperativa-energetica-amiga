@@ -107,13 +107,14 @@ export const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number)
 
   // Draw headers
   doc.setFontSize(FONTS.SMALL);
-  doc.setFontStyle('bold');
+  doc.setFont("helvetica", "bold"); // Changed from setFontStyle to setFont with style parameter
   headers.forEach((header, index) => {
     doc.text(header, currentX, yPos + 10);
     currentX += columnWidths[index];
   });
 
   // Draw rows with alternating background
+  doc.setFont("helvetica", "normal"); // Reset font style to normal for row data
   rows.forEach((row, rowIndex) => {
     const rowY = yPos + 12 + ((rowIndex + 1) * cellHeight);
     
@@ -144,3 +145,4 @@ export const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number)
 
   return yPos + 15 + ((rows.length + 1) * cellHeight);
 };
+
