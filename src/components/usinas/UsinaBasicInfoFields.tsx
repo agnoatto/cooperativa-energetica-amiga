@@ -25,9 +25,10 @@ export function UsinaBasicInfoFields({ form }: UsinaBasicInfoFieldsProps) {
             <FormLabel>Valor do kWh</FormLabel>
             <FormControl>
               <CurrencyInput
-                value={field.value}
+                value={field.value.toString()}
                 onChange={(value) => {
-                  field.onChange(value);
+                  const numericValue = parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+                  field.onChange(numericValue);
                 }}
               />
             </FormControl>

@@ -67,8 +67,8 @@ export function PagamentoFormFields({
         <Label htmlFor="tusd_fio_b">TUSD Fio B (R$)</Label>
         <CurrencyInput
           id="tusd_fio_b"
-          value={form.tusd_fio_b}
-          onChange={(value) => setForm({ ...form, tusd_fio_b: value })}
+          value={form.tusd_fio_b.toString()}
+          onChange={(value) => setForm({ ...form, tusd_fio_b: parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.')) || 0 })}
         />
       </div>
       <div>
@@ -90,8 +90,8 @@ export function PagamentoFormFields({
         <Label htmlFor="valor_concessionaria">Valor Fatura Concessionária (R$)</Label>
         <CurrencyInput
           id="valor_concessionaria"
-          value={form.valor_concessionaria}
-          onChange={(value) => setForm({ ...form, valor_concessionaria: value })}
+          value={form.valor_concessionaria.toString()}
+          onChange={(value) => setForm({ ...form, valor_concessionaria: parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.')) || 0 })}
           decimalScale={2}
         />
       </div>
