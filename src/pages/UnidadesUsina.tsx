@@ -14,44 +14,64 @@ import { UnidadeUsinaForm } from "@/components/unidades-usina/UnidadeUsinaForm";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import type { UnidadeUsina } from "@/components/unidades-usina/types";
 
 const UnidadesUsina = () => {
   const [selectedUnidadeId, setSelectedUnidadeId] = useState<string | undefined>();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [unidadeToDelete, setUnidadeToDelete] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const { data: unidades, refetch } = useQuery({
+  const { data: unidades, refetch, isLoading, error } = useQuery({
     queryKey: ["unidades_usina"],
     queryFn: async () => {
+      // First, get all unidades with a single query
       const { data: unidadesData, error: unidadesError } = await supabase
         .from("unidades_usina")
-        .select("*");
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (unidadesError) throw unidadesError;
 
-      // Fetch related data separately based on titular_tipo
-      const titularesPromises = unidadesData.map(async (unidade) => {
-        if (unidade.titular_tipo === 'cooperativa') {
-          const { data: cooperativa } = await supabase
-            .from("cooperativas")
-            .select("nome")
-            .eq("id", unidade.titular_id)
-            .is("deleted_at", null)
-            .single();
-          return { ...unidade, titular_nome: cooperativa?.nome };
-        } else {
-          const { data: cooperado } = await supabase
-            .from("cooperados")
-            .select("nome")
-            .eq("id", unidade.titular_id)
-            .is("data_exclusao", null)
-            .single();
-          return { ...unidade, titular_nome: cooperado?.nome };
-        }
-      });
+      // Then, get all cooperativas and cooperados in two separate queries
+      const [{ data: cooperativas }, { data: cooperados }] = await Promise.all([
+        supabase
+          .from("cooperativas")
+          .select("id, nome")
+          .is("deleted_at", null),
+        supabase
+          .from("cooperados")
+          .select("id, nome")
+          .is("data_exclusao", null),
+      ]);
 
-      const unidadesWithTitulares = await Promise.all(titularesPromises);
-      return unidadesWithTitulares;
+      // Create lookup maps for faster access
+      const cooperativasMap = new Map(
+        cooperativas?.map((c) => [c.id, c.nome]) ?? []
+      );
+      const cooperadosMap = new Map(cooperados?.map((c) => [c.id, c.nome]) ?? []);
+
+      // Map the data to include titular_nome
+      return unidadesData?.map((unidade) => ({
+        ...unidade,
+        titular_nome:
+          unidade.titular_tipo === "cooperativa"
+            ? cooperativasMap.get(unidade.titular_id)
+            : cooperadosMap.get(unidade.titular_id),
+      })) as UnidadeUsina[];
     },
   });
 
@@ -64,16 +84,17 @@ const UnidadesUsina = () => {
     try {
       // First check if the unidade has any associated usinas
       const { data: associatedUsinas, error: checkError } = await supabase
-        .from('usinas')
-        .select('id')
-        .eq('unidade_usina_id', unidadeId);
+        .from("usinas")
+        .select("id")
+        .eq("unidade_usina_id", unidadeId);
 
       if (checkError) throw checkError;
-      
+
       if (associatedUsinas && associatedUsinas.length > 0) {
         toast({
           title: "Não é possível excluir esta unidade",
-          description: "Existem usinas associadas a esta unidade. Por favor, exclua as usinas primeiro.",
+          description:
+            "Existem usinas associadas a esta unidade. Por favor, exclua as usinas primeiro.",
           variant: "destructive",
         });
         return;
@@ -85,11 +106,11 @@ const UnidadesUsina = () => {
         .eq("id", unidadeId);
 
       if (error) throw error;
-      
+
       toast({
         title: "Unidade excluída com sucesso!",
       });
-      
+
       refetch();
     } catch (error: any) {
       console.error("Error deleting unidade:", error);
@@ -98,20 +119,40 @@ const UnidadesUsina = () => {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setUnidadeToDelete(null);
+      setDeleteDialogOpen(false);
     }
   };
 
-  const formatAddress = (unidade: any) => {
+  const formatAddress = ({
+    logradouro,
+    numero,
+    complemento,
+    cidade,
+    uf,
+    cep,
+  }: Partial<UnidadeUsina>) => {
     const parts = [
-      unidade.logradouro,
-      unidade.numero,
-      unidade.complemento,
-      unidade.cidade,
-      unidade.uf,
-      unidade.cep,
+      logradouro,
+      numero,
+      complemento,
+      cidade,
+      uf,
+      cep,
     ].filter(Boolean);
     return parts.join(", ");
   };
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>
+          Erro ao carregar unidades: {(error as Error).message}
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -139,32 +180,55 @@ const UnidadesUsina = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {unidades?.map((unidade) => (
-              <TableRow key={unidade.id}>
-                <TableCell>{unidade.numero_uc}</TableCell>
-                <TableCell>{formatAddress(unidade)}</TableCell>
-                <TableCell>
-                  {unidade.titular_tipo === 'cooperativa' ? 'Cooperativa' : 'Cooperado'}
-                </TableCell>
-                <TableCell>{unidade.titular_nome}</TableCell>
-                <TableCell className="text-right space-x-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleEdit(unidade.id)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleDelete(unidade.id)}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5}>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : unidades?.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8">
+                  Nenhuma unidade encontrada
+                </TableCell>
+              </TableRow>
+            ) : (
+              unidades?.map((unidade) => (
+                <TableRow key={unidade.id}>
+                  <TableCell>{unidade.numero_uc}</TableCell>
+                  <TableCell>{formatAddress(unidade)}</TableCell>
+                  <TableCell>
+                    {unidade.titular_tipo === "cooperativa"
+                      ? "Cooperativa"
+                      : "Cooperado"}
+                  </TableCell>
+                  <TableCell>{unidade.titular_nome}</TableCell>
+                  <TableCell className="text-right space-x-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleEdit(unidade.id)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        setUnidadeToDelete(unidade.id);
+                        setDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
@@ -175,6 +239,26 @@ const UnidadesUsina = () => {
         unidadeId={selectedUnidadeId}
         onSuccess={refetch}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta unidade? Esta ação não pode ser
+              desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => unidadeToDelete && handleDelete(unidadeToDelete)}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

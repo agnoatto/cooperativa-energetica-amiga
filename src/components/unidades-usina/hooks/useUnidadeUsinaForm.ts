@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useToast } from "../../ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { unidadeUsinaFormSchema, type UnidadeUsinaFormData } from "../schema";
 
 interface UseUnidadeUsinaFormProps {
@@ -18,6 +18,7 @@ export function useUnidadeUsinaForm({
   onOpenChange,
 }: UseUnidadeUsinaFormProps) {
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const form = useForm<UnidadeUsinaFormData>({
     resolver: zodResolver(unidadeUsinaFormSchema),
     defaultValues: {
@@ -46,50 +47,77 @@ export function useUnidadeUsinaForm({
 
   // Load data when editing
   useEffect(() => {
-    if (unidadeId) {
-      supabase
-        .from("unidades_usina")
-        .select("*")
-        .eq("id", unidadeId)
-        .single()
-        .then(({ data, error }) => {
-          if (error) {
-            console.error("Error fetching unidade:", error);
-            return;
-          }
-          if (data) {
-            form.reset({
-              numero_uc: data.numero_uc,
-              logradouro: data.logradouro || "",
-              numero: data.numero || "",
-              complemento: data.complemento || "",
-              bairro: data.bairro || "",
-              cidade: data.cidade || "",
-              uf: data.uf || "",
-              cep: data.cep || "",
-              titular_id: data.titular_id,
-              titular_tipo: data.titular_tipo as "cooperado" | "cooperativa",
-            });
-          }
+    async function loadUnidade() {
+      if (!unidadeId) return;
+
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from("unidades_usina")
+          .select("*")
+          .eq("id", unidadeId)
+          .maybeSingle();
+
+        if (error) throw error;
+        if (!data) {
+          toast({
+            title: "Erro ao carregar unidade",
+            description: "Unidade não encontrada",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        form.reset({
+          numero_uc: data.numero_uc,
+          logradouro: data.logradouro || "",
+          numero: data.numero || "",
+          complemento: data.complemento || "",
+          bairro: data.bairro || "",
+          cidade: data.cidade || "",
+          uf: data.uf || "",
+          cep: data.cep || "",
+          titular_id: data.titular_id,
+          titular_tipo: data.titular_tipo as "cooperado" | "cooperativa",
         });
-    } else {
-      form.reset({
-        numero_uc: "",
-        logradouro: "",
-        numero: "",
-        complemento: "",
-        bairro: "",
-        cidade: "",
-        uf: "",
-        cep: "",
-        titular_id: "",
-        titular_tipo: "cooperativa",
-      });
+      } catch (error: any) {
+        console.error("Error loading unidade:", error);
+        toast({
+          title: "Erro ao carregar unidade",
+          description: error.message,
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
-  }, [unidadeId, form]);
+
+    loadUnidade();
+  }, [unidadeId, form, toast]);
 
   const onSubmit = async (data: UnidadeUsinaFormData) => {
     try {
+      setIsLoading(true);
+
+      // Check if UC number already exists
+      if (!unidadeId) {
+        const { data: existing } = await supabase
+          .from("unidades_usina")
+          .select("id")
+          .eq("numero_uc", data.numero_uc)
+          .maybeSingle();
+
+        if (existing) {
+          toast({
+            title: "Erro ao salvar unidade",
+            description: "Já existe uma unidade com este número UC",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+      // Prepare the data
       const submitData = {
         numero_uc: data.numero_uc,
         logradouro: data.logradouro,
@@ -101,56 +129,26 @@ export function useUnidadeUsinaForm({
         cep: data.cep,
         titular_id: data.titular_id,
         titular_tipo: data.titular_tipo,
-        status: 'draft' as const,
-        session_id: crypto.randomUUID(),
       };
 
-      let response;
-      
-      if (unidadeId) {
-        response = await supabase
-          .from("unidades_usina")
-          .update(submitData)
-          .eq("id", unidadeId);
+      // Use upsert to handle both insert and update
+      const { error } = await supabase
+        .from("unidades_usina")
+        .upsert(
+          {
+            id: unidadeId,
+            ...submitData,
+          },
+          {
+            onConflict: "id",
+          }
+        );
 
-        if (response.error) throw response.error;
+      if (error) throw error;
 
-        const { error: historicoError } = await supabase
-          .from("historico_titulares_usina")
-          .insert({
-            unidade_usina_id: unidadeId,
-            titular_id: data.titular_id,
-            titular_tipo: data.titular_tipo,
-          });
-
-        if (historicoError) throw historicoError;
-
-        toast({
-          title: "Unidade atualizada com sucesso!",
-        });
-      } else {
-        response = await supabase
-          .from("unidades_usina")
-          .insert(submitData)
-          .select()
-          .single();
-
-        if (response.error) throw response.error;
-
-        const { error: historicoError } = await supabase
-          .from("historico_titulares_usina")
-          .insert({
-            unidade_usina_id: response.data.id,
-            titular_id: data.titular_id,
-            titular_tipo: data.titular_tipo,
-          });
-
-        if (historicoError) throw historicoError;
-
-        toast({
-          title: "Unidade criada com sucesso!",
-        });
-      }
+      toast({
+        title: `Unidade ${unidadeId ? "atualizada" : "criada"} com sucesso!`,
+      });
 
       onSuccess();
       onOpenChange(false);
@@ -161,8 +159,10 @@ export function useUnidadeUsinaForm({
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return { form, onSubmit };
+  return { form, onSubmit, isLoading };
 }

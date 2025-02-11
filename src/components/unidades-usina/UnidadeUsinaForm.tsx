@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -12,6 +13,7 @@ import { TitularFields } from "./TitularFields";
 import { AddressFields } from "./AddressFields";
 import { UCNumberField } from "./UCNumberField";
 import { useUnidadeUsinaForm } from "./hooks/useUnidadeUsinaForm";
+import { Loader2 } from "lucide-react";
 
 interface UnidadeUsinaFormProps {
   open: boolean;
@@ -26,7 +28,7 @@ export function UnidadeUsinaForm({
   unidadeId,
   onSuccess,
 }: UnidadeUsinaFormProps) {
-  const { form, onSubmit } = useUnidadeUsinaForm({
+  const { form, onSubmit, isLoading } = useUnidadeUsinaForm({
     unidadeId,
     onSuccess,
     onOpenChange,
@@ -39,6 +41,10 @@ export function UnidadeUsinaForm({
           <DialogTitle>
             {unidadeId ? "Editar" : "Nova"} Unidade da Usina
           </DialogTitle>
+          <DialogDescription>
+            Preencha os dados da unidade da usina. Todos os campos marcados com *
+            são obrigatórios.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -46,7 +52,19 @@ export function UnidadeUsinaForm({
             <UCNumberField />
             <TitularFields />
             <AddressFields />
-            <Button type="submit">Salvar</Button>
+            <div className="flex justify-end gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Salvar
+              </Button>
+            </div>
           </form>
         </Form>
       </DialogContent>
