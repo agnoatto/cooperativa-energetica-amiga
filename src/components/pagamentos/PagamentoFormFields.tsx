@@ -37,6 +37,15 @@ export function PagamentoFormFields({
     });
   };
 
+  const parseCurrencyValue = (value: string): number => {
+    // Remove o prefixo "R$ " e qualquer caractere que não seja dígito, vírgula ou ponto
+    const cleanValue = value.replace('R$ ', '').replace(/[^\d,]/g, '');
+    // Substitui a vírgula por ponto para converter para número
+    const numberValue = Number(cleanValue.replace(',', '.'));
+    // Retorna o número com 4 casas decimais de precisão
+    return Number(numberValue.toFixed(4));
+  };
+
   return (
     <div className="space-y-4">
       <div>
@@ -69,7 +78,7 @@ export function PagamentoFormFields({
           id="tusd_fio_b"
           value={form.tusd_fio_b}
           onChange={(value) => {
-            const numericValue = Number(value.replace(/[^\d,]/g, '').replace(',', '.'));
+            const numericValue = parseCurrencyValue(value);
             setForm({ ...form, tusd_fio_b: numericValue });
           }}
         />
@@ -79,7 +88,12 @@ export function PagamentoFormFields({
         <Input
           id="valor_bruto"
           type="text"
-          value={valorBruto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+          value={valorBruto.toLocaleString('pt-BR', { 
+            style: 'currency', 
+            currency: 'BRL',
+            minimumFractionDigits: 4,
+            maximumFractionDigits: 4 
+          })}
           disabled
           className="bg-gray-100"
         />
@@ -90,7 +104,7 @@ export function PagamentoFormFields({
           id="valor_concessionaria"
           value={form.valor_concessionaria}
           onChange={(value) => {
-            const numericValue = Number(value.replace(/[^\d,]/g, '').replace(',', '.'));
+            const numericValue = parseCurrencyValue(value);
             setForm({ ...form, valor_concessionaria: numericValue });
           }}
         />
@@ -100,7 +114,12 @@ export function PagamentoFormFields({
         <Input
           id="valor_efetivo"
           type="text"
-          value={valorEfetivo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+          value={valorEfetivo.toLocaleString('pt-BR', { 
+            style: 'currency', 
+            currency: 'BRL',
+            minimumFractionDigits: 4,
+            maximumFractionDigits: 4 
+          })}
           disabled
           className="bg-gray-100"
         />
