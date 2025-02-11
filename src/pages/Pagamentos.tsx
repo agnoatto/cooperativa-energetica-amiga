@@ -43,8 +43,6 @@ const Pagamentos = () => {
           data_emissao,
           mes,
           ano,
-          economia_mes,
-          economia_acumulada,
           usina:usinas!inner(
             id,
             valor_kwh,
