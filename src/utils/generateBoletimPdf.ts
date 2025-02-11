@@ -41,16 +41,41 @@ const generateChartImage = async (data: any[], config: {
       barHeight
     );
 
+    ctx.save();
+    ctx.translate(45 + (index * barWidth), config.height - 15);
+    ctx.rotate(-Math.PI / 4);
     ctx.fillStyle = '#000000';
-    ctx.font = '10px Arial';
+    ctx.font = '8px Arial';
     ctx.fillText(
       format(new Date(item.year, item.month - 1), 'MMM/yy', { locale: ptBR }),
-      40 + (index * barWidth),
-      config.height - 15
+      0,
+      0
     );
+    ctx.restore();
   });
 
   return chartCanvas.toDataURL('image/png');
+};
+
+const loadLogo = (url: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = url;
+  });
 };
 
 const addHeader = async (doc: jsPDF, config: { title: string; logoPath: string }): Promise<number> => {
@@ -116,8 +141,8 @@ const addCharts = async (doc: jsPDF, data: BoletimMedicaoData, yPos: number): Pr
   doc.text("Geração (kWh/mês)", SPACING.MARGIN, yPos);
   
   const geracaoChart = await generateChartImage(last12Months, {
-    width: 500,
-    height: 200,
+    width: 400,
+    height: 150,
     dataKey: "geracao",
     yAxisLabel: "kWh",
     formatter: (value: number) => value.toLocaleString('pt-BR')
@@ -128,16 +153,16 @@ const addCharts = async (doc: jsPDF, data: BoletimMedicaoData, yPos: number): Pr
     'PNG',
     SPACING.MARGIN,
     yPos + 10,
-    SPACING.PAGE.CONTENT_WIDTH,
-    80
+    SPACING.PAGE.CONTENT_WIDTH - 20,
+    60
   );
 
-  yPos += 100;
-  doc.text("Recebimentos (R$)", SPACING.MARGIN, yPos);
+  const nextYPos = yPos + 80;
+  doc.text("Recebimentos (R$)", SPACING.MARGIN, nextYPos);
   
   const recebimentosChart = await generateChartImage(last12Months, {
-    width: 500,
-    height: 200,
+    width: 400,
+    height: 150,
     dataKey: "valor",
     yAxisLabel: "R$",
     formatter: (value: number) => formatCurrency(value)
@@ -147,12 +172,12 @@ const addCharts = async (doc: jsPDF, data: BoletimMedicaoData, yPos: number): Pr
     recebimentosChart,
     'PNG',
     SPACING.MARGIN,
-    yPos + 10,
-    SPACING.PAGE.CONTENT_WIDTH,
-    80
+    nextYPos + 10,
+    SPACING.PAGE.CONTENT_WIDTH - 20,
+    60
   );
 
-  return yPos + 100;
+  return nextYPos + 80;
 };
 
 const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number): number => {
@@ -167,7 +192,7 @@ const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number): numbe
     "Valor Total"
   ];
 
-  const rows = data.pagamentos.map(pagamento => [
+  const rows = data.pagamentos.slice(-12).map(pagamento => [
     format(new Date(pagamento.ano, pagamento.mes - 1), 'MMM/yyyy', { locale: ptBR }),
     pagamento.geracao_kwh.toString(),
     formatCurrency(pagamento.tusd_fio_b || 0),
@@ -195,27 +220,6 @@ const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number): numbe
   });
 
   return yPos + 20 + (rows.length * cellHeight) + cellPadding;
-};
-
-const loadLogo = (url: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        reject(new Error('Failed to get canvas context'));
-        return;
-      }
-      ctx.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL('image/png'));
-    };
-    img.onerror = () => reject(new Error('Failed to load image'));
-    img.src = url;
-  });
 };
 
 export const generateBoletimPdf = async (data: BoletimMedicaoData): Promise<{ doc: jsPDF, fileName: string }> => {
