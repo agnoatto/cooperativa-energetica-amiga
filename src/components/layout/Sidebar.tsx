@@ -24,9 +24,10 @@ interface SidebarLinkProps {
     icon: React.ElementType;
     label: string;
   }[];
+  isExpanded?: boolean;
 }
 
-const SidebarLink = ({ href, icon: Icon, children, isActive, subItems }: SidebarLinkProps) => {
+const SidebarLink = ({ href, icon: Icon, children, isActive, subItems, isExpanded }: SidebarLinkProps) => {
   const location = useLocation();
   const isParentOfActive = subItems?.some(item => location.pathname === item.href);
 
@@ -35,7 +36,7 @@ const SidebarLink = ({ href, icon: Icon, children, isActive, subItems }: Sidebar
       <Link
         to={href}
         className={cn(
-          "flex items-center py-2 text-sm font-medium rounded-md transition-colors w-full group",
+          "flex items-center py-2 text-sm font-medium rounded-md transition-colors w-full",
           "hover:bg-gray-100 dark:hover:bg-gray-800",
           (isActive || isParentOfActive) && "bg-gray-100 dark:bg-gray-800"
         )}
@@ -43,7 +44,10 @@ const SidebarLink = ({ href, icon: Icon, children, isActive, subItems }: Sidebar
         <div className="min-w-[64px] flex justify-center">
           <Icon className="h-5 w-5 shrink-0" />
         </div>
-        <span className="truncate opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <span className={cn(
+          "truncate transition-all duration-200",
+          isExpanded ? "opacity-100" : "opacity-0"
+        )}>
           {children}
         </span>
       </Link>
@@ -55,7 +59,7 @@ const SidebarLink = ({ href, icon: Icon, children, isActive, subItems }: Sidebar
               key={item.href}
               to={item.href}
               className={cn(
-                "flex items-center py-2 text-sm font-medium rounded-md transition-colors w-full group",
+                "flex items-center py-2 text-sm font-medium rounded-md transition-colors w-full",
                 "hover:bg-gray-100 dark:hover:bg-gray-800",
                 location.pathname === item.href && "bg-gray-100 dark:bg-gray-800"
               )}
@@ -63,7 +67,10 @@ const SidebarLink = ({ href, icon: Icon, children, isActive, subItems }: Sidebar
               <div className="min-w-[64px] flex justify-center">
                 <item.icon className="h-5 w-5 shrink-0" />
               </div>
-              <span className="truncate opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <span className={cn(
+                "truncate transition-all duration-200",
+                isExpanded ? "opacity-100" : "opacity-0"
+              )}>
                 {item.label}
               </span>
             </Link>
@@ -95,6 +102,7 @@ export function Sidebar() {
               href="/dashboard" 
               icon={Home}
               isActive={location.pathname === '/dashboard'}
+              isExpanded={isExpanded}
             >
               Dashboard
             </SidebarLink>
@@ -103,6 +111,7 @@ export function Sidebar() {
               href="/cooperados" 
               icon={Users}
               isActive={location.pathname === '/cooperados'}
+              isExpanded={isExpanded}
               subItems={[
                 {
                   href: "/cooperados/unidades",
@@ -118,6 +127,7 @@ export function Sidebar() {
               href="/usinas" 
               icon={Server}
               isActive={location.pathname === '/usinas'}
+              isExpanded={isExpanded}
               subItems={[
                 {
                   href: "/usinas/investidores",
@@ -138,6 +148,7 @@ export function Sidebar() {
               href="/faturas" 
               icon={FileText}
               isActive={location.pathname === '/faturas'}
+              isExpanded={isExpanded}
             >
               Faturas
             </SidebarLink>
@@ -146,6 +157,7 @@ export function Sidebar() {
               href="/pagamentos" 
               icon={Table}
               isActive={location.pathname === '/pagamentos'}
+              isExpanded={isExpanded}
             >
               Pagamentos
             </SidebarLink>
@@ -157,6 +169,7 @@ export function Sidebar() {
             href="/configuracoes" 
             icon={Settings}
             isActive={location.pathname === '/configuracoes'}
+            isExpanded={isExpanded}
           >
             Configurações
           </SidebarLink>
