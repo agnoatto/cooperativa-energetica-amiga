@@ -1,11 +1,6 @@
 
 import * as React from "react";
-import { cn } from "@/lib/utils";
-import { Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "./ui/button";
-import { ScrollArea } from "./ui/scroll-area";
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./ui/use-toast";
@@ -16,6 +11,8 @@ import {
   SidebarProvider,
   Sidebar,
   SidebarContent,
+  SidebarTrigger,
+  SidebarRail,
 } from "@/components/ui/sidebar";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -71,13 +68,21 @@ export function AppSidebar({ className, children }: SidebarProps) {
     return (
       <SidebarProvider defaultOpen={true}>
         <div className="flex min-h-screen w-full">
-          <Sidebar className="border-r border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <Sidebar 
+            collapsible="icon"
+            variant="floating"
+            className="border-r border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          >
             <SidebarContent>
-              <ScrollArea className="h-[calc(100vh-4rem)]">
+              <div className="flex justify-end p-2">
+                <SidebarTrigger />
+              </div>
+              <div className="h-[calc(100vh-4rem)]">
                 <NavigationMenu onClose={() => setOpen(false)} />
                 <UserSection user={user} onLogout={handleLogout} />
-              </ScrollArea>
+              </div>
             </SidebarContent>
+            <SidebarRail />
           </Sidebar>
           <main className="flex-1 overflow-hidden">
             <div className="h-full px-4 py-6 lg:px-8">
@@ -89,6 +94,7 @@ export function AppSidebar({ className, children }: SidebarProps) {
     );
   }
 
+  // Mobile view (mantendo o drawer atual)
   return (
     <div className="flex min-h-screen w-full">
       <Sheet open={open} onOpenChange={setOpen}>
@@ -98,10 +104,10 @@ export function AppSidebar({ className, children }: SidebarProps) {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0">
-          <ScrollArea className="h-full">
+          <div className="h-full">
             <NavigationMenu onClose={() => setOpen(false)} />
             <UserSection user={user} onLogout={handleLogout} />
-          </ScrollArea>
+          </div>
         </SheetContent>
       </Sheet>
       <main className="flex-1 overflow-hidden">

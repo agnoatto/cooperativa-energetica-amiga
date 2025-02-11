@@ -1,5 +1,5 @@
 
-import { LogOut, User } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { User as SupabaseUser } from '@supabase/supabase-js';
@@ -66,20 +66,31 @@ export function UserSection({ user, onLogout }: UserSectionProps) {
         </Tooltip>
       </TooltipProvider>
 
-      <Button
-        variant="outline"
-        className={cn(
-          "w-full justify-start",
-          isCollapsed && "px-2 w-10 h-10"
-        )}
-        onClick={onLogout}
-      >
-        <LogOut className={cn(
-          "h-4 w-4",
-          !isCollapsed && "mr-2"
-        )} />
-        {!isCollapsed && "Sair"}
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start",
+                isCollapsed && "px-2 w-10 h-10"
+              )}
+              onClick={onLogout}
+            >
+              <LogOut className={cn(
+                "h-4 w-4",
+                !isCollapsed && "mr-2"
+              )} />
+              {!isCollapsed && "Sair"}
+            </Button>
+          </TooltipTrigger>
+          {isCollapsed && (
+            <TooltipContent side="right">
+              Sair
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 }

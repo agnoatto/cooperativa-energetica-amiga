@@ -3,14 +3,12 @@ import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { routes } from "@/config/routes";
-import { MenuIcon } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
-import { useState, useEffect } from "react";
 import { Separator } from "../ui/separator";
 import { useSidebar } from "../ui/sidebar";
 
@@ -64,6 +62,7 @@ export function NavigationMenu({ onClose }: NavigationMenuProps) {
                               className={cn(
                                 "h-4 w-4",
                                 route.color,
+                                "transition-transform duration-200",
                                 route.subItems?.length && "group-hover:rotate-180"
                               )}
                             />
