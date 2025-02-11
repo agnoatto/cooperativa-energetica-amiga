@@ -6,12 +6,11 @@ import { CurrencyInput } from "@/components/faturas/CurrencyInput";
 import { PagamentoFormValues } from "./types/pagamento";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, Check } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 
 interface PagamentoFormFieldsProps {
   form: PagamentoFormValues;
@@ -28,22 +27,11 @@ export function PagamentoFormFields({
   valorBruto,
   valorEfetivo,
 }: PagamentoFormFieldsProps) {
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    form.data_emissao ? new Date(form.data_emissao) : undefined
-  );
-
-  const handleDataEmissaoChange = (date: Date | undefined) => {
+  const handleDateSelect = (date: Date | undefined) => {
     if (date) {
-      setSelectedDate(date);
-    }
-  };
-
-  const handleConfirmDate = () => {
-    if (selectedDate) {
       // Format the date for database (YYYY-MM-DD)
-      const data_emissao = selectedDate.toISOString().split('T')[0];
-      const data_pagamento = addDays(selectedDate, 90).toISOString().split('T')[0];
+      const data_emissao = date.toISOString().split('T')[0];
+      const data_pagamento = addDays(date, 90).toISOString().split('T')[0];
       
       setForm({
         ...form,
@@ -51,8 +39,6 @@ export function PagamentoFormFields({
         data_pagamento,
         status: 'pendente'
       });
-      
-      setIsCalendarOpen(false);
     }
   };
 
@@ -126,7 +112,7 @@ export function PagamentoFormFields({
       </div>
       <div className="grid gap-2">
         <Label>Data de Emissão da Conta</Label>
-        <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+        <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
@@ -149,25 +135,13 @@ export function PagamentoFormFields({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <div className="p-3">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={handleDataEmissaoChange}
-                initialFocus
-                locale={ptBR}
-              />
-              <div className="mt-4 flex justify-end border-t pt-4">
-                <Button
-                  onClick={handleConfirmDate}
-                  size="sm"
-                  className="flex items-center gap-2"
-                >
-                  <Check className="h-4 w-4" />
-                  Confirmar
-                </Button>
-              </div>
-            </div>
+            <Calendar
+              mode="single"
+              selected={form.data_emissao ? new Date(form.data_emissao) : undefined}
+              onSelect={handleDateSelect}
+              initialFocus
+              locale={ptBR}
+            />
           </PopoverContent>
         </Popover>
       </div>
