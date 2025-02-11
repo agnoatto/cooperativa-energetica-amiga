@@ -267,8 +267,14 @@ export function UnidadeBeneficiariaForm({
               </div>
             </div>
 
-            <div className="border-t p-6 mt-auto">
-              <Button type="submit" className="w-full">Salvar</Button>
+            <div className="border-t border-gray-200 p-6">
+              <Button 
+                type="submit" 
+                className="w-full bg-primary hover:bg-primary/90 text-white py-6"
+                aria-label="Salvar unidade beneficiária"
+              >
+                Salvar
+              </Button>
             </div>
           </form>
         </Form>
