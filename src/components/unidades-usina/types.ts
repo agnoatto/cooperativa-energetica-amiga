@@ -15,6 +15,9 @@ export type UnidadeUsina = {
   titular_tipo: "cooperativa" | "cooperado";
   titular_id: string;
   titular_nome?: string;
+  created_at: string;
+  updated_at: string;
 };
 
 export type UnidadeUsinaFormData = z.infer<typeof unidadeUsinaFormSchema>;
+

@@ -35,42 +35,27 @@ const UnidadesUsina = () => {
   const [unidadeToDelete, setUnidadeToDelete] = useState<string | null>(null);
   const { toast } = useToast();
 
+  // Optimized query to fetch all data in a single request
   const { data: unidades, refetch, isLoading, error } = useQuery({
     queryKey: ["unidades_usina"],
     queryFn: async () => {
-      // First, get all unidades with a single query
       const { data: unidadesData, error: unidadesError } = await supabase
         .from("unidades_usina")
-        .select("*")
+        .select(`
+          *,
+          cooperativa:cooperativas!inner(id, nome, documento),
+          cooperado:cooperados!inner(id, nome)
+        `)
         .order("created_at", { ascending: false });
 
       if (unidadesError) throw unidadesError;
 
-      // Then, get all cooperativas and cooperados in two separate queries
-      const [{ data: cooperativas }, { data: cooperados }] = await Promise.all([
-        supabase
-          .from("cooperativas")
-          .select("id, nome")
-          .is("deleted_at", null),
-        supabase
-          .from("cooperados")
-          .select("id, nome")
-          .is("data_exclusao", null),
-      ]);
-
-      // Create lookup maps for faster access
-      const cooperativasMap = new Map(
-        cooperativas?.map((c) => [c.id, c.nome]) ?? []
-      );
-      const cooperadosMap = new Map(cooperados?.map((c) => [c.id, c.nome]) ?? []);
-
-      // Map the data to include titular_nome
       return unidadesData?.map((unidade) => ({
         ...unidade,
         titular_nome:
           unidade.titular_tipo === "cooperativa"
-            ? cooperativasMap.get(unidade.titular_id)
-            : cooperadosMap.get(unidade.titular_id),
+            ? unidade.cooperativa?.nome
+            : unidade.cooperado?.nome,
       })) as UnidadeUsina[];
     },
   });
@@ -82,7 +67,6 @@ const UnidadesUsina = () => {
 
   const handleDelete = async (unidadeId: string) => {
     try {
-      // First check if the unidade has any associated usinas
       const { data: associatedUsinas, error: checkError } = await supabase
         .from("usinas")
         .select("id")
@@ -264,3 +248,4 @@ const UnidadesUsina = () => {
 };
 
 export default UnidadesUsina;
+

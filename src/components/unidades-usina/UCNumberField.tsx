@@ -18,9 +18,13 @@ export function UCNumberField() {
       name="numero_uc"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Número UC</FormLabel>
+          <FormLabel>Número UC *</FormLabel>
           <FormControl>
-            <Input {...field} />
+            <Input 
+              {...field} 
+              placeholder="Digite o número da UC"
+              disabled={form.formState.isSubmitting}
+            />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -28,3 +32,4 @@ export function UCNumberField() {
     />
   );
 }
+

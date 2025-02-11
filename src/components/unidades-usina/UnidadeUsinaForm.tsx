@@ -57,12 +57,13 @@ export function UnidadeUsinaForm({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={isLoading}
               >
                 Cancelar
               </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Salvar
+                {isLoading ? "Salvando..." : "Salvar"}
               </Button>
             </div>
           </form>
@@ -71,3 +72,4 @@ export function UnidadeUsinaForm({
     </Dialog>
   );
 }
+
