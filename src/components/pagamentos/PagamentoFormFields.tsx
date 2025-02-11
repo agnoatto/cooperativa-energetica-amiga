@@ -1,4 +1,3 @@
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -6,7 +5,7 @@ import { CurrencyInput } from "@/components/faturas/CurrencyInput";
 import { PagamentoFormValues } from "./types/pagamento";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Check } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -120,14 +119,14 @@ export function PagamentoFormFields({
           className="bg-gray-100"
         />
       </div>
-      <div>
+      <div className="grid gap-2">
         <Label>Data de Emissão da Conta</Label>
         <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               className={cn(
-                "w-full justify-start text-left font-normal",
+                "w-full pl-3 text-left font-normal",
                 !form.data_emissao && "text-muted-foreground"
               )}
             >
@@ -148,8 +147,13 @@ export function PagamentoFormFields({
                 initialFocus
                 locale={ptBR}
               />
-              <div className="mt-4 flex justify-end border-t pt-4">
-                <Button onClick={handleConfirmDate} size="sm">
+              <div className="mt-4 flex justify-end gap-2 border-t pt-4">
+                <Button 
+                  onClick={handleConfirmDate} 
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Check className="h-4 w-4" />
                   Confirmar
                 </Button>
               </div>
