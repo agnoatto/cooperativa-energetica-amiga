@@ -1,4 +1,3 @@
-
 import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -22,19 +21,16 @@ const generateChartImage = async (data: any[], config: {
     throw new Error('Failed to get canvas context');
   }
 
-  // Draw chart using canvas context
   const maxValue = Math.max(...data.map(item => item[config.dataKey]));
   const barWidth = (config.width - 60) / data.length;
   const barHeightRatio = (config.height - 60) / maxValue;
 
-  // Draw axes
   ctx.beginPath();
   ctx.moveTo(30, 30);
   ctx.lineTo(30, config.height - 30);
   ctx.lineTo(config.width - 30, config.height - 30);
   ctx.stroke();
 
-  // Draw bars
   data.forEach((item, index) => {
     const barHeight = item[config.dataKey] * barHeightRatio;
     ctx.fillStyle = '#0EA5E9';
@@ -45,7 +41,6 @@ const generateChartImage = async (data: any[], config: {
       barHeight
     );
 
-    // Add labels
     ctx.fillStyle = '#000000';
     ctx.font = '10px Arial';
     ctx.fillText(
@@ -108,7 +103,6 @@ const addUsinaInfo = (doc: jsPDF, data: BoletimMedicaoData, yPos: number): numbe
 };
 
 const addCharts = async (doc: jsPDF, data: BoletimMedicaoData, yPos: number): Promise<number> => {
-  // Prepare data for last 12 months
   const last12Months = data.pagamentos
     .slice(-12)
     .map(p => ({
@@ -118,7 +112,6 @@ const addCharts = async (doc: jsPDF, data: BoletimMedicaoData, yPos: number): Pr
       valor: p.valor_total
     }));
 
-  // Generation Chart
   doc.setFontSize(FONTS.SUBTITLE);
   doc.text("Geração (kWh/mês)", SPACING.MARGIN, yPos);
   
@@ -139,7 +132,6 @@ const addCharts = async (doc: jsPDF, data: BoletimMedicaoData, yPos: number): Pr
     80
   );
 
-  // Payments Chart
   yPos += 100;
   doc.text("Recebimentos (R$)", SPACING.MARGIN, yPos);
   
@@ -183,18 +175,15 @@ const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number): numbe
     formatCurrency(pagamento.valor_total)
   ]);
 
-  // Configurar a tabela
   doc.setFontSize(FONTS.SMALL);
   const cellPadding = 3;
   const cellHeight = 8;
   const columnWidth = (SPACING.PAGE.CONTENT_WIDTH) / headers.length;
 
-  // Cabeçalho da tabela
   headers.forEach((header, index) => {
     doc.text(header, SPACING.MARGIN + (columnWidth * index), yPos + 10);
   });
 
-  // Linhas da tabela
   rows.forEach((row, rowIndex) => {
     row.forEach((cell, cellIndex) => {
       doc.text(
@@ -238,30 +227,24 @@ export const generateBoletimPdf = async (data: BoletimMedicaoData): Promise<{ do
 
   let yPos = 0;
 
-  // Header with company info
   doc.setFontSize(FONTS.TITLE);
   doc.text("Cooperativa Cogesol", SPACING.PAGE.WIDTH/2, 20, { align: "center" });
   doc.setFontSize(FONTS.NORMAL);
   doc.text("CNPJ: 57.658.963/0001-02", SPACING.PAGE.WIDTH/2, 30, { align: "center" });
   
-  // Reference month
   doc.setFillColor(240, 249, 255);
-  doc.rect(SPACING.PAGE.WIDTH - 80, 40, 60, 20, 'F');
+  doc.rect(SPACING.PAGE.WIDTH - 80, 40, 60, 25, 'F');
+  doc.setFontSize(FONTS.SUBTITLE);
   doc.text("Mês de Referência", SPACING.PAGE.WIDTH - 75, 50);
-  doc.text(format(data.data_emissao, 'MMM/yy', { locale: ptBR }), SPACING.PAGE.WIDTH - 75, 55);
+  doc.setFontSize(FONTS.NORMAL);
+  doc.text(format(data.data_emissao, 'MMM/yy', { locale: ptBR }).toLowerCase(), SPACING.PAGE.WIDTH - 75, 58);
 
   yPos = 70;
 
-  // Usina Info
   yPos = addUsinaInfo(doc, data, yPos);
-
-  // Charts
   yPos = await addCharts(doc, data, yPos);
-
-  // Data Table
   yPos = addDataTable(doc, data, yPos);
 
-  // Nome do arquivo
   const fileName = `boletim-medicao-${data.usina.numero_uc}-${format(new Date(), 'MM-yyyy')}.pdf`;
 
   return { doc, fileName };
