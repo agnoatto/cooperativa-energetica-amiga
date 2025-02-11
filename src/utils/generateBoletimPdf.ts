@@ -1,18 +1,10 @@
+
 import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BoletimMedicaoData } from "@/components/pagamentos/types/boletim";
 import { COLORS, FONTS, SPACING } from "./pdf/constants";
 import { formatCurrency } from "./pdfUtils";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer
-} from 'recharts';
 
 const generateChartImage = async (data: any[], config: { 
   width: number;
@@ -21,34 +13,49 @@ const generateChartImage = async (data: any[], config: {
   yAxisLabel: string;
   formatter?: (value: number) => string;
 }) => {
-  const chartRef = document.createElement('div');
-  chartRef.style.width = `${config.width}px`;
-  chartRef.style.height = `${config.height}px`;
-  document.body.appendChild(chartRef);
+  const chartCanvas = document.createElement('canvas');
+  chartCanvas.width = config.width;
+  chartCanvas.height = config.height;
+  const ctx = chartCanvas.getContext('2d');
+  
+  if (!ctx) {
+    throw new Error('Failed to get canvas context');
+  }
 
-  const chart = (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data} margin={{ top: 10, right: 30, left: 20, bottom: 20 }}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis 
-          label={{ 
-            value: config.yAxisLabel, 
-            angle: -90, 
-            position: 'insideLeft' 
-          }}
-          tickFormatter={config.formatter}
-        />
-        <Tooltip formatter={config.formatter} />
-        <Bar dataKey={config.dataKey} fill="#0EA5E9" />
-      </BarChart>
-    </ResponsiveContainer>
-  );
+  // Draw chart using canvas context
+  const maxValue = Math.max(...data.map(item => item[config.dataKey]));
+  const barWidth = (config.width - 60) / data.length;
+  const barHeightRatio = (config.height - 60) / maxValue;
 
-  // Convert chart to canvas
-  const canvas = await html2canvas(chartRef);
-  document.body.removeChild(chartRef);
-  return canvas.toDataURL('image/png');
+  // Draw axes
+  ctx.beginPath();
+  ctx.moveTo(30, 30);
+  ctx.lineTo(30, config.height - 30);
+  ctx.lineTo(config.width - 30, config.height - 30);
+  ctx.stroke();
+
+  // Draw bars
+  data.forEach((item, index) => {
+    const barHeight = item[config.dataKey] * barHeightRatio;
+    ctx.fillStyle = '#0EA5E9';
+    ctx.fillRect(
+      40 + (index * barWidth),
+      config.height - 30 - barHeight,
+      barWidth - 10,
+      barHeight
+    );
+
+    // Add labels
+    ctx.fillStyle = '#000000';
+    ctx.font = '10px Arial';
+    ctx.fillText(
+      format(new Date(item.year, item.month - 1), 'MMM/yy', { locale: ptBR }),
+      40 + (index * barWidth),
+      config.height - 15
+    );
+  });
+
+  return chartCanvas.toDataURL('image/png');
 };
 
 const addHeader = async (doc: jsPDF, config: { title: string; logoPath: string }): Promise<number> => {
@@ -105,7 +112,8 @@ const addCharts = async (doc: jsPDF, data: BoletimMedicaoData, yPos: number): Pr
   const last12Months = data.pagamentos
     .slice(-12)
     .map(p => ({
-      name: format(new Date(p.ano, p.mes - 1), 'MMM/yy', { locale: ptBR }),
+      month: p.mes,
+      year: p.ano,
       geracao: p.geracao_kwh,
       valor: p.valor_total
     }));
