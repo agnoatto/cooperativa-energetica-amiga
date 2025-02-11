@@ -63,10 +63,10 @@ export function AppSidebar({ children }: SidebarProps) {
   if (!isMobile) {
     return (
       <div className="flex min-h-screen">
-        <aside className="fixed left-0 top-0 h-screen w-16 hover:w-64 group/sidebar 
-                         transition-all duration-300 ease-in-out z-50">
+        <aside className="fixed left-0 top-0 h-screen w-16 hover:w-64 
+                         transition-all duration-300 ease-in-out z-[100] group">
           <nav className="h-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60
-                         border-r border-border/40">
+                         border-r border-border/40 relative">
             <div className="flex flex-col h-full">
               <SidebarNavigation />
               <SidebarUserSection user={user} onLogout={handleLogout} />
