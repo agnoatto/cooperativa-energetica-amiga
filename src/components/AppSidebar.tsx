@@ -9,9 +9,9 @@ import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./ui/use-toast";
+import { User as SupabaseUser } from '@supabase/supabase-js';
 import { NavigationMenu } from "./sidebar/NavigationMenu";
 import { UserSection } from "./sidebar/UserSection";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -19,10 +19,31 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function AppSidebar({ className, children }: SidebarProps) {
   const [open, setOpen] = React.useState(false);
+  const [user, setUser] = React.useState<SupabaseUser | null>(null);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { session } = useAuth();
+
+  React.useEffect(() => {
+    const initializeUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+          setUser(session?.user ?? null);
+        });
+
+        return () => {
+          subscription.unsubscribe();
+        };
+      } catch (error) {
+        console.error('Error initializing user:', error);
+      }
+    };
+
+    initializeUser();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -41,15 +62,10 @@ export function AppSidebar({ className, children }: SidebarProps) {
     }
   };
 
-  // Se não houver sessão, não renderiza a sidebar
-  if (!session) {
-    return <main className="flex-1">{children}</main>;
-  }
-
   const sidebar = (
     <div className={cn("pb-12", className)}>
       <NavigationMenu onClose={() => setOpen(false)} />
-      <UserSection user={session.user} onLogout={handleLogout} />
+      <UserSection user={user} onLogout={handleLogout} />
     </div>
   );
 

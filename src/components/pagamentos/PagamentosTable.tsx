@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Edit } from "lucide-react";
 import { PagamentoPdfButton } from "./PagamentoPdfButton";
 import { BoletimMedicaoButton } from "./BoletimMedicaoButton";
-import { BoletimMedicaoPuppeteerButton } from "./BoletimMedicaoPuppeteerButton";
 import { PagamentoData } from "./types/pagamento";
 import { BoletimMedicaoData } from "./types/boletim";
 
@@ -34,8 +33,8 @@ export function PagamentosTable({ pagamentos, isLoading, onEditPagamento }: Paga
       usina: {
         nome_investidor: pagamento.usina?.investidor?.nome_investidor || '',
         numero_uc: pagamento.usina?.unidade_usina?.numero_uc || '',
-        concessionaria: 'RGE',
-        modalidade: 'GD2',
+        concessionaria: 'RGE', // Hardcoded por enquanto
+        modalidade: 'GD2', // Hardcoded por enquanto
         valor_kwh: pagamento.usina?.valor_kwh || 0,
       },
       pagamentos: [pagamento],
@@ -100,7 +99,6 @@ export function PagamentosTable({ pagamentos, isLoading, onEditPagamento }: Paga
                       </Button>
                       <PagamentoPdfButton pagamento={pagamento} className="h-6 w-6" />
                       <BoletimMedicaoButton boletimData={prepareBoletimData(pagamento)} />
-                      <BoletimMedicaoPuppeteerButton boletimData={prepareBoletimData(pagamento)} />
                     </div>
                   </TableCell>
                 </TableRow>
