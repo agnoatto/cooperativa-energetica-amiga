@@ -29,7 +29,7 @@ export function NavigationMenu({ onClose }: NavigationMenuProps) {
         size="sm" 
         className="w-9 p-0 m-2 ml-auto"
         onClick={() => {
-          if (sidebarState === "open") {
+          if (sidebarState === "expanded") {
             document.documentElement.style.setProperty("--sidebar-width", "4rem");
           } else {
             document.documentElement.style.setProperty("--sidebar-width", "16rem");
