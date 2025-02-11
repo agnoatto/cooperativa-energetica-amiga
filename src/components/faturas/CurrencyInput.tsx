@@ -7,9 +7,10 @@ import { cn } from "@/lib/utils";
 interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
   value: string | number;
   onChange: (value: number) => void;
+  decimalScale?: number;
 }
 
-export function CurrencyInput({ value, onChange, className, ...props }: CurrencyInputProps) {
+export function CurrencyInput({ value, onChange, className, decimalScale = 4, ...props }: CurrencyInputProps) {
   const handleValueChange = (values: { floatValue: number | undefined }) => {
     onChange(values.floatValue || 0);
   };
@@ -24,7 +25,7 @@ export function CurrencyInput({ value, onChange, className, ...props }: Currency
       onValueChange={handleValueChange}
       thousandSeparator="."
       decimalSeparator=","
-      decimalScale={4}
+      decimalScale={decimalScale}
       fixedDecimalScale
       prefix="R$ "
       className={cn(className)}

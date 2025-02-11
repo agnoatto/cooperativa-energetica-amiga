@@ -79,8 +79,8 @@ export function PagamentoFormFields({
           value={valorBruto.toLocaleString('pt-BR', { 
             style: 'currency', 
             currency: 'BRL',
-            minimumFractionDigits: 4,
-            maximumFractionDigits: 4 
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2 
           })}
           disabled
           className="bg-gray-100"
@@ -92,6 +92,7 @@ export function PagamentoFormFields({
           id="valor_concessionaria"
           value={form.valor_concessionaria}
           onChange={(value) => setForm({ ...form, valor_concessionaria: value })}
+          decimalScale={2}
         />
       </div>
       <div>
@@ -102,8 +103,8 @@ export function PagamentoFormFields({
           value={valorEfetivo.toLocaleString('pt-BR', { 
             style: 'currency', 
             currency: 'BRL',
-            minimumFractionDigits: 4,
-            maximumFractionDigits: 4 
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2 
           })}
           disabled
           className="bg-gray-100"
