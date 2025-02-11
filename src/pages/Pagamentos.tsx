@@ -40,6 +40,7 @@ const Pagamentos = () => {
           status,
           data_vencimento,
           data_pagamento,
+          data_emissao,
           mes,
           ano,
           economia_mes,
@@ -115,6 +116,8 @@ const Pagamentos = () => {
               conta_energia: 0,
               status: "pendente",
               data_vencimento: dataVencimento.toISOString().split('T')[0],
+              data_emissao: null,
+              data_pagamento: null
             });
 
           if (insertError) throw insertError;

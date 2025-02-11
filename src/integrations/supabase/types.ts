@@ -327,6 +327,7 @@ export type Database = {
           ano: number
           conta_energia: number
           created_at: string
+          data_emissao: string | null
           data_pagamento: string | null
           data_vencimento: string
           economia_acumulada: number | null
@@ -346,6 +347,7 @@ export type Database = {
           ano: number
           conta_energia: number
           created_at?: string
+          data_emissao?: string | null
           data_pagamento?: string | null
           data_vencimento: string
           economia_acumulada?: number | null
@@ -365,6 +367,7 @@ export type Database = {
           ano?: number
           conta_energia?: number
           created_at?: string
+          data_emissao?: string | null
           data_pagamento?: string | null
           data_vencimento?: string
           economia_acumulada?: number | null
