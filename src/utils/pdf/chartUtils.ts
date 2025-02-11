@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { formatCurrency } from "../pdfUtils";
+import React from 'react';
 
 export const generateChartImage = async (data: any[], config: { 
   width: number;
@@ -33,8 +34,8 @@ export const generateChartImage = async (data: any[], config: {
   container.style.height = `${config.height}px`;
   document.body.appendChild(container);
 
-  // Create and render the chart
-  const chart = (
+  // Define chart component
+  const ChartComponent = (
     <ResponsiveContainer width="100%" height="100%">
       <BarChart
         data={last12Months}
@@ -43,13 +44,13 @@ export const generateChartImage = async (data: any[], config: {
         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
         <XAxis
           dataKey="date"
-          tickFormatter={(date) => format(date, 'MMM/yy', { locale: ptBR })}
+          tickFormatter={(date: Date) => format(date, 'MMM/yy', { locale: ptBR })}
           tick={{ fill: '#6B7280', fontSize: 10 }}
           axisLine={{ stroke: '#E5E7EB' }}
           tickLine={false}
         />
         <YAxis
-          tickFormatter={config.formatter || ((value) => value.toLocaleString('pt-BR'))}
+          tickFormatter={config.formatter || ((value: number) => value.toLocaleString('pt-BR'))}
           tick={{ fill: '#6B7280', fontSize: 10 }}
           axisLine={false}
           tickLine={false}
@@ -86,7 +87,6 @@ export const generateChartImage = async (data: any[], config: {
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      // Double the dimensions for better resolution
       canvas.width = config.width * 2;
       canvas.height = config.height * 2;
       const ctx = canvas.getContext('2d');
