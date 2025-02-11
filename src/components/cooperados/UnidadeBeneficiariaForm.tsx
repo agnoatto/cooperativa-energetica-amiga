@@ -221,50 +221,54 @@ export function UnidadeBeneficiariaForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col p-0">
+        <DialogHeader className="p-6 pb-0">
           <DialogTitle>
             {unidadeId ? "Editar Unidade Beneficiária" : "Nova Unidade Beneficiária"}
           </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {!unidadeId && (
-              <FormItem>
-                <FormLabel>Cooperado</FormLabel>
-                <Select
-                  value={selectedCooperadoId || undefined}
-                  onValueChange={(value) => setSelectedCooperadoId(value)}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um cooperado" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {cooperados.map((cooperado) => (
-                      <SelectItem key={cooperado.id} value={cooperado.id}>
-                        {cooperado.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              {!unidadeId && (
+                <FormItem className="mb-4">
+                  <FormLabel>Cooperado</FormLabel>
+                  <Select
+                    value={selectedCooperadoId || undefined}
+                    onValueChange={(value) => setSelectedCooperadoId(value)}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um cooperado" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {cooperados.map((cooperado) => (
+                        <SelectItem key={cooperado.id} value={cooperado.id}>
+                          {cooperado.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
 
-            <UnidadeBeneficiariaBasicInfo form={form} />
-            <AddressFields 
-              form={form}
-              isLoadingCep={isLoadingCep}
-              onFetchCep={fetchCep}
-            />
-            <UnidadeBeneficiariaDateFields form={form} />
-            <GeracaoCreditosFields form={form} />
+              <div className="space-y-6">
+                <UnidadeBeneficiariaBasicInfo form={form} />
+                <AddressFields 
+                  form={form}
+                  isLoadingCep={isLoadingCep}
+                  onFetchCep={fetchCep}
+                />
+                <UnidadeBeneficiariaDateFields form={form} />
+                <GeracaoCreditosFields form={form} />
+              </div>
+            </div>
 
-            <div className="flex justify-end gap-2">
-              <Button type="submit">Salvar</Button>
+            <div className="border-t p-6 mt-auto">
+              <Button type="submit" className="w-full">Salvar</Button>
             </div>
           </form>
         </Form>
