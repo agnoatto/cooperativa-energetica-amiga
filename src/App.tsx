@@ -1,4 +1,5 @@
 
+import React, { useEffect, useState } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster } from "./components/ui/toaster";
 import { Sidebar } from "./components/layout/Sidebar";
@@ -14,9 +15,8 @@ import UnidadesUsina from "./pages/UnidadesUsina";
 import Usinas from "./pages/Usinas";
 import Investidores from "./pages/Investidores";
 import Configuracoes from "./pages/Configuracoes";
-import { useEffect, useState } from "react";
-import { supabase } from "./integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
+import { supabase } from "./integrations/supabase/client";
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
