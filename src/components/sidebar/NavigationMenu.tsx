@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { routes } from "@/config/routes";
+import { ChevronLeft } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -10,7 +11,7 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 import { Separator } from "../ui/separator";
-import { useSidebar } from "../ui/sidebar";
+import { useSidebar, SidebarTrigger } from "../ui/sidebar";
 
 interface NavigationMenuProps {
   onClose?: () => void;
@@ -23,6 +24,33 @@ export function NavigationMenu({ onClose }: NavigationMenuProps) {
 
   return (
     <div className="flex flex-col">
+      <div className="flex justify-end p-2">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <SidebarTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-9 p-0"
+                >
+                  <ChevronLeft className={cn(
+                    "h-4 w-4 transition-transform duration-200",
+                    isCollapsed && "rotate-180"
+                  )} />
+                  <span className="sr-only">
+                    {isCollapsed ? "Expandir menu" : "Recolher menu"}
+                  </span>
+                </Button>
+              </SidebarTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              {isCollapsed ? "Expandir menu" : "Recolher menu"}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
       <div className="space-y-4 py-4">
         {routes.map((section, idx) => (
           <div key={section.label} className="px-3 py-2">
