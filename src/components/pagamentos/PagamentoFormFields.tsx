@@ -1,4 +1,3 @@
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -38,12 +37,10 @@ export function PagamentoFormFields({
   };
 
   const parseCurrencyValue = (value: string): number => {
-    // Remove o prefixo "R$ " e qualquer caractere que não seja dígito, vírgula ou ponto
-    const cleanValue = value.replace('R$ ', '').replace(/[^\d,]/g, '');
-    // Substitui a vírgula por ponto para converter para número
-    const numberValue = Number(cleanValue.replace(',', '.'));
-    // Retorna o número com 4 casas decimais de precisão
-    return Number(numberValue.toFixed(4));
+    // Remove o prefixo "R$ " e mantém apenas dígitos, vírgula e ponto
+    const cleanValue = value.replace('R$ ', '').replace(/\./g, '').replace(',', '.');
+    // Converte para número mantendo 4 casas decimais
+    return parseFloat(parseFloat(cleanValue).toFixed(4));
   };
 
   return (
