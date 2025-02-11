@@ -11,7 +11,7 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 import { Separator } from "../ui/separator";
-import { useSidebar, SidebarTrigger } from "../ui/sidebar";
+import { useSidebar } from "../ui/sidebar";
 
 interface NavigationMenuProps {
   onClose?: () => void;
@@ -23,33 +23,27 @@ export function NavigationMenu({ onClose }: NavigationMenuProps) {
   const isCollapsed = sidebarState === "collapsed";
 
   return (
-    <div className="flex flex-col">
-      <div className="flex justify-end p-2">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <SidebarTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-9 p-0"
-                >
-                  <ChevronLeft className={cn(
-                    "h-4 w-4 transition-transform duration-200",
-                    isCollapsed && "rotate-180"
-                  )} />
-                  <span className="sr-only">
-                    {isCollapsed ? "Expandir menu" : "Recolher menu"}
-                  </span>
-                </Button>
-              </SidebarTrigger>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              {isCollapsed ? "Expandir menu" : "Recolher menu"}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
+    <div className="flex flex-col h-full">
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="w-9 p-0 m-2 ml-auto"
+        onClick={() => {
+          if (sidebarState === "open") {
+            document.documentElement.style.setProperty("--sidebar-width", "4rem");
+          } else {
+            document.documentElement.style.setProperty("--sidebar-width", "16rem");
+          }
+        }}
+      >
+        <ChevronLeft className={cn(
+          "h-4 w-4 transition-transform duration-200",
+          isCollapsed && "rotate-180"
+        )} />
+        <span className="sr-only">
+          {isCollapsed ? "Expandir menu" : "Recolher menu"}
+        </span>
+      </Button>
 
       <div className="space-y-4 py-4">
         {routes.map((section, idx) => (
