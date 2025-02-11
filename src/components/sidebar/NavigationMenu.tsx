@@ -3,6 +3,15 @@ import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { routes } from "@/config/routes";
+import { ChevronRight, MenuIcon } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
+import { useState, useEffect } from "react";
+import { Separator } from "../ui/separator";
 
 interface NavigationMenuProps {
   onClose?: () => void;
@@ -10,61 +19,142 @@ interface NavigationMenuProps {
 
 export function NavigationMenu({ onClose }: NavigationMenuProps) {
   const location = useLocation();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Carregar estado do menu do localStorage
+  useEffect(() => {
+    const savedState = localStorage.getItem("sidebarCollapsed");
+    if (savedState) {
+      setIsCollapsed(JSON.parse(savedState));
+    }
+  }, []);
+
+  // Salvar estado do menu no localStorage
+  const toggleCollapse = () => {
+    const newState = !isCollapsed;
+    setIsCollapsed(newState);
+    localStorage.setItem("sidebarCollapsed", JSON.stringify(newState));
+  };
 
   return (
-    <div className="space-y-4 py-4">
-      <div className="px-3 py-2">
-        <div className="space-y-1">
-          {routes.map((route) => (
-            <div key={route.href}>
-              <Link
-                to={route.href}
-                onClick={onClose}
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary",
-                  route.href === location.pathname
-                    ? "text-primary"
-                    : "text-muted-foreground"
-                )}
-              >
-                <Button
-                  variant={
-                    route.href === location.pathname ? "secondary" : "ghost"
-                  }
-                  className="w-full justify-start"
-                >
-                  <route.icon className={cn("mr-2 h-4 w-4", route.color)} />
-                  {route.label}
-                </Button>
-              </Link>
-              {route.subItems?.map((subItem) => (
-                <Link
-                  key={subItem.href}
-                  to={subItem.href}
-                  onClick={onClose}
-                  className={cn(
-                    "text-sm font-medium transition-colors hover:text-primary ml-6 block",
-                    subItem.href === location.pathname
-                      ? "text-primary"
-                      : "text-muted-foreground"
-                  )}
-                >
-                  <Button
-                    variant={
-                      subItem.href === location.pathname ? "secondary" : "ghost"
-                    }
-                    className="w-full justify-start"
-                  >
-                    <subItem.icon
-                      className={cn("mr-2 h-4 w-4", subItem.color)}
-                    />
-                    {subItem.label}
-                  </Button>
-                </Link>
+    <div className="flex flex-col">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="self-end mr-2 mt-2"
+        onClick={toggleCollapse}
+      >
+        <MenuIcon className="h-4 w-4" />
+      </Button>
+
+      <div className="space-y-4 py-4">
+        {routes.map((section, idx) => (
+          <div key={section.label} className="px-3 py-2">
+            {!isCollapsed && (
+              <h4 className="mb-2 px-2 text-xs font-semibold tracking-tight text-muted-foreground uppercase">
+                {section.label}
+              </h4>
+            )}
+            <div className="space-y-1">
+              {section.routes.map((route) => (
+                <div key={route.href} className="flex flex-col">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Link
+                          to={route.href}
+                          onClick={onClose}
+                          className={cn(
+                            "text-sm font-medium transition-colors hover:text-primary group",
+                            route.href === location.pathname
+                              ? "text-primary"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          <Button
+                            variant={
+                              route.href === location.pathname
+                                ? "secondary"
+                                : "ghost"
+                            }
+                            className={cn(
+                              "w-full justify-start",
+                              isCollapsed && "px-2"
+                            )}
+                          >
+                            <route.icon
+                              className={cn(
+                                "h-4 w-4 transition-transform",
+                                route.color,
+                                route.subItems?.length && "group-hover:rotate-180"
+                              )}
+                            />
+                            {!isCollapsed && (
+                              <span className="ml-2">{route.label}</span>
+                            )}
+                          </Button>
+                        </Link>
+                      </TooltipTrigger>
+                      {isCollapsed && (
+                        <TooltipContent side="right">
+                          {route.label}
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  {route.subItems?.map((subItem) => (
+                    <TooltipProvider key={subItem.href}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Link
+                            to={subItem.href}
+                            onClick={onClose}
+                            className={cn(
+                              "text-sm font-medium transition-colors hover:text-primary",
+                              isCollapsed ? "ml-2" : "ml-6",
+                              "block",
+                              subItem.href === location.pathname
+                                ? "text-primary"
+                                : "text-muted-foreground"
+                            )}
+                          >
+                            <Button
+                              variant={
+                                subItem.href === location.pathname
+                                  ? "secondary"
+                                  : "ghost"
+                              }
+                              className={cn(
+                                "w-full justify-start",
+                                isCollapsed && "px-2"
+                              )}
+                            >
+                              <subItem.icon
+                                className={cn("h-4 w-4", subItem.color)}
+                              />
+                              {!isCollapsed && (
+                                <span className="ml-2">{subItem.label}</span>
+                              )}
+                            </Button>
+                          </Link>
+                        </TooltipTrigger>
+                        {isCollapsed && (
+                          <TooltipContent side="right">
+                            {subItem.label}
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                  ))}
+                </div>
               ))}
             </div>
-          ))}
-        </div>
+            {idx < routes.length - 1 && (
+              <Separator className="my-4 opacity-50" />
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
