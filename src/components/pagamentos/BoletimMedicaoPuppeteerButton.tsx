@@ -13,14 +13,23 @@ interface BoletimMedicaoPuppeteerButtonProps {
 export function BoletimMedicaoPuppeteerButton({ boletimData }: BoletimMedicaoPuppeteerButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
 
+  console.log('BoletimMedicaoPuppeteerButton rendered with data:', boletimData);
+
   const gerarPDF = async () => {
+    console.log('Iniciando geração do PDF...');
     setIsGenerating(true);
     try {
+      console.log('Chamando Edge Function com dados:', boletimData);
       const { data, error } = await supabase.functions.invoke('generate-pdf-puppeteer', {
         body: { boletimData }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro da Edge Function:', error);
+        throw error;
+      }
+
+      console.log('Resposta da Edge Function:', data);
 
       // Convert the response to a blob and create a download link
       const blob = new Blob([data], { type: 'application/pdf' });
@@ -35,7 +44,7 @@ export function BoletimMedicaoPuppeteerButton({ boletimData }: BoletimMedicaoPup
 
       toast.success("PDF gerado com sucesso!");
     } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
+      console.error('Erro detalhado ao gerar PDF:', error);
       toast.error("Erro ao gerar PDF. Por favor, tente novamente.");
     } finally {
       setIsGenerating(false);
@@ -49,11 +58,12 @@ export function BoletimMedicaoPuppeteerButton({ boletimData }: BoletimMedicaoPup
       onClick={gerarPDF}
       title="Gerar Boletim (Experimental)"
       disabled={isGenerating}
+      className="h-6 w-6" // Ajustando tamanho para corresponder aos outros botões
     >
       {isGenerating ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <Loader2 className="h-3 w-3 animate-spin" />
       ) : (
-        <Printer className="h-4 w-4" />
+        <Printer className="h-3 w-3" />
       )}
     </Button>
   );
