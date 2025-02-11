@@ -11,6 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 interface PagamentoFormFieldsProps {
   form: PagamentoFormValues;
@@ -27,16 +28,28 @@ export function PagamentoFormFields({
   valorBruto,
   valorEfetivo,
 }: PagamentoFormFieldsProps) {
-  const handleDataEmissaoChange = (date: Date | null) => {
-    const data_emissao = date ? date.toISOString().split('T')[0] : null;
-    const data_pagamento = date ? addDays(date, 90).toISOString().split('T')[0] : null;
-    
-    setForm({
-      ...form,
-      data_emissao,
-      data_pagamento,
-      status: data_pagamento ? 'pendente' : form.status
-    });
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    form.data_emissao ? new Date(form.data_emissao) : undefined
+  );
+
+  const handleDataEmissaoChange = (date: Date | undefined) => {
+    setSelectedDate(date);
+  };
+
+  const handleConfirmDate = () => {
+    if (selectedDate) {
+      const data_emissao = selectedDate.toISOString().split('T')[0];
+      const data_pagamento = addDays(selectedDate, 90).toISOString().split('T')[0];
+      
+      setForm({
+        ...form,
+        data_emissao,
+        data_pagamento,
+        status: data_pagamento ? 'pendente' : form.status
+      });
+    }
+    setIsCalendarOpen(false);
   };
 
   return (
@@ -109,7 +122,7 @@ export function PagamentoFormFields({
       </div>
       <div>
         <Label>Data de Emissão da Conta</Label>
-        <Popover>
+        <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
@@ -127,13 +140,20 @@ export function PagamentoFormFields({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={form.data_emissao ? new Date(form.data_emissao) : undefined}
-              onSelect={handleDataEmissaoChange}
-              initialFocus
-              locale={ptBR}
-            />
+            <div className="p-3">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={handleDataEmissaoChange}
+                initialFocus
+                locale={ptBR}
+              />
+              <div className="mt-4 flex justify-end border-t pt-4">
+                <Button onClick={handleConfirmDate} size="sm">
+                  Confirmar
+                </Button>
+              </div>
+            </div>
           </PopoverContent>
         </Popover>
       </div>
