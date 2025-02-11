@@ -44,7 +44,7 @@ export function PagamentoFormFields({
         <Input
           id="geracao_kwh"
           type="number"
-          value={form.geracao_kwh}
+          value={form.geracao_kwh || ''}
           onChange={(e) => setForm({ ...form, geracao_kwh: e.target.valueAsNumber || 0 })}
         />
       </div>

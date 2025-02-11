@@ -1,19 +1,34 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PagamentoData, PagamentoFormValues } from "../types/pagamento";
 
 export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => void, onClose: () => void) {
   const [form, setForm] = useState<PagamentoFormValues>({
-    geracao_kwh: pagamento?.geracao_kwh || 0,
-    valor_total: pagamento?.valor_total || 0,
-    status: pagamento?.status || 'pendente',
-    data_pagamento: pagamento?.data_pagamento || null,
-    data_emissao: pagamento?.data_emissao || null,
-    tusd_fio_b: pagamento?.tusd_fio_b || 0,
-    valor_concessionaria: pagamento?.valor_concessionaria || 0,
+    geracao_kwh: 0,
+    valor_total: 0,
+    status: 'pendente',
+    data_pagamento: null,
+    data_emissao: null,
+    tusd_fio_b: 0,
+    valor_concessionaria: 0,
   });
+
+  // Initialize form when pagamento changes
+  useEffect(() => {
+    if (pagamento) {
+      setForm({
+        geracao_kwh: pagamento.geracao_kwh || 0,
+        valor_total: pagamento.valor_total || 0,
+        status: pagamento.status || 'pendente',
+        data_pagamento: pagamento.data_pagamento,
+        data_emissao: pagamento.data_emissao,
+        tusd_fio_b: pagamento.tusd_fio_b || 0,
+        valor_concessionaria: pagamento.valor_concessionaria || 0,
+      });
+    }
+  }, [pagamento]);
 
   // Valor do kWh vindo da usina
   const valorKwh = pagamento?.usina?.valor_kwh || 0;
@@ -26,6 +41,12 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!pagamento?.id) {
+      toast.error('ID do pagamento não encontrado');
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('pagamentos_usina')
@@ -38,7 +59,7 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
           tusd_fio_b: Number(form.tusd_fio_b),
           valor_concessionaria: Number(form.valor_concessionaria),
         })
-        .eq('id', pagamento?.id);
+        .eq('id', pagamento.id);
 
       if (error) throw error;
 
