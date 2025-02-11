@@ -19,7 +19,6 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
     valorKwh,
     valorBruto,
     valorEfetivo,
-    economiaMes,
     handleSubmit,
   } = usePagamentoForm(pagamento, onSave, onClose);
 
@@ -38,7 +37,6 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
             valorKwh={valorKwh}
             valorBruto={valorBruto}
             valorEfetivo={valorEfetivo}
-            economiaMes={economiaMes}
           />
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onClose}>

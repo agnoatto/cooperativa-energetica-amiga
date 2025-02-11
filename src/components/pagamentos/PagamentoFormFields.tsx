@@ -14,7 +14,6 @@ interface PagamentoFormFieldsProps {
   valorKwh: number;
   valorBruto: number;
   valorEfetivo: number;
-  economiaMes: number;
 }
 
 export function PagamentoFormFields({
@@ -23,7 +22,6 @@ export function PagamentoFormFields({
   valorKwh,
   valorBruto,
   valorEfetivo,
-  economiaMes,
 }: PagamentoFormFieldsProps) {
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const dataEmissao = e.target.value;
@@ -108,16 +106,6 @@ export function PagamentoFormFields({
         />
       </div>
       <div>
-        <Label htmlFor="economia_mes">Economia do Mês (R$)</Label>
-        <Input
-          id="economia_mes"
-          type="text"
-          value={economiaMes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-          disabled
-          className="bg-gray-100"
-        />
-      </div>
-      <div>
         <Label htmlFor="data_emissao">Data de Emissão da Conta</Label>
         <Input
           id="data_emissao"
@@ -162,4 +150,3 @@ export function PagamentoFormFields({
     </div>
   );
 }
-

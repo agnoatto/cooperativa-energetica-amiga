@@ -330,8 +330,6 @@ export type Database = {
           data_emissao: string | null
           data_pagamento: string | null
           data_vencimento: string
-          economia_acumulada: number | null
-          economia_mes: number | null
           geracao_kwh: number
           id: string
           mes: number
@@ -350,8 +348,6 @@ export type Database = {
           data_emissao?: string | null
           data_pagamento?: string | null
           data_vencimento: string
-          economia_acumulada?: number | null
-          economia_mes?: number | null
           geracao_kwh: number
           id?: string
           mes: number
@@ -370,8 +366,6 @@ export type Database = {
           data_emissao?: string | null
           data_pagamento?: string | null
           data_vencimento?: string
-          economia_acumulada?: number | null
-          economia_mes?: number | null
           geracao_kwh?: number
           id?: string
           mes?: number

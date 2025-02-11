@@ -13,8 +13,6 @@ export interface PagamentoData {
   mes: number;
   ano: number;
   conta_energia: number;
-  economia_mes: number | null;
-  economia_acumulada: number;
   usina: {
     id: string;
     valor_kwh: number;
@@ -35,6 +33,4 @@ export interface PagamentoFormValues {
   data_emissao: string | null;
   tusd_fio_b: number;
   valor_concessionaria: number;
-  economia_mes: number;
-  economia_acumulada: number;
 }
