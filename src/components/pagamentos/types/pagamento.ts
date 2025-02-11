@@ -16,6 +16,7 @@ export interface PagamentoData {
   economia_mes: number | null;
   economia_acumulada: number;
   usina: {
+    id: string;
     valor_kwh: number;
     unidade_usina: {
       numero_uc: string;
@@ -37,4 +38,3 @@ export interface PagamentoFormValues {
   economia_mes: number;
   economia_acumulada: number;
 }
-

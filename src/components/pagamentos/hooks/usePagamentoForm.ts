@@ -47,12 +47,10 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
   const economiaMes = Math.max(0, form.valor_concessionaria - valorEfetivo);
 
   // Função para buscar economia acumulada
-  const fetchEconomiaAcumulada = async (mes: number, ano: number, usinaId?: string) => {
-    if (!usinaId) return 0;
-
+  const fetchEconomiaAcumulada = async (mes: number, ano: number, usinaId: string) => {
     const { data, error } = await supabase
       .from('pagamentos_usina')
-      .select('economia_mes')
+      .select('economia_mes, economia_acumulada')
       .eq('usina_id', usinaId)
       .lt('ano', ano)
       .order('ano', { ascending: false })
@@ -125,4 +123,3 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
     handleSubmit
   };
 }
-
