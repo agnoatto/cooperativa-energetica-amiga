@@ -4,6 +4,7 @@ import { ptBR } from "date-fns/locale";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { formatCurrency } from "../pdfUtils";
 import React from 'react';
+import ReactDOMServer from 'react-dom/server';
 
 export const generateChartImage = async (data: any[], config: { 
   width: number;
@@ -35,7 +36,7 @@ export const generateChartImage = async (data: any[], config: {
   document.body.appendChild(container);
 
   // Define chart component
-  const ChartComponent = (
+  const ChartComponent = () => (
     <ResponsiveContainer width="100%" height="100%">
       <BarChart
         data={last12Months}
@@ -70,11 +71,8 @@ export const generateChartImage = async (data: any[], config: {
     </ResponsiveContainer>
   );
 
-  // Convert chart to SVG string
-  const svgString = container.querySelector('svg')?.outerHTML;
-  if (!svgString) {
-    throw new Error('Failed to generate chart SVG');
-  }
+  // Convert chart to SVG string using ReactDOMServer
+  const svgString = ReactDOMServer.renderToString(<ChartComponent />);
 
   // Clean up
   document.body.removeChild(container);
