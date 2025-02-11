@@ -1,12 +1,15 @@
 
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
+import { Menu } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./ui/use-toast";
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { NavigationMenu } from "./sidebar/NavigationMenu";
 import { UserSection } from "./sidebar/UserSection";
+import { Button } from "./ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import {
   SidebarProvider,
   Sidebar,
