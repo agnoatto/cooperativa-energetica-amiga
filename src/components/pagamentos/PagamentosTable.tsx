@@ -29,15 +29,24 @@ export function PagamentosTable({ pagamentos, isLoading, onEditPagamento }: Paga
   };
 
   const prepareBoletimData = (pagamento: PagamentoData): BoletimMedicaoData => {
+    // Filtra os pagamentos do mesmo UC para criar o histórico
+    const historicoGeracoes = pagamentos?.filter(p => 
+      p.usina.unidade_usina.numero_uc === pagamento.usina.unidade_usina.numero_uc
+    ).sort((a, b) => {
+      // Ordena por ano e mês
+      if (a.ano !== b.ano) return a.ano - b.ano;
+      return a.mes - b.mes;
+    }) || [];
+
     return {
       usina: {
         nome_investidor: pagamento.usina?.investidor?.nome_investidor || '',
         numero_uc: pagamento.usina?.unidade_usina?.numero_uc || '',
-        concessionaria: 'RGE', // Hardcoded por enquanto
-        modalidade: 'GD2', // Hardcoded por enquanto
+        concessionaria: 'RGE',
+        modalidade: 'GD2',
         valor_kwh: pagamento.usina?.valor_kwh || 0,
       },
-      pagamentos: [pagamento],
+      pagamentos: historicoGeracoes,
       data_emissao: new Date(),
       valor_receber: pagamento.valor_total,
     };
