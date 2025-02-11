@@ -25,8 +25,8 @@ export function SidebarUserSection({ user, onLogout }: UserSectionProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <div className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200",
-              "group-hover:justify-start justify-center"
+              "flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-200",
+              "group-hover/sidebar:justify-start justify-center"
             )}>
               <Avatar className="h-8 w-8">
                 <AvatarImage src={user.user_metadata?.avatar_url} />
@@ -34,7 +34,7 @@ export function SidebarUserSection({ user, onLogout }: UserSectionProps) {
                   {user.email?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div className="hidden group-hover:block min-w-0">
+              <div className="hidden group-hover/sidebar:block min-w-0">
                 <p className="text-sm font-medium truncate">
                   {user.email}
                 </p>
@@ -44,7 +44,7 @@ export function SidebarUserSection({ user, onLogout }: UserSectionProps) {
               </div>
             </div>
           </TooltipTrigger>
-          <TooltipContent side="right" className="group-hover:hidden">
+          <TooltipContent side="right" className="group-hover/sidebar:hidden">
             <div>
               <p className="font-medium">{user.email}</p>
               <p className="text-xs text-muted-foreground">
@@ -62,18 +62,18 @@ export function SidebarUserSection({ user, onLogout }: UserSectionProps) {
               variant="ghost"
               className={cn(
                 "w-full mt-2 gap-3",
-                "group-hover:justify-start justify-center",
-                "hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
+                "group-hover/sidebar:justify-start justify-center",
+                "hover:bg-destructive/10 hover:text-destructive transition-colors duration-200"
               )}
               onClick={onLogout}
             >
               <LogOut className="h-4 w-4" />
-              <span className="hidden group-hover:block">
+              <span className="hidden group-hover/sidebar:block">
                 Sair
               </span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="right" className="group-hover:hidden">
+          <TooltipContent side="right" className="group-hover/sidebar:hidden">
             Sair
           </TooltipContent>
         </Tooltip>

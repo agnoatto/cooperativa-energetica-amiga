@@ -62,11 +62,11 @@ export function AppSidebar({ children }: SidebarProps) {
 
   if (!isMobile) {
     return (
-      <div className="flex min-h-screen">
-        <aside className="fixed left-0 top-0 h-screen w-16 hover:w-64 
-                         transition-all duration-300 ease-in-out z-[100] group">
-          <nav className="h-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60
-                         border-r border-border/40 relative">
+      <div className="relative min-h-screen flex">
+        <aside className="fixed left-0 top-0 h-full group/sidebar">
+          <nav className="h-full w-16 group-hover/sidebar:w-64 transition-[width] duration-300 ease-in-out 
+                         bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60
+                         border-r border-border/40">
             <div className="flex flex-col h-full">
               <SidebarNavigation />
               <SidebarUserSection user={user} onLogout={handleLogout} />
@@ -97,7 +97,7 @@ export function AppSidebar({ children }: SidebarProps) {
           </div>
         </SheetContent>
       </Sheet>
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1">
         <div className="h-full px-4 py-6 lg:px-8">
           {children}
         </div>

@@ -26,8 +26,8 @@ export function SidebarNavigation() {
                       <Link
                         to={route.href}
                         className={cn(
-                          "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200",
-                          "group-hover:justify-start justify-center",
+                          "flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-200",
+                          "group-hover/sidebar:justify-start justify-center",
                           "hover:bg-accent/50",
                           route.href === location.pathname || location.pathname.startsWith(route.href + '/')
                             ? "bg-accent text-accent-foreground"
@@ -35,12 +35,12 @@ export function SidebarNavigation() {
                         )}
                       >
                         <route.icon className={cn("h-5 w-5 shrink-0", route.color)} />
-                        <span className="hidden group-hover:block truncate">
+                        <span className="hidden group-hover/sidebar:block truncate">
                           {route.label}
                         </span>
                       </Link>
                     </TooltipTrigger>
-                    <TooltipContent side="right" className="group-hover:hidden">
+                    <TooltipContent side="right" className="group-hover/sidebar:hidden">
                       {route.label}
                     </TooltipContent>
                   </Tooltip>
@@ -53,8 +53,8 @@ export function SidebarNavigation() {
                         <Link
                           to={subItem.href}
                           className={cn(
-                            "flex items-center gap-3 px-3 py-2 ml-2 rounded-md transition-all duration-200",
-                            "group-hover:justify-start justify-center",
+                            "flex items-center gap-3 px-3 py-2 ml-2 rounded-md transition-colors duration-200",
+                            "group-hover/sidebar:justify-start justify-center",
                             "hover:bg-accent/50",
                             subItem.href === location.pathname
                               ? "bg-accent text-accent-foreground"
@@ -62,12 +62,12 @@ export function SidebarNavigation() {
                           )}
                         >
                           <subItem.icon className={cn("h-4 w-4 shrink-0", subItem.color)} />
-                          <span className="hidden group-hover:block truncate">
+                          <span className="hidden group-hover/sidebar:block truncate">
                             {subItem.label}
                           </span>
                         </Link>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="group-hover:hidden">
+                      <TooltipContent side="right" className="group-hover/sidebar:hidden">
                         {subItem.label}
                       </TooltipContent>
                     </Tooltip>
