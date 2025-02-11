@@ -5,23 +5,20 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
-  value: string | number;
-  onChange: (value: number) => void;
+  value: string;
+  onChange: (value: string) => void;
   decimalScale?: number;
 }
 
 export function CurrencyInput({ value, onChange, className, decimalScale = 4, ...props }: CurrencyInputProps) {
-  const handleValueChange = (values: { floatValue: number | undefined }) => {
-    onChange(values.floatValue || 0);
+  const handleValueChange = (values: { formattedValue: string }) => {
+    onChange(values.formattedValue);
   };
-
-  // Converte o valor inicial para número se for string
-  const initialValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
 
   return (
     <NumericFormat
       customInput={Input}
-      value={initialValue}
+      value={value}
       onValueChange={handleValueChange}
       thousandSeparator="."
       decimalSeparator=","
