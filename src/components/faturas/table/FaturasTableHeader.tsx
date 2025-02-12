@@ -20,6 +20,7 @@ export function FaturasTableHeader() {
         <TableHead className="font-semibold text-gray-700 text-right">Valor Desconto</TableHead>
         <TableHead className="font-semibold text-gray-700 text-right">Valor da Assinatura</TableHead>
         <TableHead className="font-semibold text-gray-700">Status</TableHead>
+        <TableHead className="font-semibold text-gray-700">Conta</TableHead>
         <TableHead className="font-semibold text-gray-700 text-right">Ações</TableHead>
       </TableRow>
     </TableHeader>
