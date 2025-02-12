@@ -7,6 +7,10 @@ import { formatDateToPtBR } from "@/utils/dateFormatters";
 import { formatarDocumento } from "@/utils/formatters";
 import { FaturaStatusBadge } from "./FaturaStatusBadge";
 import { FaturaRowActions } from "./FaturaRowActions";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FaturaTableRowProps {
   fatura: Fatura;
@@ -24,6 +28,8 @@ export function FaturaTableRow({
   onUpdateStatus,
 }: FaturaTableRowProps) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showPdfModal, setShowPdfModal] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', {
@@ -43,6 +49,23 @@ export function FaturaTableRow({
       'paga',
       'Pagamento confirmado com' + (paymentData.valor_adicional > 0 ? ' valor adicional' : '')
     );
+  };
+
+  const handleViewPdf = async () => {
+    if (!fatura.arquivo_concessionaria_path) return;
+
+    try {
+      const { data, error } = await supabase.storage
+        .from('faturas_concessionaria')
+        .createSignedUrl(fatura.arquivo_concessionaria_path, 60);
+
+      if (error) throw error;
+
+      setPdfUrl(data.signedUrl);
+      setShowPdfModal(true);
+    } catch (error) {
+      console.error('Erro ao obter URL do PDF:', error);
+    }
   };
 
   return (
@@ -75,6 +98,21 @@ export function FaturaTableRow({
         <TableCell className="whitespace-nowrap">
           <FaturaStatusBadge fatura={fatura} />
         </TableCell>
+        <TableCell className="whitespace-nowrap text-center">
+          {fatura.arquivo_concessionaria_path ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleViewPdf}
+              title="Visualizar conta de energia"
+              className="h-8 w-8"
+            >
+              <FileText className="h-4 w-4" />
+            </Button>
+          ) : (
+            <span className="text-gray-400 text-sm">-</span>
+          )}
+        </TableCell>
         <TableCell className="text-right whitespace-nowrap">
           <FaturaRowActions
             fatura={fatura}
@@ -93,6 +131,18 @@ export function FaturaTableRow({
         fatura={fatura}
         onConfirm={handlePaymentConfirm}
       />
+
+      <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          {pdfUrl && (
+            <iframe
+              src={`${pdfUrl}#toolbar=0`}
+              className="w-full h-[80vh]"
+              title="Conta de Energia"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
