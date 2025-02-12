@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { CurrencyInput } from "./CurrencyInput";
+import { FaturaFileUpload } from "./FaturaFileUpload";
 import type { FaturaEditModalProps } from "./types";
 import { parseValue } from "./utils/calculateValues";
 
@@ -142,6 +143,31 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               rows={3}
             />
           </div>
+          
+          <div className="grid w-full items-center gap-2">
+            <Label>Conta de Energia (PDF)</Label>
+            <FaturaFileUpload
+              faturaId={fatura.id}
+              arquivoNome={fatura.arquivo_concessionaria_nome}
+              arquivoPath={fatura.arquivo_concessionaria_path}
+              onSuccess={() => {
+                // Recarregar dados da fatura após upload/remoção do arquivo
+                onSuccess({
+                  id: fatura.id,
+                  consumo_kwh: consumo,
+                  total_fatura: parseValue(totalFatura),
+                  fatura_concessionaria: parseValue(faturaConcessionaria),
+                  iluminacao_publica: parseValue(iluminacaoPublica),
+                  outros_valores: parseValue(outrosValores),
+                  saldo_energia_kwh: saldoEnergiaKwh,
+                  observacao: observacao || null,
+                  data_vencimento: dataVencimento,
+                  percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
+                });
+              }}
+            />
+          </div>
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
               Cancelar

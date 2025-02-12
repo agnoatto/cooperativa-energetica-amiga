@@ -12,6 +12,10 @@ export interface FaturaEditModalProps {
     saldo_energia_kwh: number | null;
     observacao: string | null;
     data_vencimento: string;
+    arquivo_concessionaria_nome?: string | null;
+    arquivo_concessionaria_path?: string | null;
+    arquivo_concessionaria_tipo?: string | null;
+    arquivo_concessionaria_tamanho?: number | null;
     unidade_beneficiaria: {
       percentual_desconto: number;
     };
@@ -29,4 +33,3 @@ export interface FaturaEditModalProps {
     percentual_desconto: number;
   }) => void | Promise<void>;
 }
-
