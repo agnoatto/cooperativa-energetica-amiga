@@ -165,9 +165,9 @@ export function Sidebar() {
               Pagamentos
             </SidebarLink>
 
-            {/* Novo menu Financeiro */}
+            {/* Menu Financeiro com rota corrigida */}
             <SidebarLink 
-              href="#" 
+              href="/financeiro/contas-receber" 
               icon={Wallet}
               isActive={location.pathname.startsWith('/financeiro')}
               isExpanded={isExpanded}
