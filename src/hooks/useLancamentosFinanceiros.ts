@@ -72,7 +72,7 @@ export function useLancamentosFinanceiros({
           status_anterior: hist.status_anterior,
           novo_status: hist.novo_status
         }))
-      })) as LancamentoFinanceiro[];
+      })) as unknown as LancamentoFinanceiro[];
     },
   });
 }
