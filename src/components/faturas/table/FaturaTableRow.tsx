@@ -8,9 +8,10 @@ import { formatarDocumento } from "@/utils/formatters";
 import { FaturaStatusBadge } from "./FaturaStatusBadge";
 import { FaturaRowActions } from "./FaturaRowActions";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { FileText } from "lucide-react";
+import { FileText, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface FaturaTableRowProps {
   fatura: Fatura;
@@ -30,6 +31,7 @@ export function FaturaTableRow({
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', {
@@ -67,6 +69,57 @@ export function FaturaTableRow({
       console.error('Erro ao obter URL do PDF:', error);
     }
   };
+
+  if (isMobile) {
+    return (
+      <div 
+        className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4 touch-manipulation"
+        onClick={() => onViewDetails(fatura)}
+      >
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex-1">
+            <h3 className="font-medium text-gray-900 truncate">
+              {fatura.unidade_beneficiaria.cooperado.nome}
+            </h3>
+            <p className="text-sm text-gray-500">
+              {formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)}
+            </p>
+          </div>
+          <FaturaStatusBadge fatura={fatura} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-y-2 text-sm mb-4">
+          <div className="text-gray-500">UC:</div>
+          <div className="text-right">{fatura.unidade_beneficiaria.numero_uc}</div>
+          
+          <div className="text-gray-500">Vencimento:</div>
+          <div className="text-right">{formatDateToPtBR(fatura.data_vencimento)}</div>
+          
+          <div className="text-gray-500">Valor:</div>
+          <div className="text-right font-medium">{formatCurrency(fatura.valor_total)}</div>
+        </div>
+
+        <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+          <div className="flex gap-2">
+            {fatura.arquivo_concessionaria_path && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleViewPdf();
+                }}
+                className="p-2"
+              >
+                <FileText className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <ChevronRight className="h-5 w-5 text-gray-400" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

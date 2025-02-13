@@ -7,15 +7,17 @@ import { FaturasTable } from "@/components/faturas/FaturasTable";
 import { useFaturas } from "@/hooks/useFaturas";
 import { useMonthSelection } from "@/hooks/useMonthSelection";
 import { Fatura, FaturaStatus } from "@/types/fatura";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function FaturasContainer() {
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
   const { currentDate, handlePreviousMonth, handleNextMonth } = useMonthSelection();
+  const isMobile = useIsMobile();
+  
   const { 
     faturas, 
     isLoading, 
     updateFatura,
-    isUpdating,
     gerarFaturas, 
     isGenerating, 
     deleteFatura,
@@ -35,34 +37,38 @@ export function FaturasContainer() {
   };
 
   return (
-    <div className="space-y-6">
-      <FaturasHeader 
-        onGerarFaturas={gerarFaturas}
-        isGenerating={isGenerating}
-      />
-
-      <MonthSelector
-        currentDate={currentDate}
-        onPreviousMonth={handlePreviousMonth}
-        onNextMonth={handleNextMonth}
-      />
-
-      <FaturasTable
-        faturas={faturas}
-        isLoading={isLoading}
-        onEditFatura={setSelectedFatura}
-        onDeleteFatura={handleDeleteFatura}
-        onUpdateStatus={handleUpdateStatus}
-      />
-
-      {selectedFatura && (
-        <FaturaEditModal
-          isOpen={!!selectedFatura}
-          onClose={() => setSelectedFatura(null)}
-          fatura={selectedFatura}
-          onSuccess={updateFatura}
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <div className="flex-1 space-y-4 p-4 md:p-6">
+        <FaturasHeader 
+          onGerarFaturas={gerarFaturas}
+          isGenerating={isGenerating}
         />
-      )}
+
+        <MonthSelector
+          currentDate={currentDate}
+          onPreviousMonth={handlePreviousMonth}
+          onNextMonth={handleNextMonth}
+        />
+
+        <div className={isMobile ? "space-y-4" : "-mx-4 md:mx-0"}>
+          <FaturasTable
+            faturas={faturas}
+            isLoading={isLoading}
+            onEditFatura={setSelectedFatura}
+            onDeleteFatura={handleDeleteFatura}
+            onUpdateStatus={handleUpdateStatus}
+          />
+        </div>
+
+        {selectedFatura && (
+          <FaturaEditModal
+            isOpen={!!selectedFatura}
+            onClose={() => setSelectedFatura(null)}
+            fatura={selectedFatura}
+            onSuccess={updateFatura}
+          />
+        )}
+      </div>
     </div>
   );
 }
