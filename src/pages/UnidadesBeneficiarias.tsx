@@ -7,6 +7,7 @@ import { UnidadesTable } from "@/components/cooperados/UnidadesTable";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const UnidadesBeneficiarias = () => {
   const [showUnidadeForm, setShowUnidadeForm] = useState(false);
@@ -14,6 +15,7 @@ const UnidadesBeneficiarias = () => {
   const [selectedUnidadeId, setSelectedUnidadeId] = useState<string | null>(null);
   const [unidades, setUnidades] = useState<any[]>([]);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const fetchData = async () => {
     try {
@@ -59,13 +61,15 @@ const UnidadesBeneficiarias = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Unidades Beneficiárias</h1>
+    <div className="space-y-6 p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="w-full sm:w-auto">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Unidades Beneficiárias
+          </h1>
           <Button 
             variant="link" 
-            className="px-0"
+            className="px-0 -ml-3 sm:ml-0"
             onClick={() => navigate('/cooperados')}
           >
             ← Voltar para Cooperados
@@ -77,6 +81,8 @@ const UnidadesBeneficiarias = () => {
             setSelectedCooperadoId(null);
             setShowUnidadeForm(true);
           }}
+          className="w-full sm:w-auto"
+          size={isMobile ? "lg" : "default"}
         >
           <Plus className="mr-2 h-4 w-4" /> Nova Unidade
         </Button>

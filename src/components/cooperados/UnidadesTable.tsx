@@ -8,7 +8,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Trash } from "lucide-react";
+import { Edit, Trash, Plus } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface UnidadesTableProps {
   unidades: any[];
@@ -21,6 +22,78 @@ export function UnidadesTable({
   onEdit,
   onDelete,
 }: UnidadesTableProps) {
+  const isMobile = useIsMobile();
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
+        {unidades.map((unidade) => (
+          <div 
+            key={unidade.id}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+          >
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <h3 className="font-medium text-gray-900">UC: {unidade.numero_uc}</h3>
+                {unidade.apelido && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    Apelido: {unidade.apelido}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2 text-sm">
+              <div className="grid grid-cols-2 gap-1">
+                <span className="text-gray-500">Desconto:</span>
+                <span>{unidade.percentual_desconto}%</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1">
+                <span className="text-gray-500">Data Entrada:</span>
+                <span>{formatDate(unidade.data_entrada)}</span>
+              </div>
+
+              {unidade.data_saida && (
+                <div className="grid grid-cols-2 gap-1">
+                  <span className="text-gray-500">Data Saída:</span>
+                  <span>{formatDate(unidade.data_saida)}</span>
+                </div>
+              )}
+
+              <div className="mt-2 pt-2 border-t border-gray-100">
+                <p className="text-gray-600 text-sm">{unidade.endereco}</p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => onEdit(unidade.cooperado_id, unidade.id)}
+                className="h-8 w-8 p-0"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => onDelete(unidade.id)}
+                className="h-8 w-8 p-0"
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-md border border-gray-200 overflow-hidden">
       <div className="overflow-x-auto">
@@ -44,12 +117,10 @@ export function UnidadesTable({
                 <TableCell className="whitespace-nowrap">{unidade.endereco}</TableCell>
                 <TableCell className="whitespace-nowrap">{unidade.percentual_desconto}%</TableCell>
                 <TableCell className="whitespace-nowrap">
-                  {new Date(unidade.data_entrada).toLocaleDateString()}
+                  {formatDate(unidade.data_entrada)}
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
-                  {unidade.data_saida 
-                    ? new Date(unidade.data_saida).toLocaleDateString()
-                    : '-'}
+                  {unidade.data_saida ? formatDate(unidade.data_saida) : '-'}
                 </TableCell>
                 <TableCell className="text-right whitespace-nowrap space-x-2">
                   <Button 
