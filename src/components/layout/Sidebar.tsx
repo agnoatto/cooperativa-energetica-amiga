@@ -11,7 +11,10 @@ import {
   FileText,
   Table,
   Building2,
-  User
+  User,
+  Wallet,
+  ArrowDownToLine,
+  ArrowUpFromLine
 } from 'lucide-react';
 
 interface SidebarLinkProps {
@@ -160,6 +163,28 @@ export function Sidebar() {
               isExpanded={isExpanded}
             >
               Pagamentos
+            </SidebarLink>
+
+            {/* Novo menu Financeiro */}
+            <SidebarLink 
+              href="#" 
+              icon={Wallet}
+              isActive={location.pathname.startsWith('/financeiro')}
+              isExpanded={isExpanded}
+              subItems={[
+                {
+                  href: "/financeiro/contas-pagar",
+                  icon: ArrowUpFromLine,
+                  label: "Contas a Pagar"
+                },
+                {
+                  href: "/financeiro/contas-receber",
+                  icon: ArrowDownToLine,
+                  label: "Contas a Receber"
+                }
+              ]}
+            >
+              Financeiro
             </SidebarLink>
           </nav>
         </div>
