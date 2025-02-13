@@ -63,14 +63,15 @@ const Investidores = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Investidores</h1>
+    <div className="space-y-6 p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Investidores</h1>
         <Button
           onClick={() => {
             setSelectedInvestidorId(undefined);
             setIsFormOpen(true);
           }}
+          className="w-full sm:w-auto"
         >
           <Plus className="mr-2 h-4 w-4" /> Novo Investidor
         </Button>
@@ -82,15 +83,19 @@ const Investidores = () => {
           placeholder="Pesquisar investidores..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-8"
+          className="pl-8 w-full"
         />
       </div>
 
-      <InvestidoresTable
-        investidores={investidores || []}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      <div className="overflow-x-auto -mx-4 md:mx-0">
+        <div className="min-w-full inline-block align-middle">
+          <InvestidoresTable
+            investidores={investidores || []}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        </div>
+      </div>
 
       <InvestidorForm
         open={isFormOpen}

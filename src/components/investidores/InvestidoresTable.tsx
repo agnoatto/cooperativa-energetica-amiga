@@ -62,58 +62,104 @@ export function InvestidoresTable({
     }
   };
 
+  // Componente para visualização em dispositivos móveis
+  const MobileCard = ({ investidor }: { investidor: Investidor }) => (
+    <div className="bg-white p-4 rounded-lg border shadow-sm mb-4">
+      <div className="flex justify-between items-start mb-2">
+        <div className="font-medium">{investidor.nome_investidor}</div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onEdit(investidor.id)}
+            className="h-8 w-8"
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setInvestidorToDelete(investidor)}
+            className="h-8 w-8"
+          >
+            <Trash className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      <div className="space-y-1 text-sm text-gray-500">
+        <p>CPF/CNPJ: {formatarDocumento(investidor.documento)}</p>
+        <p>Telefone: {investidor.telefone ? formatarTelefone(investidor.telefone) : "-"}</p>
+        <p>Email: {investidor.email || "-"}</p>
+      </div>
+    </div>
+  );
+
   return (
     <>
-      <div className="rounded-md border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table className="w-full border-collapse [&_tr:hover]:bg-gray-50">
-            <TableHeader className="[&_tr]:h-8 [&_th]:p-2 [&_th]:border-x [&_th]:border-gray-200 [&_tr]:border-b [&_tr]:border-gray-200">
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Documento</TableHead>
-                <TableHead>Telefone</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+      {/* Versão Mobile */}
+      <div className="md:hidden">
+        {investidores.map((investidor) => (
+          <MobileCard key={investidor.id} investidor={investidor} />
+        ))}
+        {investidores.length === 0 && (
+          <div className="text-center py-6 text-gray-500">
+            Nenhum investidor encontrado
+          </div>
+        )}
+      </div>
+
+      {/* Versão Desktop */}
+      <div className="hidden md:block rounded-md border border-gray-200 overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>CPF/CNPJ</TableHead>
+              <TableHead>Telefone</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {investidores.map((investidor) => (
+              <TableRow key={investidor.id}>
+                <TableCell className="font-medium">
+                  {investidor.nome_investidor}
+                </TableCell>
+                <TableCell>{formatarDocumento(investidor.documento)}</TableCell>
+                <TableCell>
+                  {investidor.telefone ? formatarTelefone(investidor.telefone) : "-"}
+                </TableCell>
+                <TableCell>{investidor.email || "-"}</TableCell>
+                <TableCell className="text-right space-x-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => onEdit(investidor.id)}
+                    className="h-8 w-8"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setInvestidorToDelete(investidor)}
+                    className="h-8 w-8"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody className="[&_tr]:h-8 [&_td]:p-2 [&_td]:border-x [&_td]:border-gray-200 [&_tr]:border-b [&_tr]:border-gray-200">
-              {investidores.map((investidor) => (
-                <TableRow key={investidor.id}>
-                  <TableCell className="whitespace-nowrap">
-                    {investidor.nome_investidor}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    {formatarDocumento(investidor.documento)}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    {formatarTelefone(investidor.telefone || "")}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    {investidor.email || "-"}
-                  </TableCell>
-                  <TableCell className="text-right whitespace-nowrap space-x-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => onEdit(investidor.id)}
-                      className="h-6 w-6"
-                    >
-                      <Edit className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setInvestidorToDelete(investidor)}
-                      className="h-6 w-6"
-                    >
-                      <Trash className="h-3 w-3" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+            ))}
+            {investidores.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center h-24">
+                  Nenhum investidor encontrado
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
 
       <AlertDialog

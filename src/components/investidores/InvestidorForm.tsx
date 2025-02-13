@@ -145,7 +145,7 @@ export function InvestidorForm({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px] w-[95vw] sm:w-full mx-auto">
         <DialogHeader>
           <DialogTitle>
             {investidorId ? "Editar" : "Novo"} Investidor
@@ -155,16 +155,31 @@ export function InvestidorForm({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <InvestidorFormFields form={form} />
-            <Button disabled={isLoading} type="submit">
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                "Salvar"
-              )}
-            </Button>
+            <div className="flex justify-end gap-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => handleOpenChange(false)}
+                disabled={isLoading}
+                className="w-full sm:w-auto"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="w-full sm:w-auto"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  "Salvar"
+                )}
+              </Button>
+            </div>
           </form>
         </Form>
       </DialogContent>

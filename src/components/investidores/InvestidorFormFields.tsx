@@ -20,7 +20,7 @@ export function InvestidorFormFields({ form }: InvestidorFormFieldsProps) {
           <FormItem>
             <FormLabel>Nome do Investidor</FormLabel>
             <FormControl>
-              <Input {...field} />
+              <Input {...field} className="w-full" />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -41,7 +41,7 @@ export function InvestidorFormFields({ form }: InvestidorFormFieldsProps) {
                 {...field}
               >
                 {(inputProps: any) => (
-                  <MaskedInput {...inputProps} ref={ref} />
+                  <MaskedInput {...inputProps} ref={ref} className="w-full" />
                 )}
               </InputMask>
             </FormControl>
@@ -64,7 +64,7 @@ export function InvestidorFormFields({ form }: InvestidorFormFieldsProps) {
                 {...field}
               >
                 {(inputProps: any) => (
-                  <MaskedInput {...inputProps} ref={ref} />
+                  <MaskedInput {...inputProps} ref={ref} className="w-full" />
                 )}
               </InputMask>
             </FormControl>
@@ -80,7 +80,7 @@ export function InvestidorFormFields({ form }: InvestidorFormFieldsProps) {
           <FormItem>
             <FormLabel>Email</FormLabel>
             <FormControl>
-              <Input {...field} type="email" />
+              <Input {...field} type="email" className="w-full" />
             </FormControl>
             <FormMessage />
           </FormItem>
