@@ -322,6 +322,111 @@ export type Database = {
         }
         Relationships: []
       }
+      lancamentos_financeiros: {
+        Row: {
+          comprovante_nome: string | null
+          comprovante_path: string | null
+          comprovante_tipo: string | null
+          cooperado_id: string | null
+          created_at: string
+          data_pagamento: string | null
+          data_vencimento: string
+          deleted_at: string | null
+          descricao: string
+          fatura_id: string | null
+          historico_status: Json | null
+          id: string
+          investidor_id: string | null
+          observacao: string | null
+          pagamento_usina_id: string | null
+          session_id: string | null
+          status: Database["public"]["Enums"]["status_lancamento"]
+          tipo: Database["public"]["Enums"]["tipo_lancamento"]
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          comprovante_nome?: string | null
+          comprovante_path?: string | null
+          comprovante_tipo?: string | null
+          cooperado_id?: string | null
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento: string
+          deleted_at?: string | null
+          descricao: string
+          fatura_id?: string | null
+          historico_status?: Json | null
+          id?: string
+          investidor_id?: string | null
+          observacao?: string | null
+          pagamento_usina_id?: string | null
+          session_id?: string | null
+          status?: Database["public"]["Enums"]["status_lancamento"]
+          tipo: Database["public"]["Enums"]["tipo_lancamento"]
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          comprovante_nome?: string | null
+          comprovante_path?: string | null
+          comprovante_tipo?: string | null
+          cooperado_id?: string | null
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento?: string
+          deleted_at?: string | null
+          descricao?: string
+          fatura_id?: string | null
+          historico_status?: Json | null
+          id?: string
+          investidor_id?: string | null
+          observacao?: string | null
+          pagamento_usina_id?: string | null
+          session_id?: string | null
+          status?: Database["public"]["Enums"]["status_lancamento"]
+          tipo?: Database["public"]["Enums"]["tipo_lancamento"]
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lancamentos_financeiros_cooperado_id_fkey"
+            columns: ["cooperado_id"]
+            isOneToOne: false
+            referencedRelation: "cooperados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_financeiros_cooperado_id_fkey"
+            columns: ["cooperado_id"]
+            isOneToOne: false
+            referencedRelation: "cooperados_ativos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_financeiros_fatura_id_fkey"
+            columns: ["fatura_id"]
+            isOneToOne: false
+            referencedRelation: "faturas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_financeiros_investidor_id_fkey"
+            columns: ["investidor_id"]
+            isOneToOne: false
+            referencedRelation: "investidores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_financeiros_pagamento_usina_id_fkey"
+            columns: ["pagamento_usina_id"]
+            isOneToOne: false
+            referencedRelation: "pagamentos_usina"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pagamentos_usina: {
         Row: {
           ano: number
@@ -712,6 +817,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       usinas: {
         Row: {
           created_at: string
@@ -882,6 +1008,16 @@ export type Database = {
         }
         Relationships: []
       }
+      metricas_financeiras: {
+        Row: {
+          mes: string | null
+          quantidade: number | null
+          status: Database["public"]["Enums"]["status_lancamento"] | null
+          tipo: Database["public"]["Enums"]["tipo_lancamento"] | null
+          valor_total: number | null
+        }
+        Relationships: []
+      }
       usinas_ativas: {
         Row: {
           created_at: string | null
@@ -1012,6 +1148,8 @@ export type Database = {
         | "atrasada"
         | "paga"
         | "finalizada"
+      status_lancamento: "pendente" | "pago" | "atrasado" | "cancelado"
+      tipo_lancamento: "receita" | "despesa"
     }
     CompositeTypes: {
       [_ in never]: never

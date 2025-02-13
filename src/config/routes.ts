@@ -8,6 +8,7 @@ import {
   Wallet,
   User,
   Settings,
+  DollarSign,
   LucideIcon,
 } from "lucide-react";
 
@@ -84,6 +85,18 @@ export const routes: RouteSection[] = [
   {
     label: "Financeiro",
     routes: [
+      {
+        label: "Contas a Receber",
+        icon: DollarSign,
+        href: "/financeiro/contas-receber",
+        color: "text-green-600",
+      },
+      {
+        label: "Contas a Pagar",
+        icon: Wallet,
+        href: "/financeiro/contas-pagar",
+        color: "text-red-600",
+      },
       {
         label: "Faturas",
         icon: FileText,
