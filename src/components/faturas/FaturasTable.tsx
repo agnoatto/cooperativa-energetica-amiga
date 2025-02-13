@@ -45,6 +45,21 @@ export function FaturasTable({
     }
   };
 
+  const getStatusColor = (status: FaturaStatus) => {
+    switch (status) {
+      case 'pendente':
+      case 'enviada':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'paga':
+      case 'finalizada':
+        return 'bg-green-100 text-green-800';
+      case 'atrasada':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   if (isLoading) {
     return <FaturasLoadingState />;
   }
@@ -70,13 +85,7 @@ export function FaturasTable({
                   {fatura.unidade_beneficiaria.cooperado.nome}
                 </p>
               </div>
-              <div className={`px-2 py-1 rounded-full text-xs ${
-                fatura.status === 'pendente'
-                  ? 'bg-yellow-100 text-yellow-800'
-                  : fatura.status === 'pago'
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-red-100 text-red-800'
-              }`}>
+              <div className={`px-2 py-1 rounded-full text-xs ${getStatusColor(fatura.status)}`}>
                 {fatura.status.charAt(0).toUpperCase() + fatura.status.slice(1)}
               </div>
             </div>
