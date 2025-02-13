@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Trash, Plus } from "lucide-react";
+import { Edit, Trash } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface UnidadesTableProps {
@@ -66,7 +66,7 @@ export function UnidadesTable({
               )}
 
               <div className="mt-2 pt-2 border-t border-gray-100">
-                <p className="text-gray-600 text-sm">{unidade.endereco}</p>
+                <p className="text-gray-600 text-sm line-clamp-2">{unidade.endereco}</p>
               </div>
             </div>
 
@@ -75,7 +75,7 @@ export function UnidadesTable({
                 variant="outline" 
                 size="sm"
                 onClick={() => onEdit(unidade.cooperado_id, unidade.id)}
-                className="h-8 w-8 p-0"
+                className="h-10 w-10 p-0"
               >
                 <Edit className="h-4 w-4" />
               </Button>
@@ -83,7 +83,7 @@ export function UnidadesTable({
                 variant="outline" 
                 size="sm"
                 onClick={() => onDelete(unidade.id)}
-                className="h-8 w-8 p-0"
+                className="h-10 w-10 p-0"
               >
                 <Trash className="h-4 w-4" />
               </Button>
@@ -97,8 +97,8 @@ export function UnidadesTable({
   return (
     <div className="rounded-md border border-gray-200 overflow-hidden">
       <div className="overflow-x-auto">
-        <Table className="w-full border-collapse [&_tr:hover]:bg-gray-50">
-          <TableHeader className="[&_tr]:h-8 [&_th]:p-2 [&_th]:border-x [&_th]:border-gray-200 [&_tr]:border-b [&_tr]:border-gray-200">
+        <Table>
+          <TableHeader>
             <TableRow>
               <TableHead>Número UC</TableHead>
               <TableHead>Apelido</TableHead>
@@ -109,11 +109,11 @@ export function UnidadesTable({
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody className="[&_tr]:h-8 [&_td]:p-2 [&_td]:border-x [&_td]:border-gray-200 [&_tr]:border-b [&_tr]:border-gray-200">
+          <TableBody>
             {unidades.map((unidade) => (
               <TableRow key={unidade.id}>
                 <TableCell className="whitespace-nowrap">{unidade.numero_uc}</TableCell>
-                <TableCell className="whitespace-nowrap">{unidade.apelido}</TableCell>
+                <TableCell className="whitespace-nowrap">{unidade.apelido || '-'}</TableCell>
                 <TableCell className="whitespace-nowrap">{unidade.endereco}</TableCell>
                 <TableCell className="whitespace-nowrap">{unidade.percentual_desconto}%</TableCell>
                 <TableCell className="whitespace-nowrap">
@@ -127,17 +127,17 @@ export function UnidadesTable({
                     variant="outline" 
                     size="icon"
                     onClick={() => onEdit(unidade.cooperado_id, unidade.id)}
-                    className="h-6 w-6"
+                    className="h-8 w-8"
                   >
-                    <Edit className="h-3 w-3" />
+                    <Edit className="h-4 w-4" />
                   </Button>
                   <Button 
                     variant="outline" 
                     size="icon"
                     onClick={() => onDelete(unidade.id)}
-                    className="h-6 w-6"
+                    className="h-8 w-8"
                   >
-                    <Trash className="h-3 w-3" />
+                    <Trash className="h-4 w-4" />
                   </Button>
                 </TableCell>
               </TableRow>

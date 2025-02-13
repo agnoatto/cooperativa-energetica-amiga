@@ -69,7 +69,7 @@ const UnidadesBeneficiarias = () => {
           </h1>
           <Button 
             variant="link" 
-            className="px-0 -ml-3 sm:ml-0"
+            className="px-0 -ml-3 sm:ml-0 text-sm sm:text-base"
             onClick={() => navigate('/cooperados')}
           >
             ← Voltar para Cooperados
