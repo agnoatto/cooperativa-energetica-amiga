@@ -1,12 +1,12 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { LancamentoFinanceiro, TipoLancamento } from "@/types/financeiro";
+import { LancamentoFinanceiro, TipoLancamento, StatusLancamento } from "@/types/financeiro";
 import { startOfDay, endOfDay, parseISO } from "date-fns";
 
 interface UseLancamentosFinanceirosOptions {
   tipo: TipoLancamento;
-  status?: string;
+  status?: StatusLancamento | 'todos';
   dataInicio?: string;
   dataFim?: string;
   busca?: string;
@@ -64,7 +64,15 @@ export function useLancamentosFinanceiros({
         throw error;
       }
 
-      return data as LancamentoFinanceiro[];
+      // Garantir que o historico_status seja um array de HistoricoStatus
+      return (data || []).map(item => ({
+        ...item,
+        historico_status: (item.historico_status as any[] || []).map(hist => ({
+          data: hist.data,
+          status_anterior: hist.status_anterior,
+          novo_status: hist.novo_status
+        }))
+      })) as LancamentoFinanceiro[];
     },
   });
 }
