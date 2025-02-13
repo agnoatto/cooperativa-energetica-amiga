@@ -118,11 +118,12 @@ export function InvestidorForm({
           title: "Investidor atualizado com sucesso!",
         });
       } else {
-        const { error } = await supabase.from("investidores").insert({
-          ...submitData,
-          status: "active",
-          session_id: crypto.randomUUID(),
-        });
+        const { error } = await supabase
+          .from("investidores")
+          .insert({
+            ...submitData,
+            session_id: crypto.randomUUID(),
+          });
         if (error) throw error;
         toast({
           title: "Investidor criado com sucesso!",

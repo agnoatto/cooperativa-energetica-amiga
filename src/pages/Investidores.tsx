@@ -17,13 +17,14 @@ const Investidores = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: investidores, refetch } = useQuery({
-    queryKey: ["investidores"],
+    queryKey: ["investidores", searchTerm],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("investidores")
         .select("*")
         .is("deleted_at", null)
-        .ilike("nome_investidor", `%${searchTerm}%`);
+        .ilike("nome_investidor", `%${searchTerm}%`)
+        .order("nome_investidor");
 
       if (error) throw error;
       return data;
@@ -36,16 +37,22 @@ const Investidores = () => {
   };
 
   const handleDelete = async (investidorId: string) => {
-    const { error } = await supabase
-      .from("investidores")
-      .update({ deleted_at: new Date().toISOString() })
-      .eq("id", investidorId);
+    try {
+      const { error } = await supabase
+        .from("investidores")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", investidorId);
 
-    if (error) {
-      throw error;
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Investidor excluído com sucesso!");
+      await refetch();
+    } catch (error) {
+      console.error("Erro ao excluir investidor:", error);
+      toast.error("Erro ao excluir investidor");
     }
-
-    await refetch();
   };
 
   const handleFormClose = (open: boolean) => {
@@ -93,6 +100,6 @@ const Investidores = () => {
       />
     </div>
   );
-}
+};
 
 export default Investidores;
