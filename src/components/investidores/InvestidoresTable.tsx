@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Investidor {
   id: string;
@@ -46,6 +47,7 @@ export function InvestidoresTable({
     null
   );
   const [isDeleting, setIsDeleting] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleDelete = async () => {
     if (!investidorToDelete) return;
@@ -62,54 +64,66 @@ export function InvestidoresTable({
     }
   };
 
-  // Componente para visualização em dispositivos móveis
-  const MobileCard = ({ investidor }: { investidor: Investidor }) => (
-    <div className="bg-white p-4 rounded-lg border shadow-sm mb-4">
-      <div className="flex justify-between items-start mb-2">
-        <div className="font-medium">{investidor.nome_investidor}</div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => onEdit(investidor.id)}
-            className="h-8 w-8"
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setInvestidorToDelete(investidor)}
-            className="h-8 w-8"
-          >
-            <Trash className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      <div className="space-y-1 text-sm text-gray-500">
-        <p>CPF/CNPJ: {formatarDocumento(investidor.documento)}</p>
-        <p>Telefone: {investidor.telefone ? formatarTelefone(investidor.telefone) : "-"}</p>
-        <p>Email: {investidor.email || "-"}</p>
-      </div>
-    </div>
-  );
-
-  return (
-    <>
-      {/* Versão Mobile */}
-      <div className="md:hidden">
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
         {investidores.map((investidor) => (
-          <MobileCard key={investidor.id} investidor={investidor} />
+          <div
+            key={investidor.id}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+          >
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <h3 className="font-medium text-gray-900">{investidor.nome_investidor}</h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  {formatarDocumento(investidor.documento)}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onEdit(investidor.id)}
+                  className="h-10 w-10 p-0"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setInvestidorToDelete(investidor)}
+                  className="h-10 w-10 p-0"
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-sm">
+              <div className="grid grid-cols-2 gap-1">
+                <span className="text-gray-500">Telefone:</span>
+                <span>{investidor.telefone ? formatarTelefone(investidor.telefone) : "-"}</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1">
+                <span className="text-gray-500">Email:</span>
+                <span className="truncate">{investidor.email || "-"}</span>
+              </div>
+            </div>
+          </div>
         ))}
         {investidores.length === 0 && (
-          <div className="text-center py-6 text-gray-500">
-            Nenhum investidor encontrado
+          <div className="text-center py-8 px-4">
+            <p className="text-gray-500">Nenhum investidor encontrado</p>
           </div>
         )}
       </div>
+    );
+  }
 
-      {/* Versão Desktop */}
-      <div className="hidden md:block rounded-md border border-gray-200 overflow-hidden">
+  return (
+    <>
+      <div className="rounded-md border border-gray-200 overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
