@@ -3,15 +3,20 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { UnidadeUsina } from "../types";
 
-export function useUnidadesUsinaQuery() {
+export function useUnidadesUsinaQuery(busca: string = "") {
   return useQuery({
-    queryKey: ["unidades_usina"],
+    queryKey: ["unidades_usina", busca],
     queryFn: async () => {
-      // Get all unidades_usina records
-      const { data: unidadesData, error: unidadesError } = await supabase
+      // Get all unidades_usina records with search filter
+      let query = supabase
         .from("unidades_usina")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("*");
+
+      if (busca) {
+        query = query.or(`numero_uc.ilike.%${busca}%,logradouro.ilike.%${busca}%,bairro.ilike.%${busca}%,cidade.ilike.%${busca}%`);
+      }
+
+      const { data: unidadesData, error: unidadesError } = await query.order("created_at", { ascending: false });
 
       if (unidadesError) throw unidadesError;
 

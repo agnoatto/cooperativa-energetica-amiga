@@ -1,30 +1,32 @@
 
 import { Button } from "@/components/ui/button";
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { InvestidorForm } from "@/components/investidores/InvestidorForm";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
 import { InvestidoresTable } from "@/components/investidores/InvestidoresTable";
 import { toast } from "sonner";
+import { FilterBar } from "@/components/shared/FilterBar";
 
 const Investidores = () => {
-  const [selectedInvestidorId, setSelectedInvestidorId] = useState<
-    string | undefined
-  >();
+  const [selectedInvestidorId, setSelectedInvestidorId] = useState<string | undefined>();
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [busca, setBusca] = useState("");
 
   const { data: investidores, refetch } = useQuery({
-    queryKey: ["investidores", searchTerm],
+    queryKey: ["investidores", busca],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("investidores")
         .select("*")
-        .is("deleted_at", null)
-        .ilike("nome_investidor", `%${searchTerm}%`)
-        .order("nome_investidor");
+        .is("deleted_at", null);
+
+      if (busca) {
+        query = query.or(`nome_investidor.ilike.%${busca}%,documento.ilike.%${busca}%,email.ilike.%${busca}%`);
+      }
+
+      const { data, error } = await query.order("nome_investidor");
 
       if (error) throw error;
       return data;
@@ -62,6 +64,10 @@ const Investidores = () => {
     }
   };
 
+  const handleLimparFiltros = () => {
+    setBusca("");
+  };
+
   return (
     <div className="space-y-6 p-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
@@ -77,15 +83,12 @@ const Investidores = () => {
         </Button>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Pesquisar investidores..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-8 w-full"
-        />
-      </div>
+      <FilterBar
+        busca={busca}
+        onBuscaChange={setBusca}
+        onLimparFiltros={handleLimparFiltros}
+        placeholder="Buscar por nome, documento ou email..."
+      />
 
       <div className="overflow-x-auto -mx-4 md:mx-0">
         <div className="min-w-full inline-block align-middle">

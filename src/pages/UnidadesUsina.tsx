@@ -17,19 +17,25 @@ import {
 import { useUnidadesUsinaQuery } from "@/components/unidades-usina/hooks/useUnidadesUsinaQuery";
 import { useDeleteUnidadeUsina } from "@/components/unidades-usina/hooks/useDeleteUnidadeUsina";
 import { UnidadesUsinaTable } from "@/components/unidades-usina/UnidadesUsinaTable";
+import { FilterBar } from "@/components/shared/FilterBar";
 
 const UnidadesUsina = () => {
   const [selectedUnidadeId, setSelectedUnidadeId] = useState<string | undefined>();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [unidadeToDelete, setUnidadeToDelete] = useState<string | null>(null);
+  const [busca, setBusca] = useState("");
 
-  const { data: unidades, refetch, isLoading, error } = useUnidadesUsinaQuery();
+  const { data: unidades, refetch, isLoading, error } = useUnidadesUsinaQuery(busca);
   const { handleDelete } = useDeleteUnidadeUsina(refetch);
 
   const handleEdit = (unidadeId: string) => {
     setSelectedUnidadeId(unidadeId);
     setIsFormOpen(true);
+  };
+
+  const handleLimparFiltros = () => {
+    setBusca("");
   };
 
   if (error) {
@@ -55,6 +61,13 @@ const UnidadesUsina = () => {
           <Plus className="mr-2 h-4 w-4" /> Nova Unidade
         </Button>
       </div>
+
+      <FilterBar
+        busca={busca}
+        onBuscaChange={setBusca}
+        onLimparFiltros={handleLimparFiltros}
+        placeholder="Buscar por UC ou endereço..."
+      />
 
       <UnidadesUsinaTable
         unidades={unidades}

@@ -8,24 +8,32 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { FilterBar } from "@/components/shared/FilterBar";
 
 const UnidadesBeneficiarias = () => {
   const [showUnidadeForm, setShowUnidadeForm] = useState(false);
   const [selectedCooperadoId, setSelectedCooperadoId] = useState<string | null>(null);
   const [selectedUnidadeId, setSelectedUnidadeId] = useState<string | null>(null);
   const [unidades, setUnidades] = useState<any[]>([]);
+  const [busca, setBusca] = useState("");
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
   const fetchData = async () => {
     try {
-      const { data: unidadesData, error: unidadesError } = await supabase
+      let query = supabase
         .from('unidades_beneficiarias')
         .select(`
           *,
           cooperado:cooperados(nome)
         `)
         .is('data_saida', null);
+
+      if (busca) {
+        query = query.or(`numero_uc.ilike.%${busca}%,endereco.ilike.%${busca}%,apelido.ilike.%${busca}%`);
+      }
+
+      const { data: unidadesData, error: unidadesError } = await query;
 
       if (unidadesError) throw unidadesError;
       setUnidades(unidadesData);
@@ -36,7 +44,11 @@ const UnidadesBeneficiarias = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [busca]);
+
+  const handleLimparFiltros = () => {
+    setBusca("");
+  };
 
   const handleDeleteUnidade = async (unidadeId: string) => {
     try {
@@ -87,6 +99,13 @@ const UnidadesBeneficiarias = () => {
           <Plus className="mr-2 h-4 w-4" /> Nova Unidade
         </Button>
       </div>
+
+      <FilterBar
+        busca={busca}
+        onBuscaChange={setBusca}
+        onLimparFiltros={handleLimparFiltros}
+        placeholder="Buscar por UC, endereço ou apelido..."
+      />
 
       <UnidadeBeneficiariaForm
         open={showUnidadeForm}
