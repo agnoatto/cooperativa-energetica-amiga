@@ -15,6 +15,8 @@ import UnidadesUsina from "./pages/UnidadesUsina";
 import Usinas from "./pages/Usinas";
 import Investidores from "./pages/Investidores";
 import Configuracoes from "./pages/Configuracoes";
+import ContasPagar from "./pages/ContasPagar";
+import ContasReceber from "./pages/ContasReceber";
 import { Session } from "@supabase/supabase-js";
 import { supabase } from "./integrations/supabase/client";
 
@@ -150,6 +152,23 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Pagamentos />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Rotas do Financeiro */}
+              <Route
+                path="/financeiro/contas-pagar"
+                element={
+                  <ProtectedRoute>
+                    <ContasPagar />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/financeiro/contas-receber"
+                element={
+                  <ProtectedRoute>
+                    <ContasReceber />
                   </ProtectedRoute>
                 }
               />
