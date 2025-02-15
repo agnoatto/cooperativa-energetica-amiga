@@ -58,9 +58,13 @@ export function useLancamentosFinanceiros({
         query = query.ilike('descricao', `%${busca}%`);
       }
 
-      const { data, error } = await query.order('data_vencimento', { ascending: true });
+      // Ordenar por data de vencimento
+      query = query.order('data_vencimento', { ascending: true });
+
+      const { data, error } = await query;
 
       if (error) {
+        console.error('Erro ao buscar lançamentos:', error);
         throw error;
       }
 
