@@ -22,6 +22,14 @@ export function useLancamentosFinanceiros({
   return useQuery({
     queryKey: ['lancamentos', tipo, status, dataInicio, dataFim, busca],
     queryFn: async () => {
+      console.log('Buscando lançamentos com parâmetros:', {
+        tipo,
+        status,
+        dataInicio,
+        dataFim,
+        busca
+      });
+
       let query = supabase
         .from('lancamentos_financeiros')
         .select(`
@@ -42,24 +50,33 @@ export function useLancamentosFinanceiros({
         .eq('tipo', tipo)
         .is('deleted_at', null);
 
+      console.log('Query base construída');
+
       if (status && status !== 'todos') {
         query = query.eq('status', status);
+        console.log('Filtro de status aplicado:', status);
       }
 
       if (dataInicio) {
-        query = query.gte('data_vencimento', startOfDay(parseISO(dataInicio)).toISOString());
+        const dataInicioISO = startOfDay(parseISO(dataInicio)).toISOString();
+        query = query.gte('data_vencimento', dataInicioISO);
+        console.log('Filtro de data início aplicado:', dataInicioISO);
       }
 
       if (dataFim) {
-        query = query.lte('data_vencimento', endOfDay(parseISO(dataFim)).toISOString());
+        const dataFimISO = endOfDay(parseISO(dataFim)).toISOString();
+        query = query.lte('data_vencimento', dataFimISO);
+        console.log('Filtro de data fim aplicado:', dataFimISO);
       }
 
       if (busca) {
         query = query.ilike('descricao', `%${busca}%`);
+        console.log('Filtro de busca aplicado:', busca);
       }
 
       // Ordenar por data de vencimento
       query = query.order('data_vencimento', { ascending: true });
+      console.log('Ordenação aplicada');
 
       const { data, error } = await query;
 
@@ -68,8 +85,10 @@ export function useLancamentosFinanceiros({
         throw error;
       }
 
+      console.log('Dados retornados:', data);
+
       // Garantir que o historico_status seja um array de HistoricoStatus
-      return (data || []).map(item => ({
+      const lancamentos = (data || []).map(item => ({
         ...item,
         historico_status: (item.historico_status as any[] || []).map(hist => ({
           data: hist.data,
@@ -77,6 +96,9 @@ export function useLancamentosFinanceiros({
           novo_status: hist.novo_status
         }))
       })) as unknown as LancamentoFinanceiro[];
+
+      console.log('Lançamentos processados:', lancamentos.length);
+      return lancamentos;
     },
   });
 }

@@ -391,6 +391,41 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_lancamentos_cooperado"
+            columns: ["cooperado_id"]
+            isOneToOne: false
+            referencedRelation: "cooperados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_lancamentos_cooperado"
+            columns: ["cooperado_id"]
+            isOneToOne: false
+            referencedRelation: "cooperados_ativos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_lancamentos_fatura"
+            columns: ["fatura_id"]
+            isOneToOne: false
+            referencedRelation: "faturas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_lancamentos_investidor"
+            columns: ["investidor_id"]
+            isOneToOne: false
+            referencedRelation: "investidores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_lancamentos_pagamento_usina"
+            columns: ["pagamento_usina_id"]
+            isOneToOne: false
+            referencedRelation: "pagamentos_usina"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "lancamentos_financeiros_cooperado_id_fkey"
             columns: ["cooperado_id"]
             isOneToOne: false
