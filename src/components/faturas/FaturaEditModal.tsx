@@ -15,14 +15,15 @@ import { CurrencyInput } from "./CurrencyInput";
 import { FaturaFileUpload } from "./FaturaFileUpload";
 import type { FaturaEditModalProps } from "./types";
 import { parseValue } from "./utils/calculateValues";
+import { formatarDocumento } from "@/utils/formatters";
 
 export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEditModalProps) {
-  const [consumo, setConsumo] = useState(fatura.consumo_kwh || 0);
+  const [consumo, setConsumo] = useState(fatura.consumo_kwh?.toFixed(2) || "0.00");
   const [totalFatura, setTotalFatura] = useState(fatura.total_fatura.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
   const [faturaConcessionaria, setFaturaConcessionaria] = useState(fatura.fatura_concessionaria.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
   const [iluminacaoPublica, setIluminacaoPublica] = useState(fatura.iluminacao_publica.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
   const [outrosValores, setOutrosValores] = useState(fatura.outros_valores.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-  const [saldoEnergiaKwh, setSaldoEnergiaKwh] = useState(fatura.saldo_energia_kwh || 0);
+  const [saldoEnergiaKwh, setSaldoEnergiaKwh] = useState(fatura.saldo_energia_kwh?.toFixed(2) || "0.00");
   const [observacao, setObservacao] = useState(fatura.observacao || '');
   const [dataVencimento, setDataVencimento] = useState(fatura.data_vencimento);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,12 +35,12 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     try {
       const result = onSuccess({
         id: fatura.id,
-        consumo_kwh: consumo,
+        consumo_kwh: Number(consumo),
         total_fatura: parseValue(totalFatura),
         fatura_concessionaria: parseValue(faturaConcessionaria),
         iluminacao_publica: parseValue(iluminacaoPublica),
         outros_valores: parseValue(outrosValores),
-        saldo_energia_kwh: saldoEnergiaKwh,
+        saldo_energia_kwh: Number(saldoEnergiaKwh),
         observacao: observacao || null,
         data_vencimento: dataVencimento,
         percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
@@ -61,6 +62,28 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
         <DialogHeader>
           <DialogTitle>Editar Fatura</DialogTitle>
         </DialogHeader>
+
+        {/* Informações do Cooperado */}
+        <div className="bg-gray-50 p-4 rounded-lg mb-4">
+          <div className="flex flex-col space-y-1">
+            <span className="font-medium text-gray-900">
+              {fatura.unidade_beneficiaria.cooperado.nome}
+            </span>
+            <div className="text-sm text-gray-500 space-x-2">
+              <span>{formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)}</span>
+              <span>•</span>
+              <span>
+                UC: {fatura.unidade_beneficiaria.numero_uc}
+                {fatura.unidade_beneficiaria.apelido && (
+                  <span className="text-gray-400 ml-1">
+                    ({fatura.unidade_beneficiaria.apelido})
+                  </span>
+                )}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid w-full items-center gap-2">
             <Label htmlFor="dataVencimento">Data de Vencimento</Label>
@@ -78,7 +101,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               type="number"
               id="consumo"
               value={consumo}
-              onChange={(e) => setConsumo(Number(e.target.value))}
+              onChange={(e) => setConsumo(e.target.value)}
               step="0.01"
               min="0"
               required
@@ -91,6 +114,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               value={totalFatura}
               onChange={setTotalFatura}
               required
+              decimalScale={2}
             />
           </div>
           <div className="grid w-full items-center gap-2">
@@ -100,6 +124,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               value={faturaConcessionaria}
               onChange={setFaturaConcessionaria}
               required
+              decimalScale={2}
             />
           </div>
           <div className="grid w-full items-center gap-2">
@@ -109,6 +134,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               value={iluminacaoPublica}
               onChange={setIluminacaoPublica}
               required
+              decimalScale={2}
             />
           </div>
           <div className="grid w-full items-center gap-2">
@@ -118,6 +144,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               value={outrosValores}
               onChange={setOutrosValores}
               required
+              decimalScale={2}
             />
           </div>
           <div className="grid w-full items-center gap-2">
@@ -126,7 +153,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
               type="number"
               id="saldoEnergiaKwh"
               value={saldoEnergiaKwh}
-              onChange={(e) => setSaldoEnergiaKwh(Number(e.target.value))}
+              onChange={(e) => setSaldoEnergiaKwh(e.target.value)}
               step="0.01"
               min="0"
               required
@@ -154,12 +181,12 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
                 // Recarregar dados da fatura após upload/remoção do arquivo
                 onSuccess({
                   id: fatura.id,
-                  consumo_kwh: consumo,
+                  consumo_kwh: Number(consumo),
                   total_fatura: parseValue(totalFatura),
                   fatura_concessionaria: parseValue(faturaConcessionaria),
                   iluminacao_publica: parseValue(iluminacaoPublica),
                   outros_valores: parseValue(outrosValores),
-                  saldo_energia_kwh: saldoEnergiaKwh,
+                  saldo_energia_kwh: Number(saldoEnergiaKwh),
                   observacao: observacao || null,
                   data_vencimento: dataVencimento,
                   percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
