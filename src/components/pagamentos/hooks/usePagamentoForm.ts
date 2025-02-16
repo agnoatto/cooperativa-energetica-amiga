@@ -13,6 +13,8 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
     data_emissao: null,
     tusd_fio_b: 0,
     valor_concessionaria: 0,
+    observacao: '',
+    observacao_pagamento: '',
   });
 
   // Initialize form when pagamento changes
@@ -26,6 +28,8 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
         data_emissao: pagamento.data_emissao,
         tusd_fio_b: pagamento.tusd_fio_b || 0,
         valor_concessionaria: pagamento.valor_concessionaria || 0,
+        observacao: pagamento.observacao || '',
+        observacao_pagamento: pagamento.observacao_pagamento || '',
       });
     }
   }, [pagamento]);
@@ -58,6 +62,8 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
           data_emissao: form.data_emissao,
           tusd_fio_b: Number(form.tusd_fio_b.toFixed(4)),
           valor_concessionaria: Number(form.valor_concessionaria.toFixed(4)),
+          observacao: form.observacao || null,
+          observacao_pagamento: form.observacao_pagamento || null,
         })
         .eq('id', pagamento.id);
 

@@ -41,8 +41,18 @@ const Pagamentos = () => {
           data_vencimento,
           data_pagamento,
           data_emissao,
+          data_confirmacao,
+          data_envio,
           mes,
           ano,
+          arquivo_comprovante_nome,
+          arquivo_comprovante_path,
+          arquivo_comprovante_tipo,
+          arquivo_comprovante_tamanho,
+          observacao,
+          observacao_pagamento,
+          historico_status,
+          send_method,
           usina:usinas!inner(
             id,
             valor_kwh,
@@ -115,7 +125,10 @@ const Pagamentos = () => {
               status: "pendente",
               data_vencimento: dataVencimento.toISOString().split('T')[0],
               data_emissao: null,
-              data_pagamento: null
+              data_pagamento: null,
+              historico_status: [],
+              observacao: null,
+              observacao_pagamento: null
             });
 
           if (insertError) throw insertError;

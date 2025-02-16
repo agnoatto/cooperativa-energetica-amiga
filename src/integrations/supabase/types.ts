@@ -465,15 +465,25 @@ export type Database = {
       pagamentos_usina: {
         Row: {
           ano: number
+          arquivo_comprovante_nome: string | null
+          arquivo_comprovante_path: string | null
+          arquivo_comprovante_tamanho: number | null
+          arquivo_comprovante_tipo: string | null
           conta_energia: number
           created_at: string
+          data_confirmacao: string | null
           data_emissao: string | null
+          data_envio: string | null
           data_pagamento: string | null
           data_vencimento: string
           geracao_kwh: number
+          historico_status: Json | null
           id: string
           mes: number
-          status: string
+          observacao: string | null
+          observacao_pagamento: string | null
+          send_method: string[] | null
+          status: Database["public"]["Enums"]["pagamento_status"]
           tusd_fio_b: number | null
           updated_at: string
           usina_id: string | null
@@ -483,15 +493,25 @@ export type Database = {
         }
         Insert: {
           ano: number
+          arquivo_comprovante_nome?: string | null
+          arquivo_comprovante_path?: string | null
+          arquivo_comprovante_tamanho?: number | null
+          arquivo_comprovante_tipo?: string | null
           conta_energia: number
           created_at?: string
+          data_confirmacao?: string | null
           data_emissao?: string | null
+          data_envio?: string | null
           data_pagamento?: string | null
           data_vencimento: string
           geracao_kwh: number
+          historico_status?: Json | null
           id?: string
           mes: number
-          status?: string
+          observacao?: string | null
+          observacao_pagamento?: string | null
+          send_method?: string[] | null
+          status?: Database["public"]["Enums"]["pagamento_status"]
           tusd_fio_b?: number | null
           updated_at?: string
           usina_id?: string | null
@@ -501,15 +521,25 @@ export type Database = {
         }
         Update: {
           ano?: number
+          arquivo_comprovante_nome?: string | null
+          arquivo_comprovante_path?: string | null
+          arquivo_comprovante_tamanho?: number | null
+          arquivo_comprovante_tipo?: string | null
           conta_energia?: number
           created_at?: string
+          data_confirmacao?: string | null
           data_emissao?: string | null
+          data_envio?: string | null
           data_pagamento?: string | null
           data_vencimento?: string
           geracao_kwh?: number
+          historico_status?: Json | null
           id?: string
           mes?: number
-          status?: string
+          observacao?: string | null
+          observacao_pagamento?: string | null
+          send_method?: string[] | null
+          status?: Database["public"]["Enums"]["pagamento_status"]
           tusd_fio_b?: number | null
           updated_at?: string
           usina_id?: string | null
@@ -1183,6 +1213,13 @@ export type Database = {
         | "atrasada"
         | "paga"
         | "finalizada"
+      pagamento_status:
+        | "pendente"
+        | "enviado"
+        | "confirmado"
+        | "atrasado"
+        | "pago"
+        | "cancelado"
       status_lancamento: "pendente" | "pago" | "atrasado" | "cancelado"
       tipo_lancamento: "receita" | "despesa"
     }
