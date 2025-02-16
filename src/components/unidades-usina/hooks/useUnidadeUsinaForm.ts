@@ -23,6 +23,7 @@ export function useUnidadeUsinaForm({
     resolver: zodResolver(unidadeUsinaFormSchema),
     defaultValues: {
       numero_uc: "",
+      apelido: "",
       logradouro: "",
       numero: "",
       complemento: "",
@@ -70,6 +71,7 @@ export function useUnidadeUsinaForm({
 
         form.reset({
           numero_uc: data.numero_uc,
+          apelido: data.apelido || "",
           logradouro: data.logradouro || "",
           numero: data.numero || "",
           complemento: data.complemento || "",
@@ -120,6 +122,7 @@ export function useUnidadeUsinaForm({
       // Prepare the data
       const submitData = {
         numero_uc: data.numero_uc,
+        apelido: data.apelido,
         logradouro: data.logradouro,
         numero: data.numero,
         complemento: data.complemento,

@@ -289,6 +289,7 @@ export type Database = {
       }
       historico_titulares_usina: {
         Row: {
+          apelido: string | null
           data_alteracao: string
           id: string
           titular_id: string
@@ -296,6 +297,7 @@ export type Database = {
           unidade_usina_id: string
         }
         Insert: {
+          apelido?: string | null
           data_alteracao?: string
           id?: string
           titular_id: string
@@ -303,6 +305,7 @@ export type Database = {
           unidade_usina_id: string
         }
         Update: {
+          apelido?: string | null
           data_alteracao?: string
           id?: string
           titular_id?: string
@@ -887,6 +890,7 @@ export type Database = {
       }
       unidades_usina: {
         Row: {
+          apelido: string | null
           bairro: string | null
           cep: string | null
           cidade: string | null
@@ -903,6 +907,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          apelido?: string | null
           bairro?: string | null
           cep?: string | null
           cidade?: string | null
@@ -919,6 +924,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          apelido?: string | null
           bairro?: string | null
           cep?: string | null
           cidade?: string | null

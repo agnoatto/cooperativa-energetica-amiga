@@ -5,6 +5,7 @@ import { unidadeUsinaFormSchema } from "./schema";
 export type UnidadeUsina = {
   id: string;
   numero_uc: string;
+  apelido: string | null;
   logradouro: string | null;
   numero: string | null;
   complemento: string | null;

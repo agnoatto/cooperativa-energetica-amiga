@@ -3,6 +3,7 @@ import { z } from "zod";
 
 export const unidadeUsinaFormSchema = z.object({
   numero_uc: z.string().min(1, "Número UC é obrigatório"),
+  apelido: z.string().optional(),
   logradouro: z.string().min(1, "Logradouro é obrigatório"),
   numero: z.string().min(1, "Número é obrigatório"),
   complemento: z.string().optional(),
