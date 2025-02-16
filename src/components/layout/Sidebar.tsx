@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { 
   Home,
@@ -14,8 +14,13 @@ import {
   User,
   Wallet,
   ArrowDownToLine,
-  ArrowUpFromLine
+  ArrowUpFromLine,
+  LogOut
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface SidebarLinkProps {
   href: string;
@@ -87,6 +92,35 @@ const SidebarLink = ({ href, icon: Icon, children, isActive, subItems, isExpande
 export function Sidebar() {
   const [isExpanded, setIsExpanded] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      return profile;
+    }
+  });
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate('/auth');
+      toast.success('Logout realizado com sucesso');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      toast.error('Erro ao fazer logout');
+    }
+  };
 
   return (
     <aside
@@ -99,6 +133,25 @@ export function Sidebar() {
       onMouseLeave={() => setIsExpanded(false)}
     >
       <div className="flex flex-col h-full overflow-hidden">
+        {/* Perfil do usuário */}
+        <div className={cn(
+          "p-4 border-b flex items-center gap-3",
+          !isExpanded && "justify-center"
+        )}>
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={profile?.avatar_url} />
+            <AvatarFallback>
+              {profile?.nome?.charAt(0)?.toUpperCase() || 'U'}
+            </AvatarFallback>
+          </Avatar>
+          <span className={cn(
+            "text-sm font-medium truncate transition-all duration-200",
+            isExpanded ? "opacity-100" : "opacity-0"
+          )}>
+            {profile?.nome || 'Usuário'}
+          </span>
+        </div>
+
         <div className="flex-1 py-6">
           <nav className="space-y-1">
             <SidebarLink 
@@ -165,7 +218,6 @@ export function Sidebar() {
               Pagamentos
             </SidebarLink>
 
-            {/* Menu Financeiro com rota corrigida */}
             <SidebarLink 
               href="/financeiro/contas-receber" 
               icon={Wallet}
@@ -198,6 +250,25 @@ export function Sidebar() {
           >
             Configurações
           </SidebarLink>
+
+          {/* Botão de Logout */}
+          <button
+            onClick={handleLogout}
+            className={cn(
+              "w-full flex items-center py-2 text-sm font-medium rounded-md transition-colors",
+              "hover:bg-gray-100 dark:hover:bg-gray-800 text-red-600"
+            )}
+          >
+            <div className="min-w-[64px] flex justify-center">
+              <LogOut className="h-5 w-5 shrink-0" />
+            </div>
+            <span className={cn(
+              "truncate transition-all duration-200",
+              isExpanded ? "opacity-100" : "opacity-0"
+            )}>
+              Sair
+            </span>
+          </button>
         </div>
       </div>
     </aside>
