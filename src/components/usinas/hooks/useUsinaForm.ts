@@ -56,10 +56,22 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
         if (error) throw error;
         
         if (data) {
+          const tipoPix = data.dados_pagamento_tipo_chave_pix as UsinaFormData['dados_pagamento_tipo_chave_pix'];
+          
           form.reset({
-            ...data,
+            investidor_id: data.investidor_id,
+            unidade_usina_id: data.unidade_usina_id,
             valor_kwh: Number(data.valor_kwh),
             data_inicio: data.data_inicio ? new Date(data.data_inicio) : undefined,
+            dados_pagamento_nome: data.dados_pagamento_nome || "",
+            dados_pagamento_documento: data.dados_pagamento_documento || "",
+            dados_pagamento_banco: data.dados_pagamento_banco || "",
+            dados_pagamento_agencia: data.dados_pagamento_agencia || "",
+            dados_pagamento_conta: data.dados_pagamento_conta || "",
+            dados_pagamento_telefone: data.dados_pagamento_telefone || "",
+            dados_pagamento_email: data.dados_pagamento_email || "",
+            dados_pagamento_chave_pix: data.dados_pagamento_chave_pix || "",
+            dados_pagamento_tipo_chave_pix: tipoPix,
           });
         }
       } catch (error) {
