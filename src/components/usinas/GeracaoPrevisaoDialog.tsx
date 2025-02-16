@@ -65,27 +65,24 @@ export function GeracaoPrevisaoDialog({ usinaId }: GeracaoPrevisaoDialogProps) {
 
     setIsLoading(true);
     try {
-      // Garantindo que todos os campos sejam números
-      const previsaoData = {
-        ano: data.ano,
-        usina_id: usinaId,
-        janeiro: data.janeiro || 0,
-        fevereiro: data.fevereiro || 0,
-        marco: data.marco || 0,
-        abril: data.abril || 0,
-        maio: data.maio || 0,
-        junho: data.junho || 0,
-        julho: data.julho || 0,
-        agosto: data.agosto || 0,
-        setembro: data.setembro || 0,
-        outubro: data.outubro || 0,
-        novembro: data.novembro || 0,
-        dezembro: data.dezembro || 0,
-      } satisfies Parameters<typeof supabase.from<'geracao_prevista_usina'>>[0]['upsert'][0];
-
       const { error } = await supabase
         .from('geracao_prevista_usina')
-        .upsert(previsaoData);
+        .upsert({
+          ano: data.ano,
+          usina_id: usinaId,
+          janeiro: data.janeiro || 0,
+          fevereiro: data.fevereiro || 0,
+          marco: data.marco || 0,
+          abril: data.abril || 0,
+          maio: data.maio || 0,
+          junho: data.junho || 0,
+          julho: data.julho || 0,
+          agosto: data.agosto || 0,
+          setembro: data.setembro || 0,
+          outubro: data.outubro || 0,
+          novembro: data.novembro || 0,
+          dezembro: data.dezembro || 0,
+        });
 
       if (error) throw error;
 
