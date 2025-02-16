@@ -1,5 +1,4 @@
-
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { 
   Home,
@@ -15,81 +14,24 @@ import {
   Settings,
   LogOut
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { SidebarLink } from './SidebarLink';
 import { SidebarProfile } from './SidebarProfile';
-import { useState, useEffect } from 'react';
-import { Session } from '@supabase/supabase-js';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function Sidebar() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const [session, setSession] = useState<Session | null>(null);
-
-  // Monitora mudanças na sessão
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // Query do perfil só é executada quando há uma sessão válida
-  const { data: profile, isError } = useQuery({
-    queryKey: ['profile', session?.user?.id],
-    queryFn: async () => {
-      if (!session?.user?.id) return null;
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .maybeSingle();
-
-      if (error) {
-        // Se houver erro de autenticação, faz logout
-        if (error.code === 'PGRST301' || error.code === '401') {
-          await supabase.auth.signOut();
-          navigate('/auth');
-          return null;
-        }
-        throw error;
-      }
-
-      return data;
-    },
-    enabled: !!session?.user?.id, // Só executa quando há um usuário autenticado
-    retry: 1, // Limita o número de tentativas em caso de erro
-  });
+  const { profile, signOut } = useAuth();
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
-      navigate('/auth');
+      await signOut();
       toast.success('Logout realizado com sucesso');
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
       toast.error('Erro ao fazer logout');
     }
   };
-
-  // Se não houver sessão, não renderiza o sidebar
-  if (!session) return null;
-
-  // Se houver erro no carregamento do perfil, mostra mensagem
-  if (isError) {
-    toast.error('Erro ao carregar informações do usuário');
-    return null;
-  }
 
   return (
     <aside
