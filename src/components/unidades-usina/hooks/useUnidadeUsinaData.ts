@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export const useUnidadeUsinaData = (unidadeId?: string) => {
+export function useUnidadeUsinaData() {
   const { data: cooperativas } = useQuery({
     queryKey: ["cooperativas"],
     queryFn: async () => {
@@ -11,6 +11,7 @@ export const useUnidadeUsinaData = (unidadeId?: string) => {
         .select("id, nome, documento")
         .is("deleted_at", null)
         .order("nome");
+
       if (error) throw error;
       return data;
     },
@@ -24,6 +25,7 @@ export const useUnidadeUsinaData = (unidadeId?: string) => {
         .select("id, nome")
         .is("data_exclusao", null)
         .order("nome");
+
       if (error) throw error;
       return data;
     },
@@ -33,4 +35,4 @@ export const useUnidadeUsinaData = (unidadeId?: string) => {
     cooperativas,
     cooperados,
   };
-};
+}

@@ -13,7 +13,7 @@ export function useUnidadesUsinaQuery(busca: string = "") {
         .select("*");
 
       if (busca) {
-        query = query.or(`numero_uc.ilike.%${busca}%,logradouro.ilike.%${busca}%,bairro.ilike.%${busca}%,cidade.ilike.%${busca}%`);
+        query = query.or(`numero_uc.ilike.%${busca}%,apelido.ilike.%${busca}%,logradouro.ilike.%${busca}%,bairro.ilike.%${busca}%,cidade.ilike.%${busca}%`);
       }
 
       const { data: unidadesData, error: unidadesError } = await query.order("created_at", { ascending: false });
@@ -23,11 +23,13 @@ export function useUnidadesUsinaQuery(busca: string = "") {
       // Get cooperativas and cooperados data
       const { data: cooperativas } = await supabase
         .from("cooperativas")
-        .select("id, nome, documento");
+        .select("id, nome, documento")
+        .is("deleted_at", null);
 
       const { data: cooperados } = await supabase
         .from("cooperados")
-        .select("id, nome");
+        .select("id, nome")
+        .is("data_exclusao", null);
 
       // Create maps for quick lookups
       const cooperativasMap = new Map(
