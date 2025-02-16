@@ -99,12 +99,6 @@ export function useUnidadeUsinaForm({
         const { data: titular, error: titularError } = await titularQuery;
 
         if (titularError) throw titularError;
-        if (!titular) {
-          toast({
-            title: "Aviso",
-            description: "Titular não encontrado ou inativo",
-          });
-        }
 
         // Atualiza o formulário com os dados
         form.reset({
@@ -117,9 +111,17 @@ export function useUnidadeUsinaForm({
           cidade: unidade.cidade || "",
           uf: unidade.uf || "",
           cep: unidade.cep || "",
-          titular_id: titular ? unidade.titular_id : "",
+          titular_id: unidade.titular_id,
           titular_tipo: unidade.titular_tipo as "cooperado" | "cooperativa",
         });
+
+        // Se o titular não for encontrado ou estiver inativo, mostra um aviso mas mantém os dados
+        if (!titular) {
+          toast({
+            title: "Aviso",
+            description: "Titular não encontrado ou inativo",
+          });
+        }
       } catch (error: any) {
         console.error("Error loading unidade:", error);
         toast({
