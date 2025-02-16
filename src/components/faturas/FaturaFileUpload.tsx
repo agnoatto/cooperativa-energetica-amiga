@@ -1,7 +1,7 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { FileUp, Loader2, FileText, Trash2 } from "lucide-react";
+import { FileUp, Loader2, FileText, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,9 +19,9 @@ export function FaturaFileUpload({
   onSuccess 
 }: FaturaFileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleFileUpload = async (file: File) => {
     if (!file) return;
 
     // Validar tipo do arquivo
@@ -142,31 +142,73 @@ export function FaturaFileUpload({
     }
   };
 
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  }, []);
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          disabled={isUploading}
-          onClick={() => document.getElementById('file-upload')?.click()}
-        >
-          {isUploading ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          ) : (
-            <FileUp className="h-4 w-4 mr-2" />
-          )}
-          {arquivoNome ? 'Substituir arquivo' : 'Enviar conta de energia'}
-        </Button>
-        <input
-          id="file-upload"
-          type="file"
-          accept=".pdf"
-          className="hidden"
-          onChange={handleFileUpload}
-          onClick={(e) => (e.currentTarget.value = '')}
-        />
+      <div
+        className={`border-2 border-dashed rounded-lg p-4 transition-colors ${
+          isDragging
+            ? "border-primary bg-primary/10"
+            : "border-gray-300 hover:border-primary"
+        }`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <div className="flex flex-col items-center justify-center gap-2 text-center">
+          <Upload className={`h-8 w-8 ${isDragging ? "text-primary" : "text-gray-400"}`} />
+          <div className="text-sm text-gray-600">
+            {isUploading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Enviando arquivo...
+              </span>
+            ) : (
+              <>
+                <span className="font-medium">Arraste e solte aqui</span> ou clique para selecionar
+              </>
+            )}
+          </div>
+          <input
+            id="file-upload"
+            type="file"
+            accept=".pdf"
+            className="hidden"
+            onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
+            onClick={(e) => (e.currentTarget.value = '')}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => document.getElementById('file-upload')?.click()}
+            disabled={isUploading}
+          >
+            Selecionar arquivo
+          </Button>
+        </div>
       </div>
 
       {arquivoNome && (
