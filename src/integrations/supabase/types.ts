@@ -96,6 +96,39 @@ export type Database = {
         }
         Relationships: []
       }
+      empresas: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          documento: string
+          email: string | null
+          id: string
+          nome: string
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          documento: string
+          email?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          documento?: string
+          email?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       faturas: {
         Row: {
           ano: number
@@ -476,6 +509,7 @@ export type Database = {
           data_envio: string | null
           data_pagamento: string | null
           data_vencimento: string
+          empresa_id: string | null
           geracao_kwh: number
           historico_status: Json | null
           id: string
@@ -504,6 +538,7 @@ export type Database = {
           data_envio?: string | null
           data_pagamento?: string | null
           data_vencimento: string
+          empresa_id?: string | null
           geracao_kwh: number
           historico_status?: Json | null
           id?: string
@@ -532,6 +567,7 @@ export type Database = {
           data_envio?: string | null
           data_pagamento?: string | null
           data_vencimento?: string
+          empresa_id?: string | null
           geracao_kwh?: number
           historico_status?: Json | null
           id?: string
@@ -548,6 +584,13 @@ export type Database = {
           valor_tusd_fio_b?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "pagamentos_usina_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pagamentos_usina_usina_id_fkey"
             columns: ["usina_id"]
@@ -654,6 +697,7 @@ export type Database = {
         Row: {
           created_at: string
           email: string | null
+          empresa_id: string | null
           id: string
           nome: string | null
           telefone: string | null
@@ -662,6 +706,7 @@ export type Database = {
         Insert: {
           created_at?: string
           email?: string | null
+          empresa_id?: string | null
           id?: string
           nome?: string | null
           telefone?: string | null
@@ -670,12 +715,21 @@ export type Database = {
         Update: {
           created_at?: string
           email?: string | null
+          empresa_id?: string | null
           id?: string
           nome?: string | null
           telefone?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rateios: {
         Row: {
