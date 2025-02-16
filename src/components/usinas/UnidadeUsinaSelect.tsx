@@ -15,6 +15,8 @@ interface UnidadeUsina {
   numero_uc: string;
   logradouro: string;
   numero: string;
+  apelido: string;
+  cidade: string;
 }
 
 export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
@@ -24,7 +26,7 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
       try {
         const { data, error } = await supabase
           .from("unidades_usina")
-          .select("id, numero_uc, logradouro, numero")
+          .select("id, numero_uc, logradouro, numero, apelido, cidade")
           .order("numero_uc")
           .limit(100);
 
@@ -40,7 +42,7 @@ export function UnidadeUsinaSelect({ form }: UnidadeUsinaSelectProps) {
 
   const options = unidades.map((unidade) => ({
     value: unidade.id,
-    label: `UC ${unidade.numero_uc} - ${unidade.logradouro || ''}, ${unidade.numero || ''}`.trim(),
+    label: `UC ${unidade.numero_uc}${unidade.apelido ? ` - ${unidade.apelido}` : ''} - ${unidade.cidade || ''} - ${unidade.logradouro || ''}, ${unidade.numero || ''}`.trim().replace(/\s+/g, ' ').replace(/\s*-\s*-\s*/g, ' - '),
   }));
 
   return (
