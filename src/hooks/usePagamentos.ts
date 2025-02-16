@@ -17,6 +17,7 @@ export const usePagamentos = (currentDate: Date) => {
         .select(`
           id,
           valor_kwh,
+          empresa_id,
           unidade_usina:unidades_usina!inner(
             numero_uc
           ),
@@ -46,7 +47,8 @@ export const usePagamentos = (currentDate: Date) => {
             observacao,
             observacao_pagamento,
             historico_status,
-            send_method
+            send_method,
+            empresa_id
           )
         `)
         .eq("deleted_at", null)
@@ -108,6 +110,7 @@ export const usePagamentos = (currentDate: Date) => {
           observacao_pagamento: null,
           historico_status: [],
           send_method: null,
+          empresa_id: usina.empresa_id,
           usina: {
             id: usina.id,
             valor_kwh: usina.valor_kwh,
