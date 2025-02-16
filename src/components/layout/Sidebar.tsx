@@ -1,3 +1,4 @@
+
 import { useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { 
@@ -18,10 +19,12 @@ import { toast } from 'sonner';
 import { SidebarLink } from './SidebarLink';
 import { SidebarProfile } from './SidebarProfile';
 import { useAuth } from '@/contexts/AuthContext';
+import { useState } from 'react';
 
 export function Sidebar() {
   const location = useLocation();
   const { profile, signOut } = useAuth();
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -37,13 +40,17 @@ export function Sidebar() {
     <aside
       className={cn(
         "fixed left-0 top-0 z-40 h-screen bg-white dark:bg-gray-900 border-r shadow-sm",
-        "transition-all duration-300 ease-in-out w-16 hover:w-64"
+        "transition-all duration-300 ease-in-out",
+        isExpanded ? "w-64" : "w-16"
       )}
+      onMouseEnter={() => setIsExpanded(true)}
+      onMouseLeave={() => setIsExpanded(false)}
     >
-      <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex flex-col h-full">
         <SidebarProfile 
           nome={profile?.nome}
           avatarUrl={profile?.avatar_url}
+          isExpanded={isExpanded}
         />
 
         <div className="flex-1 py-6">
@@ -52,7 +59,7 @@ export function Sidebar() {
               href="/dashboard" 
               icon={Home}
               isActive={location.pathname === '/dashboard'}
-              isExpanded={false}
+              isExpanded={isExpanded}
             >
               Dashboard
             </SidebarLink>
@@ -61,7 +68,7 @@ export function Sidebar() {
               href="/cooperados" 
               icon={Users}
               isActive={location.pathname === '/cooperados'}
-              isExpanded={false}
+              isExpanded={isExpanded}
               subItems={[
                 {
                   href: "/cooperados/unidades",
@@ -77,7 +84,7 @@ export function Sidebar() {
               href="/usinas" 
               icon={Server}
               isActive={location.pathname === '/usinas'}
-              isExpanded={false}
+              isExpanded={isExpanded}
               subItems={[
                 {
                   href: "/usinas/investidores",
@@ -98,7 +105,7 @@ export function Sidebar() {
               href="/faturas" 
               icon={FileText}
               isActive={location.pathname === '/faturas'}
-              isExpanded={false}
+              isExpanded={isExpanded}
             >
               Faturas
             </SidebarLink>
@@ -107,7 +114,7 @@ export function Sidebar() {
               href="/pagamentos" 
               icon={Table}
               isActive={location.pathname === '/pagamentos'}
-              isExpanded={false}
+              isExpanded={isExpanded}
             >
               Pagamentos
             </SidebarLink>
@@ -116,7 +123,7 @@ export function Sidebar() {
               href="/financeiro/contas-receber" 
               icon={Wallet}
               isActive={location.pathname.startsWith('/financeiro')}
-              isExpanded={false}
+              isExpanded={isExpanded}
               subItems={[
                 {
                   href: "/financeiro/contas-pagar",
@@ -140,7 +147,7 @@ export function Sidebar() {
             href="/configuracoes" 
             icon={Settings}
             isActive={location.pathname === '/configuracoes'}
-            isExpanded={false}
+            isExpanded={isExpanded}
           >
             Configurações
           </SidebarLink>
@@ -155,7 +162,10 @@ export function Sidebar() {
             <div className="min-w-[64px] flex justify-center">
               <LogOut className="h-5 w-5 shrink-0" />
             </div>
-            <span className="truncate opacity-0 hover:opacity-100 transition-opacity duration-200">
+            <span className={cn(
+              "truncate transition-opacity duration-300",
+              isExpanded ? "opacity-100" : "opacity-0"
+            )}>
               Sair
             </span>
           </button>

@@ -33,7 +33,7 @@ export function SidebarLink({ href, icon: Icon, children, isActive, subItems, is
           <Icon className="h-5 w-5 shrink-0" />
         </div>
         <span className={cn(
-          "truncate transition-all duration-200",
+          "truncate transition-opacity duration-300",
           isExpanded ? "opacity-100" : "opacity-0"
         )}>
           {children}
@@ -56,7 +56,7 @@ export function SidebarLink({ href, icon: Icon, children, isActive, subItems, is
                 <item.icon className="h-5 w-5 shrink-0" />
               </div>
               <span className={cn(
-                "truncate transition-all duration-200",
+                "truncate transition-opacity duration-300",
                 isExpanded ? "opacity-100" : "opacity-0"
               )}>
                 {item.label}
