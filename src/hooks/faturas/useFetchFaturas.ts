@@ -51,6 +51,10 @@ export const useFetchFaturas = (currentDate: Date) => {
           valor_adicional,
           observacao_pagamento,
           data_pagamento,
+          arquivo_concessionaria_nome,
+          arquivo_concessionaria_path,
+          arquivo_concessionaria_tipo,
+          arquivo_concessionaria_tamanho,
           unidade_beneficiaria:unidade_beneficiaria_id (
             id,
             numero_uc,
@@ -85,10 +89,12 @@ export const useFetchFaturas = (currentDate: Date) => {
         })),
         valor_adicional: fatura.valor_adicional || 0,
         observacao_pagamento: fatura.observacao_pagamento || null,
-        data_pagamento: fatura.data_pagamento || null
+        data_pagamento: fatura.data_pagamento || null,
+        arquivo_concessionaria_nome: fatura.arquivo_concessionaria_nome || null,
+        arquivo_concessionaria_path: fatura.arquivo_concessionaria_path || null
       })) as Fatura[];
     },
-    staleTime: 0, // Removido o staleTime para atualização imediata
+    staleTime: 0, // Mantido 0 para atualização imediata após upload
     gcTime: 1000 * 60 * 5, // 5 minutos
   });
 };

@@ -39,8 +39,10 @@ export interface Fatura {
   valor_adicional: number;
   observacao_pagamento: string | null;
   data_pagamento: string | null;
-  arquivo_concessionaria_path?: string | null;
-  arquivo_concessionaria_nome?: string | null;
+  arquivo_concessionaria_path: string | null;
+  arquivo_concessionaria_nome: string | null;
+  arquivo_concessionaria_tipo: string | null;
+  arquivo_concessionaria_tamanho: number | null;
   data_envio?: string | null;
   data_confirmacao_pagamento?: string | null;
   historico_status: StatusHistoryEntry[];
