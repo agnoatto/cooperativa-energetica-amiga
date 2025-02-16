@@ -12,27 +12,36 @@ interface UseUsinaFormProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const defaultValues: UsinaFormData = {
+  investidor_id: "",
+  unidade_usina_id: "",
+  valor_kwh: 0,
+  data_inicio: undefined,
+  dados_pagamento_nome: "",
+  dados_pagamento_documento: "",
+  dados_pagamento_banco: "",
+  dados_pagamento_agencia: "",
+  dados_pagamento_conta: "",
+  dados_pagamento_telefone: "",
+  dados_pagamento_email: "",
+};
+
 export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<UsinaFormData>({
     resolver: zodResolver(usinaFormSchema),
-    defaultValues: {
-      investidor_id: "",
-      unidade_usina_id: "",
-      valor_kwh: 0,
-      data_inicio: undefined,
-      dados_pagamento_nome: "",
-      dados_pagamento_documento: "",
-      dados_pagamento_banco: "",
-      dados_pagamento_agencia: "",
-      dados_pagamento_conta: "",
-      dados_pagamento_telefone: "",
-      dados_pagamento_email: "",
-    },
+    defaultValues,
   });
 
   const fetchUsinaData = async (open: boolean) => {
+    // Se o modal foi fechado OU se estamos abrindo para uma nova usina, reseta o formulário
+    if (!open || (open && !usinaId)) {
+      form.reset(defaultValues);
+      return;
+    }
+
+    // Se estamos abrindo para editar uma usina existente
     if (usinaId && open) {
       setIsLoading(true);
       try {
@@ -57,8 +66,6 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
       } finally {
         setIsLoading(false);
       }
-    } else if (!open) {
-      form.reset();
     }
   };
 
