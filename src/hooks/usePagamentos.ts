@@ -13,45 +13,43 @@ export const usePagamentos = (currentDate: Date) => {
     queryKey: ["pagamentos", currentDate],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("pagamentos_usina")
+        .from("usinas")
         .select(`
           id,
-          geracao_kwh,
-          tusd_fio_b,
-          valor_tusd_fio_b,
-          valor_concessionaria,
-          valor_total,
-          conta_energia,
-          status,
-          data_vencimento,
-          data_pagamento,
-          data_emissao,
-          data_confirmacao,
-          data_envio,
-          mes,
-          ano,
-          arquivo_comprovante_nome,
-          arquivo_comprovante_path,
-          arquivo_comprovante_tipo,
-          arquivo_comprovante_tamanho,
-          observacao,
-          observacao_pagamento,
-          historico_status,
-          send_method,
-          empresa_id,
-          usina:usinas!inner(
+          valor_kwh,
+          unidade_usina:unidades_usina!inner(
+            numero_uc
+          ),
+          investidor:investidores!inner(
+            nome_investidor
+          ),
+          pagamentos:pagamentos_usina(
             id,
-            valor_kwh,
-            unidade_usina:unidades_usina!inner(
-              numero_uc
-            ),
-            investidor:investidores!inner(
-              nome_investidor
-            )
+            geracao_kwh,
+            tusd_fio_b,
+            valor_tusd_fio_b,
+            valor_concessionaria,
+            valor_total,
+            conta_energia,
+            status,
+            data_vencimento,
+            data_pagamento,
+            data_emissao,
+            data_confirmacao,
+            data_envio,
+            mes,
+            ano,
+            arquivo_comprovante_nome,
+            arquivo_comprovante_path,
+            arquivo_comprovante_tipo,
+            arquivo_comprovante_tamanho,
+            observacao,
+            observacao_pagamento,
+            historico_status,
+            send_method
           )
         `)
-        .eq("mes", currentDate.getMonth() + 1)
-        .eq("ano", currentDate.getFullYear())
+        .eq("deleted_at", null)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -60,16 +58,64 @@ export const usePagamentos = (currentDate: Date) => {
         return [];
       }
 
-      return (data || []).map(item => ({
-        ...item,
-        historico_status: Array.isArray(item.historico_status) 
-          ? item.historico_status.map((h: any) => ({
-              data: h.data,
-              status_anterior: h.status_anterior as PagamentoStatus,
-              novo_status: h.novo_status as PagamentoStatus
-            }))
-          : []
-      })) as PagamentoData[];
+      const mes = currentDate.getMonth() + 1;
+      const ano = currentDate.getFullYear();
+
+      return data.map(usina => {
+        const pagamentoDoMes = usina.pagamentos?.find(p => p.mes === mes && p.ano === ano);
+        
+        if (pagamentoDoMes) {
+          return {
+            ...pagamentoDoMes,
+            usina: {
+              id: usina.id,
+              valor_kwh: usina.valor_kwh,
+              unidade_usina: usina.unidade_usina,
+              investidor: usina.investidor
+            },
+            historico_status: Array.isArray(pagamentoDoMes.historico_status) 
+              ? pagamentoDoMes.historico_status.map((h: any) => ({
+                  data: h.data,
+                  status_anterior: h.status_anterior as PagamentoStatus,
+                  novo_status: h.novo_status as PagamentoStatus
+                }))
+              : []
+          };
+        }
+
+        // Se não houver pagamento para o mês, cria um registro zerado
+        return {
+          id: crypto.randomUUID(),
+          geracao_kwh: 0,
+          tusd_fio_b: 0,
+          valor_tusd_fio_b: 0,
+          valor_concessionaria: 0,
+          valor_total: 0,
+          conta_energia: 0,
+          status: "pendente" as PagamentoStatus,
+          data_vencimento: lastDayOfMonth(currentDate).toISOString().split('T')[0],
+          data_pagamento: null,
+          data_emissao: null,
+          data_confirmacao: null,
+          data_envio: null,
+          mes,
+          ano,
+          arquivo_comprovante_nome: null,
+          arquivo_comprovante_path: null,
+          arquivo_comprovante_tipo: null,
+          arquivo_comprovante_tamanho: null,
+          observacao: null,
+          observacao_pagamento: null,
+          historico_status: [],
+          send_method: null,
+          usina: {
+            id: usina.id,
+            valor_kwh: usina.valor_kwh,
+            unidade_usina: usina.unidade_usina,
+            investidor: usina.investidor
+          }
+        } as PagamentoData;
+      });
     },
   });
 
