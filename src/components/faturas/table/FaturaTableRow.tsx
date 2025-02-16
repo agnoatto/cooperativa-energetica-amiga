@@ -124,15 +124,24 @@ export function FaturaTableRow({
   return (
     <>
       <TableRow className="border-b hover:bg-gray-50 transition-colors">
-        <TableCell className="font-medium whitespace-nowrap">{fatura.unidade_beneficiaria.cooperado.nome}</TableCell>
-        <TableCell className="whitespace-nowrap">{formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)}</TableCell>
-        <TableCell className="whitespace-nowrap">
-          {fatura.unidade_beneficiaria.numero_uc}
-          {fatura.unidade_beneficiaria.apelido && (
-            <span className="text-gray-500 text-sm ml-1">
-              ({fatura.unidade_beneficiaria.apelido})
+        <TableCell>
+          <div className="flex flex-col">
+            <span className="font-medium text-gray-900">
+              {fatura.unidade_beneficiaria.cooperado.nome}
             </span>
-          )}
+            <div className="text-sm text-gray-500 space-x-2">
+              <span>{formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)}</span>
+              <span>•</span>
+              <span>
+                UC: {fatura.unidade_beneficiaria.numero_uc}
+                {fatura.unidade_beneficiaria.apelido && (
+                  <span className="text-gray-400 ml-1">
+                    ({fatura.unidade_beneficiaria.apelido})
+                  </span>
+                )}
+              </span>
+            </div>
+          </div>
         </TableCell>
         <TableCell className="whitespace-nowrap">{formatDateToPtBR(fatura.data_vencimento)}</TableCell>
         <TableCell className="text-right font-mono whitespace-nowrap">{fatura.consumo_kwh} kWh</TableCell>
