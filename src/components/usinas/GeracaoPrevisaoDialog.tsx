@@ -42,7 +42,7 @@ export function GeracaoPrevisaoDialog({ usinaId }: GeracaoPrevisaoDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   // Busca os dados da usina para obter a data de início
-  const { data: usina } = useQuery({
+  const { data: usina, refetch } = useQuery({
     queryKey: ['usina', usinaId],
     queryFn: async () => {
       if (!usinaId) return null;
@@ -50,13 +50,23 @@ export function GeracaoPrevisaoDialog({ usinaId }: GeracaoPrevisaoDialogProps) {
         .from('usinas')
         .select('*')
         .eq('id', usinaId)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;
     },
     enabled: !!usinaId,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
+
+  // Efeito para recarregar os dados quando o diálogo for aberto
+  const handleOpenChange = (isOpen: boolean) => {
+    if (isOpen) {
+      refetch();
+    }
+    setOpen(isOpen);
+  };
 
   const form = useForm<GeracaoPrevisaoFormData>({
     resolver: zodResolver(geracaoPrevisaoSchema),
@@ -118,9 +128,9 @@ export function GeracaoPrevisaoDialog({ usinaId }: GeracaoPrevisaoDialogProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" type="button" disabled={!usina?.data_inicio}>
+        <Button variant="outline" type="button" disabled={!usina?.data_inicio} onClick={() => refetch()}>
           Previsão de Geração
         </Button>
       </DialogTrigger>
