@@ -22,54 +22,74 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Busca a sessão inicial
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
+    // Função para verificar se o token está expirado
+    const isTokenExpired = (session: Session | null) => {
+      if (!session) return true;
+      const expirationTime = session.expires_at * 1000; // Converter para milissegundos
+      return Date.now() >= expirationTime;
+    };
 
-    // Configura o listener para mudanças de autenticação
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
+    // Função para lidar com mudanças de autenticação
+    const handleAuthChange = async (event: string, currentSession: Session | null) => {
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
 
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // Busca o perfil quando o usuário muda
-  useEffect(() => {
-    async function loadProfile() {
-      if (!user) {
+      // Se o token expirou ou o usuário não está autenticado, redirecionar para login
+      if (isTokenExpired(currentSession) || !currentSession) {
+        console.log('Token expirado ou sessão inválida, redirecionando para login...');
         setProfile(null);
+        navigate('/auth');
         return;
       }
 
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .maybeSingle();
+      // Se houver uma sessão válida, carregar o perfil
+      if (currentSession?.user) {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', currentSession.user.id)
+            .maybeSingle();
 
-        if (error) throw error;
-        setProfile(data);
-      } catch (error) {
-        console.error('Erro ao carregar perfil:', error);
-        setProfile(null);
+          if (error) throw error;
+          setProfile(data);
+        } catch (error) {
+          console.error('Erro ao carregar perfil:', error);
+          setProfile(null);
+        }
       }
-    }
 
-    loadProfile();
-  }, [user]);
+      setIsLoading(false);
+    };
+
+    // Buscar sessão inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleAuthChange('INITIAL_SESSION', session);
+    });
+
+    // Configurar listener para mudanças de autenticação
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(handleAuthChange);
+
+    // Configurar verificação periódica do token
+    const checkTokenInterval = setInterval(() => {
+      if (session && isTokenExpired(session)) {
+        console.log('Token expirou durante verificação periódica');
+        handleAuthChange('TOKEN_EXPIRED', null);
+      }
+    }, 60000); // Verificar a cada minuto
+
+    return () => {
+      subscription.unsubscribe();
+      clearInterval(checkTokenInterval);
+    };
+  }, [navigate]);
 
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
+      setProfile(null);
       navigate('/auth');
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
