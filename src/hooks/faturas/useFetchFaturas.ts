@@ -55,6 +55,8 @@ export const useFetchFaturas = (currentDate: Date) => {
           arquivo_concessionaria_path,
           arquivo_concessionaria_tipo,
           arquivo_concessionaria_tamanho,
+          data_criacao,
+          data_atualizacao,
           unidade_beneficiaria:unidade_beneficiaria_id (
             id,
             numero_uc,
@@ -91,7 +93,9 @@ export const useFetchFaturas = (currentDate: Date) => {
         observacao_pagamento: fatura.observacao_pagamento || null,
         data_pagamento: fatura.data_pagamento || null,
         arquivo_concessionaria_nome: fatura.arquivo_concessionaria_nome || null,
-        arquivo_concessionaria_path: fatura.arquivo_concessionaria_path || null
+        arquivo_concessionaria_path: fatura.arquivo_concessionaria_path || null,
+        data_criacao: fatura.data_criacao || null,
+        data_atualizacao: fatura.data_atualizacao || null
       })) as Fatura[];
     },
     staleTime: 0, // Mantido 0 para atualização imediata após upload

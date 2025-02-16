@@ -138,7 +138,9 @@ export type Database = {
           arquivo_concessionaria_tipo: string | null
           consumo_kwh: number
           created_at: string
+          data_atualizacao: string | null
           data_confirmacao_pagamento: string | null
+          data_criacao: string | null
           data_envio: string | null
           data_pagamento: string | null
           data_vencimento: string
@@ -172,7 +174,9 @@ export type Database = {
           arquivo_concessionaria_tipo?: string | null
           consumo_kwh: number
           created_at?: string
+          data_atualizacao?: string | null
           data_confirmacao_pagamento?: string | null
+          data_criacao?: string | null
           data_envio?: string | null
           data_pagamento?: string | null
           data_vencimento: string
@@ -206,7 +210,9 @@ export type Database = {
           arquivo_concessionaria_tipo?: string | null
           consumo_kwh?: number
           created_at?: string
+          data_atualizacao?: string | null
           data_confirmacao_pagamento?: string | null
+          data_criacao?: string | null
           data_envio?: string | null
           data_pagamento?: string | null
           data_vencimento?: string

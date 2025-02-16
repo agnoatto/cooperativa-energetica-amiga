@@ -45,6 +45,8 @@ export interface Fatura {
   arquivo_concessionaria_tamanho: number | null;
   data_envio?: string | null;
   data_confirmacao_pagamento?: string | null;
+  data_criacao?: string;
+  data_atualizacao?: string;
   historico_status: StatusHistoryEntry[];
   unidade_beneficiaria: UnidadeBeneficiaria;
 }
