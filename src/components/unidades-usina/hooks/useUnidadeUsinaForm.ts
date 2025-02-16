@@ -53,14 +53,16 @@ export function useUnidadeUsinaForm({
 
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
+        
+        // Primeiro busca a unidade
+        const { data: unidade, error: unidadeError } = await supabase
           .from("unidades_usina")
           .select("*")
           .eq("id", unidadeId)
           .maybeSingle();
 
-        if (error) throw error;
-        if (!data) {
+        if (unidadeError) throw unidadeError;
+        if (!unidade) {
           toast({
             title: "Erro ao carregar unidade",
             description: "Unidade não encontrada",
@@ -69,18 +71,44 @@ export function useUnidadeUsinaForm({
           return;
         }
 
+        // Agora busca os dados do titular
+        const titularQuery = unidade.titular_tipo === "cooperativa"
+          ? supabase
+              .from("cooperativas")
+              .select("id, nome")
+              .eq("id", unidade.titular_id)
+              .is("deleted_at", null)
+              .maybeSingle()
+          : supabase
+              .from("cooperados")
+              .select("id, nome")
+              .eq("id", unidade.titular_id)
+              .is("data_exclusao", null)
+              .maybeSingle();
+
+        const { data: titular, error: titularError } = await titularQuery;
+
+        if (titularError) throw titularError;
+        if (!titular) {
+          toast({
+            title: "Aviso",
+            description: "Titular não encontrado ou inativo",
+          });
+        }
+
+        // Atualiza o formulário com os dados
         form.reset({
-          numero_uc: data.numero_uc,
-          apelido: data.apelido || "",
-          logradouro: data.logradouro || "",
-          numero: data.numero || "",
-          complemento: data.complemento || "",
-          bairro: data.bairro || "",
-          cidade: data.cidade || "",
-          uf: data.uf || "",
-          cep: data.cep || "",
-          titular_id: data.titular_id,
-          titular_tipo: data.titular_tipo as "cooperado" | "cooperativa",
+          numero_uc: unidade.numero_uc,
+          apelido: unidade.apelido || "",
+          logradouro: unidade.logradouro || "",
+          numero: unidade.numero || "",
+          complemento: unidade.complemento || "",
+          bairro: unidade.bairro || "",
+          cidade: unidade.cidade || "",
+          uf: unidade.uf || "",
+          cep: unidade.cep || "",
+          titular_id: titular ? unidade.titular_id : "",
+          titular_tipo: unidade.titular_tipo,
         });
       } catch (error: any) {
         console.error("Error loading unidade:", error);
