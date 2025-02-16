@@ -9,13 +9,14 @@ import { CurrencyInput } from "@/components/faturas/CurrencyInput";
 
 interface UsinaBasicInfoFieldsProps {
   form: UseFormReturn<UsinaFormData>;
+  usinaId?: string;
 }
 
-export function UsinaBasicInfoFields({ form }: UsinaBasicInfoFieldsProps) {
+export function UsinaBasicInfoFields({ form, usinaId }: UsinaBasicInfoFieldsProps) {
   return (
     <div className="grid grid-cols-2 gap-4">
       <InvestidorSelect form={form} />
-      <UnidadeUsinaSelect form={form} />
+      <UnidadeUsinaSelect form={form} usinaId={usinaId} />
 
       <FormField
         control={form.control}

@@ -46,7 +46,7 @@ export function UsinaForm({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <UsinaBasicInfoFields form={form} />
+            <UsinaBasicInfoFields form={form} usinaId={usinaId} />
             <DadosPagamentoFields form={form} />
 
             <Button type="submit" disabled={isLoading}>
