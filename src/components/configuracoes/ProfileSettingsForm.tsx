@@ -34,6 +34,10 @@ export function ProfileSettingsForm() {
     return <div>Carregando...</div>;
   }
 
+  const onSubmit = (data: ProfileFormValues) => {
+    updateProfile(data);
+  };
+
   return (
     <Card>
       <CardContent className="pt-6">
@@ -43,7 +47,7 @@ export function ProfileSettingsForm() {
         />
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(updateProfile)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="nome"
