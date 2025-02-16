@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,16 +9,6 @@ import { PagamentosHeader } from "@/components/pagamentos/PagamentosHeader";
 import { PagamentosTable } from "@/components/pagamentos/PagamentosTable";
 import { PagamentoEditModal } from "@/components/pagamentos/PagamentoEditModal";
 import { PagamentoData, PagamentoStatus } from "@/components/pagamentos/types/pagamento";
-
-interface Usina {
-  id: string;
-  unidade_usina: {
-    numero_uc: string;
-  };
-  investidor: {
-    nome_investidor: string;
-  };
-}
 
 const Pagamentos = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -53,6 +44,7 @@ const Pagamentos = () => {
           observacao_pagamento,
           historico_status,
           send_method,
+          empresa_id,
           usina:usinas!inner(
             id,
             valor_kwh,
@@ -108,7 +100,7 @@ const Pagamentos = () => {
       const dataVencimento = lastDayOfMonth(currentDate);
 
       const usinasComPagamento = await Promise.all(
-        (usinas as Usina[]).map(async (usina) => {
+        (usinas as any[]).map(async (usina) => {
           const { data: pagamentosExistentes } = await supabase
             .from("pagamentos_usina")
             .select()
@@ -214,3 +206,4 @@ const Pagamentos = () => {
 }
 
 export default Pagamentos;
+

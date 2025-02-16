@@ -29,6 +29,7 @@ export interface PagamentoData {
     novo_status: PagamentoStatus;
   }>;
   send_method: string[] | null;
+  empresa_id: string | null;
   usina: {
     id: string;
     valor_kwh: number;
@@ -52,3 +53,4 @@ export interface PagamentoFormValues {
   observacao?: string;
   observacao_pagamento?: string;
 }
+
