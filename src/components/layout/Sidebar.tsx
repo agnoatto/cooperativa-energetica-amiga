@@ -1,92 +1,25 @@
 
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { 
   Home,
   Users,
   Server,
-  Database,
-  Settings,
-  FileText,
-  Table,
   Building2,
   User,
+  FileText,
+  Table,
   Wallet,
   ArrowDownToLine,
   ArrowUpFromLine,
+  Settings,
   LogOut
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-
-interface SidebarLinkProps {
-  href: string;
-  icon: React.ElementType;
-  children: React.ReactNode;
-  isActive?: boolean;
-  subItems?: {
-    href: string;
-    icon: React.ElementType;
-    label: string;
-  }[];
-  isExpanded?: boolean;
-}
-
-function SidebarLink({ href, icon: Icon, children, isActive, subItems, isExpanded }: SidebarLinkProps) {
-  const location = useLocation();
-  const isParentOfActive = subItems?.some(item => location.pathname === item.href);
-
-  return (
-    <div className="w-full">
-      <Link
-        to={href}
-        className={cn(
-          "flex items-center py-2 text-sm font-medium rounded-md transition-colors w-full",
-          "hover:bg-gray-100 dark:hover:bg-gray-800",
-          (isActive || isParentOfActive) && "bg-gray-100 dark:bg-gray-800"
-        )}
-      >
-        <div className="min-w-[64px] flex justify-center">
-          <Icon className="h-5 w-5 shrink-0" />
-        </div>
-        <span className={cn(
-          "truncate transition-all duration-200",
-          isExpanded ? "opacity-100" : "opacity-0"
-        )}>
-          {children}
-        </span>
-      </Link>
-      
-      {subItems && (
-        <div className="space-y-1">
-          {subItems.map((item) => (
-            <Link
-              key={item.href}
-              to={item.href}
-              className={cn(
-                "flex items-center py-2 text-sm font-medium rounded-md transition-colors w-full",
-                "hover:bg-gray-100 dark:hover:bg-gray-800",
-                location.pathname === item.href && "bg-gray-100 dark:bg-gray-800"
-              )}
-            >
-              <div className="min-w-[64px] flex justify-center">
-                <item.icon className="h-5 w-5 shrink-0" />
-              </div>
-              <span className={cn(
-                "truncate transition-all duration-200",
-                isExpanded ? "opacity-100" : "opacity-0"
-              )}>
-                {item.label}
-              </span>
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+import { SidebarLink } from './SidebarLink';
+import { SidebarProfile } from './SidebarProfile';
 
 export function Sidebar() {
   const location = useLocation();
@@ -128,21 +61,10 @@ export function Sidebar() {
       )}
     >
       <div className="flex flex-col h-full overflow-hidden">
-        {/* Perfil do usuário */}
-        <div className={cn(
-          "p-4 border-b flex items-center gap-3",
-          "w-16 hover:w-full"
-        )}>
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={profile?.avatar_url} />
-            <AvatarFallback>
-              {profile?.nome?.charAt(0)?.toUpperCase() || 'U'}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-sm font-medium truncate opacity-0 hover:opacity-100 transition-opacity duration-200">
-            {profile?.nome || 'Usuário'}
-          </span>
-        </div>
+        <SidebarProfile 
+          nome={profile?.nome}
+          avatarUrl={profile?.avatar_url}
+        />
 
         <div className="flex-1 py-6">
           <nav className="space-y-1">
