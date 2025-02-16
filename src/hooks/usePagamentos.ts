@@ -17,7 +17,6 @@ export const usePagamentos = (currentDate: Date) => {
         .select(`
           id,
           valor_kwh,
-          empresa_id,
           unidade_usina:unidades_usina!inner(
             numero_uc
           ),
@@ -51,7 +50,7 @@ export const usePagamentos = (currentDate: Date) => {
             empresa_id
           )
         `)
-        .eq("deleted_at", null)
+        .is("deleted_at", null) // Mudado de .eq para .is
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -110,7 +109,7 @@ export const usePagamentos = (currentDate: Date) => {
           observacao_pagamento: null,
           historico_status: [],
           send_method: null,
-          empresa_id: usina.empresa_id,
+          empresa_id: null,
           usina: {
             id: usina.id,
             valor_kwh: usina.valor_kwh,
@@ -134,7 +133,8 @@ export const usePagamentos = (currentDate: Date) => {
           investidor:investidores!inner(
             nome_investidor
           )
-        `);
+        `)
+        .is("deleted_at", null); // Mudado aqui também
 
       if (usinasError) throw usinasError;
 
