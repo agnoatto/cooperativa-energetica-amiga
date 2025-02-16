@@ -71,6 +71,16 @@ export function useUnidadeUsinaForm({
           return;
         }
 
+        // Validar se o tipo de titular é válido
+        if (unidade.titular_tipo !== "cooperativa" && unidade.titular_tipo !== "cooperado") {
+          toast({
+            title: "Erro ao carregar unidade",
+            description: "Tipo de titular inválido",
+            variant: "destructive",
+          });
+          return;
+        }
+
         // Agora busca os dados do titular
         const titularQuery = unidade.titular_tipo === "cooperativa"
           ? supabase
@@ -108,7 +118,7 @@ export function useUnidadeUsinaForm({
           uf: unidade.uf || "",
           cep: unidade.cep || "",
           titular_id: titular ? unidade.titular_id : "",
-          titular_tipo: unidade.titular_tipo,
+          titular_tipo: unidade.titular_tipo as "cooperado" | "cooperativa",
         });
       } catch (error: any) {
         console.error("Error loading unidade:", error);
