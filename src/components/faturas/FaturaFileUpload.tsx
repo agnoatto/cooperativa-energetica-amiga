@@ -1,9 +1,10 @@
 
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { FileUp, Loader2, FileText, Trash2, Upload } from "lucide-react";
+import { FileUp, Loader2, FileText, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface FaturaFileUploadProps {
   faturaId: string;
@@ -20,6 +21,8 @@ export function FaturaFileUpload({
 }: FaturaFileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   const handleFileUpload = async (file: File) => {
     if (!file) return;
@@ -73,6 +76,16 @@ export function FaturaFileUpload({
 
       toast.success('Arquivo enviado com sucesso!');
       onSuccess();
+
+      // Obter URL do arquivo para visualização
+      const { data: urlData } = await supabase.storage
+        .from('faturas_concessionaria')
+        .createSignedUrl(filePath, 60);
+
+      if (urlData) {
+        setPdfUrl(urlData.signedUrl);
+        setShowPdfPreview(true);
+      }
     } catch (error: any) {
       console.error('Erro no upload:', error);
       toast.error('Erro ao enviar arquivo');
@@ -109,6 +122,7 @@ export function FaturaFileUpload({
 
       toast.success('Arquivo removido com sucesso!');
       onSuccess();
+      setPdfUrl(null);
     } catch (error: any) {
       console.error('Erro ao remover arquivo:', error);
       toast.error('Erro ao remover arquivo');
@@ -139,6 +153,24 @@ export function FaturaFileUpload({
     } catch (error: any) {
       console.error('Erro ao baixar arquivo:', error);
       toast.error('Erro ao baixar arquivo');
+    }
+  };
+
+  const handlePreview = async () => {
+    if (!arquivoPath) return;
+
+    try {
+      const { data } = await supabase.storage
+        .from('faturas_concessionaria')
+        .createSignedUrl(arquivoPath, 60);
+
+      if (data) {
+        setPdfUrl(data.signedUrl);
+        setShowPdfPreview(true);
+      }
+    } catch (error) {
+      console.error('Erro ao gerar preview:', error);
+      toast.error('Erro ao gerar preview do arquivo');
     }
   };
 
@@ -219,11 +251,21 @@ export function FaturaFileUpload({
             type="button"
             variant="ghost"
             size="icon"
+            onClick={handlePreview}
+            className="h-8 w-8"
+            title="Visualizar arquivo"
+          >
+            <FileText className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onClick={handleDownload}
             className="h-8 w-8"
             title="Baixar arquivo"
           >
-            <FileText className="h-4 w-4" />
+            <FileUp className="h-4 w-4" />
           </Button>
           <Button
             type="button"
@@ -237,6 +279,32 @@ export function FaturaFileUpload({
           </Button>
         </div>
       )}
+
+      <Dialog open={showPdfPreview} onOpenChange={setShowPdfPreview}>
+        <DialogContent className="max-w-4xl h-[90vh]">
+          <DialogHeader className="flex flex-row items-center justify-between">
+            <DialogTitle>Visualização da Conta de Energia</DialogTitle>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowPdfPreview(false)}
+              className="h-8 w-8"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </DialogHeader>
+          {pdfUrl && (
+            <div className="flex-1 w-full h-full">
+              <iframe
+                src={`${pdfUrl}#toolbar=0`}
+                className="w-full h-full rounded-md"
+                title="Visualização da Conta de Energia"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
