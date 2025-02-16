@@ -16,6 +16,7 @@ import { GeracaoPrevisaoFormData, geracaoPrevisaoSchema } from "./schema";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 interface GeracaoPrevisaoDialogProps {
   usinaId?: string;
@@ -39,12 +40,27 @@ const meses = [
 export function GeracaoPrevisaoDialog({ usinaId }: GeracaoPrevisaoDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const anoAtual = new Date().getFullYear();
+
+  // Busca os dados da usina para obter a data de início
+  const { data: usina } = useQuery({
+    queryKey: ['usina', usinaId],
+    queryFn: async () => {
+      if (!usinaId) return null;
+      const { data, error } = await supabase
+        .from('usinas')
+        .select('*')
+        .eq('id', usinaId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!usinaId,
+  });
 
   const form = useForm<GeracaoPrevisaoFormData>({
     resolver: zodResolver(geracaoPrevisaoSchema),
     defaultValues: {
-      ano: anoAtual,
       janeiro: 0,
       fevereiro: 0,
       marco: 0,
@@ -61,14 +77,19 @@ export function GeracaoPrevisaoDialog({ usinaId }: GeracaoPrevisaoDialogProps) {
   });
 
   const onSubmit = async (data: GeracaoPrevisaoFormData) => {
-    if (!usinaId) return;
+    if (!usinaId || !usina?.data_inicio) {
+      toast.error("Data de início da usina não definida");
+      return;
+    }
 
     setIsLoading(true);
     try {
+      const anoInstalacao = new Date(usina.data_inicio).getFullYear();
+
       const { error } = await supabase
         .from('geracao_prevista_usina')
         .upsert({
-          ano: data.ano,
+          ano: anoInstalacao,
           usina_id: usinaId,
           janeiro: data.janeiro || 0,
           fevereiro: data.fevereiro || 0,
@@ -99,28 +120,18 @@ export function GeracaoPrevisaoDialog({ usinaId }: GeracaoPrevisaoDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" type="button">
+        <Button variant="outline" type="button" disabled={!usina?.data_inicio}>
           Previsão de Geração
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Previsão de Geração Mensal</DialogTitle>
+          <DialogTitle>
+            Previsão de Geração Mensal - {usina?.data_inicio ? `Ano de Instalação: ${new Date(usina.data_inicio).getFullYear()}` : 'Data de início não definida'}
+          </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Ano</Label>
-              <Input
-                type="number"
-                min={2000}
-                max={2100}
-                {...form.register("ano", { valueAsNumber: true })}
-              />
-            </div>
-          </div>
-
           <div className="grid grid-cols-3 gap-4">
             {meses.map(({ nome, campo }) => (
               <div key={campo} className="space-y-2">
@@ -135,7 +146,7 @@ export function GeracaoPrevisaoDialog({ usinaId }: GeracaoPrevisaoDialogProps) {
             ))}
           </div>
 
-          <Button type="submit" disabled={isLoading || !usinaId}>
+          <Button type="submit" disabled={isLoading || !usinaId || !usina?.data_inicio}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

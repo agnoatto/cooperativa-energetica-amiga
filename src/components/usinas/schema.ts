@@ -26,7 +26,6 @@ export const usinaFormSchema = z.object({
 export type UsinaFormData = z.infer<typeof usinaFormSchema>;
 
 export const geracaoPrevisaoSchema = z.object({
-  ano: z.number().min(2000).max(2100),
   janeiro: z.number().min(0).optional(),
   fevereiro: z.number().min(0).optional(),
   marco: z.number().min(0).optional(),
