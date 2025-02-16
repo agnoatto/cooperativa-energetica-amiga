@@ -24,6 +24,8 @@ const defaultValues: UsinaFormData = {
   dados_pagamento_conta: "",
   dados_pagamento_telefone: "",
   dados_pagamento_email: "",
+  dados_pagamento_chave_pix: "",
+  dados_pagamento_tipo_chave_pix: undefined,
 };
 
 export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormProps) {
@@ -84,6 +86,8 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
         dados_pagamento_conta: data.dados_pagamento_conta,
         dados_pagamento_telefone: data.dados_pagamento_telefone,
         dados_pagamento_email: data.dados_pagamento_email,
+        dados_pagamento_chave_pix: data.dados_pagamento_chave_pix,
+        dados_pagamento_tipo_chave_pix: data.dados_pagamento_tipo_chave_pix,
         status: usinaId ? "active" : "draft",
       };
 

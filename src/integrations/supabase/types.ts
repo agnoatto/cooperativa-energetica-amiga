@@ -968,11 +968,13 @@ export type Database = {
           created_at: string
           dados_pagamento_agencia: string | null
           dados_pagamento_banco: string | null
+          dados_pagamento_chave_pix: string | null
           dados_pagamento_conta: string | null
           dados_pagamento_documento: string | null
           dados_pagamento_email: string | null
           dados_pagamento_nome: string | null
           dados_pagamento_telefone: string | null
+          dados_pagamento_tipo_chave_pix: string | null
           data_inicio: string | null
           deleted_at: string | null
           id: string
@@ -987,11 +989,13 @@ export type Database = {
           created_at?: string
           dados_pagamento_agencia?: string | null
           dados_pagamento_banco?: string | null
+          dados_pagamento_chave_pix?: string | null
           dados_pagamento_conta?: string | null
           dados_pagamento_documento?: string | null
           dados_pagamento_email?: string | null
           dados_pagamento_nome?: string | null
           dados_pagamento_telefone?: string | null
+          dados_pagamento_tipo_chave_pix?: string | null
           data_inicio?: string | null
           deleted_at?: string | null
           id?: string
@@ -1006,11 +1010,13 @@ export type Database = {
           created_at?: string
           dados_pagamento_agencia?: string | null
           dados_pagamento_banco?: string | null
+          dados_pagamento_chave_pix?: string | null
           dados_pagamento_conta?: string | null
           dados_pagamento_documento?: string | null
           dados_pagamento_email?: string | null
           dados_pagamento_nome?: string | null
           dados_pagamento_telefone?: string | null
+          dados_pagamento_tipo_chave_pix?: string | null
           data_inicio?: string | null
           deleted_at?: string | null
           id?: string

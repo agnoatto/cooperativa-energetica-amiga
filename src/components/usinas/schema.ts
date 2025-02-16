@@ -15,6 +15,8 @@ export const usinaFormSchema = z.object({
   dados_pagamento_conta: z.string().optional(),
   dados_pagamento_telefone: z.string().optional(),
   dados_pagamento_email: z.string().email("Email inválido").optional().or(z.literal("")),
+  dados_pagamento_chave_pix: z.string().optional(),
+  dados_pagamento_tipo_chave_pix: z.enum(['cpf', 'cnpj', 'email', 'telefone', 'aleatoria']).optional(),
 });
 
 export type UsinaFormData = z.infer<typeof usinaFormSchema>;
