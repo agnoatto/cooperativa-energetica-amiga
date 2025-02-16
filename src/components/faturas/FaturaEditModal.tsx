@@ -58,152 +58,158 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !isLoading && !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="p-6 pb-0">
           <DialogTitle>Editar Fatura</DialogTitle>
         </DialogHeader>
 
-        {/* Informações do Cooperado */}
-        <div className="bg-gray-50 p-4 rounded-lg mb-4">
-          <div className="flex flex-col space-y-1">
-            <span className="font-medium text-gray-900">
-              {fatura.unidade_beneficiaria.cooperado.nome}
-            </span>
-            <div className="text-sm text-gray-500 space-x-2">
-              <span>{formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)}</span>
-              <span>•</span>
-              <span>
-                UC: {fatura.unidade_beneficiaria.numero_uc}
-                {fatura.unidade_beneficiaria.apelido && (
-                  <span className="text-gray-400 ml-1">
-                    ({fatura.unidade_beneficiaria.apelido})
-                  </span>
-                )}
+        {/* Informações do Cooperado - Fixo no topo */}
+        <div className="px-6">
+          <div className="bg-gray-50 p-4 rounded-lg mb-4">
+            <div className="flex flex-col space-y-1">
+              <span className="font-medium text-gray-900">
+                {fatura.unidade_beneficiaria.cooperado.nome}
               </span>
+              <div className="text-sm text-gray-500 space-x-2">
+                <span>{formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)}</span>
+                <span>•</span>
+                <span>
+                  UC: {fatura.unidade_beneficiaria.numero_uc}
+                  {fatura.unidade_beneficiaria.apelido && (
+                    <span className="text-gray-400 ml-1">
+                      ({fatura.unidade_beneficiaria.apelido})
+                    </span>
+                  )}
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="dataVencimento">Data de Vencimento</Label>
-            <Input
-              type="date"
-              id="dataVencimento"
-              value={dataVencimento}
-              onChange={(e) => setDataVencimento(e.target.value)}
-              required
-            />
-          </div>
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="consumo">Consumo (kWh)</Label>
-            <Input
-              type="number"
-              id="consumo"
-              value={consumo}
-              onChange={(e) => setConsumo(e.target.value)}
-              step="0.01"
-              min="0"
-              required
-            />
-          </div>
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="totalFatura">Valor Total Original</Label>
-            <CurrencyInput
-              id="totalFatura"
-              value={totalFatura}
-              onChange={setTotalFatura}
-              required
-              decimalScale={2}
-            />
-          </div>
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="faturaConcessionaria">Valor Conta de Energia</Label>
-            <CurrencyInput
-              id="faturaConcessionaria"
-              value={faturaConcessionaria}
-              onChange={setFaturaConcessionaria}
-              required
-              decimalScale={2}
-            />
-          </div>
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="iluminacaoPublica">Iluminação Pública</Label>
-            <CurrencyInput
-              id="iluminacaoPublica"
-              value={iluminacaoPublica}
-              onChange={setIluminacaoPublica}
-              required
-              decimalScale={2}
-            />
-          </div>
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="outrosValores">Outros Valores</Label>
-            <CurrencyInput
-              id="outrosValores"
-              value={outrosValores}
-              onChange={setOutrosValores}
-              required
-              decimalScale={2}
-            />
-          </div>
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="saldoEnergiaKwh">Saldo de Energia (kWh)</Label>
-            <Input
-              type="number"
-              id="saldoEnergiaKwh"
-              value={saldoEnergiaKwh}
-              onChange={(e) => setSaldoEnergiaKwh(e.target.value)}
-              step="0.01"
-              min="0"
-              required
-            />
-          </div>
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="observacao">Observações</Label>
-            <Textarea
-              id="observacao"
-              value={observacao}
-              onChange={(e) => setObservacao(e.target.value)}
-              placeholder="Adicione observações relevantes sobre a fatura..."
-              className="resize-none"
-              rows={3}
-            />
-          </div>
-          
-          <div className="grid w-full items-center gap-2">
-            <Label>Conta de Energia (PDF)</Label>
-            <FaturaFileUpload
-              faturaId={fatura.id}
-              arquivoNome={fatura.arquivo_concessionaria_nome}
-              arquivoPath={fatura.arquivo_concessionaria_path}
-              onSuccess={() => {
-                // Recarregar dados da fatura após upload/remoção do arquivo
-                onSuccess({
-                  id: fatura.id,
-                  consumo_kwh: Number(consumo),
-                  total_fatura: parseValue(totalFatura),
-                  fatura_concessionaria: parseValue(faturaConcessionaria),
-                  iluminacao_publica: parseValue(iluminacaoPublica),
-                  outros_valores: parseValue(outrosValores),
-                  saldo_energia_kwh: Number(saldoEnergiaKwh),
-                  observacao: observacao || null,
-                  data_vencimento: dataVencimento,
-                  percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
-                });
-              }}
-            />
-          </div>
+        {/* Área com scroll */}
+        <div className="flex-1 overflow-y-auto px-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid w-full items-center gap-2">
+              <Label htmlFor="dataVencimento">Data de Vencimento</Label>
+              <Input
+                type="date"
+                id="dataVencimento"
+                value={dataVencimento}
+                onChange={(e) => setDataVencimento(e.target.value)}
+                required
+              />
+            </div>
+            <div className="grid w-full items-center gap-2">
+              <Label htmlFor="consumo">Consumo (kWh)</Label>
+              <Input
+                type="number"
+                id="consumo"
+                value={consumo}
+                onChange={(e) => setConsumo(e.target.value)}
+                step="0.01"
+                min="0"
+                required
+              />
+            </div>
+            <div className="grid w-full items-center gap-2">
+              <Label htmlFor="totalFatura">Valor Total Original</Label>
+              <CurrencyInput
+                id="totalFatura"
+                value={totalFatura}
+                onChange={setTotalFatura}
+                required
+                decimalScale={2}
+              />
+            </div>
+            <div className="grid w-full items-center gap-2">
+              <Label htmlFor="faturaConcessionaria">Valor Conta de Energia</Label>
+              <CurrencyInput
+                id="faturaConcessionaria"
+                value={faturaConcessionaria}
+                onChange={setFaturaConcessionaria}
+                required
+                decimalScale={2}
+              />
+            </div>
+            <div className="grid w-full items-center gap-2">
+              <Label htmlFor="iluminacaoPublica">Iluminação Pública</Label>
+              <CurrencyInput
+                id="iluminacaoPublica"
+                value={iluminacaoPublica}
+                onChange={setIluminacaoPublica}
+                required
+                decimalScale={2}
+              />
+            </div>
+            <div className="grid w-full items-center gap-2">
+              <Label htmlFor="outrosValores">Outros Valores</Label>
+              <CurrencyInput
+                id="outrosValores"
+                value={outrosValores}
+                onChange={setOutrosValores}
+                required
+                decimalScale={2}
+              />
+            </div>
+            <div className="grid w-full items-center gap-2">
+              <Label htmlFor="saldoEnergiaKwh">Saldo de Energia (kWh)</Label>
+              <Input
+                type="number"
+                id="saldoEnergiaKwh"
+                value={saldoEnergiaKwh}
+                onChange={(e) => setSaldoEnergiaKwh(e.target.value)}
+                step="0.01"
+                min="0"
+                required
+              />
+            </div>
+            <div className="grid w-full items-center gap-2">
+              <Label htmlFor="observacao">Observações</Label>
+              <Textarea
+                id="observacao"
+                value={observacao}
+                onChange={(e) => setObservacao(e.target.value)}
+                placeholder="Adicione observações relevantes sobre a fatura..."
+                className="resize-none"
+                rows={3}
+              />
+            </div>
+            
+            <div className="grid w-full items-center gap-2">
+              <Label>Conta de Energia (PDF)</Label>
+              <FaturaFileUpload
+                faturaId={fatura.id}
+                arquivoNome={fatura.arquivo_concessionaria_nome}
+                arquivoPath={fatura.arquivo_concessionaria_path}
+                onSuccess={() => {
+                  // Recarregar dados da fatura após upload/remoção do arquivo
+                  onSuccess({
+                    id: fatura.id,
+                    consumo_kwh: Number(consumo),
+                    total_fatura: parseValue(totalFatura),
+                    fatura_concessionaria: parseValue(faturaConcessionaria),
+                    iluminacao_publica: parseValue(iluminacaoPublica),
+                    outros_valores: parseValue(outrosValores),
+                    saldo_energia_kwh: Number(saldoEnergiaKwh),
+                    observacao: observacao || null,
+                    data_vencimento: dataVencimento,
+                    percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
+                  });
+                }}
+              />
+            </div>
+          </form>
+        </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Salvando..." : "Salvar"}
-            </Button>
-          </DialogFooter>
-        </form>
+        {/* Footer fixo na base */}
+        <DialogFooter className="p-6 pt-4 border-t">
+          <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSubmit} disabled={isLoading}>
+            {isLoading ? "Salvando..." : "Salvar"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
