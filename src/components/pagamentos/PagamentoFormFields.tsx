@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CurrencyInput } from "@/components/faturas/CurrencyInput";
-import { PagamentoFormValues } from "./types/pagamento";
+import { PagamentoFormValues, PagamentoStatus } from "./types/pagamento";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -33,7 +33,7 @@ export function PagamentoFormFields({
       ...form,
       data_emissao: dataEmissao || null,
       data_pagamento: dataPagamento,
-      status: 'pendente'
+      status: 'pendente' as PagamentoStatus
     });
   };
 
@@ -140,15 +140,18 @@ export function PagamentoFormFields({
         <Label htmlFor="status">Status</Label>
         <Select
           value={form.status}
-          onValueChange={(value) => setForm({ ...form, status: value })}
+          onValueChange={(value: PagamentoStatus) => setForm({ ...form, status: value })}
         >
           <SelectTrigger>
             <SelectValue placeholder="Selecione o status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="pendente">Pendente</SelectItem>
+            <SelectItem value="enviado">Enviado</SelectItem>
+            <SelectItem value="confirmado">Confirmado</SelectItem>
             <SelectItem value="pago">Pago</SelectItem>
             <SelectItem value="atrasado">Atrasado</SelectItem>
+            <SelectItem value="cancelado">Cancelado</SelectItem>
           </SelectContent>
         </Select>
       </div>

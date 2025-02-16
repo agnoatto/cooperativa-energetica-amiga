@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +7,7 @@ import { MonthSelector } from "@/components/pagamentos/MonthSelector";
 import { PagamentosHeader } from "@/components/pagamentos/PagamentosHeader";
 import { PagamentosTable } from "@/components/pagamentos/PagamentosTable";
 import { PagamentoEditModal } from "@/components/pagamentos/PagamentoEditModal";
+import { PagamentoData, PagamentoStatus } from "@/components/pagamentos/types/pagamento";
 
 interface Usina {
   id: string;
@@ -21,7 +21,7 @@ interface Usina {
 
 const Pagamentos = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedPagamento, setSelectedPagamento] = useState<any>(null);
+  const [selectedPagamento, setSelectedPagamento] = useState<PagamentoData | null>(null);
   const queryClient = useQueryClient();
 
   const { data: pagamentos, isLoading } = useQuery({
@@ -74,7 +74,16 @@ const Pagamentos = () => {
         return [];
       }
 
-      return data || [];
+      return (data || []).map(item => ({
+        ...item,
+        historico_status: Array.isArray(item.historico_status) 
+          ? item.historico_status.map((h: any) => ({
+              data: h.data,
+              status_anterior: h.status_anterior as PagamentoStatus,
+              novo_status: h.novo_status as PagamentoStatus
+            }))
+          : []
+      })) as PagamentoData[];
     },
   });
 
@@ -169,7 +178,7 @@ const Pagamentos = () => {
     });
   };
 
-  const handleEditPagamento = (pagamento: any) => {
+  const handleEditPagamento = (pagamento: PagamentoData) => {
     setSelectedPagamento(pagamento);
   };
 
