@@ -1,3 +1,4 @@
+
 import React from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster } from "./components/ui/toaster";
@@ -169,14 +170,13 @@ function AppContent() {
   );
 }
 
-function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </BrowserRouter>
-  );
-}
+// Componente raiz sem estado local
+const App = () => (
+  <BrowserRouter>
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  </BrowserRouter>
+);
 
 export default App;
