@@ -20,26 +20,55 @@ import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { SidebarLink } from './SidebarLink';
 import { SidebarProfile } from './SidebarProfile';
+import { useState, useEffect } from 'react';
+import { Session } from '@supabase/supabase-js';
 
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [session, setSession] = useState<Session | null>(null);
 
-  const { data: profile } = useQuery({
-    queryKey: ['profile'],
+  // Monitora mudanças na sessão
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Query do perfil só é executada quando há uma sessão válida
+  const { data: profile, isError } = useQuery({
+    queryKey: ['profile', session?.user?.id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
+      if (!session?.user?.id) return null;
 
-      const { data: profile, error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
-        .single();
+        .eq('id', session.user.id)
+        .maybeSingle();
 
-      if (error) throw error;
-      return profile;
-    }
+      if (error) {
+        // Se houver erro de autenticação, faz logout
+        if (error.code === 'PGRST301' || error.code === '401') {
+          await supabase.auth.signOut();
+          navigate('/auth');
+          return null;
+        }
+        throw error;
+      }
+
+      return data;
+    },
+    enabled: !!session?.user?.id, // Só executa quando há um usuário autenticado
+    retry: 1, // Limita o número de tentativas em caso de erro
   });
 
   const handleLogout = async () => {
@@ -52,6 +81,15 @@ export function Sidebar() {
       toast.error('Erro ao fazer logout');
     }
   };
+
+  // Se não houver sessão, não renderiza o sidebar
+  if (!session) return null;
+
+  // Se houver erro no carregamento do perfil, mostra mensagem
+  if (isError) {
+    toast.error('Erro ao carregar informações do usuário');
+    return null;
+  }
 
   return (
     <aside
@@ -165,7 +203,6 @@ export function Sidebar() {
             Configurações
           </SidebarLink>
 
-          {/* Botão de Logout */}
           <button
             onClick={handleLogout}
             className={cn(
