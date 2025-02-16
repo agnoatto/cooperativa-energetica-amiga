@@ -287,6 +287,81 @@ export type Database = {
           },
         ]
       }
+      geracao_prevista_usina: {
+        Row: {
+          abril: number | null
+          agosto: number | null
+          ano: number
+          created_at: string
+          dezembro: number | null
+          fevereiro: number | null
+          id: string
+          janeiro: number | null
+          julho: number | null
+          junho: number | null
+          maio: number | null
+          marco: number | null
+          novembro: number | null
+          outubro: number | null
+          setembro: number | null
+          updated_at: string
+          usina_id: string
+        }
+        Insert: {
+          abril?: number | null
+          agosto?: number | null
+          ano: number
+          created_at?: string
+          dezembro?: number | null
+          fevereiro?: number | null
+          id?: string
+          janeiro?: number | null
+          julho?: number | null
+          junho?: number | null
+          maio?: number | null
+          marco?: number | null
+          novembro?: number | null
+          outubro?: number | null
+          setembro?: number | null
+          updated_at?: string
+          usina_id: string
+        }
+        Update: {
+          abril?: number | null
+          agosto?: number | null
+          ano?: number
+          created_at?: string
+          dezembro?: number | null
+          fevereiro?: number | null
+          id?: string
+          janeiro?: number | null
+          julho?: number | null
+          junho?: number | null
+          maio?: number | null
+          marco?: number | null
+          novembro?: number | null
+          outubro?: number | null
+          setembro?: number | null
+          updated_at?: string
+          usina_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "geracao_prevista_usina_usina_id_fkey"
+            columns: ["usina_id"]
+            isOneToOne: false
+            referencedRelation: "usinas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "geracao_prevista_usina_usina_id_fkey"
+            columns: ["usina_id"]
+            isOneToOne: false
+            referencedRelation: "usinas_ativas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       historico_titulares_usina: {
         Row: {
           apelido: string | null
@@ -988,6 +1063,7 @@ export type Database = {
           deleted_at: string | null
           id: string
           investidor_id: string
+          potencia_instalada: number | null
           session_id: string | null
           status: string | null
           unidade_usina_id: string
@@ -1009,6 +1085,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           investidor_id: string
+          potencia_instalada?: number | null
           session_id?: string | null
           status?: string | null
           unidade_usina_id: string
@@ -1030,6 +1107,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           investidor_id?: string
+          potencia_instalada?: number | null
           session_id?: string | null
           status?: string | null
           unidade_usina_id?: string

@@ -9,10 +9,10 @@ import {
 import { Form } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
-import { DadosPagamentoFields } from "./DadosPagamentoFields";
 import { type UsinaFormData } from "./schema";
 import { useUsinaForm } from "./hooks/useUsinaForm";
 import { UsinaBasicInfoFields } from "./UsinaBasicInfoFields";
+import { DadosPagamentoCollapsible } from "./DadosPagamentoCollapsible";
 
 interface UsinaFormProps {
   open: boolean;
@@ -47,7 +47,7 @@ export function UsinaForm({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <UsinaBasicInfoFields form={form} usinaId={usinaId} />
-            <DadosPagamentoFields form={form} />
+            <DadosPagamentoCollapsible form={form} />
 
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
