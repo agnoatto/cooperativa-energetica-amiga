@@ -32,11 +32,13 @@ export function FaturaFileUpload({
 
   return (
     <div className="space-y-4">
-      <UploadDropZone
-        isUploading={isUploading}
-        isDragging={isDragging}
-        onDrop={handleFileUpload}
-      />
+      {!arquivoNome && (
+        <UploadDropZone
+          isUploading={isUploading}
+          isDragging={isDragging}
+          onDrop={handleFileUpload}
+        />
+      )}
 
       {arquivoNome && arquivoPath && (
         <FilePreview

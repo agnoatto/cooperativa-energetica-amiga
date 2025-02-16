@@ -55,15 +55,6 @@ export function useFileUpload(faturaId: string, onSuccess: () => void) {
       toast.success('Arquivo enviado com sucesso!');
       onSuccess();
 
-      // Obter URL do arquivo para visualização
-      const { data: urlData } = await supabase.storage
-        .from('faturas_concessionaria')
-        .createSignedUrl(filePath, 60);
-
-      if (urlData) {
-        setPdfUrl(urlData.signedUrl);
-        setShowPdfPreview(true);
-      }
     } catch (error: any) {
       console.error('Erro no upload:', error);
       toast.error('Erro ao enviar arquivo');
