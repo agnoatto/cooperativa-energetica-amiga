@@ -3,14 +3,16 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-const queryClient = new QueryClient()
+// Renderiza a aplicação no elemento root
+const root = document.getElementById('root')
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+if (!root) {
+  throw new Error('Root element not found')
+}
+
+ReactDOM.createRoot(root).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
+    <App />
   </React.StrictMode>
 )
