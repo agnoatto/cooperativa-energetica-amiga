@@ -1,5 +1,4 @@
 
-import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { 
@@ -35,7 +34,7 @@ interface SidebarLinkProps {
   isExpanded?: boolean;
 }
 
-const SidebarLink = ({ href, icon: Icon, children, isActive, subItems, isExpanded }: SidebarLinkProps) => {
+function SidebarLink({ href, icon: Icon, children, isActive, subItems, isExpanded }: SidebarLinkProps) {
   const location = useLocation();
   const isParentOfActive = subItems?.some(item => location.pathname === item.href);
 
@@ -87,10 +86,9 @@ const SidebarLink = ({ href, icon: Icon, children, isActive, subItems, isExpande
       )}
     </div>
   );
-};
+}
 
 export function Sidebar() {
-  const [isExpanded, setIsExpanded] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -126,17 +124,14 @@ export function Sidebar() {
     <aside
       className={cn(
         "fixed left-0 top-0 z-40 h-screen bg-white dark:bg-gray-900 border-r shadow-sm",
-        "transition-all duration-300 ease-in-out",
-        isExpanded ? "w-64" : "w-16"
+        "transition-all duration-300 ease-in-out w-16 hover:w-64"
       )}
-      onMouseEnter={() => setIsExpanded(true)}
-      onMouseLeave={() => setIsExpanded(false)}
     >
       <div className="flex flex-col h-full overflow-hidden">
         {/* Perfil do usuário */}
         <div className={cn(
           "p-4 border-b flex items-center gap-3",
-          !isExpanded && "justify-center"
+          "w-16 hover:w-full"
         )}>
           <Avatar className="h-8 w-8">
             <AvatarImage src={profile?.avatar_url} />
@@ -144,10 +139,7 @@ export function Sidebar() {
               {profile?.nome?.charAt(0)?.toUpperCase() || 'U'}
             </AvatarFallback>
           </Avatar>
-          <span className={cn(
-            "text-sm font-medium truncate transition-all duration-200",
-            isExpanded ? "opacity-100" : "opacity-0"
-          )}>
+          <span className="text-sm font-medium truncate opacity-0 hover:opacity-100 transition-opacity duration-200">
             {profile?.nome || 'Usuário'}
           </span>
         </div>
@@ -158,7 +150,7 @@ export function Sidebar() {
               href="/dashboard" 
               icon={Home}
               isActive={location.pathname === '/dashboard'}
-              isExpanded={isExpanded}
+              isExpanded={false}
             >
               Dashboard
             </SidebarLink>
@@ -167,7 +159,7 @@ export function Sidebar() {
               href="/cooperados" 
               icon={Users}
               isActive={location.pathname === '/cooperados'}
-              isExpanded={isExpanded}
+              isExpanded={false}
               subItems={[
                 {
                   href: "/cooperados/unidades",
@@ -183,7 +175,7 @@ export function Sidebar() {
               href="/usinas" 
               icon={Server}
               isActive={location.pathname === '/usinas'}
-              isExpanded={isExpanded}
+              isExpanded={false}
               subItems={[
                 {
                   href: "/usinas/investidores",
@@ -204,7 +196,7 @@ export function Sidebar() {
               href="/faturas" 
               icon={FileText}
               isActive={location.pathname === '/faturas'}
-              isExpanded={isExpanded}
+              isExpanded={false}
             >
               Faturas
             </SidebarLink>
@@ -213,7 +205,7 @@ export function Sidebar() {
               href="/pagamentos" 
               icon={Table}
               isActive={location.pathname === '/pagamentos'}
-              isExpanded={isExpanded}
+              isExpanded={false}
             >
               Pagamentos
             </SidebarLink>
@@ -222,7 +214,7 @@ export function Sidebar() {
               href="/financeiro/contas-receber" 
               icon={Wallet}
               isActive={location.pathname.startsWith('/financeiro')}
-              isExpanded={isExpanded}
+              isExpanded={false}
               subItems={[
                 {
                   href: "/financeiro/contas-pagar",
@@ -246,7 +238,7 @@ export function Sidebar() {
             href="/configuracoes" 
             icon={Settings}
             isActive={location.pathname === '/configuracoes'}
-            isExpanded={isExpanded}
+            isExpanded={false}
           >
             Configurações
           </SidebarLink>
@@ -262,10 +254,7 @@ export function Sidebar() {
             <div className="min-w-[64px] flex justify-center">
               <LogOut className="h-5 w-5 shrink-0" />
             </div>
-            <span className={cn(
-              "truncate transition-all duration-200",
-              isExpanded ? "opacity-100" : "opacity-0"
-            )}>
+            <span className="truncate opacity-0 hover:opacity-100 transition-opacity duration-200">
               Sair
             </span>
           </button>
