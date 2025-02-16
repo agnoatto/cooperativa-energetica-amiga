@@ -18,6 +18,12 @@ export interface FaturaEditModalProps {
     arquivo_concessionaria_tamanho?: number | null;
     unidade_beneficiaria: {
       percentual_desconto: number;
+      numero_uc: string;
+      apelido: string | null;
+      cooperado: {
+        nome: string;
+        documento: string;
+      };
     };
   };
   onSuccess: (data: {
