@@ -698,29 +698,38 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_storage_path: string | null
+          avatar_url: string | null
+          cargo: string | null
           created_at: string
-          email: string | null
+          email: string
           empresa_id: string | null
           id: string
-          nome: string | null
+          nome: string
           telefone: string | null
           updated_at: string
         }
         Insert: {
+          avatar_storage_path?: string | null
+          avatar_url?: string | null
+          cargo?: string | null
           created_at?: string
-          email?: string | null
+          email?: string
           empresa_id?: string | null
           id?: string
-          nome?: string | null
+          nome?: string
           telefone?: string | null
           updated_at?: string
         }
         Update: {
+          avatar_storage_path?: string | null
+          avatar_url?: string | null
+          cargo?: string | null
           created_at?: string
-          email?: string | null
+          email?: string
           empresa_id?: string | null
           id?: string
-          nome?: string | null
+          nome?: string
           telefone?: string | null
           updated_at?: string
         }

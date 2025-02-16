@@ -2,6 +2,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CooperativaForm } from "@/components/configuracoes/CooperativaForm";
 import { SystemSettingsForm } from "@/components/configuracoes/SystemSettingsForm";
+import { ProfileSettingsForm } from "@/components/configuracoes/ProfileSettingsForm";
 
 const Configuracoes = () => {
   return (
@@ -13,11 +14,16 @@ const Configuracoes = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="cooperativa" className="w-full">
+      <Tabs defaultValue="perfil" className="w-full">
         <TabsList>
+          <TabsTrigger value="perfil">Perfil</TabsTrigger>
           <TabsTrigger value="cooperativa">Cooperativa</TabsTrigger>
           <TabsTrigger value="sistema">Sistema</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="perfil" className="mt-4">
+          <ProfileSettingsForm />
+        </TabsContent>
 
         <TabsContent value="cooperativa" className="mt-4">
           <CooperativaForm />
