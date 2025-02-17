@@ -187,7 +187,14 @@ export function useLancamentosFinanceiros({
             numero_uc: item.fatura.unidade_beneficiaria.numero_uc
           }
         } : undefined,
-        pagamento_usina: item.pagamento_usina || undefined
+        pagamento_usina: item.pagamento_usina ? {
+          ...item.pagamento_usina,
+          usina: item.pagamento_usina.usina ? {
+            unidade_usina: {
+              numero_uc: item.pagamento_usina.usina.unidade_usina?.numero_uc || ''
+            }
+          } : undefined
+        } : undefined
       }));
 
       console.log('Lançamentos processados:', lancamentos.length);
