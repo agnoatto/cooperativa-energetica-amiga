@@ -23,3 +23,6 @@ export const formatarMoeda = (valor: number) => {
     currency: 'BRL',
   });
 };
+
+// Alias para manter compatibilidade com o nome usado em alguns componentes
+export const formatCurrency = formatarMoeda;
