@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { lastDayOfMonth } from "date-fns";
+import { lastDayOfMonth, startOfMonth } from "date-fns";
 import { toast } from "sonner";
 import { PagamentoData, PagamentoStatus } from "@/components/pagamentos/types/pagamento";
 
@@ -12,11 +12,20 @@ export const usePagamentos = (currentDate: Date) => {
   const { data: pagamentos, isLoading } = useQuery({
     queryKey: ["pagamentos", currentDate],
     queryFn: async () => {
+      const mes = currentDate.getMonth() + 1;
+      const ano = currentDate.getFullYear();
+      const primeiroDiaMes = startOfMonth(currentDate);
+
+      // Buscar apenas usinas ativas e com data_inicio anterior ou igual ao mês atual
       const { data, error } = await supabase
         .from("usinas")
         .select(`
           id,
           valor_kwh,
+          data_inicio,
+          status,
+          concessionaria,
+          modalidade,
           unidade_usina:unidades_usina!inner(
             numero_uc
           ),
@@ -50,17 +59,15 @@ export const usePagamentos = (currentDate: Date) => {
             empresa_id
           )
         `)
-        .is("deleted_at", null)
-        .order('created_at', { ascending: false });
+        .eq('status', 'active')
+        .lte('data_inicio', primeiroDiaMes.toISOString())
+        .is("deleted_at", null);
 
       if (error) {
         console.error("Erro ao carregar pagamentos:", error);
         toast.error("Erro ao carregar pagamentos");
         return [];
       }
-
-      const mes = currentDate.getMonth() + 1;
-      const ano = currentDate.getFullYear();
 
       return data.map(usina => {
         // Ordenar pagamentos por data (ano e mês)
@@ -79,7 +86,9 @@ export const usePagamentos = (currentDate: Date) => {
               id: usina.id,
               valor_kwh: usina.valor_kwh,
               unidade_usina: usina.unidade_usina,
-              investidor: usina.investidor
+              investidor: usina.investidor,
+              concessionaria: usina.concessionaria,
+              modalidade: usina.modalidade
             },
             historico_status: Array.isArray(pagamentoDoMes.historico_status) 
               ? pagamentoDoMes.historico_status.map((h: any) => ({
@@ -91,45 +100,20 @@ export const usePagamentos = (currentDate: Date) => {
           };
         }
 
-        // Se não houver pagamento para o mês, cria um registro zerado
-        return {
-          id: crypto.randomUUID(),
-          geracao_kwh: 0,
-          tusd_fio_b: 0,
-          valor_tusd_fio_b: 0,
-          valor_concessionaria: 0,
-          valor_total: 0,
-          conta_energia: 0,
-          status: "pendente" as PagamentoStatus,
-          data_vencimento: lastDayOfMonth(currentDate).toISOString().split('T')[0],
-          data_pagamento: null,
-          data_emissao: null,
-          data_confirmacao: null,
-          data_envio: null,
-          mes,
-          ano,
-          arquivo_comprovante_nome: null,
-          arquivo_comprovante_path: null,
-          arquivo_comprovante_tipo: null,
-          arquivo_comprovante_tamanho: null,
-          observacao: null,
-          observacao_pagamento: null,
-          historico_status: [],
-          send_method: null,
-          empresa_id: null,
-          usina: {
-            id: usina.id,
-            valor_kwh: usina.valor_kwh,
-            unidade_usina: usina.unidade_usina,
-            investidor: usina.investidor
-          }
-        } as PagamentoData;
-      });
+        // Se não houver pagamento para o mês, retorna null
+        return null;
+      }).filter(Boolean); // Remove os itens null do array
     },
   });
 
   const gerarPagamentosMutation = useMutation({
     mutationFn: async () => {
+      const mes = currentDate.getMonth() + 1;
+      const ano = currentDate.getFullYear();
+      const primeiroDiaMes = startOfMonth(currentDate);
+      const dataVencimento = lastDayOfMonth(currentDate);
+
+      // Buscar apenas usinas ativas e com data_inicio anterior ou igual ao mês atual
       const { data: usinas, error: usinasError } = await supabase
         .from("usinas")
         .select(`
@@ -141,13 +125,11 @@ export const usePagamentos = (currentDate: Date) => {
             nome_investidor
           )
         `)
-        .is("deleted_at", null); // Mudado aqui também
+        .eq('status', 'active')
+        .lte('data_inicio', primeiroDiaMes.toISOString())
+        .is("deleted_at", null);
 
       if (usinasError) throw usinasError;
-
-      const mes = currentDate.getMonth() + 1;
-      const ano = currentDate.getFullYear();
-      const dataVencimento = lastDayOfMonth(currentDate);
 
       const usinasComPagamento = await Promise.all(
         (usinas as any[]).map(async (usina) => {
