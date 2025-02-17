@@ -23,6 +23,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -30,7 +31,7 @@ import { AddressFields } from "./AddressFields";
 import { UnidadeBeneficiariaBasicInfo } from "./UnidadeBeneficiariaBasicInfo";
 import { UnidadeBeneficiariaDateFields } from "./UnidadeBeneficiariaDateFields";
 import { GeracaoCreditosFields } from "./GeracaoCreditosFields";
-import { UnidadeBeneficiariaFormProps, UnidadeBeneficiariaFormValues, ViaCEPResponse } from "./types";
+import { UnidadeBeneficiariaFormProps, UnidadeBeneficiariaFormValues } from "./types";
 import { unidadeBeneficiariaFormSchema } from "./schema";
 
 export function UnidadeBeneficiariaForm({
@@ -70,6 +71,14 @@ export function UnidadeBeneficiariaForm({
     },
   });
 
+  // Reset do formulário quando o modal é fechado
+  useEffect(() => {
+    if (!open) {
+      form.reset();
+      setSelectedCooperadoId(null);
+    }
+  }, [open, form]);
+
   useEffect(() => {
     const fetchCooperados = async () => {
       try {
@@ -88,29 +97,6 @@ export function UnidadeBeneficiariaForm({
 
     fetchCooperados();
   }, []);
-
-  const fetchCep = async (cep: string) => {
-    try {
-      setIsLoadingCep(true);
-      const cleanCep = cep.replace(/\D/g, '');
-      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
-      const data: ViaCEPResponse = await response.json();
-
-      if (data.erro) {
-        toast.error("CEP não encontrado");
-        return;
-      }
-
-      form.setValue('logradouro', data.logradouro);
-      form.setValue('bairro', data.bairro);
-      form.setValue('cidade', data.localidade);
-      form.setValue('uf', data.uf as any);
-    } catch (error) {
-      toast.error("Erro ao buscar CEP");
-    } finally {
-      setIsLoadingCep(false);
-    }
-  };
 
   useEffect(() => {
     async function fetchUnidade() {
@@ -160,8 +146,31 @@ export function UnidadeBeneficiariaForm({
     }
   }, [unidadeId, open, form]);
 
+  const fetchCep = async (cep: string) => {
+    try {
+      setIsLoadingCep(true);
+      const cleanCep = cep.replace(/\D/g, '');
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data: any = await response.json();
+
+      if (data.erro) {
+        toast.error("CEP não encontrado");
+        return;
+      }
+
+      form.setValue('logradouro', data.logradouro);
+      form.setValue('bairro', data.bairro);
+      form.setValue('cidade', data.localidade);
+      form.setValue('uf', data.uf as any);
+    } catch (error) {
+      toast.error("Erro ao buscar CEP");
+    } finally {
+      setIsLoadingCep(false);
+    }
+  };
+
   async function onSubmit(data: UnidadeBeneficiariaFormValues) {
-    if (!selectedCooperadoId) {
+    if (!selectedCooperadoId && !cooperadoId) {
       toast.error("Selecione um cooperado");
       return;
     }
@@ -170,7 +179,7 @@ export function UnidadeBeneficiariaForm({
       const endereco = `${data.logradouro}, ${data.numero}${data.complemento ? `, ${data.complemento}` : ''} - ${data.bairro}, ${data.cidade} - ${data.uf}, ${data.cep}`;
       
       const unidadeData = {
-        cooperado_id: selectedCooperadoId,
+        cooperado_id: selectedCooperadoId || cooperadoId,
         numero_uc: data.numero_uc,
         apelido: data.apelido || null,
         endereco: endereco,
@@ -221,11 +230,14 @@ export function UnidadeBeneficiariaForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col p-0">
+      <DialogContent className="max-w-3xl h-[90vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle>
             {unidadeId ? "Editar Unidade Beneficiária" : "Nova Unidade Beneficiária"}
           </DialogTitle>
+          <DialogDescription>
+            Preencha os dados da unidade beneficiária. Todos os campos marcados com * são obrigatórios.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -270,8 +282,7 @@ export function UnidadeBeneficiariaForm({
             <div className="border-t border-gray-200 p-6">
               <Button 
                 type="submit" 
-                className="w-full bg-primary hover:bg-primary/90 text-white py-6"
-                aria-label="Salvar unidade beneficiária"
+                className="w-full"
               >
                 Salvar
               </Button>
