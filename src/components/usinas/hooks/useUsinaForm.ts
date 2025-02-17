@@ -16,6 +16,7 @@ const defaultValues: UsinaFormData = {
   investidor_id: "",
   unidade_usina_id: "",
   valor_kwh: 0,
+  potencia_instalada: undefined,
   data_inicio: undefined,
   dados_pagamento_nome: "",
   dados_pagamento_documento: "",
@@ -57,7 +58,6 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
         
         if (data) {
           const tipoPix = data.dados_pagamento_tipo_chave_pix as UsinaFormData['dados_pagamento_tipo_chave_pix'];
-          // Garantir que o status seja do tipo correto
           const usinaStatus = data.status === 'inativa' ? 'inativa' : 'ativa';
           setStatus(usinaStatus);
           
@@ -65,6 +65,7 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
             investidor_id: data.investidor_id,
             unidade_usina_id: data.unidade_usina_id,
             valor_kwh: Number(data.valor_kwh),
+            potencia_instalada: data.potencia_instalada ? Number(data.potencia_instalada) : undefined,
             data_inicio: data.data_inicio ? new Date(data.data_inicio) : undefined,
             dados_pagamento_nome: data.dados_pagamento_nome || "",
             dados_pagamento_documento: data.dados_pagamento_documento || "",
@@ -93,6 +94,7 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
         investidor_id: data.investidor_id,
         unidade_usina_id: data.unidade_usina_id,
         valor_kwh: data.valor_kwh,
+        potencia_instalada: data.potencia_instalada,
         data_inicio: data.data_inicio ? data.data_inicio.toISOString().split('T')[0] : null,
         dados_pagamento_nome: data.dados_pagamento_nome,
         dados_pagamento_documento: data.dados_pagamento_documento,
@@ -112,20 +114,26 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
           .update(usinaData)
           .eq("id", usinaId);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error updating usina:", error);
+          throw error;
+        }
         toast.success("Usina atualizada com sucesso!");
       } else {
         const { error } = await supabase.from("usinas").insert(usinaData);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error creating usina:", error);
+          throw error;
+        }
         toast.success("Usina cadastrada com sucesso!");
       }
 
       onSuccess();
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving usina:", error);
-      toast.error("Erro ao salvar usina");
+      toast.error(error.message || "Erro ao salvar usina");
     } finally {
       setIsLoading(false);
     }
