@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -90,8 +91,6 @@ export function PagamentosTable({
                     usina: {
                       nome_investidor: pagamento.usina.investidor.nome_investidor,
                       numero_uc: pagamento.usina.unidade_usina.numero_uc,
-                      concessionaria: "CELESC",
-                      modalidade: "Autoconsumo Remoto",
                       valor_kwh: pagamento.usina.valor_kwh
                     },
                     pagamentos: [pagamento],

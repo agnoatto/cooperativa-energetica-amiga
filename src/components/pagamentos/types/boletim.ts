@@ -1,15 +1,17 @@
 
-import { PagamentoData } from "./pagamento";
-
-export interface BoletimMedicaoData {
+export interface BoletimData {
   usina: {
     nome_investidor: string;
     numero_uc: string;
-    concessionaria: string;
-    modalidade: string;
     valor_kwh: number;
   };
-  pagamentos: PagamentoData[];
+  pagamentos: Array<{
+    geracao_kwh: number;
+    valor_total: number;
+    data_vencimento: string;
+    mes: number;
+    ano: number;
+  }>;
   data_emissao: Date;
   valor_receber: number;
 }

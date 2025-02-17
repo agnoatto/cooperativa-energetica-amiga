@@ -1,49 +1,35 @@
 
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { FileText, Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { useState } from "react";
+import { FileText } from "lucide-react";
 import { generateBoletimPdf } from "@/utils/generateBoletimPdf";
-import { BoletimMedicaoData } from "./types/boletim";
 import { PagamentoData } from "./types/pagamento";
-import { supabase } from "@/integrations/supabase/client";
+import { BoletimData } from "./types/boletim";
 
 interface BoletimMedicaoButtonProps {
-  boletimData: BoletimMedicaoData;
+  boletimData: BoletimData;
 }
 
 export function BoletimMedicaoButton({ boletimData }: BoletimMedicaoButtonProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  const gerarPDF = async () => {
-    setIsGenerating(true);
+  const handleGerarBoletim = async () => {
     try {
-      // Buscar todos os pagamentos da usina
-      const { data: pagamentos, error } = await supabase
-        .from("pagamentos_usina")
-        .select("*")
-        .eq("usina_id", boletimData.usina.id)
-        .order('ano', { ascending: false })
-        .order('mes', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      // Criar dados do boletim com todos os pagamentos
-      const boletimComHistorico: BoletimMedicaoData = {
+      await generateBoletimPdf({
         ...boletimData,
-        pagamentos: pagamentos as PagamentoData[]
-      };
-
-      const { doc, fileName } = await generateBoletimPdf(boletimComHistorico);
-      doc.save(fileName);
-      toast.success("Boletim de Medição gerado com sucesso!");
+        usina: {
+          nome_investidor: boletimData.usina.nome_investidor,
+          numero_uc: boletimData.usina.numero_uc,
+          valor_kwh: boletimData.usina.valor_kwh
+        },
+        pagamentos: boletimData.pagamentos.map(p => ({
+          geracao_kwh: p.geracao_kwh,
+          valor_total: p.valor_total,
+          data_vencimento: p.data_vencimento,
+          mes: p.mes,
+          ano: p.ano
+        }))
+      });
     } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      toast.error("Erro ao gerar boletim. Por favor, tente novamente.");
-    } finally {
-      setIsGenerating(false);
+      console.error("Erro ao gerar boletim:", error);
     }
   };
 
@@ -51,15 +37,10 @@ export function BoletimMedicaoButton({ boletimData }: BoletimMedicaoButtonProps)
     <Button
       variant="outline"
       size="icon"
-      onClick={gerarPDF}
+      onClick={handleGerarBoletim}
       title="Gerar Boletim de Medição"
-      disabled={isGenerating}
     >
-      {isGenerating ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : (
-        <FileText className="h-4 w-4" />
-      )}
+      <FileText className="h-4 w-4" />
     </Button>
   );
 }
