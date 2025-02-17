@@ -3,6 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import { generateBoletimPdf } from "@/utils/generateBoletimPdf";
+import { toast } from "sonner";
 import { PagamentoData } from "./types/pagamento";
 import { BoletimData } from "./types/boletim";
 
@@ -13,7 +14,7 @@ interface BoletimMedicaoButtonProps {
 export function BoletimMedicaoButton({ boletimData }: BoletimMedicaoButtonProps) {
   const handleGerarBoletim = async () => {
     try {
-      await generateBoletimPdf({
+      const { doc, fileName } = await generateBoletimPdf({
         ...boletimData,
         usina: {
           nome_investidor: boletimData.usina.nome_investidor,
@@ -28,8 +29,14 @@ export function BoletimMedicaoButton({ boletimData }: BoletimMedicaoButtonProps)
           ano: p.ano
         }))
       });
+
+      // Gerar e fazer download do PDF
+      doc.save(fileName);
+      
+      toast.success("Boletim de medição gerado com sucesso!");
     } catch (error) {
       console.error("Erro ao gerar boletim:", error);
+      toast.error("Erro ao gerar boletim de medição");
     }
   };
 
