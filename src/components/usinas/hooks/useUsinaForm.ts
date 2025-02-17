@@ -30,7 +30,6 @@ const defaultValues: UsinaFormData = {
 
 export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [status, setStatus] = useState<'ativa' | 'inativa'>('inativa');
 
   const form = useForm<UsinaFormData>({
     resolver: zodResolver(usinaFormSchema),
@@ -41,7 +40,6 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
     // Se o modal foi fechado OU se estamos abrindo para uma nova usina, reseta o formulário
     if (!open || (open && !usinaId)) {
       form.reset(defaultValues);
-      setStatus('inativa');
       return;
     }
 
@@ -60,7 +58,6 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
         if (data) {
           const tipoPix = data.dados_pagamento_tipo_chave_pix as UsinaFormData['dados_pagamento_tipo_chave_pix'];
           
-          setStatus(data.status);
           form.reset({
             investidor_id: data.investidor_id,
             unidade_usina_id: data.unidade_usina_id,
@@ -103,7 +100,6 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
         dados_pagamento_email: data.dados_pagamento_email,
         dados_pagamento_chave_pix: data.dados_pagamento_chave_pix,
         dados_pagamento_tipo_chave_pix: data.dados_pagamento_tipo_chave_pix,
-        status,
       };
 
       if (usinaId) {
@@ -136,8 +132,5 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
     isLoading,
     onSubmit,
     fetchUsinaData,
-    status,
-    setStatus,
   };
 }
-
