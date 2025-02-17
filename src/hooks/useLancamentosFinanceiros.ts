@@ -12,6 +12,37 @@ interface UseLancamentosFinanceirosOptions {
   busca?: string;
 }
 
+interface LancamentoResponse {
+  historico_status: Array<{
+    data: string;
+    status_anterior: StatusLancamento;
+    novo_status: StatusLancamento;
+  }>;
+  cooperado?: {
+    nome: string;
+    documento: string;
+  } | null;
+  investidor?: {
+    nome_investidor: string;
+    documento: string;
+  } | null;
+  fatura?: {
+    id: string;
+    unidade_beneficiaria?: {
+      numero_uc: string;
+    } | null;
+  } | null;
+  pagamento_usina?: {
+    id: string;
+    usina?: {
+      unidade_usina?: {
+        numero_uc: string;
+      } | null;
+    } | null;
+  } | null;
+  [key: string]: any;
+}
+
 export function useLancamentosFinanceiros({
   tipo,
   status,
@@ -30,7 +61,6 @@ export function useLancamentosFinanceiros({
         busca
       });
 
-      // Construir a query base com logs detalhados
       let query = supabase
         .from('lancamentos_financeiros')
         .select(`
@@ -51,7 +81,6 @@ export function useLancamentosFinanceiros({
 
       console.log('Query base construída, aplicando filtros...');
 
-      // Aplicar filtros
       query = query.eq('tipo', tipo);
       console.log('Filtro de tipo aplicado:', tipo);
 
@@ -80,11 +109,9 @@ export function useLancamentosFinanceiros({
         console.log('Filtro de busca aplicado:', busca);
       }
 
-      // Ordenar por data de vencimento
       query = query.order('data_vencimento', { ascending: true });
       console.log('Ordenação aplicada');
 
-      // Executar a query com tratamento de erro detalhado
       const { data, error } = await query;
 
       if (error) {
@@ -107,27 +134,29 @@ export function useLancamentosFinanceiros({
         amostra: data.slice(0, 2)
       });
 
-      // Processamento dos dados com validação
-      const lancamentos = data.map(item => {
-        // Garantir que o histórico_status seja um array válido
+      const lancamentos = (data as LancamentoResponse[]).map(item => {
         const historico_status = Array.isArray(item.historico_status) 
-          ? item.historico_status 
+          ? item.historico_status.map(hist => ({
+              data: hist.data,
+              status_anterior: hist.status_anterior,
+              novo_status: hist.novo_status
+            }))
           : [];
 
         return {
           ...item,
-          historico_status: historico_status.map(hist => ({
-            data: hist.data,
-            status_anterior: hist.status_anterior,
-            novo_status: hist.novo_status
-          }))
-        };
-      }) as LancamentoFinanceiro[];
+          historico_status,
+          cooperado: item.cooperado || null,
+          investidor: item.investidor || null,
+          fatura: item.fatura || null,
+          pagamento_usina: item.pagamento_usina || null
+        } as LancamentoFinanceiro;
+      });
 
       console.log('Lançamentos processados:', lancamentos.length);
       return lancamentos;
     },
-    retry: 1, // Tentar novamente uma vez em caso de erro
-    staleTime: 1000 * 60 * 5, // Cache por 5 minutos
+    retry: 1,
+    staleTime: 1000 * 60 * 5,
   });
 }
