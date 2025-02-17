@@ -2,19 +2,17 @@
 import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { BoletimMedicaoData } from "@/components/pagamentos/types/boletim";
+import { BoletimData } from "@/components/pagamentos/types/boletim";
 import { COLORS, FONTS, SPACING } from "./constants";
-import { formatCurrency } from "../pdfUtils";
+import { formatCurrency } from "../formatters";
 
-export const addUsinaInfo = (doc: jsPDF, data: BoletimMedicaoData, yPos: number): number => {
+export const addUsinaInfo = (doc: jsPDF, data: BoletimData, yPos: number): number => {
   doc.setTextColor(COLORS.BLACK[0], COLORS.BLACK[1], COLORS.BLACK[2]);
   doc.setFontSize(FONTS.NORMAL);
 
   const info = [
     { label: "Nome da Usina:", value: data.usina.nome_investidor },
     { label: "UC:", value: data.usina.numero_uc },
-    { label: "Concessionária:", value: data.usina.concessionaria },
-    { label: "Modalidade:", value: data.usina.modalidade },
     { label: "Valor da Tarifa:", value: formatCurrency(data.usina.valor_kwh) },
     { label: "Valor a Receber:", value: formatCurrency(data.valor_receber) },
   ];
@@ -28,27 +26,21 @@ export const addUsinaInfo = (doc: jsPDF, data: BoletimMedicaoData, yPos: number)
   return yPos + (info.length * 7) + 10;
 };
 
-export const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number): number => {
+export const addDataTable = (doc: jsPDF, data: BoletimData, yPos: number): number => {
   doc.setFontSize(FONTS.SUBTITLE);
   doc.text("Histórico de Medição e Faturamento", SPACING.MARGIN, yPos);
 
   const headers = [
     "Mês/Ano",
     "Geração (kWh)",
-    "TUSD Fio B",
-    "Valor Bruto",
-    "Valor Conc.",
     "Valor Líquido"
   ];
 
   // Configuração das colunas
   const columnWidths = {
-    mesAno: 25,
-    geracao: 30,
-    tusd: 30,
-    bruto: 30,
-    conc: 30,
-    liquido: 30
+    mesAno: 35,
+    geracao: 35,
+    liquido: 35
   };
 
   const startX = SPACING.MARGIN;
@@ -82,31 +74,17 @@ export const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number)
 
   // Dados da tabela
   doc.setFont("helvetica", "normal");
-  const rows = sortedPagamentos.map(pagamento => {
-    const valorBruto = (pagamento.geracao_kwh * data.usina.valor_kwh) - 
-                      ((pagamento.tusd_fio_b || 0) * pagamento.geracao_kwh);
-    return {
-      mesAno: format(new Date(pagamento.ano, pagamento.mes - 1), 'MMM/yyyy', { locale: ptBR }),
-      geracao: pagamento.geracao_kwh.toLocaleString('pt-BR'),
-      tusd: formatCurrency(pagamento.tusd_fio_b ? pagamento.tusd_fio_b * pagamento.geracao_kwh : 0),
-      bruto: formatCurrency(valorBruto),
-      conc: formatCurrency(pagamento.valor_concessionaria),
-      liquido: formatCurrency(pagamento.valor_total)
-    };
-  });
+  const rows = sortedPagamentos.map(pagamento => ({
+    mesAno: format(new Date(pagamento.ano, pagamento.mes - 1), 'MMM/yyyy', { locale: ptBR }),
+    geracao: pagamento.geracao_kwh.toLocaleString('pt-BR'),
+    liquido: formatCurrency(pagamento.valor_total)
+  }));
 
   // Totais
-  const totals = sortedPagamentos.reduce((acc, pagamento) => {
-    const valorBruto = (pagamento.geracao_kwh * data.usina.valor_kwh) - 
-                      ((pagamento.tusd_fio_b || 0) * pagamento.geracao_kwh);
-    return {
-      geracao: acc.geracao + pagamento.geracao_kwh,
-      tusd: acc.tusd + (pagamento.tusd_fio_b || 0) * pagamento.geracao_kwh,
-      bruto: acc.bruto + valorBruto,
-      conc: acc.conc + pagamento.valor_concessionaria,
-      liquido: acc.liquido + pagamento.valor_total
-    };
-  }, { geracao: 0, tusd: 0, bruto: 0, conc: 0, liquido: 0 });
+  const totals = sortedPagamentos.reduce((acc, pagamento) => ({
+    geracao: acc.geracao + pagamento.geracao_kwh,
+    liquido: acc.liquido + pagamento.valor_total
+  }), { geracao: 0, liquido: 0 });
 
   // Adiciona linhas de dados
   rows.forEach((row, rowIndex) => {
@@ -123,12 +101,6 @@ export const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number)
     currentX += columnWidths.mesAno;
     drawCell(row.geracao, currentX, columnWidths.geracao, 'right');
     currentX += columnWidths.geracao;
-    drawCell(row.tusd, currentX, columnWidths.tusd, 'right');
-    currentX += columnWidths.tusd;
-    drawCell(row.bruto, currentX, columnWidths.bruto, 'right');
-    currentX += columnWidths.bruto;
-    drawCell(row.conc, currentX, columnWidths.conc, 'right');
-    currentX += columnWidths.conc;
     drawCell(row.liquido, currentX, columnWidths.liquido, 'right');
   });
 
@@ -143,12 +115,6 @@ export const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number)
   currentX += columnWidths.mesAno;
   drawCell(totals.geracao.toLocaleString('pt-BR'), currentX, columnWidths.geracao, 'right');
   currentX += columnWidths.geracao;
-  drawCell(formatCurrency(totals.tusd), currentX, columnWidths.tusd, 'right');
-  currentX += columnWidths.tusd;
-  drawCell(formatCurrency(totals.bruto), currentX, columnWidths.bruto, 'right');
-  currentX += columnWidths.bruto;
-  drawCell(formatCurrency(totals.conc), currentX, columnWidths.conc, 'right');
-  currentX += columnWidths.conc;
   drawCell(formatCurrency(totals.liquido), currentX, columnWidths.liquido, 'right');
 
   // Borda da tabela

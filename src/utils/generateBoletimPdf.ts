@@ -2,12 +2,12 @@
 import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { BoletimMedicaoData } from "@/components/pagamentos/types/boletim";
+import { BoletimData } from "@/components/pagamentos/types/boletim";
 import { COLORS, FONTS, SPACING } from "./pdf/constants";
 import { addHeader } from "./pdf/pdfHeader";
 import { addUsinaInfo, addDataTable } from "./pdf/boletimSections";
 
-export const generateBoletimPdf = async (data: BoletimMedicaoData): Promise<{ doc: jsPDF, fileName: string }> => {
+export const generateBoletimPdf = async (data: BoletimData): Promise<{ doc: jsPDF, fileName: string }> => {
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "mm",
