@@ -31,7 +31,7 @@ const defaultValues: UsinaFormData = {
 
 export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [status, setStatus] = useState<'ativa' | 'inativa'>('ativa');
+  const [status, setStatus] = useState<'active' | 'draft'>('active');
 
   const form = useForm<UsinaFormData>({
     resolver: zodResolver(usinaFormSchema),
@@ -42,7 +42,7 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
   const fetchUsinaData = async (open: boolean) => {
     if (!open || (open && !usinaId)) {
       form.reset(defaultValues);
-      setStatus('ativa');
+      setStatus('active');
       return;
     }
 
@@ -59,7 +59,7 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
         
         if (data) {
           const tipoPix = data.dados_pagamento_tipo_chave_pix as UsinaFormData['dados_pagamento_tipo_chave_pix'];
-          const usinaStatus = data.status === 'inativa' ? 'inativa' : 'ativa';
+          const usinaStatus = data.status === 'draft' ? 'draft' : 'active';
           setStatus(usinaStatus);
           
           form.reset({
