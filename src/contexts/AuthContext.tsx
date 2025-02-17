@@ -22,6 +22,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log('AuthContext: Iniciando efeito de autenticação');
+    
     // Função para verificar se o token está expirado
     const isTokenExpired = (session: Session | null) => {
       if (!session) return true;
@@ -32,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Função para carregar o perfil do usuário
     const loadProfile = async (userId: string) => {
       try {
+        console.log('AuthContext: Carregando perfil do usuário:', userId);
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
@@ -39,53 +42,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .maybeSingle();
 
         if (error) throw error;
+        console.log('AuthContext: Perfil carregado com sucesso:', data);
         return data;
       } catch (error) {
-        console.error('Erro ao carregar perfil:', error);
+        console.error('AuthContext: Erro ao carregar perfil:', error);
         return null;
       }
     };
 
     // Função para lidar com mudanças de autenticação
     const handleAuthChange = async (event: string, currentSession: Session | null) => {
-      // Não atualizar estado se nada mudou
-      if (event === 'INITIAL_SESSION' && currentSession === session) {
-        return;
-      }
+      console.log('AuthContext: Evento de autenticação:', event, 'Sessão atual:', !!currentSession);
 
-      // Se o token expirou ou não há sessão, limpar estados e redirecionar
-      if (!currentSession || isTokenExpired(currentSession)) {
-        setSession(null);
-        setUser(null);
-        setProfile(null);
-        setIsLoading(false);
-        
-        if (window.location.pathname !== '/auth') {
-          navigate('/auth');
+      setIsLoading(true);
+
+      try {
+        // Se o token expirou ou não há sessão, limpar estados
+        if (!currentSession || isTokenExpired(currentSession)) {
+          console.log('AuthContext: Sem sessão válida, limpando estados');
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          
+          // Apenas redirecionar se não estiver já na página de autenticação
+          if (window.location.pathname !== '/auth') {
+            console.log('AuthContext: Redirecionando para /auth');
+            navigate('/auth');
+          }
+          return;
         }
-        return;
-      }
 
-      // Atualizar estados com a nova sessão
-      setSession(currentSession);
-      setUser(currentSession.user);
+        // Atualizar estados com a nova sessão
+        console.log('AuthContext: Atualizando estados com nova sessão');
+        setSession(currentSession);
+        setUser(currentSession.user);
 
-      // Carregar perfil se necessário
-      if (currentSession.user && (!profile || profile.id !== currentSession.user.id)) {
-        const userProfile = await loadProfile(currentSession.user.id);
-        setProfile(userProfile);
-      }
+        // Carregar perfil se necessário
+        if (currentSession.user) {
+          const userProfile = await loadProfile(currentSession.user.id);
+          setProfile(userProfile);
+        }
 
-      setIsLoading(false);
-
-      // Se estiver na página de auth e tiver uma sessão válida, redirecionar para dashboard
-      if (window.location.pathname === '/auth' && currentSession) {
-        navigate('/dashboard');
+        // Se estiver na página de auth e tiver uma sessão válida, redirecionar para dashboard
+        if (window.location.pathname === '/auth' && currentSession) {
+          console.log('AuthContext: Redirecionando para /dashboard');
+          navigate('/dashboard');
+        }
+      } catch (error) {
+        console.error('AuthContext: Erro ao processar mudança de autenticação:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     // Buscar sessão inicial
     let mounted = true;
+    console.log('AuthContext: Buscando sessão inicial');
+    
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (mounted) {
         handleAuthChange('INITIAL_SESSION', session);
@@ -95,27 +108,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Configurar listener para mudanças de autenticação
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (mounted) {
-        handleAuthChange(event, session);
-      }
-    });
+    } = supabase.auth.onAuthStateChange(handleAuthChange);
 
     return () => {
+      console.log('AuthContext: Limpando efeito de autenticação');
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate, profile]);
+  }, [navigate]); // Removido profile das dependências
 
   const signOut = async () => {
     try {
+      console.log('AuthContext: Iniciando logout');
+      setIsLoading(true);
       await supabase.auth.signOut();
       setSession(null);
       setUser(null);
       setProfile(null);
       navigate('/auth');
     } catch (error) {
-      console.error('Erro ao fazer logout:', error);
+      console.error('AuthContext: Erro ao fazer logout:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
