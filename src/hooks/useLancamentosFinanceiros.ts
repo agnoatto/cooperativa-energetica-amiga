@@ -48,9 +48,10 @@ interface LancamentoResponse {
   } | null;
   fatura?: {
     id: string;
-    unidade_beneficiaria?: {
+    numero_fatura: string;
+    unidade_beneficiaria: {
       numero_uc: string;
-    } | null;
+    };
   } | null;
   pagamento_usina?: {
     id: string;
@@ -85,9 +86,10 @@ export function useLancamentosFinanceiros({
         .select(`
           *,
           cooperado:cooperados!fk_lancamentos_cooperado(nome, documento),
-          investidor:investidores(nome_investidor, documento),
+          investidor:investidores!fk_lancamentos_investidor(nome_investidor, documento),
           fatura:faturas(
             id,
+            numero_fatura,
             unidade_beneficiaria:unidades_beneficiarias(numero_uc)
           ),
           pagamento_usina:pagamentos_usina(
@@ -153,7 +155,7 @@ export function useLancamentosFinanceiros({
         amostra: data.slice(0, 2)
       });
 
-      const lancamentos: LancamentoFinanceiro[] = (data as LancamentoResponse[]).map(item => ({
+      const lancamentos: LancamentoFinanceiro[] = (data as unknown as LancamentoResponse[]).map(item => ({
         id: item.id,
         tipo: item.tipo,
         status: item.status,
@@ -179,7 +181,12 @@ export function useLancamentosFinanceiros({
         comprovante_tipo: item.comprovante_tipo,
         cooperado: item.cooperado || undefined,
         investidor: item.investidor || undefined,
-        fatura: item.fatura || undefined,
+        fatura: item.fatura ? {
+          numero_fatura: item.fatura.numero_fatura,
+          unidade_beneficiaria: {
+            numero_uc: item.fatura.unidade_beneficiaria.numero_uc
+          }
+        } : undefined,
         pagamento_usina: item.pagamento_usina || undefined
       }));
 
