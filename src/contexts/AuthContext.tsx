@@ -20,6 +20,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
   useEffect(() => {
     console.log('AuthContext: Iniciando efeito de autenticação');
@@ -28,10 +30,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const isTokenExpired = (session: Session | null) => {
       if (!session) return true;
       const expirationTime = session.expires_at * 1000; // Converter para milissegundos
-      return Date.now() >= expirationTime;
+      const isExpired = Date.now() >= expirationTime;
+      console.log('AuthContext: Token expirado?', isExpired);
+      return isExpired;
     };
 
-    // Função para carregar o perfil do usuário
+    // Função para carregar o perfil do usuário com retry
     const loadProfile = async (userId: string) => {
       try {
         console.log('AuthContext: Carregando perfil do usuário:', userId);
@@ -46,18 +50,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return data;
       } catch (error) {
         console.error('AuthContext: Erro ao carregar perfil:', error);
-        return null;
+        if (retryCount < MAX_RETRIES) {
+          console.log('AuthContext: Tentando novamente...');
+          setRetryCount(prev => prev + 1);
+          return null;
+        }
+        throw error;
       }
     };
 
     // Função para lidar com mudanças de autenticação
     const handleAuthChange = async (event: string, currentSession: Session | null) => {
       console.log('AuthContext: Evento de autenticação:', event, 'Sessão atual:', !!currentSession);
-
-      setIsLoading(true);
-
+      
       try {
-        // Se o token expirou ou não há sessão, limpar estados
+        // Se não houver sessão ou o token estiver expirado
         if (!currentSession || isTokenExpired(currentSession)) {
           console.log('AuthContext: Sem sessão válida, limpando estados');
           setSession(null);
@@ -78,19 +85,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(currentSession.user);
 
         // Carregar perfil se necessário
-        if (currentSession.user) {
+        if (currentSession.user && (!profile || profile.id !== currentSession.user.id)) {
           const userProfile = await loadProfile(currentSession.user.id);
           setProfile(userProfile);
         }
 
-        // Se estiver na página de auth e tiver uma sessão válida, redirecionar para dashboard
-        if (window.location.pathname === '/auth' && currentSession) {
+        // Se estiver na página de auth e tiver uma sessão válida, redirecionar
+        if (window.location.pathname === '/auth' && !isTokenExpired(currentSession)) {
           console.log('AuthContext: Redirecionando para /dashboard');
           navigate('/dashboard');
         }
       } catch (error) {
         console.error('AuthContext: Erro ao processar mudança de autenticação:', error);
       } finally {
+        // Sempre definir isLoading como false no final
         setIsLoading(false);
       }
     };
@@ -103,19 +111,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (mounted) {
         handleAuthChange('INITIAL_SESSION', session);
       }
+    }).catch(error => {
+      console.error('AuthContext: Erro ao buscar sessão inicial:', error);
+      setIsLoading(false);
     });
 
     // Configurar listener para mudanças de autenticação
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(handleAuthChange);
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      handleAuthChange(event, session);
+    });
 
     return () => {
       console.log('AuthContext: Limpando efeito de autenticação');
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate]); // Removido profile das dependências
+  }, [navigate, profile, retryCount]); // Adicionado retryCount às dependências
 
   const signOut = async () => {
     try {

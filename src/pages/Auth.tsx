@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,8 +17,20 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const isMobile = useIsMobile();
 
+  // Limpar estado quando montar o componente
+  useEffect(() => {
+    console.log('Auth: Montando componente');
+    return () => {
+      console.log('Auth: Desmontando componente');
+      setEmail("");
+      setPassword("");
+      setLoading(false);
+    };
+  }, []);
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Auth: Iniciando processo de cadastro');
     try {
       setLoading(true);
       const { error } = await supabase.auth.signUp({
@@ -28,6 +40,7 @@ const Auth = () => {
       if (error) throw error;
       toast.success("Cadastro realizado com sucesso! Verifique seu email.");
     } catch (error: any) {
+      console.error('Auth: Erro no cadastro:', error);
       toast.error(error.message);
     } finally {
       setLoading(false);
@@ -36,6 +49,7 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Auth: Iniciando processo de login');
     try {
       setLoading(true);
       const { error } = await supabase.auth.signInWithPassword({
@@ -43,8 +57,9 @@ const Auth = () => {
         password,
       });
       if (error) throw error;
-      navigate("/");
+      navigate("/dashboard");
     } catch (error: any) {
+      console.error('Auth: Erro no login:', error);
       toast.error(error.message);
     } finally {
       setLoading(false);
@@ -78,6 +93,7 @@ const Auth = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     className="h-12"
+                    disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -89,6 +105,7 @@ const Auth = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     className="h-12"
+                    disabled={loading}
                   />
                 </div>
                 <Button 
@@ -112,6 +129,7 @@ const Auth = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     className="h-12"
+                    disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -123,6 +141,7 @@ const Auth = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     className="h-12"
+                    disabled={loading}
                   />
                 </div>
                 <Button 
