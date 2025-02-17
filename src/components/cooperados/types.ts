@@ -25,6 +25,7 @@ export interface UnidadeBeneficiariaFormValues {
   percentual_desconto: string;
   data_entrada: string;
   data_saida?: string;
+  consumo_kwh: string;
   possui_geracao_propria: boolean;
   potencia_instalada?: number | null;
   data_inicio_geracao?: string | null;

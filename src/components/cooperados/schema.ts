@@ -61,7 +61,7 @@ export const unidadeBeneficiariaFormSchema = z.object({
   percentual_desconto: z.string().min(1, "Percentual de desconto é obrigatório"),
   data_entrada: z.string().min(1, "Data de entrada é obrigatória"),
   data_saida: z.string().optional(),
-  // Novos campos
+  consumo_kwh: z.string().min(1, "Consumo é obrigatório"),
   possui_geracao_propria: z.boolean().default(false),
   potencia_instalada: z.number().optional().nullable(),
   data_inicio_geracao: z.string().optional().nullable(),

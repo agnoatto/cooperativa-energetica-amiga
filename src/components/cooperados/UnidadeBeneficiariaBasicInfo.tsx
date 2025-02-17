@@ -11,7 +11,7 @@ export function UnidadeBeneficiariaBasicInfo({ form }: BasicInfoFieldsProps) {
         name="numero_uc"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Número da UC</FormLabel>
+            <FormLabel>Número da UC *</FormLabel>
             <FormControl>
               <Input placeholder="Número da UC" {...field} />
             </FormControl>
@@ -36,10 +36,30 @@ export function UnidadeBeneficiariaBasicInfo({ form }: BasicInfoFieldsProps) {
 
       <FormField
         control={form.control}
+        name="consumo_kwh"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Consumo (kWh) *</FormLabel>
+            <FormControl>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                {...field}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
         name="percentual_desconto"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Percentual de Desconto</FormLabel>
+            <FormLabel>Percentual de Desconto *</FormLabel>
             <FormControl>
               <Input
                 type="number"

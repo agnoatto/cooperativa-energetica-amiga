@@ -886,6 +886,7 @@ export type Database = {
           cep: string | null
           cidade: string | null
           complemento: string | null
+          consumo_kwh: number | null
           cooperado_id: string
           created_at: string
           data_entrada: string
@@ -913,6 +914,7 @@ export type Database = {
           cep?: string | null
           cidade?: string | null
           complemento?: string | null
+          consumo_kwh?: number | null
           cooperado_id: string
           created_at?: string
           data_entrada: string
@@ -940,6 +942,7 @@ export type Database = {
           cep?: string | null
           cidade?: string | null
           complemento?: string | null
+          consumo_kwh?: number | null
           cooperado_id?: string
           created_at?: string
           data_entrada?: string
