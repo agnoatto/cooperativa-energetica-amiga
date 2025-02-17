@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { useEffect } from "react";
 import { type UsinaFormData } from "./schema";
 import { useUsinaForm } from "./hooks/useUsinaForm";
@@ -27,7 +27,7 @@ export function UsinaForm({
   usinaId,
   onSuccess,
 }: UsinaFormProps) {
-  const { form, isLoading, onSubmit, fetchUsinaData } = useUsinaForm({
+  const { form, isLoading, onSubmit, fetchUsinaData, status, setStatus } = useUsinaForm({
     usinaId,
     onSuccess,
     onOpenChange,
@@ -49,6 +49,27 @@ export function UsinaForm({
             <UsinaBasicInfoFields form={form} usinaId={usinaId} />
             <DadosPagamentoCollapsible form={form} />
 
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setStatus('ativa')}
+                className={`gap-2 ${status === 'ativa' ? 'bg-green-100 hover:bg-green-200' : ''}`}
+              >
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                Ativa
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setStatus('inativa')}
+                className={`gap-2 ${status === 'inativa' ? 'bg-red-100 hover:bg-red-200' : ''}`}
+              >
+                <XCircle className="h-4 w-4 text-red-500" />
+                Inativa
+              </Button>
+            </div>
+
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
                 <>
@@ -65,3 +86,4 @@ export function UsinaForm({
     </Dialog>
   );
 }
+
