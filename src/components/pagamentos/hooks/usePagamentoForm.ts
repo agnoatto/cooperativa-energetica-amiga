@@ -37,11 +37,14 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
   // Valor do kWh vindo da usina
   const valorKwh = pagamento?.usina?.valor_kwh || 0;
 
-  // Valor bruto calculado (valorKwh * geração) - (TUSD Fio B * geração)
-  const valorBruto = (valorKwh * form.geracao_kwh) - (form.tusd_fio_b * form.geracao_kwh);
+  // Valor total do TUSD Fio B (TUSD Fio B unitário * geração)
+  const valorTotalTusdFioB = form.tusd_fio_b * form.geracao_kwh;
 
-  // Valor efetivo (valor bruto - valor da concessionária)
-  const valorEfetivo = valorBruto - form.valor_concessionaria;
+  // Valor bruto calculado (valorKwh * geração)
+  const valorBruto = valorKwh * form.geracao_kwh;
+
+  // Valor efetivo (valor bruto - valor TUSD Fio B - valor da concessionária)
+  const valorEfetivo = valorBruto - valorTotalTusdFioB - form.valor_concessionaria;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +64,7 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
           data_pagamento: form.data_pagamento,
           data_emissao: form.data_emissao,
           tusd_fio_b: Number(form.tusd_fio_b.toFixed(4)),
+          valor_tusd_fio_b: Number(valorTotalTusdFioB.toFixed(4)),
           valor_concessionaria: Number(form.valor_concessionaria.toFixed(4)),
           observacao: form.observacao || null,
           observacao_pagamento: form.observacao_pagamento || null,
@@ -83,6 +87,7 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
     setForm,
     valorKwh,
     valorBruto,
+    valorTotalTusdFioB,
     valorEfetivo,
     handleSubmit
   };
