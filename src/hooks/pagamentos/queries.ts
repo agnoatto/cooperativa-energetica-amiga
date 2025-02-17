@@ -29,7 +29,6 @@ export const fetchPagamentos = async (currentDate: Date) => {
         valor_tusd_fio_b,
         valor_concessionaria,
         valor_total,
-        conta_energia,
         status,
         data_vencimento,
         data_pagamento,
