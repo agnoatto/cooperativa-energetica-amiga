@@ -22,7 +22,7 @@ export function useUnidadeBeneficiariaForm({
 }: UseUnidadeBeneficiariaFormProps) {
   const [isLoadingCep, setIsLoadingCep] = useState(false);
   const [cooperados, setCooperados] = useState<any[]>([]);
-  const [selectedCooperadoId, setSelectedCooperadoId] = useState<string | null>(cooperadoId);
+  const [selectedCooperadoId, setSelectedCooperadoId] = useState<string | null>(null);
 
   const form = useForm<UnidadeBeneficiariaFormValues>({
     resolver: zodResolver(unidadeBeneficiariaFormSchema),
@@ -51,7 +51,17 @@ export function useUnidadeBeneficiariaForm({
     },
   });
 
+  // Inicializar o selectedCooperadoId com cooperadoId quando o componente monta
   useEffect(() => {
+    if (cooperadoId) {
+      setSelectedCooperadoId(cooperadoId);
+    }
+  }, [cooperadoId]);
+
+  // Carregar lista de cooperados apenas uma vez
+  useEffect(() => {
+    let isMounted = true;
+
     const fetchCooperados = async () => {
       try {
         const { data, error } = await supabase
@@ -61,17 +71,28 @@ export function useUnidadeBeneficiariaForm({
           .order('nome');
 
         if (error) throw error;
-        setCooperados(data || []);
+        if (isMounted) {
+          setCooperados(data || []);
+        }
       } catch (error: any) {
-        toast.error("Erro ao carregar cooperados: " + error.message);
+        if (isMounted) {
+          toast.error("Erro ao carregar cooperados: " + error.message);
+        }
       }
     };
 
     fetchCooperados();
-  }, []);
 
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Executar apenas uma vez na montagem
+
+  // Carregar dados da unidade quando unidadeId mudar
   useEffect(() => {
-    async function fetchUnidade() {
+    let isMounted = true;
+
+    const fetchUnidade = async () => {
       if (!unidadeId) return;
 
       try {
@@ -83,7 +104,7 @@ export function useUnidadeBeneficiariaForm({
 
         if (error) throw error;
 
-        if (data) {
+        if (data && isMounted) {
           setSelectedCooperadoId(data.cooperado_id);
           form.reset({
             numero_uc: data.numero_uc,
@@ -110,14 +131,18 @@ export function useUnidadeBeneficiariaForm({
           });
         }
       } catch (error: any) {
-        toast.error("Erro ao carregar dados da unidade: " + error.message);
+        if (isMounted) {
+          toast.error("Erro ao carregar dados da unidade: " + error.message);
+        }
       }
-    }
+    };
 
-    if (unidadeId) {
-      fetchUnidade();
-    }
-  }, [unidadeId, form]);
+    fetchUnidade();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [unidadeId]); // Removi form das dependências pois não precisa re-executar quando o form mudar
 
   const fetchCep = async (cep: string) => {
     try {
