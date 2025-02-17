@@ -57,7 +57,7 @@ export function UsinaForm({
                 onCheckedChange={(checked) => setStatus(checked ? 'active' : 'draft')}
               />
               <Label htmlFor="status" className="text-sm">
-                {status === 'active' ? 'Ativa' : 'Rascunho'}
+                {status === 'active' ? 'Ativa' : 'Inativa'}
               </Label>
             </div>
 
