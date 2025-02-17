@@ -16,7 +16,6 @@ export interface PagamentoData {
   valor_concessionaria: number;
   mes: number;
   ano: number;
-  conta_energia: number;
   arquivo_comprovante_nome: string | null;
   arquivo_comprovante_path: string | null;
   arquivo_comprovante_tipo: string | null;
