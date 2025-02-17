@@ -33,7 +33,6 @@ export interface PagamentoData {
   usina: {
     id: string;
     valor_kwh: number;
-    modalidade: string;
     unidade_usina: {
       numero_uc: string;
     };

@@ -16,7 +16,6 @@ export const fetchPagamentos = async (currentDate: Date) => {
       valor_kwh,
       data_inicio,
       status,
-      modalidade,
       unidade_usina:unidades_usina!inner(
         numero_uc
       ),
@@ -75,8 +74,7 @@ export const fetchPagamentos = async (currentDate: Date) => {
           id: usina.id,
           valor_kwh: usina.valor_kwh,
           unidade_usina: usina.unidade_usina,
-          investidor: usina.investidor,
-          modalidade: usina.modalidade
+          investidor: usina.investidor
         },
         historico_status: Array.isArray(pagamentoDoMes.historico_status) 
           ? pagamentoDoMes.historico_status.map((h: any) => ({
