@@ -53,11 +53,11 @@ export function UsinaForm({
             <div className="flex items-center space-x-2">
               <Switch
                 id="status"
-                checked={status === 'ativa'}
-                onCheckedChange={(checked) => setStatus(checked ? 'ativa' : 'inativa')}
+                checked={status === 'active'}
+                onCheckedChange={(checked) => setStatus(checked ? 'active' : 'draft')}
               />
               <Label htmlFor="status" className="text-sm">
-                {status === 'ativa' ? 'Ativa' : 'Inativa'}
+                {status === 'active' ? 'Ativa' : 'Rascunho'}
               </Label>
             </div>
 
