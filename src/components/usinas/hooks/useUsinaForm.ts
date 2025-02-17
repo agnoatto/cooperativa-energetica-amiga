@@ -57,7 +57,9 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
         
         if (data) {
           const tipoPix = data.dados_pagamento_tipo_chave_pix as UsinaFormData['dados_pagamento_tipo_chave_pix'];
-          setStatus(data.status || 'ativa');
+          // Garantir que o status seja do tipo correto
+          const usinaStatus = data.status === 'inativa' ? 'inativa' : 'ativa';
+          setStatus(usinaStatus);
           
           form.reset({
             investidor_id: data.investidor_id,
