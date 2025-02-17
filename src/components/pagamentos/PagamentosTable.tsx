@@ -73,6 +73,52 @@ export function PagamentosTable({
     }
   };
 
+  const getPagamentosUltimos12Meses = async (pagamentoAtual: PagamentoData) => {
+    const dataAtual = new Date(pagamentoAtual.ano, pagamentoAtual.mes - 1);
+    const dataInicial = new Date(dataAtual);
+    dataInicial.setMonth(dataInicial.getMonth() - 11); // 12 meses para trás
+
+    const { data: pagamentosHistorico, error } = await supabase
+      .from('pagamentos_usina')
+      .select(`
+        id,
+        geracao_kwh,
+        tusd_fio_b,
+        valor_tusd_fio_b,
+        valor_concessionaria,
+        valor_total,
+        status,
+        data_vencimento,
+        data_pagamento,
+        data_emissao,
+        data_confirmacao,
+        data_envio,
+        mes,
+        ano,
+        usina:usinas(
+          valor_kwh,
+          unidade_usina:unidades_usina(
+            numero_uc
+          ),
+          investidor:investidores(
+            nome_investidor
+          )
+        )
+      `)
+      .eq('usina_id', pagamentoAtual.usina.id)
+      .gte('ano', dataInicial.getFullYear())
+      .lte('ano', dataAtual.getFullYear())
+      .order('ano', { ascending: false })
+      .order('mes', { ascending: false });
+
+    if (error) {
+      console.error("Erro ao buscar histórico de pagamentos:", error);
+      return [pagamentoAtual];
+    }
+
+    return pagamentosHistorico || [pagamentoAtual];
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -144,7 +190,7 @@ export function PagamentosTable({
                       numero_uc: pagamento.usina.unidade_usina.numero_uc,
                       valor_kwh: pagamento.usina.valor_kwh
                     },
-                    pagamentos: [pagamento],
+                    pagamentos: await getPagamentosUltimos12Meses(pagamento),
                     data_emissao: new Date(),
                     valor_receber: pagamento.valor_total
                   }}

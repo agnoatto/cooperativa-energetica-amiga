@@ -1,10 +1,9 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import { generateBoletimPdf } from "@/utils/generateBoletimPdf";
 import { toast } from "sonner";
-import { PagamentoData } from "./types/pagamento";
 import { BoletimData } from "./types/boletim";
 
 interface BoletimMedicaoButtonProps {
@@ -12,34 +11,19 @@ interface BoletimMedicaoButtonProps {
 }
 
 export function BoletimMedicaoButton({ boletimData }: BoletimMedicaoButtonProps) {
+  const [isGenerating, setIsGenerating] = useState(false);
+
   const handleGerarBoletim = async () => {
     try {
-      const { doc, fileName } = await generateBoletimPdf({
-        ...boletimData,
-        usina: {
-          nome_investidor: boletimData.usina.nome_investidor,
-          numero_uc: boletimData.usina.numero_uc,
-          valor_kwh: boletimData.usina.valor_kwh
-        },
-        pagamentos: boletimData.pagamentos.map(p => ({
-          geracao_kwh: p.geracao_kwh,
-          valor_total: p.valor_total,
-          data_vencimento: p.data_vencimento,
-          mes: p.mes,
-          ano: p.ano,
-          tusd_fio_b: p.tusd_fio_b,
-          valor_tusd_fio_b: p.valor_tusd_fio_b,
-          valor_concessionaria: p.valor_concessionaria
-        }))
-      });
-
-      // Gerar e fazer download do PDF
+      setIsGenerating(true);
+      const { doc, fileName } = await generateBoletimPdf(boletimData);
       doc.save(fileName);
-      
       toast.success("Boletim de medição gerado com sucesso!");
     } catch (error) {
       console.error("Erro ao gerar boletim:", error);
       toast.error("Erro ao gerar boletim de medição");
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -48,6 +32,7 @@ export function BoletimMedicaoButton({ boletimData }: BoletimMedicaoButtonProps)
       variant="outline"
       size="icon"
       onClick={handleGerarBoletim}
+      disabled={isGenerating}
       title="Gerar Boletim de Medição"
     >
       <FileText className="h-4 w-4" />
