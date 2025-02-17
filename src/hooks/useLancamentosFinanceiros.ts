@@ -34,7 +34,7 @@ export function useLancamentosFinanceiros({
         .from('lancamentos_financeiros')
         .select(`
           *,
-          cooperado:cooperados(nome, documento),
+          cooperado:cooperados!lancamentos_financeiros_cooperado_id_fkey(nome, documento),
           investidor:investidores(nome_investidor, documento),
           fatura:faturas(
             id,
