@@ -49,13 +49,13 @@ export function PagamentosTable({
     console.log("[Deleção] Iniciando processo para pagamento:", pagamentoParaDeletar.id);
 
     try {
-      // Inicia uma transação para garantir a atomicidade das operações
-      const result = await supabase.rpc('deletar_pagamento', {
-        pagamento_id: pagamentoParaDeletar.id
-      });
+      const { data, error } = await supabase
+        .from('pagamentos_usina')
+        .delete()
+        .eq('id', pagamentoParaDeletar.id);
 
-      if (result.error) {
-        console.error("[Deleção] Erro na transação:", result.error);
+      if (error) {
+        console.error("[Deleção] Erro na transação:", error);
         
         // Verificar se ainda existem lançamentos
         const { data: lancamentosRestantes, error: consultaError } = await supabase
@@ -70,7 +70,7 @@ export function PagamentosTable({
           throw new Error("Não foi possível excluir todos os lançamentos vinculados");
         }
 
-        throw new Error(result.error.message);
+        throw new Error(error.message);
       }
 
       console.log("[Deleção] Pagamento e lançamentos excluídos com sucesso");

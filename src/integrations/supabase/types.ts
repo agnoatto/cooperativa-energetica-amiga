@@ -1316,6 +1316,12 @@ export type Database = {
       }
     }
     Functions: {
+      deletar_pagamento: {
+        Args: {
+          pagamento_id: string
+        }
+        Returns: undefined
+      }
       gtrgm_compress: {
         Args: {
           "": unknown
