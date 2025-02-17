@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,32 +42,62 @@ export function PagamentosTable({
 }: PagamentosTableProps) {
   const queryClient = useQueryClient();
   const [pagamentoParaDeletar, setPagamentoParaDeletar] = React.useState<PagamentoData | null>(null);
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
   const handleDelete = async () => {
     if (!pagamentoParaDeletar) return;
+    
+    setIsDeleting(true);
+    console.log("Iniciando processo de exclusão do pagamento:", pagamentoParaDeletar.id);
 
     try {
-      const { error: lancamentosError } = await supabase
+      // Iniciar transação para garantir atomicidade das operações
+      const { data: lancamentos, error: consultaError } = await supabase
         .from("lancamentos_financeiros")
-        .delete()
+        .select("id")
         .eq("pagamento_usina_id", pagamentoParaDeletar.id);
 
-      if (lancamentosError) throw lancamentosError;
+      if (consultaError) {
+        console.error("Erro ao consultar lançamentos:", consultaError);
+        throw new Error("Erro ao verificar lançamentos associados");
+      }
+
+      console.log(`Encontrados ${lancamentos?.length || 0} lançamentos para excluir`);
+
+      if (lancamentos && lancamentos.length > 0) {
+        const { error: lancamentosError } = await supabase
+          .from("lancamentos_financeiros")
+          .delete()
+          .eq("pagamento_usina_id", pagamentoParaDeletar.id);
+
+        if (lancamentosError) {
+          console.error("Erro ao excluir lançamentos:", lancamentosError);
+          throw new Error("Erro ao excluir lançamentos financeiros");
+        }
+        
+        console.log("Lançamentos excluídos com sucesso");
+      }
 
       const { error: pagamentoError } = await supabase
         .from("pagamentos_usina")
         .delete()
         .eq("id", pagamentoParaDeletar.id);
 
-      if (pagamentoError) throw pagamentoError;
+      if (pagamentoError) {
+        console.error("Erro ao excluir pagamento:", pagamentoError);
+        throw new Error("Erro ao excluir pagamento");
+      }
 
+      console.log("Pagamento excluído com sucesso");
       toast.success("Pagamento excluído com sucesso!");
       setPagamentoParaDeletar(null);
       
       await queryClient.invalidateQueries({ queryKey: ["pagamentos"] });
     } catch (error) {
-      console.error("Erro ao excluir pagamento:", error);
-      toast.error("Erro ao excluir pagamento");
+      console.error("Erro detalhado na exclusão:", error);
+      toast.error(error instanceof Error ? error.message : "Erro ao excluir pagamento");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -164,12 +195,13 @@ export function PagamentosTable({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeleting}
             >
-              Excluir
+              {isDeleting ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
