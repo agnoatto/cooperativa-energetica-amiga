@@ -1,6 +1,5 @@
 
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -10,12 +9,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, FileText } from "lucide-react";
+import { Edit, FileText, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PagamentoData } from "./types/pagamento";
 import { formatCurrency } from "@/utils/formatters";
 import { BoletimMedicaoButton } from "./BoletimMedicaoButton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 interface PagamentosTableProps {
   pagamentos: PagamentoData[];
@@ -28,7 +38,29 @@ export function PagamentosTable({
   isLoading,
   onEditPagamento,
 }: PagamentosTableProps) {
-  const navigate = useNavigate();
+  const [pagamentoParaDeletar, setPagamentoParaDeletar] = React.useState<PagamentoData | null>(null);
+
+  const handleDelete = async () => {
+    if (!pagamentoParaDeletar) return;
+
+    try {
+      const { error } = await supabase
+        .from("pagamentos_usina")
+        .delete()
+        .eq("id", pagamentoParaDeletar.id);
+
+      if (error) throw error;
+
+      toast.success("Pagamento excluído com sucesso!");
+      setPagamentoParaDeletar(null);
+      
+      // Atualizar a lista de pagamentos após deletar
+      await queryClient.invalidateQueries({ queryKey: ["pagamentos"] });
+    } catch (error) {
+      console.error("Erro ao excluir pagamento:", error);
+      toast.error("Erro ao excluir pagamento");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -86,6 +118,14 @@ export function PagamentosTable({
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setPagamentoParaDeletar(pagamento)}
+                  className="hover:bg-destructive hover:text-destructive-foreground"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
                 <BoletimMedicaoButton 
                   boletimData={{
                     usina: {
@@ -103,6 +143,29 @@ export function PagamentosTable({
           ))}
         </TableBody>
       </Table>
+
+      <AlertDialog 
+        open={!!pagamentoParaDeletar} 
+        onOpenChange={() => setPagamentoParaDeletar(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Pagamento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este pagamento? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

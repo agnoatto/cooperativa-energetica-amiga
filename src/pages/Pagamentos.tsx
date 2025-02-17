@@ -8,6 +8,8 @@ import { PagamentoEditModal } from "@/components/pagamentos/PagamentoEditModal";
 import { PagamentoData } from "@/components/pagamentos/types/pagamento";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useMonthSelection } from "@/hooks/useMonthSelection";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Pagamentos = () => {
   const [selectedPagamento, setSelectedPagamento] = useState<PagamentoData | null>(null);
