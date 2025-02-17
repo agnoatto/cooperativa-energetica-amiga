@@ -12,12 +12,32 @@ interface UseLancamentosFinanceirosOptions {
   busca?: string;
 }
 
+interface HistoricoStatus {
+  data: string;
+  status_anterior: StatusLancamento;
+  novo_status: StatusLancamento;
+}
+
 interface LancamentoResponse {
-  historico_status: Array<{
-    data: string;
-    status_anterior: StatusLancamento;
-    novo_status: StatusLancamento;
-  }>;
+  id: string;
+  tipo: TipoLancamento;
+  status: StatusLancamento;
+  descricao: string;
+  valor: number;
+  data_vencimento: string;
+  data_pagamento?: string;
+  observacao?: string;
+  cooperado_id?: string;
+  investidor_id?: string;
+  fatura_id?: string;
+  pagamento_usina_id?: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string;
+  historico_status: HistoricoStatus[] | null;
+  comprovante_path?: string;
+  comprovante_nome?: string;
+  comprovante_tipo?: string;
   cooperado?: {
     nome: string;
     documento: string;
@@ -40,7 +60,6 @@ interface LancamentoResponse {
       } | null;
     } | null;
   } | null;
-  [key: string]: any;
 }
 
 export function useLancamentosFinanceiros({
@@ -134,7 +153,7 @@ export function useLancamentosFinanceiros({
         amostra: data.slice(0, 2)
       });
 
-      const lancamentos = data.map(item => ({
+      const lancamentos: LancamentoFinanceiro[] = (data as LancamentoResponse[]).map(item => ({
         id: item.id,
         tipo: item.tipo,
         status: item.status,
@@ -150,21 +169,19 @@ export function useLancamentosFinanceiros({
         created_at: item.created_at,
         updated_at: item.updated_at,
         deleted_at: item.deleted_at,
-        historico_status: Array.isArray(item.historico_status) 
-          ? item.historico_status.map(hist => ({
-              data: hist.data,
-              status_anterior: hist.status_anterior,
-              novo_status: hist.novo_status
-            }))
-          : [],
+        historico_status: (item.historico_status || []).map(hist => ({
+          data: typeof hist === 'object' && hist !== null ? (hist as HistoricoStatus).data : '',
+          status_anterior: typeof hist === 'object' && hist !== null ? (hist as HistoricoStatus).status_anterior : 'pendente',
+          novo_status: typeof hist === 'object' && hist !== null ? (hist as HistoricoStatus).novo_status : 'pendente'
+        })),
         comprovante_path: item.comprovante_path,
         comprovante_nome: item.comprovante_nome,
         comprovante_tipo: item.comprovante_tipo,
-        cooperado: item.cooperado,
-        investidor: item.investidor,
-        fatura: item.fatura,
-        pagamento_usina: item.pagamento_usina
-      })) as LancamentoFinanceiro[];
+        cooperado: item.cooperado || undefined,
+        investidor: item.investidor || undefined,
+        fatura: item.fatura || undefined,
+        pagamento_usina: item.pagamento_usina || undefined
+      }));
 
       console.log('Lançamentos processados:', lancamentos.length);
       return lancamentos;
