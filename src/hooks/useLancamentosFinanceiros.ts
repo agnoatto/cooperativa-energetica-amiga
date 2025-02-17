@@ -35,15 +35,15 @@ export function useLancamentosFinanceiros({
         .select(`
           *,
           cooperado:cooperados!lancamentos_financeiros_cooperado_id_fkey(nome, documento),
-          investidor:investidores!lancamentos_financeiros_investidor_id_fkey(nome_investidor, documento),
-          fatura:faturas(
+          investidor:investidores!fk_lancamentos_investidor(nome_investidor, documento),
+          fatura:faturas!lancamentos_financeiros_fatura_id_fkey(
             id,
-            unidade_beneficiaria:unidades_beneficiarias(numero_uc)
+            unidade_beneficiaria:unidades_beneficiarias!faturas_unidade_beneficiaria_id_fkey(numero_uc)
           ),
-          pagamento_usina:pagamentos_usina(
+          pagamento_usina:pagamentos_usina!lancamentos_financeiros_pagamento_usina_id_fkey(
             id,
-            usina:usinas(
-              unidade_usina:unidades_usina(numero_uc)
+            usina:usinas!pagamentos_usina_usina_id_fkey(
+              unidade_usina:unidades_usina!usinas_unidade_usina_id_fkey(numero_uc)
             )
           )
         `)
