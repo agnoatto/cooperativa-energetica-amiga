@@ -30,27 +30,33 @@ export function useLancamentosFinanceiros({
         busca
       });
 
+      // Construir a query base com logs detalhados
       let query = supabase
         .from('lancamentos_financeiros')
         .select(`
           *,
-          cooperado:cooperados!lancamentos_financeiros_cooperado_id_fkey(nome, documento),
-          investidor:investidores!fk_lancamentos_investidor(nome_investidor, documento),
-          fatura:faturas!fk_lancamentos_fatura(
+          cooperado:cooperados(nome, documento),
+          investidor:investidores(nome_investidor, documento),
+          fatura:faturas(
             id,
-            unidade_beneficiaria:unidades_beneficiarias!faturas_unidade_beneficiaria_id_fkey(numero_uc)
+            unidade_beneficiaria:unidades_beneficiarias(numero_uc)
           ),
-          pagamento_usina:pagamentos_usina!lancamentos_financeiros_pagamento_usina_id_fkey(
+          pagamento_usina:pagamentos_usina(
             id,
-            usina:usinas!pagamentos_usina_usina_id_fkey(
-              unidade_usina:unidades_usina!usinas_unidade_usina_id_fkey(numero_uc)
+            usina:usinas(
+              unidade_usina:unidades_usina(numero_uc)
             )
           )
-        `)
-        .eq('tipo', tipo)
-        .is('deleted_at', null);
+        `);
 
-      console.log('Query base construída');
+      console.log('Query base construída, aplicando filtros...');
+
+      // Aplicar filtros
+      query = query.eq('tipo', tipo);
+      console.log('Filtro de tipo aplicado:', tipo);
+
+      query = query.is('deleted_at', null);
+      console.log('Filtro de deleted_at aplicado');
 
       if (status && status !== 'todos') {
         query = query.eq('status', status);
@@ -78,27 +84,50 @@ export function useLancamentosFinanceiros({
       query = query.order('data_vencimento', { ascending: true });
       console.log('Ordenação aplicada');
 
+      // Executar a query com tratamento de erro detalhado
       const { data, error } = await query;
 
       if (error) {
-        console.error('Erro ao buscar lançamentos:', error);
+        console.error('Erro detalhado ao buscar lançamentos:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         throw error;
       }
 
-      console.log('Dados retornados:', data);
+      if (!data) {
+        console.log('Nenhum dado encontrado');
+        return [];
+      }
 
-      // Garantir que o historico_status seja um array de HistoricoStatus
-      const lancamentos = (data || []).map(item => ({
-        ...item,
-        historico_status: (item.historico_status as any[] || []).map(hist => ({
-          data: hist.data,
-          status_anterior: hist.status_anterior,
-          novo_status: hist.novo_status
-        }))
-      })) as unknown as LancamentoFinanceiro[];
+      console.log('Dados retornados:', {
+        quantidade: data.length,
+        amostra: data.slice(0, 2)
+      });
+
+      // Processamento dos dados com validação
+      const lancamentos = data.map(item => {
+        // Garantir que o histórico_status seja um array válido
+        const historico_status = Array.isArray(item.historico_status) 
+          ? item.historico_status 
+          : [];
+
+        return {
+          ...item,
+          historico_status: historico_status.map(hist => ({
+            data: hist.data,
+            status_anterior: hist.status_anterior,
+            novo_status: hist.novo_status
+          }))
+        };
+      }) as LancamentoFinanceiro[];
 
       console.log('Lançamentos processados:', lancamentos.length);
       return lancamentos;
     },
+    retry: 1, // Tentar novamente uma vez em caso de erro
+    staleTime: 1000 * 60 * 5, // Cache por 5 minutos
   });
 }
