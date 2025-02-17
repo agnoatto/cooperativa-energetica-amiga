@@ -36,7 +36,7 @@ export function useLancamentosFinanceiros({
           *,
           cooperado:cooperados!lancamentos_financeiros_cooperado_id_fkey(nome, documento),
           investidor:investidores!fk_lancamentos_investidor(nome_investidor, documento),
-          fatura:faturas!lancamentos_financeiros_fatura_id_fkey(
+          fatura:faturas!fk_lancamentos_fatura(
             id,
             unidade_beneficiaria:unidades_beneficiarias!faturas_unidade_beneficiaria_id_fkey(numero_uc)
           ),
