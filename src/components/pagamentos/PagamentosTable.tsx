@@ -12,8 +12,6 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Edit, FileText, Trash2 } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { PagamentoData } from "./types/pagamento";
 import { formatCurrency } from "@/utils/formatters";
 import { BoletimMedicaoButton } from "./BoletimMedicaoButton";
@@ -48,53 +46,41 @@ export function PagamentosTable({
     if (!pagamentoParaDeletar) return;
     
     setIsDeleting(true);
-    console.log("Iniciando processo de exclusão do pagamento:", pagamentoParaDeletar.id);
+    console.log("[Deleção] Iniciando processo para pagamento:", pagamentoParaDeletar.id);
 
     try {
-      // Iniciar transação para garantir atomicidade das operações
-      const { data: lancamentos, error: consultaError } = await supabase
-        .from("lancamentos_financeiros")
-        .select("id")
-        .eq("pagamento_usina_id", pagamentoParaDeletar.id);
+      // Inicia uma transação para garantir a atomicidade das operações
+      const result = await supabase.rpc('deletar_pagamento', {
+        pagamento_id: pagamentoParaDeletar.id
+      });
 
-      if (consultaError) {
-        console.error("Erro ao consultar lançamentos:", consultaError);
-        throw new Error("Erro ao verificar lançamentos associados");
-      }
-
-      console.log(`Encontrados ${lancamentos?.length || 0} lançamentos para excluir`);
-
-      if (lancamentos && lancamentos.length > 0) {
-        const { error: lancamentosError } = await supabase
+      if (result.error) {
+        console.error("[Deleção] Erro na transação:", result.error);
+        
+        // Verificar se ainda existem lançamentos
+        const { data: lancamentosRestantes, error: consultaError } = await supabase
           .from("lancamentos_financeiros")
-          .delete()
+          .select("id")
           .eq("pagamento_usina_id", pagamentoParaDeletar.id);
 
-        if (lancamentosError) {
-          console.error("Erro ao excluir lançamentos:", lancamentosError);
-          throw new Error("Erro ao excluir lançamentos financeiros");
+        if (consultaError) {
+          console.error("[Deleção] Erro ao verificar lançamentos restantes:", consultaError);
+        } else if (lancamentosRestantes?.length > 0) {
+          console.error("[Deleção] Ainda existem lançamentos vinculados:", lancamentosRestantes.length);
+          throw new Error("Não foi possível excluir todos os lançamentos vinculados");
         }
-        
-        console.log("Lançamentos excluídos com sucesso");
+
+        throw new Error(result.error.message);
       }
 
-      const { error: pagamentoError } = await supabase
-        .from("pagamentos_usina")
-        .delete()
-        .eq("id", pagamentoParaDeletar.id);
-
-      if (pagamentoError) {
-        console.error("Erro ao excluir pagamento:", pagamentoError);
-        throw new Error("Erro ao excluir pagamento");
-      }
-
-      console.log("Pagamento excluído com sucesso");
+      console.log("[Deleção] Pagamento e lançamentos excluídos com sucesso");
       toast.success("Pagamento excluído com sucesso!");
       setPagamentoParaDeletar(null);
       
+      // Atualiza a lista de pagamentos
       await queryClient.invalidateQueries({ queryKey: ["pagamentos"] });
     } catch (error) {
-      console.error("Erro detalhado na exclusão:", error);
+      console.error("[Deleção] Erro detalhado:", error);
       toast.error(error instanceof Error ? error.message : "Erro ao excluir pagamento");
     } finally {
       setIsDeleting(false);
