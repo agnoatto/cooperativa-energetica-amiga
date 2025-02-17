@@ -8,6 +8,17 @@ import { CooperadoDetailsDialog } from "@/components/cooperados/CooperadoDetails
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { FilterBar } from "@/components/shared/FilterBar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+
+type OrderBy = "nome_asc" | "nome_desc" | "cadastro_asc" | "cadastro_desc" | "tipo_asc" | "tipo_desc";
 
 const Cooperados = () => {
   const [showCooperadoForm, setShowCooperadoForm] = useState(false);
@@ -15,14 +26,45 @@ const Cooperados = () => {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [cooperados, setCooperados] = useState<any[]>([]);
   const [unidades, setUnidades] = useState<any[]>([]);
+  const [busca, setBusca] = useState("");
+  const [orderBy, setOrderBy] = useState<OrderBy>("nome_asc");
   const navigate = useNavigate();
 
   const fetchData = async () => {
     try {
-      const { data: cooperadosData, error: cooperadosError } = await supabase
+      let query = supabase
         .from('cooperados')
         .select('*')
         .is('data_exclusao', null);
+
+      // Aplicar filtro de busca se existir
+      if (busca) {
+        query = query.or(`nome.ilike.%${busca}%,documento.ilike.%${busca}%,numero_cadastro.ilike.%${busca}%`);
+      }
+
+      // Aplicar ordenação
+      switch (orderBy) {
+        case "nome_asc":
+          query = query.order('nome', { ascending: true });
+          break;
+        case "nome_desc":
+          query = query.order('nome', { ascending: false });
+          break;
+        case "cadastro_asc":
+          query = query.order('numero_cadastro', { ascending: true });
+          break;
+        case "cadastro_desc":
+          query = query.order('numero_cadastro', { ascending: false });
+          break;
+        case "tipo_asc":
+          query = query.order('tipo_pessoa', { ascending: true });
+          break;
+        case "tipo_desc":
+          query = query.order('tipo_pessoa', { ascending: false });
+          break;
+      }
+
+      const { data: cooperadosData, error: cooperadosError } = await query;
 
       if (cooperadosError) throw cooperadosError;
       setCooperados(cooperadosData);
@@ -41,7 +83,7 @@ const Cooperados = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [busca, orderBy]);
 
   const handleEdit = (cooperadoId: string) => {
     setSelectedCooperadoId(cooperadoId);
@@ -52,7 +94,6 @@ const Cooperados = () => {
     try {
       const currentDate = new Date().toISOString();
 
-      // Update cooperado with data_exclusao
       const { error: cooperadoError } = await supabase
         .from('cooperados')
         .update({ data_exclusao: currentDate })
@@ -60,7 +101,6 @@ const Cooperados = () => {
 
       if (cooperadoError) throw cooperadoError;
 
-      // Update all unidades_beneficiarias related to this cooperado with data_saida
       const { error: unidadesError } = await supabase
         .from('unidades_beneficiarias')
         .update({ data_saida: currentDate })
@@ -79,6 +119,11 @@ const Cooperados = () => {
   const handleViewDetails = (cooperadoId: string) => {
     setSelectedCooperadoId(cooperadoId);
     setShowDetailsDialog(true);
+  };
+
+  const handleLimparFiltros = () => {
+    setBusca("");
+    setOrderBy("nome_asc");
   };
 
   return (
@@ -102,6 +147,30 @@ const Cooperados = () => {
           </Button>
         </div>
       </div>
+
+      <FilterBar
+        busca={busca}
+        onBuscaChange={setBusca}
+        onLimparFiltros={handleLimparFiltros}
+        placeholder="Buscar por nome, documento ou nº cadastro..."
+      >
+        <div className="min-w-[200px]">
+          <Label htmlFor="orderBy">Ordenar por</Label>
+          <Select value={orderBy} onValueChange={(value) => setOrderBy(value as OrderBy)}>
+            <SelectTrigger id="orderBy">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="nome_asc">Nome (A-Z)</SelectItem>
+              <SelectItem value="nome_desc">Nome (Z-A)</SelectItem>
+              <SelectItem value="cadastro_asc">Nº Cadastro (Crescente)</SelectItem>
+              <SelectItem value="cadastro_desc">Nº Cadastro (Decrescente)</SelectItem>
+              <SelectItem value="tipo_asc">Tipo (A-Z)</SelectItem>
+              <SelectItem value="tipo_desc">Tipo (Z-A)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </FilterBar>
 
       <CooperadoForm 
         open={showCooperadoForm} 
