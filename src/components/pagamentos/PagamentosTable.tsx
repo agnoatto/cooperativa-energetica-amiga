@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, FileText, Trash2 } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 import { PagamentoData } from "./types/pagamento";
 import { formatCurrency } from "@/utils/formatters";
 import { BoletimMedicaoButton } from "./BoletimMedicaoButton";
@@ -49,7 +48,6 @@ export function PagamentosTable({
     console.log("[Deleção] Iniciando processo para pagamento:", pagamentoParaDeletar.id);
 
     try {
-      // Chama a função RPC que criamos para deletar o pagamento e seus lançamentos
       const { error } = await supabase.rpc('deletar_pagamento', {
         pagamento_id: pagamentoParaDeletar.id
       });
@@ -63,7 +61,6 @@ export function PagamentosTable({
       toast.success("Pagamento excluído com sucesso!");
       setPagamentoParaDeletar(null);
       
-      // Atualiza a lista de pagamentos
       await queryClient.invalidateQueries({ queryKey: ["pagamentos"] });
     } catch (error) {
       console.error("[Deleção] Erro detalhado:", error);
@@ -77,6 +74,8 @@ export function PagamentosTable({
     const dataAtual = new Date(pagamentoAtual.ano, pagamentoAtual.mes - 1);
     const dataInicial = new Date(dataAtual);
     dataInicial.setMonth(dataInicial.getMonth() - 11); // 12 meses para trás
+
+    console.log("[Histórico] Buscando pagamentos de", dataInicial.toISOString(), "até", dataAtual.toISOString());
 
     const { data: pagamentosHistorico, error } = await supabase
       .from('pagamentos_usina')
@@ -112,10 +111,11 @@ export function PagamentosTable({
       .order('mes', { ascending: false });
 
     if (error) {
-      console.error("Erro ao buscar histórico de pagamentos:", error);
+      console.error("[Histórico] Erro ao buscar pagamentos:", error);
       return [pagamentoAtual];
     }
 
+    console.log("[Histórico] Pagamentos encontrados:", pagamentosHistorico?.length || 0);
     return pagamentosHistorico || [pagamentoAtual];
   };
 
@@ -184,16 +184,8 @@ export function PagamentosTable({
                   <Trash2 className="h-4 w-4" />
                 </Button>
                 <BoletimMedicaoButton 
-                  boletimData={{
-                    usina: {
-                      nome_investidor: pagamento.usina.investidor.nome_investidor,
-                      numero_uc: pagamento.usina.unidade_usina.numero_uc,
-                      valor_kwh: pagamento.usina.valor_kwh
-                    },
-                    pagamentos: await getPagamentosUltimos12Meses(pagamento),
-                    data_emissao: new Date(),
-                    valor_receber: pagamento.valor_total
-                  }}
+                  pagamento={pagamento}
+                  getPagamentosUltimos12Meses={getPagamentosUltimos12Meses}
                 />
               </TableCell>
             </TableRow>
