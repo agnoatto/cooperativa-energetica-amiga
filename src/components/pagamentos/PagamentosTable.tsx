@@ -1,7 +1,6 @@
-
 import React from "react";
-import { useQueryClient } from "@tanstack/react-query"; // Adicionado
-import { supabase } from "@/integrations/supabase/client"; // Adicionado
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
   TableBody,
@@ -40,24 +39,30 @@ export function PagamentosTable({
   isLoading,
   onEditPagamento,
 }: PagamentosTableProps) {
-  const queryClient = useQueryClient(); // Adicionado
+  const queryClient = useQueryClient();
   const [pagamentoParaDeletar, setPagamentoParaDeletar] = React.useState<PagamentoData | null>(null);
 
   const handleDelete = async () => {
     if (!pagamentoParaDeletar) return;
 
     try {
-      const { error } = await supabase
+      const { error: lancamentosError } = await supabase
+        .from("lancamentos_financeiros")
+        .delete()
+        .eq("pagamento_usina_id", pagamentoParaDeletar.id);
+
+      if (lancamentosError) throw lancamentosError;
+
+      const { error: pagamentoError } = await supabase
         .from("pagamentos_usina")
         .delete()
         .eq("id", pagamentoParaDeletar.id);
 
-      if (error) throw error;
+      if (pagamentoError) throw pagamentoError;
 
       toast.success("Pagamento excluído com sucesso!");
       setPagamentoParaDeletar(null);
       
-      // Atualizar a lista de pagamentos após deletar
       await queryClient.invalidateQueries({ queryKey: ["pagamentos"] });
     } catch (error) {
       console.error("Erro ao excluir pagamento:", error);
