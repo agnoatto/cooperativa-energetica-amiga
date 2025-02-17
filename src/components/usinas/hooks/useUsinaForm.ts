@@ -36,6 +36,7 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
   const form = useForm<UsinaFormData>({
     resolver: zodResolver(usinaFormSchema),
     defaultValues,
+    mode: "onChange",
   });
 
   const fetchUsinaData = async (open: boolean) => {
@@ -120,7 +121,9 @@ export function useUsinaForm({ usinaId, onSuccess, onOpenChange }: UseUsinaFormP
         }
         toast.success("Usina atualizada com sucesso!");
       } else {
-        const { error } = await supabase.from("usinas").insert(usinaData);
+        const { error } = await supabase
+          .from("usinas")
+          .insert([usinaData]);
 
         if (error) {
           console.error("Error creating usina:", error);
