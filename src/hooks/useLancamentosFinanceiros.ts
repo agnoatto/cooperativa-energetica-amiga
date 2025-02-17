@@ -90,12 +90,16 @@ export function useLancamentosFinanceiros({
           fatura:faturas!fk_lancamentos_fatura(
             id,
             numero_fatura,
-            unidade_beneficiaria:unidades_beneficiarias(numero_uc)
+            unidade_beneficiaria:unidades_beneficiarias(
+              numero_uc
+            )
           ),
           pagamento_usina:pagamentos_usina!fk_lancamentos_pagamento_usina(
             id,
             usina:usinas(
-              unidade_usina:unidades_usina(numero_uc)
+              unidade_usina:unidades_usina(
+                numero_uc
+              )
             )
           )
         `);
