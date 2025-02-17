@@ -65,7 +65,7 @@ export function useLancamentosFinanceiros({
         .from('lancamentos_financeiros')
         .select(`
           *,
-          cooperado:cooperados(nome, documento),
+          cooperado:cooperados!fk_lancamentos_cooperado(nome, documento),
           investidor:investidores(nome_investidor, documento),
           fatura:faturas(
             id,
@@ -134,24 +134,37 @@ export function useLancamentosFinanceiros({
         amostra: data.slice(0, 2)
       });
 
-      const lancamentos = (data as LancamentoResponse[]).map(item => {
-        const historico_status = Array.isArray(item.historico_status) 
+      const lancamentos = data.map(item => ({
+        id: item.id,
+        tipo: item.tipo,
+        status: item.status,
+        descricao: item.descricao,
+        valor: item.valor,
+        data_vencimento: item.data_vencimento,
+        data_pagamento: item.data_pagamento,
+        observacao: item.observacao,
+        cooperado_id: item.cooperado_id,
+        investidor_id: item.investidor_id,
+        fatura_id: item.fatura_id,
+        pagamento_usina_id: item.pagamento_usina_id,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        deleted_at: item.deleted_at,
+        historico_status: Array.isArray(item.historico_status) 
           ? item.historico_status.map(hist => ({
               data: hist.data,
               status_anterior: hist.status_anterior,
               novo_status: hist.novo_status
             }))
-          : [];
-
-        return {
-          ...item,
-          historico_status,
-          cooperado: item.cooperado || null,
-          investidor: item.investidor || null,
-          fatura: item.fatura || null,
-          pagamento_usina: item.pagamento_usina || null
-        } as LancamentoFinanceiro;
-      });
+          : [],
+        comprovante_path: item.comprovante_path,
+        comprovante_nome: item.comprovante_nome,
+        comprovante_tipo: item.comprovante_tipo,
+        cooperado: item.cooperado,
+        investidor: item.investidor,
+        fatura: item.fatura,
+        pagamento_usina: item.pagamento_usina
+      })) as LancamentoFinanceiro[];
 
       console.log('Lançamentos processados:', lancamentos.length);
       return lancamentos;
