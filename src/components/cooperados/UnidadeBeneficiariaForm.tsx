@@ -1,6 +1,4 @@
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -17,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -25,14 +22,12 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
 import { AddressFields } from "./AddressFields";
 import { UnidadeBeneficiariaBasicInfo } from "./UnidadeBeneficiariaBasicInfo";
 import { UnidadeBeneficiariaDateFields } from "./UnidadeBeneficiariaDateFields";
 import { GeracaoCreditosFields } from "./GeracaoCreditosFields";
-import { UnidadeBeneficiariaFormProps, UnidadeBeneficiariaFormValues } from "./types";
-import { unidadeBeneficiariaFormSchema } from "./schema";
+import { UnidadeBeneficiariaFormProps } from "./types";
+import { useUnidadeBeneficiariaForm } from "./hooks/useUnidadeBeneficiariaForm";
 
 export function UnidadeBeneficiariaForm({
   open,
@@ -41,194 +36,20 @@ export function UnidadeBeneficiariaForm({
   unidadeId,
   onSuccess,
 }: UnidadeBeneficiariaFormProps) {
-  const [isLoadingCep, setIsLoadingCep] = useState(false);
-  const [cooperados, setCooperados] = useState<any[]>([]);
-  const [selectedCooperadoId, setSelectedCooperadoId] = useState<string | null>(cooperadoId);
-  
-  const form = useForm<UnidadeBeneficiariaFormValues>({
-    resolver: zodResolver(unidadeBeneficiariaFormSchema),
-    defaultValues: {
-      numero_uc: "",
-      apelido: "",
-      cep: "",
-      logradouro: "",
-      numero: "",
-      complemento: "",
-      bairro: "",
-      cidade: "",
-      uf: undefined,
-      consumo_kwh: "",
-      percentual_desconto: "",
-      data_entrada: new Date().toISOString().split('T')[0],
-      data_saida: "",
-      possui_geracao_propria: false,
-      potencia_instalada: null,
-      data_inicio_geracao: null,
-      observacao_geracao: null,
-      recebe_creditos_proprios: false,
-      uc_origem_creditos: null,
-      data_inicio_creditos: null,
-      observacao_creditos: null,
-    },
+  const {
+    form,
+    isLoadingCep,
+    cooperados,
+    selectedCooperadoId,
+    setSelectedCooperadoId,
+    fetchCep,
+    onSubmit,
+  } = useUnidadeBeneficiariaForm({
+    cooperadoId,
+    unidadeId,
+    onSuccess,
+    onOpenChange,
   });
-
-  // Reset do formulário quando o modal é fechado
-  useEffect(() => {
-    if (!open) {
-      form.reset();
-      setSelectedCooperadoId(null);
-    }
-  }, [open, form]);
-
-  useEffect(() => {
-    const fetchCooperados = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('cooperados')
-          .select('id, nome')
-          .is('data_exclusao', null)
-          .order('nome');
-
-        if (error) throw error;
-        setCooperados(data || []);
-      } catch (error: any) {
-        toast.error("Erro ao carregar cooperados: " + error.message);
-      }
-    };
-
-    fetchCooperados();
-  }, []);
-
-  useEffect(() => {
-    async function fetchUnidade() {
-      if (!unidadeId) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('unidades_beneficiarias')
-          .select('*')
-          .eq('id', unidadeId)
-          .single();
-
-        if (error) throw error;
-
-        if (data) {
-          setSelectedCooperadoId(data.cooperado_id);
-          form.reset({
-            numero_uc: data.numero_uc,
-            apelido: data.apelido || "",
-            cep: data.cep || "",
-            logradouro: data.logradouro || "",
-            numero: data.numero || "",
-            complemento: data.complemento || "",
-            bairro: data.bairro || "",
-            cidade: data.cidade || "",
-            uf: (data.uf as any) || undefined,
-            percentual_desconto: data.percentual_desconto.toString(),
-            data_entrada: new Date(data.data_entrada).toISOString().split('T')[0],
-            data_saida: data.data_saida ? new Date(data.data_saida).toISOString().split('T')[0] : "",
-            possui_geracao_propria: data.possui_geracao_propria || false,
-            potencia_instalada: data.potencia_instalada,
-            data_inicio_geracao: data.data_inicio_geracao ? new Date(data.data_inicio_geracao).toISOString().split('T')[0] : null,
-            observacao_geracao: data.observacao_geracao,
-            recebe_creditos_proprios: data.recebe_creditos_proprios || false,
-            uc_origem_creditos: data.uc_origem_creditos,
-            data_inicio_creditos: data.data_inicio_creditos ? new Date(data.data_inicio_creditos).toISOString().split('T')[0] : null,
-            observacao_creditos: data.observacao_creditos,
-          });
-        }
-      } catch (error: any) {
-        toast.error("Erro ao carregar dados da unidade: " + error.message);
-      }
-    }
-
-    if (open) {
-      fetchUnidade();
-    }
-  }, [unidadeId, open, form]);
-
-  const fetchCep = async (cep: string) => {
-    try {
-      setIsLoadingCep(true);
-      const cleanCep = cep.replace(/\D/g, '');
-      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
-      const data: any = await response.json();
-
-      if (data.erro) {
-        toast.error("CEP não encontrado");
-        return;
-      }
-
-      form.setValue('logradouro', data.logradouro);
-      form.setValue('bairro', data.bairro);
-      form.setValue('cidade', data.localidade);
-      form.setValue('uf', data.uf as any);
-    } catch (error) {
-      toast.error("Erro ao buscar CEP");
-    } finally {
-      setIsLoadingCep(false);
-    }
-  };
-
-  async function onSubmit(data: UnidadeBeneficiariaFormValues) {
-    if (!selectedCooperadoId && !cooperadoId) {
-      toast.error("Selecione um cooperado");
-      return;
-    }
-
-    try {
-      const endereco = `${data.logradouro}, ${data.numero}${data.complemento ? `, ${data.complemento}` : ''} - ${data.bairro}, ${data.cidade} - ${data.uf}, ${data.cep}`;
-      
-      const unidadeData = {
-        cooperado_id: selectedCooperadoId || cooperadoId,
-        numero_uc: data.numero_uc,
-        apelido: data.apelido || null,
-        endereco: endereco,
-        logradouro: data.logradouro,
-        numero: data.numero,
-        complemento: data.complemento || null,
-        bairro: data.bairro,
-        cidade: data.cidade,
-        uf: data.uf,
-        cep: data.cep,
-        consumo_kwh: parseFloat(data.consumo_kwh),
-        percentual_desconto: parseFloat(data.percentual_desconto),
-        data_entrada: new Date(data.data_entrada).toISOString(),
-        data_saida: data.data_saida ? new Date(data.data_saida).toISOString() : null,
-        possui_geracao_propria: data.possui_geracao_propria,
-        potencia_instalada: data.potencia_instalada,
-        data_inicio_geracao: data.data_inicio_geracao ? new Date(data.data_inicio_geracao).toISOString() : null,
-        observacao_geracao: data.observacao_geracao,
-        recebe_creditos_proprios: data.recebe_creditos_proprios,
-        uc_origem_creditos: data.uc_origem_creditos,
-        data_inicio_creditos: data.data_inicio_creditos ? new Date(data.data_inicio_creditos).toISOString() : null,
-        observacao_creditos: data.observacao_creditos,
-      };
-
-      if (unidadeId) {
-        const { error } = await supabase
-          .from('unidades_beneficiarias')
-          .update(unidadeData)
-          .eq('id', unidadeId);
-
-        if (error) throw error;
-        toast.success("Unidade beneficiária atualizada com sucesso!");
-      } else {
-        const { error } = await supabase
-          .from('unidades_beneficiarias')
-          .insert(unidadeData);
-
-        if (error) throw error;
-        toast.success("Unidade beneficiária cadastrada com sucesso!");
-      }
-
-      onSuccess?.();
-      onOpenChange(false);
-      form.reset();
-    } catch (error: any) {
-      toast.error(`Erro ao ${unidadeId ? 'atualizar' : 'cadastrar'} unidade beneficiária: ` + error.message);
-    }
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
