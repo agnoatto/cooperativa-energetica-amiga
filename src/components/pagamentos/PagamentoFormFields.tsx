@@ -14,6 +14,7 @@ interface PagamentoFormFieldsProps {
   valorKwh: number;
   valorBruto: number;
   valorEfetivo: number;
+  valorTotalTusdFioB: number;
 }
 
 export function PagamentoFormFields({
@@ -22,6 +23,7 @@ export function PagamentoFormFields({
   valorKwh,
   valorBruto,
   valorEfetivo,
+  valorTotalTusdFioB,
 }: PagamentoFormFieldsProps) {
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const dataEmissao = e.target.value;
@@ -64,11 +66,26 @@ export function PagamentoFormFields({
         />
       </div>
       <div>
-        <Label htmlFor="tusd_fio_b">TUSD Fio B (R$)</Label>
+        <Label htmlFor="tusd_fio_b">TUSD Fio B (R$/kWh)</Label>
         <CurrencyInput
           id="tusd_fio_b"
           value={form.tusd_fio_b.toString()}
           onChange={(value) => setForm({ ...form, tusd_fio_b: parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.')) || 0 })}
+        />
+      </div>
+      <div>
+        <Label htmlFor="valor_total_tusd">Valor Total TUSD Fio B (R$)</Label>
+        <Input
+          id="valor_total_tusd"
+          type="text"
+          value={valorTotalTusdFioB.toLocaleString('pt-BR', { 
+            style: 'currency', 
+            currency: 'BRL',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2 
+          })}
+          disabled
+          className="bg-gray-100"
         />
       </div>
       <div>
