@@ -1,5 +1,7 @@
 
 import React from "react";
+import { useQueryClient } from "@tanstack/react-query"; // Adicionado
+import { supabase } from "@/integrations/supabase/client"; // Adicionado
 import {
   Table,
   TableBody,
@@ -38,6 +40,7 @@ export function PagamentosTable({
   isLoading,
   onEditPagamento,
 }: PagamentosTableProps) {
+  const queryClient = useQueryClient(); // Adicionado
   const [pagamentoParaDeletar, setPagamentoParaDeletar] = React.useState<PagamentoData | null>(null);
 
   const handleDelete = async () => {
