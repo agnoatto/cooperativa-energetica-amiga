@@ -14,7 +14,6 @@ export interface BoletimData {
     tusd_fio_b: number | null;
     valor_tusd_fio_b: number;
     valor_concessionaria: number;
-    conta_energia: number;
   }>;
   data_emissao: Date;
   valor_receber: number;

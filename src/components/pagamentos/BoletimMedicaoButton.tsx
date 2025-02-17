@@ -29,8 +29,7 @@ export function BoletimMedicaoButton({ boletimData }: BoletimMedicaoButtonProps)
           ano: p.ano,
           tusd_fio_b: p.tusd_fio_b,
           valor_tusd_fio_b: p.valor_tusd_fio_b,
-          valor_concessionaria: p.valor_concessionaria,
-          conta_energia: p.conta_energia
+          valor_concessionaria: p.valor_concessionaria
         }))
       });
 

@@ -36,19 +36,17 @@ export const addDataTable = (doc: jsPDF, data: BoletimData, yPos: number): numbe
     "TUSD FIO B",
     "Valor TUSD",
     "Valor Conc.",
-    "Conta Energia",
     "Valor Total"
   ];
 
   // Configuração das colunas
   const columnWidths = {
-    mesAno: 25,
-    geracao: 25,
-    tusdFioB: 25,
-    valorTusd: 25,
-    valorConc: 25,
-    contaEnergia: 25,
-    valorTotal: 25
+    mesAno: 30,
+    geracao: 30,
+    tusdFioB: 30,
+    valorTusd: 30,
+    valorConc: 30,
+    valorTotal: 30
   };
 
   const startX = SPACING.MARGIN;
@@ -88,7 +86,6 @@ export const addDataTable = (doc: jsPDF, data: BoletimData, yPos: number): numbe
     tusdFioB: pagamento.tusd_fio_b?.toLocaleString('pt-BR') ?? '-',
     valorTusd: formatCurrency(pagamento.valor_tusd_fio_b),
     valorConc: formatCurrency(pagamento.valor_concessionaria),
-    contaEnergia: formatCurrency(pagamento.conta_energia),
     valorTotal: formatCurrency(pagamento.valor_total)
   }));
 
@@ -98,14 +95,12 @@ export const addDataTable = (doc: jsPDF, data: BoletimData, yPos: number): numbe
     tusdFioB: (acc.tusdFioB || 0) + (pagamento.tusd_fio_b || 0),
     valorTusd: acc.valorTusd + pagamento.valor_tusd_fio_b,
     valorConc: acc.valorConc + pagamento.valor_concessionaria,
-    contaEnergia: acc.contaEnergia + pagamento.conta_energia,
     valorTotal: acc.valorTotal + pagamento.valor_total
   }), { 
     geracao: 0, 
     tusdFioB: 0,
     valorTusd: 0,
     valorConc: 0,
-    contaEnergia: 0,
     valorTotal: 0 
   });
 
@@ -130,8 +125,6 @@ export const addDataTable = (doc: jsPDF, data: BoletimData, yPos: number): numbe
     currentX += columnWidths.valorTusd;
     drawCell(row.valorConc, currentX, columnWidths.valorConc, 'right');
     currentX += columnWidths.valorConc;
-    drawCell(row.contaEnergia, currentX, columnWidths.contaEnergia, 'right');
-    currentX += columnWidths.contaEnergia;
     drawCell(row.valorTotal, currentX, columnWidths.valorTotal, 'right');
   });
 
@@ -152,8 +145,6 @@ export const addDataTable = (doc: jsPDF, data: BoletimData, yPos: number): numbe
   currentX += columnWidths.valorTusd;
   drawCell(formatCurrency(totals.valorConc), currentX, columnWidths.valorConc, 'right');
   currentX += columnWidths.valorConc;
-  drawCell(formatCurrency(totals.contaEnergia), currentX, columnWidths.contaEnergia, 'right');
-  currentX += columnWidths.contaEnergia;
   drawCell(formatCurrency(totals.valorTotal), currentX, columnWidths.valorTotal, 'right');
 
   // Borda da tabela
