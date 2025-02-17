@@ -17,9 +17,9 @@ import Investidores from "./pages/Investidores";
 import Configuracoes from "./pages/Configuracoes";
 import ContasPagar from "./pages/ContasPagar";
 import ContasReceber from "./pages/ContasReceber";
-import { useAuth } from "./contexts/AuthContext";
+import { useAuth, AuthProvider } from "./contexts/AuthContext";
 
-function App() {
+function AppContent() {
   const { session, isLoading } = useAuth();
 
   if (isLoading) {
@@ -167,6 +167,14 @@ function App() {
       </main>
       <Toaster />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
