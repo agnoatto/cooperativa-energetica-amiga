@@ -7,6 +7,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { useUsinaForm } from "./hooks/useUsinaForm";
@@ -26,7 +28,7 @@ export function UsinaForm({
   usinaId,
   onSuccess,
 }: UsinaFormProps) {
-  const { form, isLoading, onSubmit, fetchUsinaData } = useUsinaForm({
+  const { form, isLoading, onSubmit, fetchUsinaData, status, setStatus } = useUsinaForm({
     usinaId,
     onSuccess,
     onOpenChange,
@@ -47,6 +49,17 @@ export function UsinaForm({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <UsinaBasicInfoFields form={form} usinaId={usinaId} />
             <DadosPagamentoCollapsible form={form} />
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="status"
+                checked={status === 'ativa'}
+                onCheckedChange={(checked) => setStatus(checked ? 'ativa' : 'inativa')}
+              />
+              <Label htmlFor="status" className="text-sm">
+                {status === 'ativa' ? 'Ativa' : 'Inativa'}
+              </Label>
+            </div>
 
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
