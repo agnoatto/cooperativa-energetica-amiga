@@ -586,7 +586,6 @@ export type Database = {
           arquivo_comprovante_path: string | null
           arquivo_comprovante_tamanho: number | null
           arquivo_comprovante_tipo: string | null
-          conta_energia: number
           created_at: string
           data_confirmacao: string | null
           data_emissao: string | null
@@ -615,7 +614,6 @@ export type Database = {
           arquivo_comprovante_path?: string | null
           arquivo_comprovante_tamanho?: number | null
           arquivo_comprovante_tipo?: string | null
-          conta_energia: number
           created_at?: string
           data_confirmacao?: string | null
           data_emissao?: string | null
@@ -644,7 +642,6 @@ export type Database = {
           arquivo_comprovante_path?: string | null
           arquivo_comprovante_tamanho?: number | null
           arquivo_comprovante_tipo?: string | null
-          conta_energia?: number
           created_at?: string
           data_confirmacao?: string | null
           data_emissao?: string | null
