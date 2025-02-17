@@ -87,12 +87,12 @@ export function useLancamentosFinanceiros({
           *,
           cooperado:cooperados!fk_lancamentos_cooperado(nome, documento),
           investidor:investidores!fk_lancamentos_investidor(nome_investidor, documento),
-          fatura:faturas(
+          fatura:faturas!fk_lancamentos_fatura(
             id,
             numero_fatura,
             unidade_beneficiaria:unidades_beneficiarias(numero_uc)
           ),
-          pagamento_usina:pagamentos_usina(
+          pagamento_usina:pagamentos_usina!fk_lancamentos_pagamento_usina(
             id,
             usina:usinas(
               unidade_usina:unidades_usina(numero_uc)
