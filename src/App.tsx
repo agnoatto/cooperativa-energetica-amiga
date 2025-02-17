@@ -1,6 +1,6 @@
 
 import React from "react";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import { Toaster } from "./components/ui/toaster";
 import { Sidebar } from "./components/layout/Sidebar";
 import { cn } from "@/lib/utils";
@@ -17,9 +17,9 @@ import Investidores from "./pages/Investidores";
 import Configuracoes from "./pages/Configuracoes";
 import ContasPagar from "./pages/ContasPagar";
 import ContasReceber from "./pages/ContasReceber";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { useAuth } from "./contexts/AuthContext";
 
-function AppContent() {
+function App() {
   const { session, isLoading } = useAuth();
 
   if (isLoading) {
@@ -169,14 +169,5 @@ function AppContent() {
     </div>
   );
 }
-
-// Componente raiz sem estado local
-const App = () => (
-  <BrowserRouter>
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  </BrowserRouter>
-);
 
 export default App;
