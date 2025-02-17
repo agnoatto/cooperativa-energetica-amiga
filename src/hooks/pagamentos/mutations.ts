@@ -9,6 +9,8 @@ export const gerarPagamentos = async (currentDate: Date) => {
   const dataVencimento = lastDayOfMonth(currentDate);
   const primeiroDiaMes = startOfMonth(currentDate);
 
+  console.log('Iniciando geração de pagamentos para:', { mes, ano });
+
   // Buscar usinas ativas com data_inicio válida
   const { data: usinas, error: usinasError } = await supabase
     .from("usinas")
@@ -21,7 +23,7 @@ export const gerarPagamentos = async (currentDate: Date) => {
         nome_investidor
       )
     `)
-    .eq('status', 'ativa')
+    .eq('status', 'active') // Corrigido: alterado 'ativa' para 'active'
     .lte('data_inicio', primeiroDiaMes.toISOString())
     .is("deleted_at", null);
 
@@ -29,6 +31,8 @@ export const gerarPagamentos = async (currentDate: Date) => {
     console.error("Erro ao buscar usinas:", usinasError);
     throw usinasError;
   }
+
+  console.log('Usinas encontradas:', usinas?.length || 0);
 
   const usinasComPagamento = await Promise.all(
     (usinas as any[]).map(async (usina) => {
@@ -41,6 +45,7 @@ export const gerarPagamentos = async (currentDate: Date) => {
         .eq("ano", ano);
 
       if (pagamentosExistentes && pagamentosExistentes.length > 0) {
+        console.log(`Pagamento já existe para usina ${usina.id} em ${mes}/${ano}`);
         return null;
       }
 
@@ -70,6 +75,7 @@ export const gerarPagamentos = async (currentDate: Date) => {
         throw insertError;
       }
 
+      console.log(`Pagamento criado com sucesso para usina ${usina.id}`);
       return usina;
     })
   );
