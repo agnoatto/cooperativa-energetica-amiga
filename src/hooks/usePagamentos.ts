@@ -50,7 +50,7 @@ export const usePagamentos = (currentDate: Date) => {
             empresa_id
           )
         `)
-        .is("deleted_at", null) // Mudado de .eq para .is
+        .is("deleted_at", null)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -63,7 +63,14 @@ export const usePagamentos = (currentDate: Date) => {
       const ano = currentDate.getFullYear();
 
       return data.map(usina => {
-        const pagamentoDoMes = usina.pagamentos?.find(p => p.mes === mes && p.ano === ano);
+        // Ordenar pagamentos por data (ano e mês)
+        const pagamentosOrdenados = usina.pagamentos?.sort((a, b) => {
+          if (a.ano !== b.ano) return b.ano - a.ano;
+          return b.mes - a.mes;
+        }) || [];
+
+        // Verificar se já existe pagamento para o mês atual
+        const pagamentoDoMes = pagamentosOrdenados.find(p => p.mes === mes && p.ano === ano);
         
         if (pagamentoDoMes) {
           return {

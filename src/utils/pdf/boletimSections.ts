@@ -74,9 +74,15 @@ export const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number)
     currentX += width;
   });
 
+  // Ordenar pagamentos por data (mais recentes primeiro)
+  const sortedPagamentos = [...data.pagamentos].sort((a, b) => {
+    if (a.ano !== b.ano) return b.ano - a.ano;
+    return b.mes - a.mes;
+  });
+
   // Dados da tabela
   doc.setFont("helvetica", "normal");
-  const rows = data.pagamentos.map(pagamento => {
+  const rows = sortedPagamentos.map(pagamento => {
     const valorBruto = (pagamento.geracao_kwh * data.usina.valor_kwh) - 
                       ((pagamento.tusd_fio_b || 0) * pagamento.geracao_kwh);
     return {
@@ -90,7 +96,7 @@ export const addDataTable = (doc: jsPDF, data: BoletimMedicaoData, yPos: number)
   });
 
   // Totais
-  const totals = data.pagamentos.reduce((acc, pagamento) => {
+  const totals = sortedPagamentos.reduce((acc, pagamento) => {
     const valorBruto = (pagamento.geracao_kwh * data.usina.valor_kwh) - 
                       ((pagamento.tusd_fio_b || 0) * pagamento.geracao_kwh);
     return {
