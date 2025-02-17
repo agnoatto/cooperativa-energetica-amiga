@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -94,7 +95,17 @@ export function PagamentosTable({
         data_envio,
         mes,
         ano,
+        arquivo_comprovante_nome,
+        arquivo_comprovante_path,
+        arquivo_comprovante_tipo,
+        arquivo_comprovante_tamanho,
+        observacao,
+        observacao_pagamento,
+        historico_status,
+        send_method,
+        empresa_id,
         usina:usinas(
+          id,
           valor_kwh,
           unidade_usina:unidades_usina(
             numero_uc
@@ -116,7 +127,7 @@ export function PagamentosTable({
     }
 
     console.log("[Histórico] Pagamentos encontrados:", pagamentosHistorico?.length || 0);
-    return pagamentosHistorico || [pagamentoAtual];
+    return pagamentosHistorico as PagamentoData[];
   };
 
   if (isLoading) {
