@@ -33,14 +33,22 @@ export const addDataTable = (doc: jsPDF, data: BoletimData, yPos: number): numbe
   const headers = [
     "Mês/Ano",
     "Geração (kWh)",
-    "Valor Líquido"
+    "TUSD FIO B",
+    "Valor TUSD",
+    "Valor Conc.",
+    "Conta Energia",
+    "Valor Total"
   ];
 
   // Configuração das colunas
   const columnWidths = {
-    mesAno: 35,
-    geracao: 35,
-    liquido: 35
+    mesAno: 25,
+    geracao: 25,
+    tusdFioB: 25,
+    valorTusd: 25,
+    valorConc: 25,
+    contaEnergia: 25,
+    valorTotal: 25
   };
 
   const startX = SPACING.MARGIN;
@@ -77,14 +85,29 @@ export const addDataTable = (doc: jsPDF, data: BoletimData, yPos: number): numbe
   const rows = sortedPagamentos.map(pagamento => ({
     mesAno: format(new Date(pagamento.ano, pagamento.mes - 1), 'MMM/yyyy', { locale: ptBR }),
     geracao: pagamento.geracao_kwh.toLocaleString('pt-BR'),
-    liquido: formatCurrency(pagamento.valor_total)
+    tusdFioB: pagamento.tusd_fio_b?.toLocaleString('pt-BR') ?? '-',
+    valorTusd: formatCurrency(pagamento.valor_tusd_fio_b),
+    valorConc: formatCurrency(pagamento.valor_concessionaria),
+    contaEnergia: formatCurrency(pagamento.conta_energia),
+    valorTotal: formatCurrency(pagamento.valor_total)
   }));
 
   // Totais
   const totals = sortedPagamentos.reduce((acc, pagamento) => ({
     geracao: acc.geracao + pagamento.geracao_kwh,
-    liquido: acc.liquido + pagamento.valor_total
-  }), { geracao: 0, liquido: 0 });
+    tusdFioB: (acc.tusdFioB || 0) + (pagamento.tusd_fio_b || 0),
+    valorTusd: acc.valorTusd + pagamento.valor_tusd_fio_b,
+    valorConc: acc.valorConc + pagamento.valor_concessionaria,
+    contaEnergia: acc.contaEnergia + pagamento.conta_energia,
+    valorTotal: acc.valorTotal + pagamento.valor_total
+  }), { 
+    geracao: 0, 
+    tusdFioB: 0,
+    valorTusd: 0,
+    valorConc: 0,
+    contaEnergia: 0,
+    valorTotal: 0 
+  });
 
   // Adiciona linhas de dados
   rows.forEach((row, rowIndex) => {
@@ -101,7 +124,15 @@ export const addDataTable = (doc: jsPDF, data: BoletimData, yPos: number): numbe
     currentX += columnWidths.mesAno;
     drawCell(row.geracao, currentX, columnWidths.geracao, 'right');
     currentX += columnWidths.geracao;
-    drawCell(row.liquido, currentX, columnWidths.liquido, 'right');
+    drawCell(row.tusdFioB, currentX, columnWidths.tusdFioB, 'right');
+    currentX += columnWidths.tusdFioB;
+    drawCell(row.valorTusd, currentX, columnWidths.valorTusd, 'right');
+    currentX += columnWidths.valorTusd;
+    drawCell(row.valorConc, currentX, columnWidths.valorConc, 'right');
+    currentX += columnWidths.valorConc;
+    drawCell(row.contaEnergia, currentX, columnWidths.contaEnergia, 'right');
+    currentX += columnWidths.contaEnergia;
+    drawCell(row.valorTotal, currentX, columnWidths.valorTotal, 'right');
   });
 
   // Linha de totais
@@ -115,7 +146,15 @@ export const addDataTable = (doc: jsPDF, data: BoletimData, yPos: number): numbe
   currentX += columnWidths.mesAno;
   drawCell(totals.geracao.toLocaleString('pt-BR'), currentX, columnWidths.geracao, 'right');
   currentX += columnWidths.geracao;
-  drawCell(formatCurrency(totals.liquido), currentX, columnWidths.liquido, 'right');
+  drawCell(totals.tusdFioB.toLocaleString('pt-BR'), currentX, columnWidths.tusdFioB, 'right');
+  currentX += columnWidths.tusdFioB;
+  drawCell(formatCurrency(totals.valorTusd), currentX, columnWidths.valorTusd, 'right');
+  currentX += columnWidths.valorTusd;
+  drawCell(formatCurrency(totals.valorConc), currentX, columnWidths.valorConc, 'right');
+  currentX += columnWidths.valorConc;
+  drawCell(formatCurrency(totals.contaEnergia), currentX, columnWidths.contaEnergia, 'right');
+  currentX += columnWidths.contaEnergia;
+  drawCell(formatCurrency(totals.valorTotal), currentX, columnWidths.valorTotal, 'right');
 
   // Borda da tabela
   doc.setDrawColor(220, 220, 220);
