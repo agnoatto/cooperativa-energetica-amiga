@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useLancamentosFinanceiros } from "@/hooks/useLancamentosFinanceiros";
+import { useLancamentosFinanceiros } from "@/hooks/lancamentos/useLancamentosFinanceiros";
 import { FiltrosLancamento } from "@/components/financeiro/FiltrosLancamento";
 import { StatusLancamento } from "@/types/financeiro";
 import { useIsMobile } from "@/hooks/use-mobile";

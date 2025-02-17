@@ -1,8 +1,9 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { startOfDay, endOfDay, parseISO } from "date-fns";
-import { UseLancamentosFinanceirosOptions, LancamentoResponse } from "./types";
+import { UseLancamentosFinanceirosOptions, LancamentoResponse, HistoricoStatus } from "./types";
 import { LancamentoFinanceiro } from "@/types/financeiro";
+import { Json } from "@/integrations/supabase/types";
 
 export async function fetchLancamentos({
   tipo,
@@ -97,10 +98,10 @@ export async function fetchLancamentos({
     amostra: data.slice(0, 2)
   });
 
-  return mapLancamentosResponse(data as LancamentoResponse[]);
+  return mapLancamentosResponse(data as any);
 }
 
-function mapLancamentosResponse(data: LancamentoResponse[]): LancamentoFinanceiro[] {
+function mapLancamentosResponse(data: any[]): LancamentoFinanceiro[] {
   return data.map(item => ({
     id: item.id,
     tipo: item.tipo,
@@ -117,11 +118,13 @@ function mapLancamentosResponse(data: LancamentoResponse[]): LancamentoFinanceir
     created_at: item.created_at,
     updated_at: item.updated_at,
     deleted_at: item.deleted_at,
-    historico_status: (item.historico_status || []).map(hist => ({
-      data: typeof hist === 'object' && hist !== null ? (hist as HistoricoStatus).data : '',
-      status_anterior: typeof hist === 'object' && hist !== null ? (hist as HistoricoStatus).status_anterior : 'pendente',
-      novo_status: typeof hist === 'object' && hist !== null ? (hist as HistoricoStatus).novo_status : 'pendente'
-    })),
+    historico_status: Array.isArray(item.historico_status) 
+      ? item.historico_status.map((hist: Json) => ({
+          data: typeof hist === 'object' && hist !== null ? (hist as any).data : '',
+          status_anterior: typeof hist === 'object' && hist !== null ? (hist as any).status_anterior : 'pendente',
+          novo_status: typeof hist === 'object' && hist !== null ? (hist as any).novo_status : 'pendente'
+        }))
+      : [],
     comprovante_path: item.comprovante_path,
     comprovante_nome: item.comprovante_nome,
     comprovante_tipo: item.comprovante_tipo,
