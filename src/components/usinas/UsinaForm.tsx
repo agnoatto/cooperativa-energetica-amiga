@@ -10,10 +10,12 @@ import { Form } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useUsinaForm } from "./hooks/useUsinaForm";
 import { UsinaBasicInfoFields } from "./UsinaBasicInfoFields";
 import { DadosPagamentoCollapsible } from "./DadosPagamentoCollapsible";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface UsinaFormProps {
   open: boolean;
@@ -34,9 +36,21 @@ export function UsinaForm({
     onOpenChange,
   });
 
+  const [showAlert, setShowAlert] = useState(false);
+
   useEffect(() => {
     fetchUsinaData(open);
   }, [usinaId, open]);
+
+  const handleStatusChange = (checked: boolean) => {
+    const dataInicio = form.getValues("data_inicio");
+    if (checked && !dataInicio) {
+      setShowAlert(true);
+      return;
+    }
+    setShowAlert(false);
+    setStatus(checked ? 'active' : 'draft');
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -50,15 +64,26 @@ export function UsinaForm({
             <UsinaBasicInfoFields form={form} usinaId={usinaId} />
             <DadosPagamentoCollapsible form={form} />
 
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="status"
-                checked={status === 'active'}
-                onCheckedChange={(checked) => setStatus(checked ? 'active' : 'draft')}
-              />
-              <Label htmlFor="status" className="text-sm">
-                {status === 'active' ? 'Ativa' : 'Inativa'}
-              </Label>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="status"
+                  checked={status === 'active'}
+                  onCheckedChange={handleStatusChange}
+                />
+                <Label htmlFor="status" className="text-sm">
+                  {status === 'active' ? 'Ativa' : 'Inativa'}
+                </Label>
+              </div>
+
+              {showAlert && (
+                <Alert variant="destructive" className="mt-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Para ativar a usina, é necessário definir uma Data de Início.
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
 
             <Button type="submit" disabled={isLoading}>
