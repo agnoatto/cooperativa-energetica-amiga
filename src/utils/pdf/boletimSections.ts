@@ -27,56 +27,51 @@ export const addUsinaInfo = (doc: jsPDF, data: BoletimData, yPos: number): numbe
 };
 
 export const addDataTable = (doc: jsPDF, data: BoletimData, yPos: number): number => {
+  // Título da tabela
   doc.setFontSize(FONTS.SUBTITLE);
   doc.text("Histórico de Medição e Faturamento", SPACING.MARGIN, yPos);
+  yPos += 10;
 
-  const headers = [
-    "Mês/Ano",
-    "Geração (kWh)",
-    "TUSD FIO B",
-    "Valor TUSD",
-    "Valor Conc.",
-    "Valor Total"
+  // Definição das colunas
+  const columns = [
+    { id: 'mesAno', header: 'Mês/Ano', width: 25, align: 'left' as const },
+    { id: 'geracao', header: 'Geração (kWh)', width: 30, align: 'right' as const },
+    { id: 'tusdFioB', header: 'TUSD FIO B', width: 30, align: 'right' as const },
+    { id: 'valorTusd', header: 'Valor TUSD', width: 30, align: 'right' as const },
+    { id: 'valorConc', header: 'Valor Conc.', width: 30, align: 'right' as const },
+    { id: 'valorTotal', header: 'Valor Total', width: 35, align: 'right' as const }
   ];
 
-  // Configuração das colunas
-  const columnWidths = {
-    mesAno: 30,
-    geracao: 30,
-    tusdFioB: 30,
-    valorTusd: 30,
-    valorConc: 30,
-    valorTotal: 30
-  };
-
+  // Configurações da tabela
+  const tableWidth = columns.reduce((sum, col) => sum + col.width, 0);
+  const rowHeight = 8;
   const startX = SPACING.MARGIN;
-  const tableWidth = Object.values(columnWidths).reduce((a, b) => a + b, 0);
-  const cellHeight = 10;
-  let currentY = yPos + 10;
+  let currentY = yPos;
 
   // Função helper para desenhar células
   const drawCell = (text: string, x: number, width: number, align: 'left' | 'right' = 'left') => {
-    const textX = align === 'right' ? x + width - 2 : x + 2;
+    const padding = 2;
+    const textX = align === 'right' ? x + width - padding : x + padding;
     doc.text(text, textX, currentY + 6, { align });
   };
 
   // Cabeçalho da tabela
   doc.setFillColor(240, 240, 240);
-  doc.rect(startX, currentY, tableWidth, cellHeight, 'F');
+  doc.rect(startX, currentY, tableWidth, rowHeight, 'F');
   doc.setFont("helvetica", "bold");
 
   let currentX = startX;
-  headers.forEach((header, index) => {
-    const width = Object.values(columnWidths)[index];
-    drawCell(header, currentX, width);
-    currentX += width;
+  columns.forEach(column => {
+    drawCell(column.header, currentX, column.width, column.align);
+    currentX += column.width;
   });
 
-  // Ordenar pagamentos por data (mais recentes primeiro)
-  const sortedPagamentos = [...data.pagamentos].sort((a, b) => {
-    if (a.ano !== b.ano) return b.ano - a.ano;
-    return b.mes - a.mes;
-  });
+  // Preparar dados ordenados
+  const sortedPagamentos = [...data.pagamentos]
+    .sort((a, b) => {
+      if (a.ano !== b.ano) return b.ano - a.ano;
+      return b.mes - a.mes;
+    });
 
   // Dados da tabela
   doc.setFont("helvetica", "normal");
@@ -104,70 +99,71 @@ export const addDataTable = (doc: jsPDF, data: BoletimData, yPos: number): numbe
     valorTotal: 0 
   });
 
-  // Adiciona linhas de dados
+  // Renderizar linhas de dados
   rows.forEach((row, rowIndex) => {
-    currentY += cellHeight;
+    currentY += rowHeight;
     
-    // Fundo alternado
+    // Fundo zebrado
     if (rowIndex % 2 === 0) {
       doc.setFillColor(248, 248, 248);
-      doc.rect(startX, currentY, tableWidth, cellHeight, 'F');
+      doc.rect(startX, currentY, tableWidth, rowHeight, 'F');
     }
 
+    // Desenhar células
     currentX = startX;
-    drawCell(row.mesAno, currentX, columnWidths.mesAno);
-    currentX += columnWidths.mesAno;
-    drawCell(row.geracao, currentX, columnWidths.geracao, 'right');
-    currentX += columnWidths.geracao;
-    drawCell(row.tusdFioB, currentX, columnWidths.tusdFioB, 'right');
-    currentX += columnWidths.tusdFioB;
-    drawCell(row.valorTusd, currentX, columnWidths.valorTusd, 'right');
-    currentX += columnWidths.valorTusd;
-    drawCell(row.valorConc, currentX, columnWidths.valorConc, 'right');
-    currentX += columnWidths.valorConc;
-    drawCell(row.valorTotal, currentX, columnWidths.valorTotal, 'right');
+    columns.forEach(column => {
+      const value = row[column.id as keyof typeof row];
+      drawCell(value, currentX, column.width, column.align);
+      currentX += column.width;
+    });
   });
 
   // Linha de totais
-  currentY += cellHeight;
+  currentY += rowHeight;
   doc.setFillColor(240, 249, 255);
-  doc.rect(startX, currentY, tableWidth, cellHeight, 'F');
+  doc.rect(startX, currentY, tableWidth, rowHeight, 'F');
   doc.setFont("helvetica", "bold");
 
+  // Desenhar totais
   currentX = startX;
-  drawCell("TOTAL", currentX, columnWidths.mesAno);
-  currentX += columnWidths.mesAno;
-  drawCell(totals.geracao.toLocaleString('pt-BR'), currentX, columnWidths.geracao, 'right');
-  currentX += columnWidths.geracao;
-  drawCell(totals.tusdFioB.toLocaleString('pt-BR'), currentX, columnWidths.tusdFioB, 'right');
-  currentX += columnWidths.tusdFioB;
-  drawCell(formatCurrency(totals.valorTusd), currentX, columnWidths.valorTusd, 'right');
-  currentX += columnWidths.valorTusd;
-  drawCell(formatCurrency(totals.valorConc), currentX, columnWidths.valorConc, 'right');
-  currentX += columnWidths.valorConc;
-  drawCell(formatCurrency(totals.valorTotal), currentX, columnWidths.valorTotal, 'right');
+  columns.forEach((column, index) => {
+    let value = '';
+    if (index === 0) value = 'TOTAL';
+    else if (column.id === 'geracao') value = totals.geracao.toLocaleString('pt-BR');
+    else if (column.id === 'tusdFioB') value = totals.tusdFioB.toLocaleString('pt-BR');
+    else if (column.id === 'valorTusd') value = formatCurrency(totals.valorTusd);
+    else if (column.id === 'valorConc') value = formatCurrency(totals.valorConc);
+    else if (column.id === 'valorTotal') value = formatCurrency(totals.valorTotal);
+    
+    drawCell(value, currentX, column.width, column.align);
+    currentX += column.width;
+  });
 
-  // Borda da tabela
+  // Bordas e linhas da tabela
   doc.setDrawColor(220, 220, 220);
-  doc.rect(startX, yPos + 10, tableWidth, (rows.length + 2) * cellHeight, 'S');
+  
+  // Borda externa
+  doc.rect(startX, yPos, tableWidth, (rows.length + 2) * rowHeight, 'S');
 
-  // Linhas verticais internas
+  // Linhas verticais
   currentX = startX;
-  for (let i = 0; i < Object.keys(columnWidths).length - 1; i++) {
-    currentX += Object.values(columnWidths)[i];
-    doc.line(
-      currentX,
-      yPos + 10,
-      currentX,
-      yPos + 10 + ((rows.length + 2) * cellHeight)
-    );
-  }
+  columns.forEach(column => {
+    currentX += column.width;
+    if (currentX < startX + tableWidth) {
+      doc.line(
+        currentX,
+        yPos,
+        currentX,
+        yPos + ((rows.length + 2) * rowHeight)
+      );
+    }
+  });
 
   // Linhas horizontais
   for (let i = 1; i < rows.length + 2; i++) {
-    const lineY = yPos + 10 + (i * cellHeight);
+    const lineY = yPos + (i * rowHeight);
     doc.line(startX, lineY, startX + tableWidth, lineY);
   }
 
-  return currentY + cellHeight + 10;
+  return currentY + rowHeight + 10;
 };
