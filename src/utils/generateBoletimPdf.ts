@@ -17,9 +17,11 @@ export const generateBoletimPdf = async (data: BoletimData): Promise<{ doc: jsPD
   let yPos = 0;
 
   doc.setFontSize(FONTS.TITLE);
-  doc.text("Cooperativa Cogesol", SPACING.PAGE.WIDTH/2, 20, { align: "center" });
+  doc.text("Boletim de Medição", SPACING.PAGE.WIDTH/2, 15, { align: "center" });
+  doc.setFontSize(FONTS.SUBTITLE);
+  doc.text("Cooperativa Cogesol", SPACING.PAGE.WIDTH/2, 25, { align: "center" });
   doc.setFontSize(FONTS.NORMAL);
-  doc.text("CNPJ: 57.658.963/0001-02", SPACING.PAGE.WIDTH/2, 30, { align: "center" });
+  doc.text("CNPJ: 57.658.963/0001-02", SPACING.PAGE.WIDTH/2, 32, { align: "center" });
   
   doc.setFillColor(240, 249, 255);
   doc.rect(SPACING.PAGE.WIDTH - 80, 40, 60, 25, 'F');
@@ -33,7 +35,7 @@ export const generateBoletimPdf = async (data: BoletimData): Promise<{ doc: jsPD
   yPos = addUsinaInfo(doc, data, yPos);
   yPos = addDataTable(doc, data, yPos);
 
-  const fileName = `boletim-medicao-${data.usina.numero_uc}-${format(new Date(), 'MM-yyyy')}.pdf`;
+  const fileName = `boletim-medicao-${data.usina.numero_uc}-${format(data.data_emissao, 'MM-yyyy')}.pdf`;
 
   return { doc, fileName };
 };

@@ -4,11 +4,11 @@ import { PagamentoData } from "../types/pagamento";
 
 export function usePagamentosHistorico() {
   const getPagamentosUltimos12Meses = async (pagamentoAtual: PagamentoData) => {
-    const dataAtual = new Date(pagamentoAtual.ano, pagamentoAtual.mes - 1);
-    const dataInicial = new Date(dataAtual);
+    const dataReferencia = new Date(pagamentoAtual.ano, pagamentoAtual.mes - 1);
+    const dataInicial = new Date(dataReferencia);
     dataInicial.setMonth(dataInicial.getMonth() - 11);
 
-    console.log("[Histórico] Buscando pagamentos de", dataInicial.toISOString(), "até", dataAtual.toISOString());
+    console.log("[Histórico] Buscando pagamentos de", dataInicial.toISOString(), "até", dataReferencia.toISOString());
 
     const { data: pagamentosHistorico, error } = await supabase
       .from('pagamentos_usina')
@@ -48,8 +48,10 @@ export function usePagamentosHistorico() {
         )
       `)
       .eq('usina_id', pagamentoAtual.usina.id)
+      .lte('ano', dataReferencia.getFullYear())
+      .lte('mes', dataReferencia.getMonth() + 1)
       .gte('ano', dataInicial.getFullYear())
-      .lte('ano', dataAtual.getFullYear())
+      .gte('mes', dataInicial.getMonth() + 1)
       .order('ano', { ascending: false })
       .order('mes', { ascending: false });
 

@@ -33,7 +33,7 @@ export function BoletimMedicaoButton({
           valor_kwh: pagamento.usina.valor_kwh
         },
         pagamentos: pagamentosHistorico,
-        data_emissao: new Date(),
+        data_emissao: new Date(pagamento.ano, pagamento.mes - 1),
         valor_receber: pagamento.valor_total
       };
 
