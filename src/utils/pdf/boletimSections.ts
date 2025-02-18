@@ -15,6 +15,8 @@ export const addUsinaInfo = (doc: jsPDF, data: BoletimData, yPos: number): numbe
     { label: "UC:", value: data.usina.numero_uc },
     { label: "Valor da Tarifa:", value: formatCurrency(data.usina.valor_kwh) },
     { label: "Valor a Receber:", value: formatCurrency(data.valor_receber) },
+    { label: "Data de Emissão:", value: format(new Date(data.data_emissao), 'dd/MM/yyyy') },
+    { label: "Data de Vencimento:", value: format(new Date(data.data_vencimento), 'dd/MM/yyyy') },
   ];
 
   info.forEach((item, index) => {
@@ -34,11 +36,10 @@ export const addDataTable = (doc: jsPDF, data: BoletimData, yPos: number): numbe
 
   // Definição das colunas
   const columns = [
-    { id: 'mesAno', header: 'Mês/Ano', width: 25, align: 'left' as const },
-    { id: 'geracao', header: 'Geração (kWh)', width: 30, align: 'right' as const },
-    { id: 'tusdFioB', header: 'TUSD FIO B', width: 30, align: 'right' as const },
-    { id: 'valorTusd', header: 'Valor TUSD', width: 30, align: 'right' as const },
-    { id: 'valorConc', header: 'Valor Conc.', width: 30, align: 'right' as const },
+    { id: 'mesAno', header: 'Mês/Ano', width: 30, align: 'left' as const },
+    { id: 'geracao', header: 'Geração (kWh)', width: 35, align: 'right' as const },
+    { id: 'valorTusd', header: 'Valor TUSD', width: 35, align: 'right' as const },
+    { id: 'valorConc', header: 'Valor Conc.', width: 35, align: 'right' as const },
     { id: 'valorTotal', header: 'Valor Total', width: 35, align: 'right' as const }
   ];
 
@@ -66,34 +67,24 @@ export const addDataTable = (doc: jsPDF, data: BoletimData, yPos: number): numbe
     currentX += column.width;
   });
 
-  // Preparar dados ordenados
-  const sortedPagamentos = [...data.pagamentos]
-    .sort((a, b) => {
-      if (a.ano !== b.ano) return b.ano - a.ano;
-      return b.mes - a.mes;
-    });
-
   // Dados da tabela
   doc.setFont("helvetica", "normal");
-  const rows = sortedPagamentos.map(pagamento => ({
+  const rows = data.pagamentos.map(pagamento => ({
     mesAno: format(new Date(pagamento.ano, pagamento.mes - 1), 'MMM/yyyy', { locale: ptBR }),
     geracao: pagamento.geracao_kwh.toLocaleString('pt-BR'),
-    tusdFioB: pagamento.tusd_fio_b?.toLocaleString('pt-BR') ?? '-',
     valorTusd: formatCurrency(pagamento.valor_tusd_fio_b),
     valorConc: formatCurrency(pagamento.valor_concessionaria),
     valorTotal: formatCurrency(pagamento.valor_total)
   }));
 
   // Totais
-  const totals = sortedPagamentos.reduce((acc, pagamento) => ({
+  const totals = data.pagamentos.reduce((acc, pagamento) => ({
     geracao: acc.geracao + pagamento.geracao_kwh,
-    tusdFioB: (acc.tusdFioB || 0) + (pagamento.tusd_fio_b || 0),
     valorTusd: acc.valorTusd + pagamento.valor_tusd_fio_b,
     valorConc: acc.valorConc + pagamento.valor_concessionaria,
     valorTotal: acc.valorTotal + pagamento.valor_total
   }), { 
-    geracao: 0, 
-    tusdFioB: 0,
+    geracao: 0,
     valorTusd: 0,
     valorConc: 0,
     valorTotal: 0 
@@ -130,7 +121,6 @@ export const addDataTable = (doc: jsPDF, data: BoletimData, yPos: number): numbe
     let value = '';
     if (index === 0) value = 'TOTAL';
     else if (column.id === 'geracao') value = totals.geracao.toLocaleString('pt-BR');
-    else if (column.id === 'tusdFioB') value = totals.tusdFioB.toLocaleString('pt-BR');
     else if (column.id === 'valorTusd') value = formatCurrency(totals.valorTusd);
     else if (column.id === 'valorConc') value = formatCurrency(totals.valorConc);
     else if (column.id === 'valorTotal') value = formatCurrency(totals.valorTotal);
