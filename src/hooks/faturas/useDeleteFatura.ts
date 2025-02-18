@@ -12,7 +12,7 @@ export const useDeleteFatura = () => {
       
       const { data, error } = await supabase
         .rpc('deletar_fatura', {
-          fatura_id: id
+          p_fatura_id: id
         });
 
       if (error) {

@@ -1318,7 +1318,7 @@ export type Database = {
     Functions: {
       deletar_fatura: {
         Args: {
-          fatura_id: string
+          p_fatura_id: string
         }
         Returns: undefined
       }
