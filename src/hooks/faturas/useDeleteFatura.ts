@@ -9,15 +9,18 @@ export const useDeleteFatura = () => {
   return useMutation({
     mutationFn: async (id: string) => {
       console.log('Excluindo fatura:', id);
-      const { error } = await supabase
-        .from("faturas")
-        .delete()
-        .eq("id", id);
+      
+      const { data, error } = await supabase
+        .rpc('deletar_fatura', {
+          fatura_id: id
+        });
 
       if (error) {
         console.error('Erro ao excluir fatura:', error);
         throw error;
       }
+
+      return data;
     },
     onMutate: () => {
       toast.loading("Excluindo fatura...");

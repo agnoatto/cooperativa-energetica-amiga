@@ -1316,6 +1316,12 @@ export type Database = {
       }
     }
     Functions: {
+      deletar_fatura: {
+        Args: {
+          fatura_id: string
+        }
+        Returns: undefined
+      }
       deletar_pagamento: {
         Args: {
           pagamento_id: string
