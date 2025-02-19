@@ -50,11 +50,11 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
     throw new Error('Erro ao buscar faturas');
   }
 
-  // Fetch total payments for current month
+  // Fetch total payments for current month - using 'finalizada' status instead of 'paga'
   const { data: pagamentos, error: pagamentosError } = await supabase
     .from('faturas')
     .select('valor_assinatura')
-    .eq('status', 'paga')
+    .eq('status', 'finalizada')
     .eq('mes', currentMonth)
     .eq('ano', currentYear);
 
