@@ -28,7 +28,7 @@ export const addEconomyInfo = (doc: jsPDF, fatura: PdfFaturaData, yPos: number):
     yPos + 15
   );
 
-  // Economia acumulada
+  // Total a pagar
   doc.roundedRect(
     SPACING.MARGIN + boxWidth + 5,
     yPos,
@@ -40,13 +40,13 @@ export const addEconomyInfo = (doc: jsPDF, fatura: PdfFaturaData, yPos: number):
   );
   doc.setFontSize(FONTS.SMALL);
   doc.text(
-    "Economia acumulada:",
+    "Total a pagar:",
     SPACING.MARGIN + boxWidth + 9,
     yPos + 6
   );
   doc.setFontSize(FONTS.SUBTITLE);
   doc.text(
-    formatCurrency(fatura.economia_acumulada),
+    formatCurrency(fatura.valor_assinatura),
     SPACING.MARGIN + boxWidth + 9,
     yPos + 15
   );
@@ -122,4 +122,3 @@ const formatCurrency = (value: number): string => {
     currency: 'BRL'
   }).format(value);
 };
-
