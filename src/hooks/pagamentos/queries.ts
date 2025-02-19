@@ -28,6 +28,7 @@ export const fetchPagamentos = async (currentDate: Date) => {
         tusd_fio_b,
         valor_tusd_fio_b,
         valor_concessionaria,
+        data_vencimento_concessionaria,
         valor_total,
         status,
         data_vencimento,
