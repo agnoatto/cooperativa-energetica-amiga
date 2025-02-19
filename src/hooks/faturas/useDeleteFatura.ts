@@ -17,13 +17,13 @@ export const useDeleteFatura = () => {
 
       if (error) {
         console.error('Erro ao excluir fatura:', error);
-        throw error;
+        throw new Error(error.message);
       }
 
       return data;
     },
     onMutate: () => {
-      toast.loading("Excluindo fatura...");
+      toast.loading("Excluindo fatura...", { id: "delete-fatura" });
     },
     onSuccess: () => {
       console.log('Fatura excluída com sucesso');
@@ -31,11 +31,14 @@ export const useDeleteFatura = () => {
       queryClient.invalidateQueries({
         queryKey: ['faturas', date.getMonth() + 1, date.getFullYear()]
       });
-      toast.success("Fatura excluída com sucesso!");
+      toast.success("Fatura excluída com sucesso!", { id: "delete-fatura" });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Erro ao excluir fatura:", error);
-      toast.error("Erro ao excluir fatura. Por favor, tente novamente.");
+      toast.error(
+        `Erro ao excluir fatura: ${error.message}`, 
+        { id: "delete-fatura" }
+      );
     },
   });
 };
