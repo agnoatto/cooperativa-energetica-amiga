@@ -67,13 +67,22 @@ export const useGerarFaturas = (currentDate: Date) => {
               mes,
               ano,
               consumo_kwh: 0,
-              valor_total: 0,
+              total_fatura: 0,
               status: "gerada",
               data_vencimento: dataVencimento.toISOString().split('T')[0],
               economia_acumulada: 0,
+              economia_mes: 0,
               saldo_energia_kwh: 0,
               observacao: null,
-              historico_status: historicoStatusInicial
+              historico_status: historicoStatusInicial,
+              // Campos obrigatórios adicionados
+              fatura_concessionaria: 0,
+              iluminacao_publica: 0,
+              outros_valores: 0,
+              valor_desconto: 0,
+              valor_assinatura: 0,
+              data_criacao: now,
+              data_atualizacao: now
             });
 
           if (insertError) throw insertError;
@@ -98,3 +107,4 @@ export const useGerarFaturas = (currentDate: Date) => {
     },
   });
 };
+
