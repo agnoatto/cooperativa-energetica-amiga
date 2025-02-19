@@ -16,10 +16,12 @@ export const calculateValues = (
   const concessionaria = parseValue(faturaConcessionaria);
   const percentual = percentualDesconto / 100;
 
+  // Base de cálculo para o desconto
   const baseDesconto = total - iluminacao - outros;
+  // Valor do desconto
   const valorDesconto = baseDesconto * percentual;
-  const valorAposDesconto = baseDesconto - valorDesconto;
-  const valorFinal = valorAposDesconto - concessionaria;
+  // Valor da assinatura = Total - Desconto - Concessionária
+  const valorFinal = total - valorDesconto - concessionaria;
 
   return {
     valor_desconto: valorDesconto,

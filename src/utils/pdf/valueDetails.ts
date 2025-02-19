@@ -51,7 +51,5 @@ const formatCurrency = (value: number): string => {
 };
 
 const calcularValorAssinatura = (fatura: PdfFaturaData): number => {
-  const baseDesconto = fatura.total_fatura - fatura.iluminacao_publica - fatura.outros_valores;
-  const valorAposDesconto = baseDesconto - fatura.valor_desconto;
-  return valorAposDesconto - fatura.fatura_concessionaria;
+  return fatura.total_fatura - fatura.valor_desconto - fatura.fatura_concessionaria;
 };

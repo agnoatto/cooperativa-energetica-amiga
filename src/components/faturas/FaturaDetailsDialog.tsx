@@ -1,4 +1,3 @@
-
 import {
   Dialog,
   DialogContent,
@@ -24,9 +23,7 @@ export function FaturaDetailsDialog({ fatura, isOpen, onClose }: FaturaDetailsDi
   };
 
   const calcularValorAssinatura = () => {
-    const baseDesconto = fatura.total_fatura - fatura.iluminacao_publica - fatura.outros_valores;
-    const valorAposDesconto = baseDesconto - fatura.valor_desconto;
-    return valorAposDesconto - fatura.fatura_concessionaria;
+    return fatura.total_fatura - fatura.valor_desconto - fatura.fatura_concessionaria;
   };
 
   return (
