@@ -21,12 +21,14 @@ interface PagamentosTableProps {
   pagamentos: PagamentoData[];
   isLoading: boolean;
   onEditPagamento: (pagamento: PagamentoData) => void;
+  onViewDetails: (pagamento: PagamentoData) => void;
 }
 
 export function PagamentosTable({
   pagamentos,
   isLoading,
   onEditPagamento,
+  onViewDetails,
 }: PagamentosTableProps) {
   const queryClient = useQueryClient();
   const [pagamentoParaDeletar, setPagamentoParaDeletar] = React.useState<PagamentoData | null>(null);
@@ -91,6 +93,7 @@ export function PagamentosTable({
               pagamento={pagamento}
               onEdit={onEditPagamento}
               onDelete={setPagamentoParaDeletar}
+              onViewDetails={onViewDetails}
               getPagamentosUltimos12Meses={getPagamentosUltimos12Meses}
             />
           ))}

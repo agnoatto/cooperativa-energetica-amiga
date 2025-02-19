@@ -1,4 +1,3 @@
-
 import {
   Dialog,
   DialogContent,
@@ -33,16 +32,22 @@ export function PagamentoDetailsDialog({
     return format(new Date(date), 'dd/MM/yyyy', { locale: ptBR });
   };
 
-  const getStatusColor = (status: string) => {
-    const statusColors = {
-      pendente: "yellow",
-      enviado: "blue",
-      confirmado: "green",
-      atrasado: "red",
-      pago: "green",
-      cancelado: "gray"
-    };
-    return statusColors[status as keyof typeof statusColors] || "gray";
+  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+    switch (status) {
+      case "pendente":
+        return "secondary";
+      case "enviado":
+        return "default";
+      case "confirmado":
+      case "pago":
+        return "default";
+      case "atrasado":
+        return "destructive";
+      case "cancelado":
+        return "outline";
+      default:
+        return "default";
+    }
   };
 
   return (
@@ -70,7 +75,15 @@ export function PagamentoDetailsDialog({
               </div>
               <div>
                 <span className="text-muted-foreground">Status:</span>
-                <Badge variant={getStatusColor(pagamento.status)}>{pagamento.status}</Badge>
+                <Badge variant={getStatusVariant(pagamento.status)} className={
+                  pagamento.status === "atrasado" ? "bg-red-500" :
+                  pagamento.status === "pago" ? "bg-green-500" :
+                  pagamento.status === "pendente" ? "bg-yellow-500" :
+                  pagamento.status === "enviado" ? "bg-blue-500" :
+                  ""
+                }>
+                  {pagamento.status}
+                </Badge>
               </div>
               <div>
                 <span className="text-muted-foreground">Data de Vencimento:</span>
@@ -144,7 +157,16 @@ export function PagamentoDetailsDialog({
                 {pagamento.historico_status.map((historico, index) => (
                   <div key={index} className="text-sm flex items-center justify-between">
                     <div>
-                      <Badge variant={getStatusColor(historico.novo_status)}>
+                      <Badge 
+                        variant={getStatusVariant(historico.novo_status)}
+                        className={
+                          historico.novo_status === "atrasado" ? "bg-red-500" :
+                          historico.novo_status === "pago" ? "bg-green-500" :
+                          historico.novo_status === "pendente" ? "bg-yellow-500" :
+                          historico.novo_status === "enviado" ? "bg-blue-500" :
+                          ""
+                        }
+                      >
                         {historico.status_anterior} → {historico.novo_status}
                       </Badge>
                     </div>
