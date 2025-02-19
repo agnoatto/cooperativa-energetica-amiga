@@ -19,7 +19,7 @@ interface PaymentConfirmationModalProps {
   onClose: () => void;
   fatura: {
     id: string;
-    valor_total: number;
+    valor_assinatura: number;
   };
   onConfirm: (data: {
     id: string;
@@ -58,7 +58,7 @@ export function PaymentConfirmationModal({
     }
   };
 
-  const valorTotal = fatura.valor_total + parseValue(valorAdicional);
+  const valorTotal = fatura.valor_assinatura + parseValue(valorAdicional);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !isLoading && !open && onClose()}>
