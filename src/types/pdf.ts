@@ -4,7 +4,7 @@ import { Fatura } from "./fatura";
 export type PdfFaturaData = Pick<
   Fatura,
   | "consumo_kwh"
-  | "valor_total"
+  | "valor_assinatura"
   | "status"
   | "data_vencimento"
   | "mes"

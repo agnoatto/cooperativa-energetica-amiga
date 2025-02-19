@@ -27,7 +27,7 @@ export const useUpdateFatura = () => {
           iluminacao_publica: data.iluminacao_publica,
           outros_valores: data.outros_valores,
           valor_desconto: calculatedValues.valor_desconto,
-          valor_total: calculatedValues.valor_total,
+          valor_assinatura: calculatedValues.valor_assinatura,
           saldo_energia_kwh: data.saldo_energia_kwh,
           observacao: data.observacao,
           data_vencimento: data.data_vencimento,
@@ -46,4 +46,3 @@ export const useUpdateFatura = () => {
     },
   });
 };
-

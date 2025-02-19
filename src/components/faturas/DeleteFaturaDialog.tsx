@@ -42,7 +42,7 @@ export function DeleteFaturaDialog({
           <AlertDialogDescription>
             Você está prestes a excluir a fatura do cooperado{" "}
             <strong>{fatura.unidade_beneficiaria.cooperado.nome}</strong> no valor
-            de <strong>{formatCurrency(fatura.valor_total)}</strong>.
+            de <strong>{formatCurrency(fatura.valor_assinatura)}</strong>.
             <br />
             <br />
             Esta ação não pode ser desfeita.

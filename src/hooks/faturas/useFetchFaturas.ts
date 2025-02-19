@@ -32,7 +32,7 @@ export const useFetchFaturas = (currentDate: Date) => {
         .select(`
           id,
           consumo_kwh,
-          valor_total,
+          valor_assinatura,
           status,
           data_vencimento,
           mes,

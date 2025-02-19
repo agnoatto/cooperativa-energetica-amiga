@@ -53,7 +53,7 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
   // Fetch total payments for current month
   const { data: pagamentos, error: pagamentosError } = await supabase
     .from('faturas')
-    .select('valor_total')
+    .select('valor_assinatura')
     .eq('status', 'paga')
     .eq('mes', currentMonth)
     .eq('ano', currentYear);
@@ -63,7 +63,7 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
     throw new Error('Erro ao buscar pagamentos');
   }
 
-  const totalPagamentos = pagamentos?.reduce((acc, curr) => acc + Number(curr.valor_total), 0) || 0;
+  const totalPagamentos = pagamentos?.reduce((acc, curr) => acc + Number(curr.valor_assinatura), 0) || 0;
 
   return {
     totalCooperados: totalCooperados || 0,
