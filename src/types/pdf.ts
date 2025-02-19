@@ -28,4 +28,11 @@ export type PdfFaturaData = Pick<
       documento: string | null;
     };
   };
+  historico_faturas: Array<{
+    mes: number;
+    ano: number;
+    consumo_kwh: number;
+    valor_desconto: number;
+  }>;
 };
+

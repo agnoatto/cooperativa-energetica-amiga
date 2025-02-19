@@ -12,13 +12,13 @@ export const useFetchFaturas = (currentDate: Date) => {
       // Primeiro, buscar todas as faturas anteriores para calcular a economia acumulada
       const { data: faturasAnteriores } = await supabase
         .from("faturas")
-        .select('valor_desconto, unidade_beneficiaria_id')
+        .select('valor_desconto, unidade_beneficiaria_id, mes, ano, consumo_kwh')
         .lt('ano', currentDate.getFullYear())
         .order('ano', { ascending: false });
 
       const { data: faturasAnoAtual } = await supabase
         .from("faturas")
-        .select('valor_desconto, unidade_beneficiaria_id, mes')
+        .select('valor_desconto, unidade_beneficiaria_id, mes, ano, consumo_kwh')
         .eq('ano', currentDate.getFullYear())
         .lt('mes', currentDate.getMonth() + 1)
         .order('mes', { ascending: false });
@@ -79,26 +79,37 @@ export const useFetchFaturas = (currentDate: Date) => {
       }
 
       // Calcular economia acumulada para cada fatura e garantir o tipo correto do historico_status
-      return data.map(fatura => ({
-        ...fatura,
-        economia_acumulada: todasFaturasAnteriores
-          .filter(f => f.unidade_beneficiaria_id === fatura.unidade_beneficiaria.id)
-          .reduce((acc, f) => acc + (f.valor_desconto || 0), 0),
-        historico_status: (fatura.historico_status as any[] || []).map(entry => ({
-          status: entry.status,
-          data: entry.data,
-          observacao: entry.observacao
-        })),
-        valor_adicional: fatura.valor_adicional || 0,
-        observacao_pagamento: fatura.observacao_pagamento || null,
-        data_pagamento: fatura.data_pagamento || null,
-        arquivo_concessionaria_nome: fatura.arquivo_concessionaria_nome || null,
-        arquivo_concessionaria_path: fatura.arquivo_concessionaria_path || null,
-        data_criacao: fatura.data_criacao || null,
-        data_atualizacao: fatura.data_atualizacao || null
-      })) as Fatura[];
+      return data.map(fatura => {
+        const faturasAnterioresDaUnidade = todasFaturasAnteriores.filter(
+          f => f.unidade_beneficiaria_id === fatura.unidade_beneficiaria.id
+        );
+
+        return {
+          ...fatura,
+          economia_acumulada: faturasAnterioresDaUnidade.reduce((acc, f) => acc + (f.valor_desconto || 0), 0),
+          historico_status: (fatura.historico_status as any[] || []).map(entry => ({
+            status: entry.status,
+            data: entry.data,
+            observacao: entry.observacao
+          })),
+          historico_faturas: faturasAnterioresDaUnidade.map(f => ({
+            mes: f.mes,
+            ano: f.ano,
+            consumo_kwh: f.consumo_kwh,
+            valor_desconto: f.valor_desconto
+          })),
+          valor_adicional: fatura.valor_adicional || 0,
+          observacao_pagamento: fatura.observacao_pagamento || null,
+          data_pagamento: fatura.data_pagamento || null,
+          arquivo_concessionaria_nome: fatura.arquivo_concessionaria_nome || null,
+          arquivo_concessionaria_path: fatura.arquivo_concessionaria_path || null,
+          data_criacao: fatura.data_criacao || null,
+          data_atualizacao: fatura.data_atualizacao || null
+        } as Fatura);
+      });
     },
-    staleTime: 0, // Mantido 0 para atualização imediata após upload
+    staleTime: 0,
     gcTime: 1000 * 60 * 5, // 5 minutos
   });
 };
+
