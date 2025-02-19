@@ -20,6 +20,13 @@ export interface StatusHistoryEntry {
   observacao?: string;
 }
 
+export interface HistoricoFatura {
+  mes: number;
+  ano: number;
+  consumo_kwh: number;
+  valor_desconto: number;
+}
+
 export interface Fatura {
   id: string;
   consumo_kwh: number;
@@ -48,5 +55,7 @@ export interface Fatura {
   data_criacao?: string;
   data_atualizacao?: string;
   historico_status: StatusHistoryEntry[];
+  historico_faturas: HistoricoFatura[];
   unidade_beneficiaria: UnidadeBeneficiaria;
 }
+

@@ -1,5 +1,5 @@
 
-import { Fatura } from "./fatura";
+import { Fatura, HistoricoFatura } from "./fatura";
 
 export type PdfFaturaData = Pick<
   Fatura,
@@ -28,11 +28,6 @@ export type PdfFaturaData = Pick<
       documento: string | null;
     };
   };
-  historico_faturas: Array<{
-    mes: number;
-    ano: number;
-    consumo_kwh: number;
-    valor_desconto: number;
-  }>;
+  historico_faturas: HistoricoFatura[];
 };
 
