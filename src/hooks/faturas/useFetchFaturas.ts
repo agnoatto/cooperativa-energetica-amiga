@@ -109,12 +109,12 @@ export const useFetchFaturas = (currentDate: Date) => {
       }
 
       // Calcular economia acumulada para cada fatura e garantir o tipo correto dos dados
-      return data.map(fatura => {
+      const faturas: Fatura[] = data.map(fatura => {
         const faturasAnterioresDaUnidade = todasFaturasAnteriores.filter(
           f => f.unidade_beneficiaria_id === fatura.unidade_beneficiaria.id
         );
 
-        return {
+        const faturaFormatada: Fatura = {
           ...fatura,
           economia_acumulada: faturasAnterioresDaUnidade.reduce(
             (acc, f) => acc + (f.valor_desconto || 0),
@@ -148,8 +148,12 @@ export const useFetchFaturas = (currentDate: Date) => {
           outros_valores: Number(fatura.outros_valores),
           valor_desconto: Number(fatura.valor_desconto),
           saldo_energia_kwh: Number(fatura.saldo_energia_kwh)
-        } as Fatura);
+        };
+
+        return faturaFormatada;
       });
+
+      return faturas;
     },
     staleTime: 0,
     gcTime: 1000 * 60 * 5 // 5 minutos
