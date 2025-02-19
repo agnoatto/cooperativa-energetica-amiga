@@ -14,6 +14,7 @@ export interface PagamentoData {
   tusd_fio_b: number | null;
   valor_tusd_fio_b: number | null;
   valor_concessionaria: number;
+  data_vencimento_concessionaria: string | null;
   mes: number;
   ano: number;
   arquivo_comprovante_nome: string | null;
@@ -49,6 +50,7 @@ export interface PagamentoFormValues {
   data_emissao: string | null;
   tusd_fio_b: number;
   valor_concessionaria: number;
+  data_vencimento_concessionaria: string | null;
   observacao?: string;
   observacao_pagamento?: string;
 }

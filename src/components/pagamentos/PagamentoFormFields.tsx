@@ -113,6 +113,19 @@ export function PagamentoFormFields({
         />
       </div>
       <div>
+        <Label htmlFor="data_vencimento_concessionaria">Data de Vencimento da Fatura Concessionária</Label>
+        <Input
+          id="data_vencimento_concessionaria"
+          type="date"
+          value={form.data_vencimento_concessionaria || ''}
+          onChange={(e) => setForm({ ...form, data_vencimento_concessionaria: e.target.value || null })}
+          className={cn(
+            "w-full",
+            !form.data_vencimento_concessionaria && "text-muted-foreground"
+          )}
+        />
+      </div>
+      <div>
         <Label htmlFor="valor_efetivo">Valor Efetivo a Receber (R$)</Label>
         <Input
           id="valor_efetivo"
