@@ -44,7 +44,7 @@ export const addClientInfo = (doc: jsPDF, fatura: PdfFaturaData, yPos: number): 
     },
     { 
       label: "Valor a Pagar",
-      value: formatCurrency(fatura.valor_total)
+      value: formatCurrency(fatura.valor_assinatura)
     }
   ];
 

@@ -24,7 +24,7 @@ export const generateFaturaPdf = async (fatura: PdfFaturaData): Promise<{ doc: j
     // Adicionar cabeçalho com novo logo
     yPos = await addHeader(doc, {
       title: `Relatório Mensal - Ref.: ${format(new Date(fatura.ano, fatura.mes - 1), 'MMMM/yyyy', { locale: ptBR })}`,
-      logoPath: '/lovable-uploads/254317ca-d03e-40a5-9286-a175e9dd8bbf.png' // Updated to use the new COGESOL logo
+      logoPath: '/lovable-uploads/254317ca-d03e-40a5-9286-a175e9dd8bbf.png'
     });
 
     // Adicionar informações do cliente
@@ -52,7 +52,7 @@ export const generateFaturaPdf = async (fatura: PdfFaturaData): Promise<{ doc: j
     }
 
     // Adicionar rodapé na última página
-    yPos = addCompanyFooter(doc, fatura.valor_total, yPos);
+    yPos = addCompanyFooter(doc, fatura.valor_assinatura, yPos);
     addPaymentData(doc, yPos);
 
     // Nome do arquivo
@@ -64,4 +64,3 @@ export const generateFaturaPdf = async (fatura: PdfFaturaData): Promise<{ doc: j
     throw new Error('Falha ao gerar o PDF. Por favor, tente novamente.');
   }
 };
-

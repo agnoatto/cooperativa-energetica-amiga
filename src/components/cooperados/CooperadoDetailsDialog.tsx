@@ -58,7 +58,7 @@ export function CooperadoDetailsDialog({
           faturas (
             id,
             consumo_kwh,
-            valor_total,
+            valor_assinatura,
             data_vencimento,
             status,
             valor_desconto

@@ -7,7 +7,7 @@ interface Invoice {
   id: string;
   data_vencimento: string;
   consumo_kwh: number;
-  valor_total: number;
+  valor_assinatura: number;
   valor_desconto: number;
   status: string;
 }
@@ -75,7 +75,7 @@ export function InvoicesTabContent({ units, isLoading }: InvoicesTabContentProps
                       {format(new Date(invoice.data_vencimento), 'dd/MM/yyyy')}
                     </TableCell>
                     <TableCell>{invoice.consumo_kwh} kWh</TableCell>
-                    <TableCell>{formatCurrency(invoice.valor_total)}</TableCell>
+                    <TableCell>{formatCurrency(invoice.valor_assinatura)}</TableCell>
                     <TableCell>{formatCurrency(invoice.valor_desconto)}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-sm ${
