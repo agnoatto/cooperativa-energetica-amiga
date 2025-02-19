@@ -13,6 +13,7 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
     data_emissao: null,
     tusd_fio_b: 0,
     valor_concessionaria: 0,
+    data_vencimento_concessionaria: null,
     observacao: '',
     observacao_pagamento: '',
   });
@@ -28,6 +29,7 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
         data_emissao: pagamento.data_emissao,
         tusd_fio_b: pagamento.tusd_fio_b || 0,
         valor_concessionaria: pagamento.valor_concessionaria || 0,
+        data_vencimento_concessionaria: pagamento.data_vencimento_concessionaria,
         observacao: pagamento.observacao || '',
         observacao_pagamento: pagamento.observacao_pagamento || '',
       });
@@ -66,6 +68,7 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
           tusd_fio_b: Number(form.tusd_fio_b.toFixed(4)),
           valor_tusd_fio_b: Number(valorTotalTusdFioB.toFixed(4)),
           valor_concessionaria: Number(form.valor_concessionaria.toFixed(4)),
+          data_vencimento_concessionaria: form.data_vencimento_concessionaria,
           observacao: form.observacao || null,
           observacao_pagamento: form.observacao_pagamento || null,
         })

@@ -592,6 +592,7 @@ export type Database = {
           data_envio: string | null
           data_pagamento: string | null
           data_vencimento: string
+          data_vencimento_concessionaria: string | null
           empresa_id: string | null
           geracao_kwh: number
           historico_status: Json | null
@@ -620,6 +621,7 @@ export type Database = {
           data_envio?: string | null
           data_pagamento?: string | null
           data_vencimento: string
+          data_vencimento_concessionaria?: string | null
           empresa_id?: string | null
           geracao_kwh: number
           historico_status?: Json | null
@@ -648,6 +650,7 @@ export type Database = {
           data_envio?: string | null
           data_pagamento?: string | null
           data_vencimento?: string
+          data_vencimento_concessionaria?: string | null
           empresa_id?: string | null
           geracao_kwh?: number
           historico_status?: Json | null
