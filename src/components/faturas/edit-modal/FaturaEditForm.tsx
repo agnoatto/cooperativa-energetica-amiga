@@ -1,4 +1,3 @@
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -83,7 +82,7 @@ export function FaturaEditForm({
         />
       </div>
       <div className="grid w-full items-center gap-2">
-        <Label htmlFor="totalFatura">Valor Total Original</Label>
+        <Label htmlFor="totalFatura">Valor Total Sem Assinatura</Label>
         <CurrencyInput
           id="totalFatura"
           value={totalFatura}

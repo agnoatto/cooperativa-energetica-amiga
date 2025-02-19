@@ -24,11 +24,8 @@ export function FaturaDetailsDialog({ fatura, isOpen, onClose }: FaturaDetailsDi
   };
 
   const calcularValorAssinatura = () => {
-    // Base para desconto = Valor Total - Iluminação - Outros
     const baseDesconto = fatura.total_fatura - fatura.iluminacao_publica - fatura.outros_valores;
-    // Valor após desconto = Base - Valor do Desconto
     const valorAposDesconto = baseDesconto - fatura.valor_desconto;
-    // Valor final da assinatura = Valor após desconto - Conta de Energia
     return valorAposDesconto - fatura.fatura_concessionaria;
   };
 
@@ -87,7 +84,7 @@ export function FaturaDetailsDialog({ fatura, isOpen, onClose }: FaturaDetailsDi
             <h3 className="font-semibold">Detalhamento de Valores</h3>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
-                <span>Valor Total da Fatura:</span>
+                <span>Valor Total Sem Assinatura:</span>
                 <span>{formatCurrency(fatura.total_fatura)}</span>
               </div>
               <div className="flex justify-between">
@@ -97,6 +94,10 @@ export function FaturaDetailsDialog({ fatura, isOpen, onClose }: FaturaDetailsDi
               <div className="flex justify-between">
                 <span>Outros Valores:</span>
                 <span>{formatCurrency(fatura.outros_valores)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Base de Cálculo Desconto:</span>
+                <span>{formatCurrency(fatura.total_fatura - fatura.iluminacao_publica - fatura.outros_valores)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Valor do Desconto:</span>
@@ -142,4 +143,3 @@ export function FaturaDetailsDialog({ fatura, isOpen, onClose }: FaturaDetailsDi
     </Dialog>
   );
 }
-

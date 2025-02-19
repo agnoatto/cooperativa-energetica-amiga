@@ -12,9 +12,10 @@ export const addValueDetails = (doc: jsPDF, fatura: PdfFaturaData, yPos: number)
   doc.setFontSize(FONTS.NORMAL);
 
   const values = [
-    { label: "Valor Total da Fatura:", value: formatCurrency(fatura.total_fatura) },
+    { label: "Valor Total Sem Assinatura:", value: formatCurrency(fatura.total_fatura) },
     { label: "Iluminação Pública:", value: formatCurrency(fatura.iluminacao_publica) },
     { label: "Outros Valores:", value: formatCurrency(fatura.outros_valores) },
+    { label: "Base de Cálculo Desconto:", value: formatCurrency(fatura.total_fatura - fatura.iluminacao_publica - fatura.outros_valores) },
     { label: "Valor do Desconto:", value: formatCurrency(fatura.valor_desconto), highlight: true },
     { label: "Conta de Energia:", value: formatCurrency(fatura.fatura_concessionaria) },
     { label: "Valor da Assinatura:", value: formatCurrency(calcularValorAssinatura(fatura)), bold: true }
