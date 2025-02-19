@@ -109,7 +109,7 @@ export function FaturasTable({
               <div className="grid grid-cols-2 gap-1 pt-2 border-t border-gray-100 mt-2">
                 <span className="text-gray-900 font-medium">Valor Total:</span>
                 <span className="text-gray-900 font-medium">
-                  {formatarMoeda(fatura.valor_total)}
+                  {formatarMoeda(fatura.valor_assinatura)}
                 </span>
               </div>
             </div>

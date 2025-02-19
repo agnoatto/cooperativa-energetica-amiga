@@ -21,6 +21,13 @@ interface FaturaTableRowProps {
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
 }
 
+interface PaymentData {
+  id: string;
+  data_pagamento: string;
+  valor_adicional: number;
+  observacao_pagamento: string | null;
+}
+
 export function FaturaTableRow({
   fatura,
   onViewDetails,
@@ -40,12 +47,7 @@ export function FaturaTableRow({
     });
   };
 
-  const handlePaymentConfirm = async (paymentData: {
-    id: string;
-    data_pagamento: string;
-    valor_adicional: number;
-    observacao_pagamento: string | null;
-  }) => {
+  const handlePaymentConfirm = async (paymentData: PaymentData) => {
     await onUpdateStatus(
       fatura,
       'paga',
@@ -96,7 +98,7 @@ export function FaturaTableRow({
           <div className="text-right">{formatDateToPtBR(fatura.data_vencimento)}</div>
           
           <div className="text-gray-500">Valor:</div>
-          <div className="text-right font-medium">{formatCurrency(fatura.valor_total)}</div>
+          <div className="text-right font-medium">{formatCurrency(fatura.valor_assinatura)}</div>
         </div>
 
         <div className="flex items-center justify-between pt-3 border-t border-gray-200">
