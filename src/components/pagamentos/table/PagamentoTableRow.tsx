@@ -2,7 +2,7 @@
 import React from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Eye } from "lucide-react";
 import { PagamentoData } from "../types/pagamento";
 import { formatCurrency } from "@/utils/formatters";
 import { BoletimMedicaoButton } from "../BoletimMedicaoButton";
@@ -11,6 +11,7 @@ interface PagamentoTableRowProps {
   pagamento: PagamentoData;
   onEdit: (pagamento: PagamentoData) => void;
   onDelete: (pagamento: PagamentoData) => void;
+  onViewDetails: (pagamento: PagamentoData) => void;
   getPagamentosUltimos12Meses: (pagamento: PagamentoData) => Promise<PagamentoData[]>;
 }
 
@@ -18,6 +19,7 @@ export function PagamentoTableRow({
   pagamento,
   onEdit,
   onDelete,
+  onViewDetails,
   getPagamentosUltimos12Meses,
 }: PagamentoTableRowProps) {
   return (
@@ -35,6 +37,13 @@ export function PagamentoTableRow({
       </TableCell>
       <TableCell className="text-right">{pagamento.status}</TableCell>
       <TableCell className="text-right space-x-2">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => onViewDetails(pagamento)}
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
         <Button
           variant="outline"
           size="icon"
