@@ -9,13 +9,15 @@ interface FaturaFileUploadProps {
   arquivoNome?: string | null;
   arquivoPath?: string | null;
   onSuccess: () => void;
+  onFileChange?: () => void;
 }
 
 export function FaturaFileUpload({ 
   faturaId, 
   arquivoNome, 
   arquivoPath,
-  onSuccess 
+  onSuccess,
+  onFileChange
 }: FaturaFileUploadProps) {
   const {
     isUploading,
@@ -28,7 +30,7 @@ export function FaturaFileUpload({
     handleDownload,
     handleRemoveFile,
     handlePreview,
-  } = useFileUpload(faturaId, onSuccess);
+  } = useFileUpload(faturaId, onSuccess, onFileChange);
 
   return (
     <div className="space-y-4">

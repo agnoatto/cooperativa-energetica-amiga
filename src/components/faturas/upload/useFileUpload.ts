@@ -3,7 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-export function useFileUpload(faturaId: string, onSuccess: () => void) {
+export function useFileUpload(faturaId: string, onSuccess: () => void, onFileChange?: () => void) {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
@@ -54,6 +54,7 @@ export function useFileUpload(faturaId: string, onSuccess: () => void) {
 
       toast.success('Arquivo enviado com sucesso!');
       onSuccess();
+      onFileChange?.();
 
     } catch (error: any) {
       console.error('Erro no upload:', error);
@@ -111,8 +112,9 @@ export function useFileUpload(faturaId: string, onSuccess: () => void) {
       if (updateError) throw updateError;
 
       toast.success('Arquivo removido com sucesso!');
-      onSuccess();
       setPdfUrl(null);
+      onFileChange?.(); // Notifica apenas sobre a mudança do arquivo
+      onSuccess(); // Mantido para compatibilidade
     } catch (error: any) {
       console.error('Erro ao remover arquivo:', error);
       toast.error('Erro ao remover arquivo');

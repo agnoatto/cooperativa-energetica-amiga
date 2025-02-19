@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,6 +15,7 @@ import { FaturaFileUpload } from "./FaturaFileUpload";
 import type { FaturaEditModalProps } from "./types";
 import { parseValue } from "./utils/calculateValues";
 import { formatarDocumento } from "@/utils/formatters";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEditModalProps) {
   const [consumo, setConsumo] = useState(fatura.consumo_kwh?.toFixed(2) || "0.00");
@@ -27,6 +27,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
   const [observacao, setObservacao] = useState(fatura.observacao || '');
   const [dataVencimento, setDataVencimento] = useState(fatura.data_vencimento);
   const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,6 +196,10 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
                     data_vencimento: dataVencimento,
                     percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
                   });
+                }}
+                onFileChange={() => {
+                  // Apenas atualizar a UI quando o arquivo mudar
+                  queryClient.invalidateQueries(['faturas']);
                 }}
               />
             </div>
