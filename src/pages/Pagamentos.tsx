@@ -5,20 +5,26 @@ import { MonthSelector } from "@/components/pagamentos/MonthSelector";
 import { PagamentosHeader } from "@/components/pagamentos/PagamentosHeader";
 import { PagamentosTable } from "@/components/pagamentos/PagamentosTable";
 import { PagamentoEditModal } from "@/components/pagamentos/PagamentoEditModal";
+import { PagamentoDetailsDialog } from "@/components/pagamentos/PagamentoDetailsDialog";
 import { PagamentoData } from "@/components/pagamentos/types/pagamento";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useMonthSelection } from "@/hooks/useMonthSelection";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 const Pagamentos = () => {
   const [selectedPagamento, setSelectedPagamento] = useState<PagamentoData | null>(null);
+  const [selectedPagamentoToEdit, setSelectedPagamentoToEdit] = useState<PagamentoData | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
   const queryClient = useQueryClient();
   const { currentDate, handlePreviousMonth, handleNextMonth } = useMonthSelection();
   const { pagamentos, isLoading, gerarPagamentos, isGenerating } = usePagamentos(currentDate);
 
-  const handleEditPagamento = (pagamento: PagamentoData) => {
+  const handleViewDetails = (pagamento: PagamentoData) => {
     setSelectedPagamento(pagamento);
+    setShowDetails(true);
+  };
+
+  const handleEditPagamento = (pagamento: PagamentoData) => {
+    setSelectedPagamentoToEdit(pagamento);
   };
 
   return (
@@ -38,12 +44,24 @@ const Pagamentos = () => {
         pagamentos={pagamentos}
         isLoading={isLoading}
         onEditPagamento={handleEditPagamento}
+        onViewDetails={handleViewDetails}
       />
 
+      {selectedPagamento && (
+        <PagamentoDetailsDialog
+          pagamento={selectedPagamento}
+          isOpen={showDetails}
+          onClose={() => {
+            setShowDetails(false);
+            setSelectedPagamento(null);
+          }}
+        />
+      )}
+
       <PagamentoEditModal
-        pagamento={selectedPagamento}
-        isOpen={!!selectedPagamento}
-        onClose={() => setSelectedPagamento(null)}
+        pagamento={selectedPagamentoToEdit}
+        isOpen={!!selectedPagamentoToEdit}
+        onClose={() => setSelectedPagamentoToEdit(null)}
         onSave={() => {
           queryClient.invalidateQueries({ queryKey: ["pagamentos"] });
         }}
