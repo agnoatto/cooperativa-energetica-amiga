@@ -79,37 +79,34 @@ export const useFetchFaturas = (currentDate: Date) => {
       }
 
       // Calcular economia acumulada para cada fatura e garantir o tipo correto do historico_status
-      return data.map(fatura => {
-        const faturasAnterioresDaUnidade = todasFaturasAnteriores.filter(
+      return data.map(fatura => ({
+        ...fatura,
+        economia_acumulada: todasFaturasAnteriores.filter(
           f => f.unidade_beneficiaria_id === fatura.unidade_beneficiaria.id
-        );
-
-        return {
-          ...fatura,
-          economia_acumulada: faturasAnterioresDaUnidade.reduce((acc, f) => acc + (f.valor_desconto || 0), 0),
-          historico_status: (fatura.historico_status as any[] || []).map(entry => ({
-            status: entry.status,
-            data: entry.data,
-            observacao: entry.observacao
-          })),
-          historico_faturas: faturasAnterioresDaUnidade.map(f => ({
-            mes: f.mes,
-            ano: f.ano,
-            consumo_kwh: f.consumo_kwh,
-            valor_desconto: f.valor_desconto
-          })),
-          valor_adicional: fatura.valor_adicional || 0,
-          observacao_pagamento: fatura.observacao_pagamento || null,
-          data_pagamento: fatura.data_pagamento || null,
-          arquivo_concessionaria_nome: fatura.arquivo_concessionaria_nome || null,
-          arquivo_concessionaria_path: fatura.arquivo_concessionaria_path || null,
-          data_criacao: fatura.data_criacao || null,
-          data_atualizacao: fatura.data_atualizacao || null
-        } as Fatura);
-      });
+        ).reduce((acc, f) => acc + (f.valor_desconto || 0), 0),
+        historico_status: (fatura.historico_status as any[] || []).map(entry => ({
+          status: entry.status,
+          data: entry.data,
+          observacao: entry.observacao
+        })),
+        historico_faturas: todasFaturasAnteriores.filter(
+          f => f.unidade_beneficiaria_id === fatura.unidade_beneficiaria.id
+        ).map(f => ({
+          mes: f.mes,
+          ano: f.ano,
+          consumo_kwh: f.consumo_kwh,
+          valor_desconto: f.valor_desconto
+        })),
+        valor_adicional: fatura.valor_adicional || 0,
+        observacao_pagamento: fatura.observacao_pagamento || null,
+        data_pagamento: fatura.data_pagamento || null,
+        arquivo_concessionaria_nome: fatura.arquivo_concessionaria_nome || null,
+        arquivo_concessionaria_path: fatura.arquivo_concessionaria_path || null,
+        data_criacao: fatura.data_criacao || null,
+        data_atualizacao: fatura.data_atualizacao || null
+      }) as Fatura);
     },
     staleTime: 0,
-    gcTime: 1000 * 60 * 5, // 5 minutos
+    gcTime: 1000 * 60 * 5 // 5 minutos
   });
 };
-
