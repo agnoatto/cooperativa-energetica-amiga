@@ -23,7 +23,7 @@ export interface StatusHistoryEntry {
 export interface Fatura {
   id: string;
   consumo_kwh: number;
-  valor_total: number;
+  valor_assinatura: number;
   status: FaturaStatus;
   data_vencimento: string;
   mes: number;

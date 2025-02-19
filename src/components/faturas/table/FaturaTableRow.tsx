@@ -150,7 +150,7 @@ export function FaturaTableRow({
         <TableCell className="text-right font-mono whitespace-nowrap">{fatura.unidade_beneficiaria.percentual_desconto}%</TableCell>
         <TableCell className="text-right font-mono whitespace-nowrap">{formatCurrency(fatura.valor_desconto)}</TableCell>
         <TableCell className="text-right font-mono whitespace-nowrap">
-          {formatCurrency(fatura.valor_total)}
+          {formatCurrency(fatura.valor_assinatura)}
           {fatura.valor_adicional > 0 && (
             <span className="text-yellow-600 text-sm block">
               +{formatCurrency(fatura.valor_adicional)}

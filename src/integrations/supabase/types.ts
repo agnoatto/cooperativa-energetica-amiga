@@ -163,8 +163,8 @@ export type Database = {
           unidade_beneficiaria_id: string
           updated_at: string
           valor_adicional: number | null
+          valor_assinatura: number | null
           valor_desconto: number
-          valor_total: number
         }
         Insert: {
           ano: number
@@ -199,8 +199,8 @@ export type Database = {
           unidade_beneficiaria_id: string
           updated_at?: string
           valor_adicional?: number | null
+          valor_assinatura?: number | null
           valor_desconto?: number
-          valor_total: number
         }
         Update: {
           ano?: number
@@ -235,8 +235,8 @@ export type Database = {
           unidade_beneficiaria_id?: string
           updated_at?: string
           valor_adicional?: number | null
+          valor_assinatura?: number | null
           valor_desconto?: number
-          valor_total?: number
         }
         Relationships: [
           {

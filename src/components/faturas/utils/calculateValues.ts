@@ -21,10 +21,10 @@ export const calculateValues = (
   // Valor do desconto
   const valorDesconto = baseDesconto * percentual;
   // Valor da assinatura = Total - Desconto - Concessionária
-  const valorFinal = total - valorDesconto - concessionaria;
+  const valorAssinatura = total - valorDesconto - concessionaria;
 
   return {
     valor_desconto: valorDesconto,
-    valor_total: valorFinal
+    valor_assinatura: valorAssinatura
   };
 };
