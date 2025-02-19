@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -199,7 +200,9 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
                 }}
                 onFileChange={() => {
                   // Apenas atualizar a UI quando o arquivo mudar
-                  queryClient.invalidateQueries(['faturas']);
+                  queryClient.invalidateQueries({
+                    queryKey: ['faturas']
+                  });
                 }}
               />
             </div>
