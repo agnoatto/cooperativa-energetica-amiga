@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -89,6 +88,7 @@ export const useFetchFaturas = (currentDate: Date) => {
           data_criacao,
           data_atualizacao,
           unidade_beneficiaria:unidade_beneficiaria_id (
+            id,
             numero_uc,
             apelido,
             endereco,
