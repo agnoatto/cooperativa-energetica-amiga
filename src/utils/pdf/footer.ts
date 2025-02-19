@@ -17,19 +17,7 @@ export const addCompanyFooter = (doc: jsPDF, valorTotal: number, yPos: number): 
     doc.text(info, SPACING.MARGIN, yPos + (index * 5));
   });
 
-  // Box com valor total
-  doc.setFillColor(COLORS.LIME_GREEN[0], COLORS.LIME_GREEN[1], COLORS.LIME_GREEN[2]);
-  const boxWidth = 70;
-  const boxHeight = 30;
-  const boxX = SPACING.PAGE.WIDTH - SPACING.MARGIN - boxWidth;
-  
-  doc.roundedRect(boxX, yPos - 5, boxWidth, boxHeight, 2, 2, 'F');
-  doc.setFontSize(FONTS.SMALL);
-  doc.text("Total a pagar:", boxX + 4, yPos + 5);
-  doc.setFontSize(FONTS.SUBTITLE);
-  doc.text(formatCurrency(valorTotal), boxX + 4, yPos + 20);
-
-  return yPos + 30;
+  return yPos + 20;
 };
 
 export const addPaymentData = (doc: jsPDF, yPos: number): void => {
@@ -52,4 +40,3 @@ const formatCurrency = (value: number): string => {
     currency: 'BRL'
   }).format(value);
 };
-

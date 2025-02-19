@@ -51,7 +51,7 @@ export const generateFaturaPdf = async (fatura: PdfFaturaData): Promise<{ doc: j
       yPos += 20;
     }
 
-    // Adicionar rodapé na última página
+    // Adicionar rodapé na última página (sem o box de valor total)
     yPos = addCompanyFooter(doc, fatura.valor_assinatura, yPos);
     addPaymentData(doc, yPos);
 
