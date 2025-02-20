@@ -8,7 +8,7 @@ import { PagamentoFormValues, PagamentoStatus } from "./types/pagamento";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { FaturaFileUpload } from "@/components/faturas/FaturaFileUpload";
+import { PaymentFileUpload } from "./upload/PaymentFileUpload";
 
 interface PagamentoFormFieldsProps {
   form: PagamentoFormValues;
@@ -47,9 +47,9 @@ export function PagamentoFormFields({
     <ScrollArea className="h-[600px] pr-4">
       <div className="space-y-4">
         <div>
-          <Label>Conta de Energia da Concessionária</Label>
-          <FaturaFileUpload
-            faturaId={pagamentoId}
+          <Label>Comprovante de Pagamento</Label>
+          <PaymentFileUpload
+            pagamentoId={pagamentoId}
             arquivoNome={form.arquivo_comprovante_nome}
             arquivoPath={form.arquivo_comprovante_path}
             onSuccess={() => {
