@@ -32,6 +32,7 @@ export function usePagamentosHistorico() {
         data_emissao,
         data_confirmacao,
         data_envio,
+        data_vencimento_concessionaria,
         mes,
         ano,
         arquivo_comprovante_nome,
