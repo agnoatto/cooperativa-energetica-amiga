@@ -6,6 +6,27 @@ import { lastDayOfMonth, startOfMonth } from "date-fns";
 import { UnidadeBeneficiaria } from "./types";
 import { FaturaStatus, StatusHistoryEntry } from "@/types/fatura";
 
+interface NovaFatura {
+  unidade_beneficiaria_id: string;
+  mes: number;
+  ano: number;
+  consumo_kwh: number;
+  total_fatura: number;
+  status: FaturaStatus;
+  data_vencimento: string;
+  economia_acumulada: number;
+  economia_mes: number;
+  saldo_energia_kwh: number;
+  fatura_concessionaria: number;
+  iluminacao_publica: number;
+  outros_valores: number;
+  valor_desconto: number;
+  valor_assinatura: number;
+  historico_status: Record<string, any>[];
+  data_criacao: string;
+  data_atualizacao: string;
+}
+
 export const useGerarFaturas = (currentDate: Date) => {
   const queryClient = useQueryClient();
 
@@ -80,14 +101,14 @@ export const useGerarFaturas = (currentDate: Date) => {
             }
 
             const status: FaturaStatus = "gerada";
-            const historicoStatus: StatusHistoryEntry[] = [{
-              status: status,
+            const historicoStatus = [{
+              status,
               data: new Date().toISOString(),
               observacao: "Fatura gerada automaticamente pelo sistema"
-            }];
+            }] as Record<string, any>[];
 
             // Prepara dados da nova fatura com valores default
-            const novaFatura = {
+            const novaFatura: NovaFatura = {
               unidade_beneficiaria_id: unidade.id,
               mes,
               ano,
@@ -111,7 +132,7 @@ export const useGerarFaturas = (currentDate: Date) => {
             // Insere a nova fatura e retorna os dados inseridos
             const { data: faturaInserida, error: insertError } = await supabase
               .from("faturas")
-              .insert([novaFatura])
+              .insert(novaFatura)
               .select()
               .maybeSingle();
 
