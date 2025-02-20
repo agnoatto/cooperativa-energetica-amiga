@@ -13,10 +13,10 @@ export const fetchPagamentos = async (currentDate: Date) => {
       usina:usina_id (
         id,
         valor_kwh,
-        investidor (
+        investidor:investidor_id (
           nome_investidor
         ),
-        unidade_usina (
+        unidade_usina:unidade_usina_id (
           numero_uc
         )
       )
@@ -30,8 +30,7 @@ export const fetchPagamentos = async (currentDate: Date) => {
     throw error;
   }
 
-  // Converter dados e garantir que o histórico_status está no formato correto
-  return (data as any[]).map(pagamento => ({
+  return (data || []).map(pagamento => ({
     ...pagamento,
     historico_status: ((pagamento.historico_status || []) as any[]).map(historico => ({
       data: historico.data,
@@ -49,10 +48,10 @@ export const fetchPagamentosHistorico = async (pagamentoAtual: PagamentoData): P
       usina:usina_id (
         id,
         valor_kwh,
-        investidor (
+        investidor:investidor_id (
           nome_investidor
         ),
-        unidade_usina (
+        unidade_usina:unidade_usina_id (
           numero_uc
         )
       )
@@ -67,8 +66,7 @@ export const fetchPagamentosHistorico = async (pagamentoAtual: PagamentoData): P
     throw error;
   }
 
-  // Converter dados e garantir que o histórico_status está no formato correto
-  return (data as any[]).map(pagamento => ({
+  return (data || []).map(pagamento => ({
     ...pagamento,
     historico_status: ((pagamento.historico_status || []) as any[]).map(historico => ({
       data: historico.data,
