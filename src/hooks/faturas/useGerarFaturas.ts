@@ -11,7 +11,7 @@ interface NovaFatura {
   mes: number;
   ano: number;
   consumo_kwh: number;
-  total_fatura: number;
+  valor_total: number; // Alterado de total_fatura para valor_total
   status: FaturaStatus;
   data_vencimento: string;
   economia_acumulada: number;
@@ -60,8 +60,7 @@ export const useGerarFaturas = (currentDate: Date) => {
             )
           `)
           .filter('data_saida', 'is', null)
-          .lte('data_entrada', ultimoDiaMes)
-          .gt('data_entrada', inicioDiaMes);
+          .lte('data_entrada', ultimoDiaMes);
 
         if (unidadesError) {
           console.error("❌ Erro ao buscar unidades:", unidadesError);
@@ -114,7 +113,7 @@ export const useGerarFaturas = (currentDate: Date) => {
               mes,
               ano,
               consumo_kwh: 0,
-              total_fatura: 0,
+              valor_total: 0, // Alterado de total_fatura para valor_total
               status: "gerada",
               data_vencimento: ultimoDiaMes,
               economia_acumulada: 0,
@@ -136,6 +135,8 @@ export const useGerarFaturas = (currentDate: Date) => {
 
             // 2.3 Inserir fatura
             console.log("- Inserindo fatura no banco de dados...");
+            console.log("Dados da fatura a ser inserida:", novaFatura);
+            
             const { data: faturaInserida, error: insertError } = await supabase
               .from("faturas")
               .insert(novaFatura)
