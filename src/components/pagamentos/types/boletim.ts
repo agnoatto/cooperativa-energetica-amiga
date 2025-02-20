@@ -19,3 +19,4 @@ export interface BoletimData {
   data_vencimento: string;
   valor_receber: number;
 }
+

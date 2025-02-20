@@ -66,3 +66,4 @@ export function usePagamentosHistorico() {
 
   return { getPagamentosUltimos12Meses };
 }
+
