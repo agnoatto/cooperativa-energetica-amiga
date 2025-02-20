@@ -2,12 +2,13 @@
 import React, { useState } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, Eye, FileText } from "lucide-react";
+import { Edit, Trash2, Eye, FileText, Loader2 } from "lucide-react";
 import { PagamentoData } from "../types/pagamento";
 import { formatCurrency } from "@/utils/formatters";
 import { BoletimMedicaoButton } from "../BoletimMedicaoButton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PdfPreview } from "@/components/faturas/upload/PdfPreview";
 
 interface PagamentoTableRowProps {
   pagamento: PagamentoData;
@@ -25,6 +26,8 @@ export function PagamentoTableRow({
   getPagamentosUltimos12Meses,
 }: PagamentoTableRowProps) {
   const [isLoadingFile, setIsLoadingFile] = useState(false);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   const handleViewFile = async () => {
     if (!pagamento.arquivo_conta_energia_path) return;
@@ -33,15 +36,14 @@ export function PagamentoTableRow({
     try {
       const { data, error } = await supabase.storage
         .from('contas-energia')
-        .download(pagamento.arquivo_conta_energia_path);
+        .createSignedUrl(pagamento.arquivo_conta_energia_path, 3600);
 
       if (error) throw error;
 
-      // Criar URL do arquivo para visualização
-      const url = URL.createObjectURL(data);
-      window.open(url, '_blank');
+      setPdfUrl(data.signedUrl);
+      setShowPdfPreview(true);
     } catch (error) {
-      console.error('Erro ao baixar arquivo:', error);
+      console.error('Erro ao carregar arquivo:', error);
       toast.error('Erro ao carregar o arquivo');
     } finally {
       setIsLoadingFile(false);
@@ -71,7 +73,11 @@ export function PagamentoTableRow({
             disabled={isLoadingFile}
             title="Visualizar conta de energia"
           >
-            <FileText className="h-4 w-4 text-blue-500" />
+            {isLoadingFile ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4 text-blue-500" />
+            )}
           </Button>
         ) : (
           <div className="w-9 h-9 flex items-center justify-center">
@@ -107,6 +113,12 @@ export function PagamentoTableRow({
           getPagamentosUltimos12Meses={getPagamentosUltimos12Meses}
         />
       </TableCell>
+
+      <PdfPreview
+        isOpen={showPdfPreview}
+        onClose={() => setShowPdfPreview(false)}
+        pdfUrl={pdfUrl}
+      />
     </TableRow>
   );
 }

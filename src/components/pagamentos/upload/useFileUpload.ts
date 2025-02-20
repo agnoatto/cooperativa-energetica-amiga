@@ -119,7 +119,6 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileRemoved }: UseFile
 
   const handlePreview = useCallback(async (arquivoPath: string) => {
     try {
-      // Criar URL assinada com tempo de expiração maior para visualização
       const { data, error } = await supabase.storage
         .from('contas-energia')
         .createSignedUrl(arquivoPath, 3600); // 1 hora de expiração

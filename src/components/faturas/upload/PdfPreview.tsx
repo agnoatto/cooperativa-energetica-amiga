@@ -10,6 +10,8 @@ interface PdfPreviewProps {
 }
 
 export function PdfPreview({ isOpen, onClose, pdfUrl }: PdfPreviewProps) {
+  if (!pdfUrl) return null;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl h-[90vh]">
@@ -25,15 +27,13 @@ export function PdfPreview({ isOpen, onClose, pdfUrl }: PdfPreviewProps) {
             <X className="h-4 w-4" />
           </Button>
         </DialogHeader>
-        {pdfUrl && (
-          <div className="flex-1 w-full h-full">
-            <iframe
-              src={`${pdfUrl}#toolbar=0&embedded=true`}
-              className="w-full h-full rounded-md"
-              title="Visualização da Conta de Energia"
-            />
-          </div>
-        )}
+        <div className="flex-1 w-full h-full">
+          <iframe
+            src={pdfUrl}
+            className="w-full h-full rounded-md"
+            title="Visualização da Conta de Energia"
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );
