@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { PagamentoData } from "../types/pagamento";
+import { PagamentoData, PagamentoStatus } from "../types/pagamento";
 
 export function usePagamentosHistorico() {
   const getPagamentosUltimos12Meses = async (pagamentoAtual: PagamentoData) => {
@@ -68,7 +68,24 @@ export function usePagamentosHistorico() {
     const pagamentosFiltrados = pagamentosHistorico?.filter(pagamento => {
       const dataPagamento = new Date(pagamento.ano, pagamento.mes - 1);
       return dataPagamento >= dataInicial && dataPagamento <= dataReferencia;
-    }) || [];
+    }).map(pagamento => ({
+      ...pagamento,
+      historico_status: (pagamento.historico_status as Array<{
+        data: string;
+        status_anterior: PagamentoStatus;
+        novo_status: PagamentoStatus;
+      }>) || [],
+      usina: {
+        id: pagamento.usina.id,
+        valor_kwh: pagamento.usina.valor_kwh,
+        unidade_usina: {
+          numero_uc: pagamento.usina.unidade_usina.numero_uc
+        },
+        investidor: {
+          nome_investidor: pagamento.usina.investidor.nome_investidor
+        }
+      }
+    })) || [];
 
     console.log("[Histórico] Pagamentos encontrados:", pagamentosFiltrados.length);
     pagamentosFiltrados.forEach(pagamento => {
