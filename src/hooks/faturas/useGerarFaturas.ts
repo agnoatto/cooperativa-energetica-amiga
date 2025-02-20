@@ -11,7 +11,7 @@ interface NovaFatura {
   mes: number;
   ano: number;
   consumo_kwh: number;
-  valor_total: number; // Alterado de total_fatura para valor_total
+  total_fatura: number; // Corrigido: usando total_fatura em vez de valor_total
   status: FaturaStatus;
   data_vencimento: string;
   economia_acumulada: number;
@@ -113,7 +113,7 @@ export const useGerarFaturas = (currentDate: Date) => {
               mes,
               ano,
               consumo_kwh: 0,
-              valor_total: 0, // Alterado de total_fatura para valor_total
+              total_fatura: 0, // Corrigido: usando total_fatura em vez de valor_total
               status: "gerada",
               data_vencimento: ultimoDiaMes,
               economia_acumulada: 0,
