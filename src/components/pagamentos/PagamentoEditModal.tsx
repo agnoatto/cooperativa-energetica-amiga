@@ -13,6 +13,11 @@ interface PagamentoEditModalProps {
   onSave: () => void;
 }
 
+const mesesDoAno = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+];
+
 export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: PagamentoEditModalProps) {
   const {
     form,
@@ -26,11 +31,13 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
 
   if (!pagamento) return null;
 
+  const nomeMes = mesesDoAno[pagamento.mes - 1];
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Editar Pagamento</DialogTitle>
+          <DialogTitle>Editar Pagamento - {nomeMes}/{pagamento.ano}</DialogTitle>
         </DialogHeader>
 
         <Card className="bg-muted mb-4">
@@ -41,6 +48,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
                 <div className="text-sm space-y-1">
                   <p>UC: {pagamento.usina.unidade_usina.numero_uc}</p>
                   <p>Valor kWh: R$ {valorKwh.toFixed(4)}</p>
+                  <p>Previsão de Geração: {form.geracao_kwh.toLocaleString('pt-BR')} kWh</p>
                 </div>
               </div>
               <div>
