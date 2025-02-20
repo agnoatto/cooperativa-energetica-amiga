@@ -30,18 +30,18 @@ export const fetchPagamentos = async (currentDate: Date) => {
     throw error;
   }
 
-  // Converter o histórico para o formato correto
-  return (data as PagamentoData[]).map(pagamento => ({
+  // Converter dados e garantir que o histórico_status está no formato correto
+  return (data as any[]).map(pagamento => ({
     ...pagamento,
-    historico_status: (pagamento.historico_status || []).map(historico => ({
+    historico_status: ((pagamento.historico_status || []) as any[]).map(historico => ({
       data: historico.data,
       status_anterior: historico.status_anterior,
       novo_status: historico.novo_status
-    })) as HistoricoStatus[]
-  }));
+    }))
+  })) as PagamentoData[];
 };
 
-export const fetchPagamentosHistorico = async (pagamentoAtual: PagamentoData) => {
+export const fetchPagamentosHistorico = async (pagamentoAtual: PagamentoData): Promise<PagamentoData[]> => {
   const { data, error } = await supabase
     .from("pagamentos_usina")
     .select(`
@@ -57,7 +57,7 @@ export const fetchPagamentosHistorico = async (pagamentoAtual: PagamentoData) =>
         )
       )
     `)
-    .eq("usina_id", pagamentoAtual.usina.id)
+    .eq("usina_id", pagamentoAtual.usina_id)
     .order("ano", { ascending: false })
     .order("mes", { ascending: false })
     .limit(12);
@@ -67,5 +67,13 @@ export const fetchPagamentosHistorico = async (pagamentoAtual: PagamentoData) =>
     throw error;
   }
 
-  return data as PagamentoData[];
+  // Converter dados e garantir que o histórico_status está no formato correto
+  return (data as any[]).map(pagamento => ({
+    ...pagamento,
+    historico_status: ((pagamento.historico_status || []) as any[]).map(historico => ({
+      data: historico.data,
+      status_anterior: historico.status_anterior,
+      novo_status: historico.novo_status
+    }))
+  })) as PagamentoData[];
 };
