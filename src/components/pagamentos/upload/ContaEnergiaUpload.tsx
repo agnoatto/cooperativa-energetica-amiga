@@ -36,27 +36,6 @@ export function ContaEnergiaUpload({
     onFileChange 
   });
 
-  // Handler para download com validação
-  const onDownload = () => {
-    if (arquivoPath && arquivoNome) {
-      handleDownload(arquivoPath, arquivoNome);
-    }
-  };
-
-  // Handler para remoção com validação
-  const onRemove = () => {
-    if (arquivoPath) {
-      handleRemoveFile(arquivoPath, pagamentoId);
-    }
-  };
-
-  // Handler para preview com validação
-  const onPreview = () => {
-    if (arquivoPath) {
-      handlePreview(arquivoPath);
-    }
-  };
-
   return (
     <div className="space-y-4">
       {!arquivoNome && !arquivoPath && (

@@ -1,58 +1,44 @@
 
-export type PagamentoStatus = 'pendente' | 'enviado' | 'confirmado' | 'atrasado' | 'pago' | 'cancelado';
+export type PagamentoStatus = 'pendente' | 'confirmado' | 'atrasado' | 'cancelado';
 
-export interface PagamentoData {
-  id: string;
-  geracao_kwh: number;
-  valor_total: number;
-  status: PagamentoStatus;
-  data_pagamento: string | null;
-  data_emissao: string | null;
-  data_vencimento: string;
-  data_confirmacao: string | null;
-  data_envio: string | null;
-  tusd_fio_b: number | null;
-  valor_tusd_fio_b: number | null;
-  valor_concessionaria: number;
-  data_vencimento_concessionaria: string | null;
+export interface PagamentoFormValues {
+  usina_id: string;
   mes: number;
   ano: number;
+  geracao_kwh: number;
+  tusd_fio_b: number;
+  valor_tusd_fio_b: number;
+  valor_concessionaria: number;
+  valor_total: number;
+  data_emissao: string;
+  data_vencimento: string;
+  data_vencimento_concessionaria: string;
+  data_pagamento: string | null;
+  status: PagamentoStatus;
+  observacao: string | null;
+  observacao_pagamento: string | null;
   arquivo_conta_energia_nome: string | null;
   arquivo_conta_energia_path: string | null;
   arquivo_conta_energia_tipo: string | null;
   arquivo_conta_energia_tamanho: number | null;
-  observacao: string | null;
-  observacao_pagamento: string | null;
-  historico_status: Array<{
-    data: string;
-    status_anterior: PagamentoStatus;
-    novo_status: PagamentoStatus;
-  }>;
-  send_method: string[] | null;
+}
+
+export interface PagamentoData extends PagamentoFormValues {
+  id: string;
+  created_at: string;
+  updated_at: string;
   empresa_id: string | null;
+  historico_status: {
+    data: string;
+    status: PagamentoStatus;
+  }[];
   usina: {
-    id: string;
     valor_kwh: number;
-    unidade_usina: {
-      numero_uc: string;
-    };
     investidor: {
       nome_investidor: string;
     };
+    unidade_usina: {
+      numero_uc: string;
+    };
   };
-}
-
-export interface PagamentoFormValues {
-  geracao_kwh: number;
-  valor_total: number;
-  status: PagamentoStatus;
-  data_pagamento: string | null;
-  data_emissao: string | null;
-  tusd_fio_b: number;
-  valor_concessionaria: number;
-  data_vencimento_concessionaria: string | null;
-  observacao?: string;
-  observacao_pagamento?: string;
-  arquivo_conta_energia_nome: string | null;
-  arquivo_conta_energia_path: string | null;
 }
