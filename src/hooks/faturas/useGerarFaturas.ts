@@ -2,7 +2,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { lastDayOfMonth, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
+import { lastDayOfMonth } from "date-fns";
 import { UnidadeBeneficiaria } from "./types";
 
 export const useGerarFaturas = (currentDate: Date) => {
@@ -12,6 +12,14 @@ export const useGerarFaturas = (currentDate: Date) => {
     mutationFn: async () => {
       console.log("Iniciando geração de faturas...");
       
+      const mes = currentDate.getMonth() + 1;
+      const ano = currentDate.getFullYear();
+      const ultimoDiaMes = lastDayOfMonth(currentDate).toISOString().split('T')[0];
+      
+      console.log(`Gerando faturas para ${mes}/${ano}`);
+      console.log(`Último dia do mês: ${ultimoDiaMes}`);
+
+      // Busca unidades elegíveis: ativas e com data_entrada <= último dia do mês
       const { data: unidades, error: unidadesError } = await supabase
         .from("unidades_beneficiarias")
         .select(`
@@ -23,35 +31,23 @@ export const useGerarFaturas = (currentDate: Date) => {
             nome
           )
         `)
-        .filter('data_saida', 'is', null);
+        .filter('data_saida', 'is', null)
+        .lte('data_entrada', ultimoDiaMes);
 
       if (unidadesError) {
         console.error("Erro ao buscar unidades:", unidadesError);
         throw unidadesError;
       }
 
-      const mes = currentDate.getMonth() + 1;
-      const ano = currentDate.getFullYear();
-      const dataVencimento = lastDayOfMonth(currentDate);
-      const primeiroDiaMes = startOfMonth(currentDate);
-      const ultimoDiaMes = endOfMonth(currentDate);
+      console.log(`Encontradas ${unidades?.length || 0} unidades ativas com data_entrada <= ${ultimoDiaMes}`);
 
-      // Atualiza lógica de elegibilidade para incluir unidades que entraram no próprio mês
-      const unidadesElegiveis = (unidades as UnidadeBeneficiaria[]).filter(unidade => {
-        const dataEntrada = new Date(unidade.data_entrada);
-        return isWithinInterval(dataEntrada, {
-          start: new Date(0), // Data mínima
-          end: ultimoDiaMes
-        });
-      });
-
-      console.log(`Encontradas ${unidadesElegiveis.length} unidades elegíveis para faturamento`);
-
-      if (unidadesElegiveis.length === 0) {
+      if (!unidades || unidades.length === 0) {
         toast.info("Não há unidades elegíveis para geração de faturas neste mês.");
         return [];
       }
 
+      // Prepara dados para geração das faturas
+      const dataVencimento = lastDayOfMonth(currentDate);
       const now = new Date().toISOString();
       const historicoStatusInicial = [{
         status: "gerada" as const,
@@ -59,11 +55,13 @@ export const useGerarFaturas = (currentDate: Date) => {
         observacao: "Fatura gerada automaticamente pelo sistema"
       }];
 
+      // Processa cada unidade elegível
       const unidadesComFatura = await Promise.all(
-        unidadesElegiveis.map(async (unidade) => {
-          console.log(`Processando unidade ${unidade.numero_uc}...`);
+        unidades.map(async (unidade) => {
+          console.log(`Verificando unidade ${unidade.numero_uc}...`);
 
           try {
+            // Verifica se já existe fatura para este mês/ano
             const { data: faturasExistentes } = await supabase
               .from("faturas")
               .select()
@@ -72,10 +70,12 @@ export const useGerarFaturas = (currentDate: Date) => {
               .eq("ano", ano);
 
             if (faturasExistentes && faturasExistentes.length > 0) {
-              console.log(`Fatura já existe para unidade ${unidade.numero_uc}`);
+              console.log(`Fatura já existe para unidade ${unidade.numero_uc} em ${mes}/${ano}`);
               return null;
             }
 
+            // Gera nova fatura
+            console.log(`Gerando fatura para unidade ${unidade.numero_uc}`);
             const { data: fatura, error: insertError } = await supabase
               .from("faturas")
               .insert({
@@ -117,14 +117,16 @@ export const useGerarFaturas = (currentDate: Date) => {
         })
       );
 
+      // Filtra apenas as faturas geradas com sucesso
       const faturasGeradas = unidadesComFatura.filter(Boolean);
-      console.log(`Processo finalizado. ${faturasGeradas.length} faturas geradas com sucesso.`);
+      console.log(`Processo finalizado. ${faturasGeradas.length} faturas geradas com sucesso para ${mes}/${ano}`);
 
       return faturasGeradas;
     },
     onSuccess: (unidades) => {
       const count = unidades?.length || 0;
       queryClient.invalidateQueries({ queryKey: ["faturas"] });
+      
       if (count > 0) {
         toast.success(`${count} faturas geradas com sucesso!`);
       } else {
