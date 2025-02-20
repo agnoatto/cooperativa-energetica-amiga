@@ -7,9 +7,15 @@ interface UploadDropZoneProps {
   isUploading: boolean;
   isDragging: boolean;
   onDrop: (file: File) => void;
+  onDragStateChange: (isDragging: boolean) => void;
 }
 
-export function UploadDropZone({ isUploading, isDragging, onDrop }: UploadDropZoneProps) {
+export function UploadDropZone({ 
+  isUploading, 
+  isDragging, 
+  onDrop,
+  onDragStateChange 
+}: UploadDropZoneProps) {
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -18,12 +24,25 @@ export function UploadDropZone({ isUploading, isDragging, onDrop }: UploadDropZo
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    onDragStateChange(false);
 
     const file = e.dataTransfer.files[0];
     if (file) {
       onDrop(file);
     }
-  }, [onDrop]);
+  }, [onDrop, onDragStateChange]);
+
+  const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onDragStateChange(true);
+  }, [onDragStateChange]);
+
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onDragStateChange(false);
+  }, [onDragStateChange]);
 
   return (
     <div
@@ -34,6 +53,8 @@ export function UploadDropZone({ isUploading, isDragging, onDrop }: UploadDropZo
       }`}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
     >
       <div className="flex flex-col items-center justify-center gap-2 text-center">
         <Upload className={`h-8 w-8 ${isDragging ? "text-primary" : "text-gray-400"}`} />
