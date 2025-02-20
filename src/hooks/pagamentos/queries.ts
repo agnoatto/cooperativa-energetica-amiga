@@ -9,83 +9,105 @@ export const fetchPagamentos = async (currentDate: Date) => {
   const ano = currentDate.getFullYear();
   const primeiroDiaMes = startOfMonth(currentDate);
 
+  console.log("[Pagamentos] Buscando pagamentos para", { mes, ano });
+
   const { data, error } = await supabase
-    .from("usinas")
+    .from("pagamentos_usina")
     .select(`
       id,
-      valor_kwh,
-      data_inicio,
+      geracao_kwh,
+      tusd_fio_b,
+      valor_tusd_fio_b,
+      valor_concessionaria,
+      valor_total,
       status,
-      unidade_usina:unidades_usina!inner(
-        numero_uc
-      ),
-      investidor:investidores!inner(
-        nome_investidor
-      ),
-      pagamentos:pagamentos_usina(
+      data_vencimento,
+      data_pagamento,
+      data_emissao,
+      data_confirmacao,
+      data_envio,
+      data_vencimento_concessionaria,
+      mes,
+      ano,
+      arquivo_comprovante_nome,
+      arquivo_comprovante_path,
+      arquivo_comprovante_tipo,
+      arquivo_comprovante_tamanho,
+      observacao,
+      observacao_pagamento,
+      historico_status,
+      send_method,
+      empresa_id,
+      usina:usinas!inner(
         id,
-        geracao_kwh,
-        tusd_fio_b,
-        valor_tusd_fio_b,
-        valor_concessionaria,
-        data_vencimento_concessionaria,
-        valor_total,
-        status,
-        data_vencimento,
-        data_pagamento,
-        data_emissao,
-        data_confirmacao,
-        data_envio,
-        mes,
-        ano,
-        arquivo_comprovante_nome,
-        arquivo_comprovante_path,
-        arquivo_comprovante_tipo,
-        arquivo_comprovante_tamanho,
-        observacao,
-        observacao_pagamento,
-        historico_status,
-        send_method,
-        empresa_id
+        valor_kwh,
+        unidade_usina:unidades_usina!inner(
+          numero_uc
+        ),
+        investidor:investidores!inner(
+          nome_investidor
+        )
       )
     `)
-    .eq('status', 'active')
-    .lte('data_inicio', primeiroDiaMes.toISOString())
-    .is("deleted_at", null);
+    .eq('mes', mes)
+    .eq('ano', ano);
 
   if (error) {
-    console.error("Erro ao carregar pagamentos:", error);
+    console.error("[Pagamentos] Erro ao carregar pagamentos:", error);
     toast.error("Erro ao carregar pagamentos");
     return [];
   }
 
-  return data.map(usina => {
-    const pagamentosOrdenados = usina.pagamentos?.sort((a, b) => {
-      if (a.ano !== b.ano) return b.ano - a.ano;
-      return b.mes - a.mes;
-    }) || [];
+  console.log("[Pagamentos] Dados brutos:", data);
 
-    const pagamentoDoMes = pagamentosOrdenados.find(p => p.mes === mes && p.ano === ano);
-    
-    if (pagamentoDoMes) {
-      return {
-        ...pagamentoDoMes,
-        usina: {
-          id: usina.id,
-          valor_kwh: usina.valor_kwh,
-          unidade_usina: usina.unidade_usina,
-          investidor: usina.investidor
+  const pagamentosProcessados = data.map(pagamento => {
+    // Garantir que todos os campos obrigatórios estejam presentes
+    const pagamentoProcessado: PagamentoData = {
+      id: pagamento.id,
+      geracao_kwh: pagamento.geracao_kwh || 0,
+      tusd_fio_b: pagamento.tusd_fio_b || 0,
+      valor_tusd_fio_b: pagamento.valor_tusd_fio_b || 0,
+      valor_concessionaria: pagamento.valor_concessionaria || 0,
+      valor_total: pagamento.valor_total || 0,
+      status: pagamento.status as PagamentoStatus,
+      data_vencimento: pagamento.data_vencimento,
+      data_pagamento: pagamento.data_pagamento || null,
+      data_emissao: pagamento.data_emissao || null,
+      data_confirmacao: pagamento.data_confirmacao || null,
+      data_envio: pagamento.data_envio || null,
+      data_vencimento_concessionaria: pagamento.data_vencimento_concessionaria || null,
+      mes: pagamento.mes,
+      ano: pagamento.ano,
+      arquivo_comprovante_nome: pagamento.arquivo_comprovante_nome || null,
+      arquivo_comprovante_path: pagamento.arquivo_comprovante_path || null,
+      arquivo_comprovante_tipo: pagamento.arquivo_comprovante_tipo || null,
+      arquivo_comprovante_tamanho: pagamento.arquivo_comprovante_tamanho || null,
+      observacao: pagamento.observacao || null,
+      observacao_pagamento: pagamento.observacao_pagamento || null,
+      historico_status: Array.isArray(pagamento.historico_status) 
+        ? pagamento.historico_status.map((h: any) => ({
+            data: h.data,
+            status_anterior: h.status_anterior as PagamentoStatus,
+            novo_status: h.novo_status as PagamentoStatus
+          }))
+        : [],
+      send_method: pagamento.send_method || null,
+      empresa_id: pagamento.empresa_id || null,
+      usina: {
+        id: pagamento.usina.id,
+        valor_kwh: pagamento.usina.valor_kwh,
+        unidade_usina: {
+          numero_uc: pagamento.usina.unidade_usina.numero_uc
         },
-        historico_status: Array.isArray(pagamentoDoMes.historico_status) 
-          ? pagamentoDoMes.historico_status.map((h: any) => ({
-              data: h.data,
-              status_anterior: h.status_anterior as PagamentoStatus,
-              novo_status: h.novo_status as PagamentoStatus
-            }))
-          : []
-      };
-    }
+        investidor: {
+          nome_investidor: pagamento.usina.investidor.nome_investidor
+        }
+      }
+    };
 
-    return null;
-  }).filter(Boolean);
+    return pagamentoProcessado;
+  });
+
+  console.log("[Pagamentos] Dados processados:", pagamentosProcessados);
+  return pagamentosProcessados;
 };
