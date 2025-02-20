@@ -83,7 +83,7 @@ export const useGerarFaturas = (currentDate: Date) => {
                 mes,
                 ano,
                 consumo_kwh: 0,
-                total_fatura: 0,
+                valor_total: 0, // Corrigido de total_fatura para valor_total
                 status: "gerada",
                 data_vencimento: dataVencimento.toISOString().split('T')[0],
                 economia_acumulada: 0,
