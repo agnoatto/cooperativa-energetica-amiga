@@ -30,7 +30,11 @@ export function PaymentFileUpload({
     handleDownload,
     handleRemoveFile,
     handlePreview,
-  } = useFileUpload(pagamentoId, onSuccess, onFileChange);
+  } = useFileUpload({ 
+    pagamentoId, 
+    onSuccess, 
+    onFileChange 
+  });
 
   // Handler para download com validação
   const onDownload = () => {
