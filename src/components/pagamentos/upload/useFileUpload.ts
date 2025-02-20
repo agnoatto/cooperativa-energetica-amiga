@@ -29,9 +29,10 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
     console.log('[Upload] Iniciando upload do arquivo:', file.name);
 
     try {
-      // Simplificar o caminho do arquivo
-      const timestamp = Date.now();
-      const filePath = `${pagamentoId}/${timestamp}_${file.name}`;
+      // Usar UUID para nome único do arquivo
+      const uuid = crypto.randomUUID();
+      const fileExt = file.name.split('.').pop();
+      const filePath = `comprovantes/${pagamentoId}/${uuid}_${Date.now()}.${fileExt}`;
       
       console.log('[Upload] Tentando fazer upload para:', filePath);
       
@@ -75,16 +76,6 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
     } catch (error: any) {
       console.error('[Upload] Erro no processo de upload:', error);
       toast.error(error.message || 'Erro ao enviar arquivo');
-      
-      // Tentar limpar o arquivo em caso de erro
-      try {
-        if (error.message.includes('atualizar registro')) {
-          const filePath = `${pagamentoId}/${Date.now()}_${file.name}`;
-          await supabase.storage.from('pagamentos').remove([filePath]);
-        }
-      } catch (cleanupError) {
-        console.error('[Upload] Erro ao limpar arquivo:', cleanupError);
-      }
     } finally {
       setIsUploading(false);
     }
