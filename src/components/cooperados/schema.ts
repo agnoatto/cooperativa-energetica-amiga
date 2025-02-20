@@ -1,6 +1,5 @@
 
 import * as z from "zod";
-import { UF } from "./types";
 
 const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
 const cnpjRegex = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/;
@@ -73,4 +72,23 @@ export const unidadeBeneficiariaFormSchema = z.object({
 });
 
 export type CooperadoFormValues = z.infer<typeof cooperadoFormSchema>;
+export type UnidadeBeneficiariaFormValues = z.infer<typeof unidadeBeneficiariaFormSchema>;
 
+export interface SortField {
+  id: string;
+  desc: boolean;
+}
+
+export interface FilterField {
+  id: string;
+  value: string;
+}
+
+export interface TableState {
+  sorting: SortField[];
+  filtering: FilterField[];
+  pagination: {
+    pageIndex: number;
+    pageSize: number;
+  };
+}

@@ -12,6 +12,19 @@ import { Plus, Edit, Trash, Eye } from "lucide-react";
 import { CooperadoPdfButton } from "./CooperadoPdfButton";
 import { formatarDocumento, formatarTelefone } from "@/utils/formatters";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { 
+  ColumnFiltersState,
+  SortingState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import { useState } from "react";
+import { TablePagination } from "@/components/ui/table-pagination";
+import { TableColumnHeader } from "@/components/ui/table-column-header";
 
 interface CooperadosTableProps {
   cooperados: any[];
@@ -31,6 +44,131 @@ export function CooperadosTable({
   onViewDetails,
 }: CooperadosTableProps) {
   const isMobile = useIsMobile();
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+  const columns = [
+    {
+      accessorKey: "nome",
+      header: ({ column }: any) => (
+        <TableColumnHeader column={column} title="Nome/Razão Social" />
+      ),
+    },
+    {
+      accessorKey: "numero_cadastro",
+      header: ({ column }: any) => (
+        <TableColumnHeader column={column} title="Nº Cadastro" />
+      ),
+    },
+    {
+      accessorKey: "documento",
+      header: "CPF/CNPJ",
+      cell: ({ row }: any) => formatarDocumento(row.getValue("documento")),
+    },
+    {
+      accessorKey: "tipo_pessoa",
+      header: ({ column }: any) => (
+        <TableColumnHeader column={column} title="Tipo" />
+      ),
+      cell: ({ row }: any) => 
+        row.getValue("tipo_pessoa") === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física',
+    },
+    {
+      id: "contato",
+      header: "Contato",
+      cell: ({ row }: any) => (
+        <div className="leading-tight whitespace-nowrap">
+          {formatarTelefone(row.original.telefone)}
+          <br />
+          {row.original.email || '-'}
+        </div>
+      ),
+    },
+    {
+      id: "unidades",
+      header: "Unidades",
+      cell: ({ row }: any) => {
+        const count = unidades.filter(u => u.cooperado_id === row.original.id).length;
+        return (
+          <div className="flex items-center space-x-2">
+            <span>{count}</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddUnidade(row.original.id);
+              }}
+              title="Adicionar Unidade Beneficiária"
+              className="h-6 w-6"
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      header: "",
+      cell: ({ row }: any) => (
+        <div className="text-right space-x-2">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails(row.original.id);
+            }}
+            className="h-6 w-6"
+          >
+            <Eye className="h-3 w-3" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(row.original.id);
+            }}
+            className="h-6 w-6"
+          >
+            <Edit className="h-3 w-3" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(row.original.id);
+            }}
+            className="h-6 w-6"
+          >
+            <Trash className="h-3 w-3" />
+          </Button>
+          <CooperadoPdfButton
+            cooperado={row.original}
+            unidades={unidades.filter(u => u.cooperado_id === row.original.id)}
+          />
+        </div>
+      ),
+    },
+  ];
+
+  const table = useReactTable({
+    data: cooperados,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    state: {
+      sorting,
+      columnFilters,
+    },
+  });
 
   if (isMobile) {
     return (
@@ -39,6 +177,7 @@ export function CooperadosTable({
           <div
             key={cooperado.id}
             className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+            onClick={() => onViewDetails(cooperado.id)}
           >
             <div className="flex justify-between items-start mb-3">
               <div>
@@ -85,7 +224,10 @@ export function CooperadosTable({
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => onAddUnidade(cooperado.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAddUnidade(cooperado.id);
+                    }}
                     title="Adicionar Unidade Beneficiária"
                     className="h-6 w-6"
                   >
@@ -99,7 +241,10 @@ export function CooperadosTable({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onViewDetails(cooperado.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewDetails(cooperado.id);
+                }}
                 className="h-10 w-10 p-0"
               >
                 <Eye className="h-4 w-4" />
@@ -107,7 +252,10 @@ export function CooperadosTable({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onEdit(cooperado.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(cooperado.id);
+                }}
                 className="h-10 w-10 p-0"
               >
                 <Edit className="h-4 w-4" />
@@ -115,7 +263,10 @@ export function CooperadosTable({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onDelete(cooperado.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(cooperado.id);
+                }}
                 className="h-10 w-10 p-0"
               >
                 <Trash className="h-4 w-4" />
@@ -128,101 +279,58 @@ export function CooperadosTable({
   }
 
   return (
-    <div className="rounded-md border border-gray-200 overflow-hidden">
-      <div className="overflow-x-auto">
-        <Table className="w-full border-collapse [&_tr:hover]:bg-gray-50">
-          <TableHeader className="[&_tr]:h-8 [&_th]:p-2 [&_th]:border-x [&_th]:border-gray-200 [&_tr]:border-b [&_tr]:border-gray-200">
-            <TableRow>
-              <TableHead>Nome/Razão Social</TableHead>
-              <TableHead>Nº Cadastro</TableHead>
-              <TableHead>CPF/CNPJ</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Contato</TableHead>
-              <TableHead>Unidades</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody className="[&_tr]:h-8 [&_td]:p-2 [&_td]:border-x [&_td]:border-gray-200 [&_tr]:border-b [&_tr]:border-gray-200">
-            {cooperados.map((cooperado) => (
-              <TableRow 
-                key={cooperado.id} 
-                className="cursor-pointer"
-                onClick={() => onViewDetails(cooperado.id)}
-              >
-                <TableCell className="whitespace-nowrap">{cooperado.nome}</TableCell>
-                <TableCell className="whitespace-nowrap">{cooperado.numero_cadastro || '-'}</TableCell>
-                <TableCell className="whitespace-nowrap">{cooperado.documento ? formatarDocumento(cooperado.documento) : '-'}</TableCell>
-                <TableCell className="whitespace-nowrap">
-                  {cooperado.tipo_pessoa === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física'}
-                </TableCell>
-                <TableCell>
-                  <div className="leading-tight whitespace-nowrap">
-                    {formatarTelefone(cooperado.telefone)}
-                    <br />
-                    {cooperado.email || '-'}
-                  </div>
-                </TableCell>
-                <TableCell className="whitespace-nowrap">
-                  <div className="flex items-center space-x-2">
-                    <span>{unidades.filter(u => u.cooperado_id === cooperado.id).length}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onAddUnidade(cooperado.id);
-                      }}
-                      title="Adicionar Unidade Beneficiária"
-                      className="h-6 w-6"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </TableCell>
-                <TableCell className="text-right whitespace-nowrap">
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onViewDetails(cooperado.id);
-                    }}
-                    className="h-6 w-6"
-                  >
-                    <Eye className="h-3 w-3" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEdit(cooperado.id);
-                    }}
-                    className="h-6 w-6"
-                  >
-                    <Edit className="h-3 w-3" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(cooperado.id);
-                    }}
-                    className="h-6 w-6"
-                  >
-                    <Trash className="h-3 w-3" />
-                  </Button>
-                  <CooperadoPdfButton
-                    cooperado={cooperado}
-                    unidades={unidades.filter(u => u.cooperado_id === cooperado.id)}
-                  />
-                </TableCell>
+    <div className="rounded-md border">
+      <div className="relative overflow-x-auto">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  className="cursor-pointer"
+                  onClick={() => onViewDetails(row.original.id)}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  Nenhum cooperado encontrado.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
+      <TablePagination table={table} />
     </div>
   );
 }
