@@ -11,7 +11,7 @@ interface FileUploadSectionProps {
 
 export function FileUploadSection({ form, setForm, pagamentoId }: FileUploadSectionProps) {
   const handleSuccess = (fileName: string, filePath: string) => {
-    // Atualizar o status para pendente apenas se não houver status
+    console.log("[FileUpload] Arquivo enviado com sucesso:", { fileName, filePath });
     setForm({
       ...form,
       status: form.status || 'pendente' as PagamentoStatus,
@@ -21,6 +21,7 @@ export function FileUploadSection({ form, setForm, pagamentoId }: FileUploadSect
   };
 
   const handleFileRemoved = () => {
+    console.log("[FileUpload] Arquivo removido");
     setForm({
       ...form,
       arquivo_conta_energia_nome: null,

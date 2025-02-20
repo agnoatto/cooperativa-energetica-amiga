@@ -2,6 +2,7 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface UseFileUploadProps {
   pagamentoId: string;
@@ -14,6 +15,7 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileRemoved }: UseFile
   const [isDragging, setIsDragging] = useState(false);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const handleFileUpload = useCallback(async (file: File) => {
     if (!file) return;
@@ -53,6 +55,11 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileRemoved }: UseFile
 
       if (updateError) throw updateError;
 
+      await queryClient.invalidateQueries({
+        queryKey: ["pagamentos"],
+        refetchType: 'all'
+      });
+
       toast.success('Arquivo enviado com sucesso!');
       onSuccess(file.name, filePath);
     } catch (error: any) {
@@ -61,7 +68,7 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileRemoved }: UseFile
     } finally {
       setIsUploading(false);
     }
-  }, [pagamentoId, onSuccess]);
+  }, [pagamentoId, onSuccess, queryClient]);
 
   const handleDownload = useCallback(async (arquivoPath: string, arquivoNome: string) => {
     try {
@@ -107,21 +114,28 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileRemoved }: UseFile
 
       if (updateError) throw updateError;
 
+      await queryClient.invalidateQueries({
+        queryKey: ["pagamentos"],
+        refetchType: 'all'
+      });
+
       toast.success('Arquivo removido com sucesso!');
       onFileRemoved();
+      setPdfUrl(null);
+      setShowPdfPreview(false);
     } catch (error: any) {
       console.error('Erro ao remover arquivo:', error);
       toast.error('Erro ao remover arquivo');
     } finally {
       setIsUploading(false);
     }
-  }, [onFileRemoved]);
+  }, [onFileRemoved, queryClient]);
 
   const handlePreview = useCallback(async (arquivoPath: string) => {
     try {
       const { data, error } = await supabase.storage
         .from('contas-energia')
-        .createSignedUrl(arquivoPath, 3600); // 1 hora de expiração
+        .createSignedUrl(arquivoPath, 3600);
 
       if (error) throw error;
 

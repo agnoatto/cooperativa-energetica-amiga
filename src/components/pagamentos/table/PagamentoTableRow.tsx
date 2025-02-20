@@ -116,7 +116,10 @@ export function PagamentoTableRow({
 
       <PdfPreview
         isOpen={showPdfPreview}
-        onClose={() => setShowPdfPreview(false)}
+        onClose={() => {
+          setShowPdfPreview(false);
+          setPdfUrl(null);
+        }}
         pdfUrl={pdfUrl}
       />
     </TableRow>
