@@ -122,17 +122,7 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
     try {
       setIsUploading(true);
 
-      // Primeiro remover o arquivo do storage
-      const { error: removeError } = await supabase.storage
-        .from('pagamentos')
-        .remove([arquivoPath]);
-
-      if (removeError) {
-        console.error('[Remover] Erro ao remover arquivo do storage:', removeError);
-        throw removeError;
-      }
-
-      // Depois atualizar o registro no banco
+      // Primeiro atualizar o registro no banco para evitar referências quebradas
       const { error: updateError } = await supabase
         .from('pagamentos_usina')
         .update({
@@ -146,6 +136,16 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
       if (updateError) {
         console.error('[Remover] Erro ao atualizar registro:', updateError);
         throw updateError;
+      }
+
+      // Depois remover o arquivo do storage
+      const { error: removeError } = await supabase.storage
+        .from('pagamentos')
+        .remove([arquivoPath]);
+
+      if (removeError) {
+        console.error('[Remover] Erro ao remover arquivo do storage:', removeError);
+        throw removeError;
       }
 
       console.log('[Remover] Arquivo removido com sucesso');
