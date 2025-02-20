@@ -17,10 +17,10 @@ export interface PagamentoData {
   data_vencimento_concessionaria: string | null;
   mes: number;
   ano: number;
-  arquivo_comprovante_nome: string | null;
-  arquivo_comprovante_path: string | null;
-  arquivo_comprovante_tipo: string | null;
-  arquivo_comprovante_tamanho: number | null;
+  arquivo_conta_energia_nome: string | null;
+  arquivo_conta_energia_path: string | null;
+  arquivo_conta_energia_tipo: string | null;
+  arquivo_conta_energia_tamanho: number | null;
   observacao: string | null;
   observacao_pagamento: string | null;
   historico_status: Array<{
@@ -53,6 +53,6 @@ export interface PagamentoFormValues {
   data_vencimento_concessionaria: string | null;
   observacao?: string;
   observacao_pagamento?: string;
-  arquivo_comprovante_nome: string | null;
-  arquivo_comprovante_path: string | null;
+  arquivo_conta_energia_nome: string | null;
+  arquivo_conta_energia_path: string | null;
 }

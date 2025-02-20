@@ -4,7 +4,7 @@ import { FilePreview } from "@/components/faturas/upload/FilePreview";
 import { PdfPreview } from "@/components/faturas/upload/PdfPreview";
 import { useFileUpload } from "./useFileUpload";
 
-interface PaymentFileUploadProps {
+interface ContaEnergiaUploadProps {
   pagamentoId: string;
   arquivoNome?: string | null;
   arquivoPath?: string | null;
@@ -12,13 +12,13 @@ interface PaymentFileUploadProps {
   onFileChange?: () => void;
 }
 
-export function PaymentFileUpload({
+export function ContaEnergiaUpload({
   pagamentoId,
   arquivoNome,
   arquivoPath,
   onSuccess,
   onFileChange
-}: PaymentFileUploadProps) {
+}: ContaEnergiaUploadProps) {
   const {
     isUploading,
     isDragging,

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +18,7 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileChange }: FileUplo
 
   const handleFileUpload = async (file: File) => {
     setIsUploading(true);
-    console.log('[Upload] Iniciando upload do arquivo:', file.name);
+    console.log('[Upload] Iniciando upload da conta de energia:', file.name);
 
     try {
       const { filePath, file: uploadedFile } = await uploadFile(file, pagamentoId);
@@ -31,10 +30,10 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileChange }: FileUplo
       const { error: updateError } = await supabase
         .from('pagamentos_usina')
         .update({
-          arquivo_comprovante_nome: uploadedFile.name,
-          arquivo_comprovante_path: filePath,
-          arquivo_comprovante_tipo: uploadedFile.type,
-          arquivo_comprovante_tamanho: uploadedFile.size,
+          arquivo_conta_energia_nome: uploadedFile.name,
+          arquivo_conta_energia_path: filePath,
+          arquivo_conta_energia_tipo: uploadedFile.type,
+          arquivo_conta_energia_tamanho: uploadedFile.size,
         })
         .eq('id', pagamentoId);
 
@@ -42,13 +41,13 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileChange }: FileUplo
         throw new Error(`Erro ao atualizar registro: ${updateError.message}`);
       }
 
-      toast.success('Arquivo enviado com sucesso!');
+      toast.success('Conta de energia enviada com sucesso!');
       onSuccess();
       onFileChange?.();
 
     } catch (error: any) {
       console.error('[Upload] Erro no processo de upload:', error);
-      toast.error(error.message || 'Erro ao enviar arquivo');
+      toast.error(error.message || 'Erro ao enviar conta de energia');
     } finally {
       setIsUploading(false);
     }

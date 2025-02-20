@@ -1,7 +1,7 @@
 
 import { Label } from "@/components/ui/label";
 import { PagamentoFormValues, PagamentoStatus } from "../types/pagamento";
-import { PaymentFileUpload } from "../upload/PaymentFileUpload";
+import { ContaEnergiaUpload } from "../upload/ContaEnergiaUpload";
 
 interface FileUploadSectionProps {
   form: PagamentoFormValues;
@@ -27,17 +27,17 @@ export function FileUploadSection({ form, setForm, pagamentoId }: FileUploadSect
 
   return (
     <div className="space-y-2">
-      <Label>Comprovante de Pagamento</Label>
-      <PaymentFileUpload
+      <Label>Conta de Energia</Label>
+      <ContaEnergiaUpload
         pagamentoId={pagamentoId}
-        arquivoNome={form.arquivo_comprovante_nome}
-        arquivoPath={form.arquivo_comprovante_path}
+        arquivoNome={form.arquivo_conta_energia_nome}
+        arquivoPath={form.arquivo_conta_energia_path}
         onSuccess={handleSuccess}
         onFileChange={handleFileChange}
       />
-      {!form.arquivo_comprovante_nome && (
+      {!form.arquivo_conta_energia_nome && (
         <p className="text-sm text-muted-foreground">
-          Faça upload do comprovante de pagamento em formato PDF (máx. 10MB)
+          Faça upload da conta de energia em formato PDF (máx. 10MB)
         </p>
       )}
     </div>

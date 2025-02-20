@@ -582,10 +582,10 @@ export type Database = {
       pagamentos_usina: {
         Row: {
           ano: number
-          arquivo_comprovante_nome: string | null
-          arquivo_comprovante_path: string | null
-          arquivo_comprovante_tamanho: number | null
-          arquivo_comprovante_tipo: string | null
+          arquivo_conta_energia_nome: string | null
+          arquivo_conta_energia_path: string | null
+          arquivo_conta_energia_tamanho: number | null
+          arquivo_conta_energia_tipo: string | null
           created_at: string
           data_confirmacao: string | null
           data_emissao: string | null
@@ -611,10 +611,10 @@ export type Database = {
         }
         Insert: {
           ano: number
-          arquivo_comprovante_nome?: string | null
-          arquivo_comprovante_path?: string | null
-          arquivo_comprovante_tamanho?: number | null
-          arquivo_comprovante_tipo?: string | null
+          arquivo_conta_energia_nome?: string | null
+          arquivo_conta_energia_path?: string | null
+          arquivo_conta_energia_tamanho?: number | null
+          arquivo_conta_energia_tipo?: string | null
           created_at?: string
           data_confirmacao?: string | null
           data_emissao?: string | null
@@ -640,10 +640,10 @@ export type Database = {
         }
         Update: {
           ano?: number
-          arquivo_comprovante_nome?: string | null
-          arquivo_comprovante_path?: string | null
-          arquivo_comprovante_tamanho?: number | null
-          arquivo_comprovante_tipo?: string | null
+          arquivo_conta_energia_nome?: string | null
+          arquivo_conta_energia_path?: string | null
+          arquivo_conta_energia_tamanho?: number | null
+          arquivo_conta_energia_tipo?: string | null
           created_at?: string
           data_confirmacao?: string | null
           data_emissao?: string | null
