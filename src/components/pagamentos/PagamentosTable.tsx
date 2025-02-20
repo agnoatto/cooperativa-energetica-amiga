@@ -42,6 +42,18 @@ export function PagamentosTable({
     console.log("[Deleção] Iniciando processo para pagamento:", pagamentoParaDeletar.id);
 
     try {
+      // Se houver arquivo, remove primeiro
+      if (pagamentoParaDeletar.arquivo_conta_energia_path) {
+        const { error: storageError } = await supabase.storage
+          .from('contas-energia')
+          .remove([pagamentoParaDeletar.arquivo_conta_energia_path]);
+
+        if (storageError) {
+          console.error("[Deleção] Erro ao remover arquivo:", storageError);
+          throw new Error("Erro ao excluir o arquivo");
+        }
+      }
+
       const { error } = await supabase.rpc('deletar_pagamento', {
         pagamento_id: pagamentoParaDeletar.id
       });
@@ -55,7 +67,11 @@ export function PagamentosTable({
       toast.success("Pagamento excluído com sucesso!");
       setPagamentoParaDeletar(null);
       
-      await queryClient.invalidateQueries({ queryKey: ["pagamentos"] });
+      // Invalida todas as queries relacionadas a pagamentos para forçar atualização
+      await queryClient.invalidateQueries({ 
+        queryKey: ["pagamentos"],
+        refetchType: 'all'
+      });
     } catch (error) {
       console.error("[Deleção] Erro detalhado:", error);
       toast.error(error instanceof Error ? error.message : "Erro ao excluir pagamento");
