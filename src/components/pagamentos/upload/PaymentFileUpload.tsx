@@ -32,6 +32,27 @@ export function PaymentFileUpload({
     handlePreview,
   } = useFileUpload(pagamentoId, onSuccess, onFileChange);
 
+  // Handler para download com validação
+  const onDownload = () => {
+    if (arquivoPath && arquivoNome) {
+      handleDownload(arquivoPath, arquivoNome);
+    }
+  };
+
+  // Handler para remoção com validação
+  const onRemove = () => {
+    if (arquivoPath) {
+      handleRemoveFile(arquivoPath, pagamentoId);
+    }
+  };
+
+  // Handler para preview com validação
+  const onPreview = () => {
+    if (arquivoPath) {
+      handlePreview(arquivoPath);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {!arquivoNome && !arquivoPath && (
@@ -46,9 +67,10 @@ export function PaymentFileUpload({
       {arquivoNome && arquivoPath && (
         <FilePreview
           fileName={arquivoNome}
-          onPreview={() => handlePreview(arquivoPath)}
-          onDownload={() => handleDownload(arquivoPath, arquivoNome)}
-          onRemove={() => handleRemoveFile(arquivoPath, pagamentoId)}
+          onPreview={onPreview}
+          onDownload={onDownload}
+          onRemove={onRemove}
+          className="bg-muted"
         />
       )}
 
