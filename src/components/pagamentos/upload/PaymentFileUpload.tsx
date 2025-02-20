@@ -39,7 +39,8 @@ export function PaymentFileUpload({
           isUploading={isUploading}
           isDragging={isDragging}
           onDrop={handleFileUpload}
-          setIsDragging={setIsDragging}
+          onDragEnter={() => setIsDragging(true)}
+          onDragLeave={() => setIsDragging(false)}
         />
       )}
 
