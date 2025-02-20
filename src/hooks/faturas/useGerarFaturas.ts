@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { lastDayOfMonth } from "date-fns";
 import { UnidadeBeneficiaria } from "./types";
+import { FaturaStatus, StatusHistoryEntry } from "@/types/fatura";
 
 export const useGerarFaturas = (currentDate: Date) => {
   const queryClient = useQueryClient();
@@ -69,6 +70,13 @@ export const useGerarFaturas = (currentDate: Date) => {
               continue;
             }
 
+            const status: FaturaStatus = "gerada";
+            const historicoStatus: StatusHistoryEntry[] = [{
+              status: status,
+              data: new Date().toISOString(),
+              observacao: "Fatura gerada automaticamente pelo sistema"
+            }];
+
             // Prepara dados da nova fatura
             const novaFatura = {
               unidade_beneficiaria_id: unidade.id,
@@ -76,7 +84,7 @@ export const useGerarFaturas = (currentDate: Date) => {
               ano,
               consumo_kwh: 0,
               valor_total: 0,
-              status: "gerada",
+              status,
               data_vencimento: ultimoDiaMes,
               economia_acumulada: 0,
               economia_mes: 0,
@@ -86,11 +94,7 @@ export const useGerarFaturas = (currentDate: Date) => {
               outros_valores: 0,
               valor_desconto: 0,
               valor_assinatura: 0,
-              historico_status: [{
-                status: "gerada",
-                data: new Date().toISOString(),
-                observacao: "Fatura gerada automaticamente pelo sistema"
-              }]
+              historico_status: historicoStatus
             };
 
             // Insere a nova fatura
