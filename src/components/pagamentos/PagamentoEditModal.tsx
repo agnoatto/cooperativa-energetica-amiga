@@ -4,6 +4,8 @@ import { PagamentoData } from "./types/pagamento";
 import { usePagamentoForm } from "./hooks/usePagamentoForm";
 import { PagamentoFormFields } from "./PagamentoFormFields";
 import { formatarMoeda } from "@/utils/formatters";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface PagamentoEditModalProps {
   pagamento: PagamentoData | null;
@@ -54,6 +56,12 @@ export function PagamentoEditModal({
             <div>
               <p className="text-sm text-muted-foreground">Geração Total</p>
               <p className="font-medium">{pagamento.geracao_kwh} kWh</p>
+            </div>
+            <div className="col-span-2 md:col-span-4">
+              <p className="text-sm text-muted-foreground">Período</p>
+              <p className="font-medium">
+                {format(new Date(pagamento.ano, pagamento.mes - 1), "MMMM 'de' yyyy", { locale: ptBR })}
+              </p>
             </div>
           </div>
         )}
