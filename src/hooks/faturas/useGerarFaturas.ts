@@ -2,7 +2,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { lastDayOfMonth } from "date-fns";
+import { lastDayOfMonth, startOfMonth } from "date-fns";
 import { UnidadeBeneficiaria } from "./types";
 import { FaturaStatus, StatusHistoryEntry } from "@/types/fatura";
 
@@ -16,9 +16,11 @@ export const useGerarFaturas = (currentDate: Date) => {
         
         const mes = currentDate.getMonth() + 1;
         const ano = currentDate.getFullYear();
+        const inicioDiaMes = startOfMonth(currentDate).toISOString();
         const ultimoDiaMes = lastDayOfMonth(currentDate).toISOString().split('T')[0];
         
         console.log(`Gerando faturas para ${mes}/${ano}`);
+        console.log(`Início do mês: ${inicioDiaMes}`);
         console.log(`Último dia do mês: ${ultimoDiaMes}`);
 
         // Busca unidades elegíveis com todos os campos necessários
@@ -36,7 +38,8 @@ export const useGerarFaturas = (currentDate: Date) => {
             )
           `)
           .filter('data_saida', 'is', null)
-          .lte('data_entrada', ultimoDiaMes);
+          .lte('data_entrada', ultimoDiaMes)
+          .gt('data_entrada', inicioDiaMes);
 
         if (unidadesError) {
           console.error("Erro ao buscar unidades:", unidadesError);
@@ -58,12 +61,18 @@ export const useGerarFaturas = (currentDate: Date) => {
             console.log(`Processando unidade ${unidade.numero_uc}`);
 
             // Verifica se já existe fatura
-            const { data: faturasExistentes } = await supabase
+            const { data: faturasExistentes, error: checkError } = await supabase
               .from("faturas")
               .select('id')
               .eq("unidade_beneficiaria_id", unidade.id)
               .eq("mes", mes)
               .eq("ano", ano);
+
+            if (checkError) {
+              console.error(`Erro ao verificar fatura existente: ${checkError.message}`);
+              erros++;
+              continue;
+            }
 
             if (faturasExistentes && faturasExistentes.length > 0) {
               console.log(`Fatura já existe para unidade ${unidade.numero_uc}`);
@@ -71,19 +80,19 @@ export const useGerarFaturas = (currentDate: Date) => {
             }
 
             const status: FaturaStatus = "gerada";
-            const historicoStatus = [{
+            const historicoStatus: StatusHistoryEntry[] = [{
               status: status,
               data: new Date().toISOString(),
               observacao: "Fatura gerada automaticamente pelo sistema"
             }];
 
-            // Prepara dados da nova fatura
+            // Prepara dados da nova fatura com valores default
             const novaFatura = {
               unidade_beneficiaria_id: unidade.id,
               mes,
               ano,
               consumo_kwh: 0,
-              total_fatura: 0, // Alterado para total_fatura conforme banco
+              total_fatura: 0,
               status,
               data_vencimento: ultimoDiaMes,
               economia_acumulada: 0,
@@ -94,18 +103,26 @@ export const useGerarFaturas = (currentDate: Date) => {
               outros_valores: 0,
               valor_desconto: 0,
               valor_assinatura: 0,
-              historico_status: historicoStatus // Removido JSON.stringify pois o Supabase já converte
+              historico_status: historicoStatus,
+              data_criacao: new Date().toISOString(),
+              data_atualizacao: new Date().toISOString()
             };
 
-            // Insere a nova fatura com validação adicional
+            // Insere a nova fatura e retorna os dados inseridos
             const { data: faturaInserida, error: insertError } = await supabase
               .from("faturas")
-              .insert(novaFatura)
+              .insert([novaFatura])
               .select()
-              .single();
+              .maybeSingle();
 
             if (insertError) {
               console.error(`Erro ao inserir fatura para unidade ${unidade.numero_uc}:`, insertError);
+              erros++;
+              continue;
+            }
+
+            if (!faturaInserida) {
+              console.error(`Fatura não foi inserida para unidade ${unidade.numero_uc}`);
               erros++;
               continue;
             }
