@@ -71,7 +71,7 @@ export const useGerarFaturas = (currentDate: Date) => {
             }
 
             const status: FaturaStatus = "gerada";
-            const historicoStatus: StatusHistoryEntry[] = [{
+            const historicoStatus = [{
               status: status,
               data: new Date().toISOString(),
               observacao: "Fatura gerada automaticamente pelo sistema"
@@ -94,7 +94,7 @@ export const useGerarFaturas = (currentDate: Date) => {
               outros_valores: 0,
               valor_desconto: 0,
               valor_assinatura: 0,
-              historico_status: historicoStatus
+              historico_status: JSON.stringify(historicoStatus)
             };
 
             // Insere a nova fatura
