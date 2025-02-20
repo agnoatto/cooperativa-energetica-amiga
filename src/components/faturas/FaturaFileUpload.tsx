@@ -39,6 +39,7 @@ export function FaturaFileUpload({
           isUploading={isUploading}
           isDragging={isDragging}
           onDrop={handleFileUpload}
+          onDragStateChange={setIsDragging}
         />
       )}
 
