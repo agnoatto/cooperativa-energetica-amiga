@@ -38,6 +38,7 @@ export interface PagamentoData extends PagamentoFormValues {
   updated_at: string;
   empresa_id: string | null;
   historico_status: HistoricoStatus[];
+  geracao_kwh: number;
   usina: {
     id: string;
     valor_kwh: number;

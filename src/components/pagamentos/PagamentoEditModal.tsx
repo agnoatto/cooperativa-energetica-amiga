@@ -53,7 +53,7 @@ export function PagamentoEditModal({
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Geração Total</p>
-              <p className="font-medium">{pagamento.geracao_total_kwh} kWh</p>
+              <p className="font-medium">{pagamento.geracao_kwh} kWh</p>
             </div>
           </div>
         )}
