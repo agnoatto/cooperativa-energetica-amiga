@@ -1,22 +1,25 @@
 
 import { Button } from "@/components/ui/button";
 import { FileText, FileUp, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface FilePreviewProps {
   fileName: string;
   onPreview: () => void;
   onDownload: () => void;
   onRemove: () => void;
+  className?: string;
 }
 
 export function FilePreview({ 
   fileName, 
   onPreview, 
   onDownload, 
-  onRemove 
+  onRemove,
+  className 
 }: FilePreviewProps) {
   return (
-    <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
+    <div className={cn("flex items-center gap-2 p-2 rounded-md", className)}>
       <FileText className="h-4 w-4 text-muted-foreground" />
       <span className="flex-1 text-sm truncate">{fileName}</span>
       <Button
