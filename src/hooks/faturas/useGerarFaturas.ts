@@ -83,7 +83,7 @@ export const useGerarFaturas = (currentDate: Date) => {
               mes,
               ano,
               consumo_kwh: 0,
-              valor_total: 0,
+              total_fatura: 0, // Alterado para total_fatura conforme banco
               status,
               data_vencimento: ultimoDiaMes,
               economia_acumulada: 0,
@@ -94,13 +94,15 @@ export const useGerarFaturas = (currentDate: Date) => {
               outros_valores: 0,
               valor_desconto: 0,
               valor_assinatura: 0,
-              historico_status: JSON.stringify(historicoStatus)
+              historico_status: historicoStatus // Removido JSON.stringify pois o Supabase já converte
             };
 
-            // Insere a nova fatura
-            const { error: insertError } = await supabase
+            // Insere a nova fatura com validação adicional
+            const { data: faturaInserida, error: insertError } = await supabase
               .from("faturas")
-              .insert(novaFatura);
+              .insert(novaFatura)
+              .select()
+              .single();
 
             if (insertError) {
               console.error(`Erro ao inserir fatura para unidade ${unidade.numero_uc}:`, insertError);
@@ -108,7 +110,7 @@ export const useGerarFaturas = (currentDate: Date) => {
               continue;
             }
 
-            console.log(`Fatura gerada com sucesso para unidade ${unidade.numero_uc}`);
+            console.log(`Fatura gerada com sucesso:`, faturaInserida);
             faturasGeradas++;
 
           } catch (error) {
