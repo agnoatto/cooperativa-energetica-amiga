@@ -9,6 +9,13 @@ export function usePagamentosHistorico() {
     dataInicial.setMonth(dataInicial.getMonth() - 11);
 
     console.log("[Histórico] Buscando pagamentos de", dataInicial.toISOString(), "até", dataReferencia.toISOString());
+    console.log("[Histórico] Usina ID:", pagamentoAtual.usina.id);
+    console.log("[Histórico] Período:", {
+      anoInicial: dataInicial.getFullYear(),
+      mesInicial: dataInicial.getMonth() + 1,
+      anoFinal: dataReferencia.getFullYear(),
+      mesFinal: dataReferencia.getMonth() + 1
+    });
 
     const { data: pagamentosHistorico, error } = await supabase
       .from('pagamentos_usina')
@@ -48,10 +55,7 @@ export function usePagamentosHistorico() {
         )
       `)
       .eq('usina_id', pagamentoAtual.usina.id)
-      .lte('ano', dataReferencia.getFullYear())
-      .lte('mes', dataReferencia.getMonth() + 1)
-      .gte('ano', dataInicial.getFullYear())
-      .gte('mes', dataInicial.getMonth() + 1)
+      .or(`and(ano.gt.${dataInicial.getFullYear()},ano.lt.${dataReferencia.getFullYear()}),and(ano.eq.${dataInicial.getFullYear()},mes.gte.${dataInicial.getMonth() + 1}),and(ano.eq.${dataReferencia.getFullYear()},mes.lte.${dataReferencia.getMonth() + 1})`)
       .order('ano', { ascending: false })
       .order('mes', { ascending: false });
 
@@ -60,10 +64,23 @@ export function usePagamentosHistorico() {
       return [pagamentoAtual];
     }
 
-    console.log("[Histórico] Pagamentos encontrados:", pagamentosHistorico?.length || 0);
-    return pagamentosHistorico as PagamentoData[];
+    const pagamentosFiltrados = pagamentosHistorico?.filter(pagamento => {
+      const dataPagamento = new Date(pagamento.ano, pagamento.mes - 1);
+      return dataPagamento >= dataInicial && dataPagamento <= dataReferencia;
+    }) || [];
+
+    console.log("[Histórico] Pagamentos encontrados:", pagamentosFiltrados.length);
+    pagamentosFiltrados.forEach(pagamento => {
+      console.log("[Histórico] Pagamento:", {
+        id: pagamento.id,
+        ano: pagamento.ano,
+        mes: pagamento.mes,
+        valor: pagamento.valor_total
+      });
+    });
+
+    return pagamentosFiltrados.length > 0 ? pagamentosFiltrados : [pagamentoAtual];
   };
 
   return { getPagamentosUltimos12Meses };
 }
-
