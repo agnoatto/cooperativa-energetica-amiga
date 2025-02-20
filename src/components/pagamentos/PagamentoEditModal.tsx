@@ -27,7 +27,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Editar Pagamento</DialogTitle>
         </DialogHeader>
@@ -39,8 +39,9 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
             valorBruto={valorBruto}
             valorEfetivo={valorEfetivo}
             valorTotalTusdFioB={valorTotalTusdFioB}
+            pagamentoId={pagamento.id}
           />
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
