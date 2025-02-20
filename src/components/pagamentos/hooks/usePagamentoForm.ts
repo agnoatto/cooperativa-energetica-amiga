@@ -16,6 +16,8 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
     data_vencimento_concessionaria: null,
     observacao: '',
     observacao_pagamento: '',
+    arquivo_comprovante_nome: null,
+    arquivo_comprovante_path: null
   });
 
   // Initialize form when pagamento changes
@@ -32,6 +34,8 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
         data_vencimento_concessionaria: pagamento.data_vencimento_concessionaria,
         observacao: pagamento.observacao || '',
         observacao_pagamento: pagamento.observacao_pagamento || '',
+        arquivo_comprovante_nome: pagamento.arquivo_comprovante_nome,
+        arquivo_comprovante_path: pagamento.arquivo_comprovante_path
       });
     }
   }, [pagamento]);
@@ -71,6 +75,8 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
           data_vencimento_concessionaria: form.data_vencimento_concessionaria,
           observacao: form.observacao || null,
           observacao_pagamento: form.observacao_pagamento || null,
+          arquivo_comprovante_nome: form.arquivo_comprovante_nome,
+          arquivo_comprovante_path: form.arquivo_comprovante_path
         })
         .eq('id', pagamento.id);
 
