@@ -55,10 +55,10 @@ export async function removeFile(arquivoPath: string, pagamentoId: string) {
   const { error: updateError } = await supabase
     .from('pagamentos_usina')
     .update({
-      arquivo_comprovante_nome: null,
-      arquivo_comprovante_path: null,
-      arquivo_comprovante_tipo: null,
-      arquivo_comprovante_tamanho: null
+      arquivo_conta_energia_nome: null,
+      arquivo_conta_energia_path: null,
+      arquivo_conta_energia_tipo: null,
+      arquivo_conta_energia_tamanho: null
     })
     .eq('id', pagamentoId);
 
