@@ -30,11 +30,11 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
       // Gerar nome único para o arquivo
       const fileExt = file.name.split('.').pop();
       const fileName = `${pagamentoId}_${Date.now()}.${fileExt}`;
-      const filePath = `${pagamentoId}/${fileName}`;
+      const filePath = `comprovantes/${pagamentoId}/${fileName}`;
 
-      // Fazer upload do arquivo
+      // Fazer upload do arquivo usando o bucket 'pagamentos'
       const { error: uploadError } = await supabase.storage
-        .from('pagamentos_comprovantes')
+        .from('pagamentos')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
@@ -67,7 +67,7 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
   const handleDownload = async (arquivoPath: string, arquivoNome: string) => {
     try {
       const { data, error } = await supabase.storage
-        .from('pagamentos_comprovantes')
+        .from('pagamentos')
         .download(arquivoPath);
 
       if (error) throw error;
@@ -91,9 +91,9 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
     try {
       setIsUploading(true);
 
-      // Remover arquivo do storage
+      // Remover arquivo do storage usando o bucket 'pagamentos'
       const { error: removeError } = await supabase.storage
-        .from('pagamentos_comprovantes')
+        .from('pagamentos')
         .remove([arquivoPath]);
 
       if (removeError) throw removeError;
@@ -126,7 +126,7 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
   const handlePreview = async (arquivoPath: string) => {
     try {
       const { data } = await supabase.storage
-        .from('pagamentos_comprovantes')
+        .from('pagamentos')
         .createSignedUrl(arquivoPath, 60);
 
       if (data) {
