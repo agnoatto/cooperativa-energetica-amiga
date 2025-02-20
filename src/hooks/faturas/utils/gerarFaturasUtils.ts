@@ -1,5 +1,5 @@
 
-import { parseISO, isAfter } from "date-fns";
+import { parseISO, isAfter, isBefore, isEqual } from "date-fns";
 import { UnidadeBeneficiaria } from "../types";
 import { NovaFatura } from "../types/gerarFaturas";
 
@@ -13,7 +13,15 @@ export const filtrarUnidadesElegiveis = (unidades: UnidadeBeneficiaria[], mes: n
   return unidades.filter(unidade => {
     const dataEntrada = parseISO(unidade.data_entrada);
     const dataFatura = new Date(ano, mes - 1, 1);
-    return !isAfter(dataFatura, dataEntrada);
+    
+    // A unidade é elegível se:
+    // 1. A data da fatura é depois da data de entrada OU
+    // 2. A data da fatura é no mesmo mês/ano da data de entrada
+    return (
+      isAfter(dataFatura, dataEntrada) || 
+      (dataFatura.getMonth() === dataEntrada.getMonth() && 
+       dataFatura.getFullYear() === dataEntrada.getFullYear())
+    );
   });
 };
 
