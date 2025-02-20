@@ -1,14 +1,13 @@
 
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { CooperadoForm } from "@/components/cooperados/CooperadoForm";
 import { CooperadosTable } from "@/components/cooperados/CooperadosTable";
 import { CooperadoDetailsDialog } from "@/components/cooperados/CooperadoDetailsDialog";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 import { FilterBar } from "@/components/shared/FilterBar";
+import { CooperadosHeader } from "@/components/cooperados/CooperadosHeader";
+import { useCooperadosQuery } from "@/components/cooperados/hooks/useCooperadosQuery";
 import {
   Select,
   SelectContent,
@@ -24,66 +23,14 @@ const Cooperados = () => {
   const [showCooperadoForm, setShowCooperadoForm] = useState(false);
   const [selectedCooperadoId, setSelectedCooperadoId] = useState<string | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
-  const [cooperados, setCooperados] = useState<any[]>([]);
-  const [unidades, setUnidades] = useState<any[]>([]);
   const [busca, setBusca] = useState("");
   const [orderBy, setOrderBy] = useState<OrderBy>("nome_asc");
-  const navigate = useNavigate();
-
-  const fetchData = async () => {
-    try {
-      let query = supabase
-        .from('cooperados')
-        .select('*')
-        .is('data_exclusao', null);
-
-      // Aplicar filtro de busca se existir
-      if (busca) {
-        query = query.or(`nome.ilike.%${busca}%,documento.ilike.%${busca}%,numero_cadastro.ilike.%${busca}%`);
-      }
-
-      // Aplicar ordenação
-      switch (orderBy) {
-        case "nome_asc":
-          query = query.order('nome', { ascending: true });
-          break;
-        case "nome_desc":
-          query = query.order('nome', { ascending: false });
-          break;
-        case "cadastro_asc":
-          query = query.order('numero_cadastro', { ascending: true });
-          break;
-        case "cadastro_desc":
-          query = query.order('numero_cadastro', { ascending: false });
-          break;
-        case "tipo_asc":
-          query = query.order('tipo_pessoa', { ascending: true });
-          break;
-        case "tipo_desc":
-          query = query.order('tipo_pessoa', { ascending: false });
-          break;
-      }
-
-      const { data: cooperadosData, error: cooperadosError } = await query;
-
-      if (cooperadosError) throw cooperadosError;
-      setCooperados(cooperadosData);
-
-      const { data: unidadesData, error: unidadesError } = await supabase
-        .from('unidades_beneficiarias')
-        .select('*')
-        .is('data_saida', null);
-
-      if (unidadesError) throw unidadesError;
-      setUnidades(unidadesData);
-    } catch (error: any) {
-      toast.error("Erro ao carregar dados: " + error.message);
-    }
-  };
+  
+  const { cooperados, unidades, isLoading, fetchData } = useCooperadosQuery();
 
   useEffect(() => {
-    fetchData();
-  }, [busca, orderBy]);
+    fetchData(busca, orderBy);
+  }, [busca, orderBy, fetchData]);
 
   const handleEdit = (cooperadoId: string) => {
     setSelectedCooperadoId(cooperadoId);
@@ -110,7 +57,7 @@ const Cooperados = () => {
       if (unidadesError) throw unidadesError;
 
       toast.success("Cooperado e suas unidades beneficiárias foram excluídos com sucesso!");
-      fetchData();
+      fetchData(busca, orderBy);
     } catch (error: any) {
       toast.error("Erro ao excluir cooperado: " + error.message);
     }
@@ -128,25 +75,12 @@ const Cooperados = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Cooperados</h1>
-        <div className="space-x-2">
-          <Button 
-            variant="outline"
-            onClick={() => navigate('/cooperados/unidades')}
-          >
-            Ver Unidades Beneficiárias
-          </Button>
-          <Button 
-            onClick={() => {
-              setSelectedCooperadoId(null);
-              setShowCooperadoForm(true);
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Novo Cooperado
-          </Button>
-        </div>
-      </div>
+      <CooperadosHeader 
+        onNewCooperado={() => {
+          setSelectedCooperadoId(null);
+          setShowCooperadoForm(true);
+        }}
+      />
 
       <FilterBar
         busca={busca}
@@ -176,7 +110,7 @@ const Cooperados = () => {
         open={showCooperadoForm} 
         onOpenChange={setShowCooperadoForm}
         cooperadoId={selectedCooperadoId || undefined}
-        onSuccess={fetchData}
+        onSuccess={() => fetchData(busca, orderBy)}
       />
 
       <CooperadoDetailsDialog
@@ -194,7 +128,7 @@ const Cooperados = () => {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onAddUnidade={(cooperadoId) => {
-          navigate(`/cooperados/unidades`);
+          window.location.href = `/cooperados/unidades?cooperado=${cooperadoId}`;
         }}
         onViewDetails={handleViewDetails}
       />
