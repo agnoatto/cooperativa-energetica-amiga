@@ -1,4 +1,5 @@
 
+import { useCallback } from "react";
 import { useFileUpload } from "./useFileUpload";
 import { UploadDropZone } from "@/components/faturas/upload/UploadDropZone";
 import { FilePreview } from "@/components/faturas/upload/FilePreview";
@@ -36,6 +37,24 @@ export function ContaEnergiaUpload({
     onFileRemoved
   });
 
+  const handleRemove = useCallback(() => {
+    if (arquivoPath) {
+      handleRemoveFile(arquivoPath, pagamentoId);
+    }
+  }, [arquivoPath, pagamentoId, handleRemoveFile]);
+
+  const handleShowPreview = useCallback(() => {
+    if (arquivoPath) {
+      handlePreview(arquivoPath);
+    }
+  }, [arquivoPath, handlePreview]);
+
+  const handleDownloadFile = useCallback(() => {
+    if (arquivoPath && arquivoNome) {
+      handleDownload(arquivoPath, arquivoNome);
+    }
+  }, [arquivoPath, arquivoNome, handleDownload]);
+
   return (
     <div className="space-y-4">
       {!arquivoNome && (
@@ -50,9 +69,9 @@ export function ContaEnergiaUpload({
       {arquivoNome && arquivoPath && (
         <FilePreview
           fileName={arquivoNome}
-          onPreview={() => handlePreview(arquivoPath)}
-          onDownload={() => handleDownload(arquivoPath, arquivoNome)}
-          onRemove={() => handleRemoveFile(arquivoPath, pagamentoId)}
+          onPreview={handleShowPreview}
+          onDownload={handleDownloadFile}
+          onRemove={handleRemove}
           className="bg-muted"
         />
       )}

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -15,16 +15,14 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileRemoved }: UseFile
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
-  const handleFileUpload = async (file: File) => {
+  const handleFileUpload = useCallback(async (file: File) => {
     if (!file) return;
 
-    // Validar tipo do arquivo
     if (file.type !== 'application/pdf') {
       toast.error('Por favor, selecione um arquivo PDF');
       return;
     }
 
-    // Validar tamanho (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       toast.error('O arquivo deve ter no máximo 10MB');
       return;
@@ -33,19 +31,16 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileRemoved }: UseFile
     setIsUploading(true);
 
     try {
-      // Gerar nome único para o arquivo
       const fileExt = file.name.split('.').pop();
       const fileName = `${pagamentoId}_${Date.now()}.${fileExt}`;
       const filePath = `${pagamentoId}/${fileName}`;
 
-      // Fazer upload do arquivo
       const { error: uploadError } = await supabase.storage
         .from('contas-energia')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      // Atualizar pagamento com dados do novo arquivo
       const { error: updateError } = await supabase
         .from('pagamentos_usina')
         .update({
@@ -60,16 +55,15 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileRemoved }: UseFile
 
       toast.success('Arquivo enviado com sucesso!');
       onSuccess(file.name, filePath);
-
     } catch (error: any) {
       console.error('Erro no upload:', error);
       toast.error('Erro ao enviar arquivo');
     } finally {
       setIsUploading(false);
     }
-  };
+  }, [pagamentoId, onSuccess]);
 
-  const handleDownload = async (arquivoPath: string, arquivoNome: string) => {
+  const handleDownload = useCallback(async (arquivoPath: string, arquivoNome: string) => {
     try {
       const { data, error } = await supabase.storage
         .from('contas-energia')
@@ -77,7 +71,6 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileRemoved }: UseFile
 
       if (error) throw error;
 
-      // Criar URL do blob e iniciar download
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
@@ -90,20 +83,18 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileRemoved }: UseFile
       console.error('Erro ao baixar arquivo:', error);
       toast.error('Erro ao baixar arquivo');
     }
-  };
+  }, []);
 
-  const handleRemoveFile = async (arquivoPath: string, pagamentoId: string) => {
+  const handleRemoveFile = useCallback(async (arquivoPath: string, pagamentoId: string) => {
     try {
       setIsUploading(true);
 
-      // Remover arquivo do storage
       const { error: removeError } = await supabase.storage
         .from('contas-energia')
         .remove([arquivoPath]);
 
       if (removeError) throw removeError;
 
-      // Limpar dados do arquivo no pagamento
       const { error: updateError } = await supabase
         .from('pagamentos_usina')
         .update({
@@ -124,9 +115,9 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileRemoved }: UseFile
     } finally {
       setIsUploading(false);
     }
-  };
+  }, [onFileRemoved]);
 
-  const handlePreview = async (arquivoPath: string) => {
+  const handlePreview = useCallback(async (arquivoPath: string) => {
     try {
       const { data } = await supabase.storage
         .from('contas-energia')
@@ -140,7 +131,7 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileRemoved }: UseFile
       console.error('Erro ao gerar preview:', error);
       toast.error('Erro ao gerar preview do arquivo');
     }
-  };
+  }, []);
 
   return {
     isUploading,
