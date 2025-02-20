@@ -53,4 +53,6 @@ export interface PagamentoFormValues {
   data_vencimento_concessionaria: string | null;
   observacao?: string;
   observacao_pagamento?: string;
+  arquivo_comprovante_nome: string | null;
+  arquivo_comprovante_path: string | null;
 }
