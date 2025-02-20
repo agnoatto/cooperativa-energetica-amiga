@@ -10,66 +10,45 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   const handleFileUpload = async (file: File) => {
-    if (!file) return;
+    if (!file) {
+      toast.error('Nenhum arquivo selecionado');
+      return;
+    }
 
-    // Validar tipo do arquivo
     if (file.type !== 'application/pdf') {
       toast.error('Por favor, selecione um arquivo PDF');
       return;
     }
 
-    // Validar tamanho (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       toast.error('O arquivo deve ter no máximo 10MB');
       return;
     }
 
     setIsUploading(true);
-    console.log('Iniciando upload do arquivo:', file.name);
 
     try {
-      // Primeiro, vamos verificar se o arquivo já existe e removê-lo se necessário
-      const { data: existingFile } = await supabase.storage
+      // 1. Upload do arquivo
+      const filePath = `${pagamentoId}/${Date.now()}_${file.name}`;
+      
+      const { error: uploadError } = await supabase.storage
         .from('pagamentos')
-        .list(`comprovantes/${pagamentoId}`);
-
-      if (existingFile && existingFile.length > 0) {
-        console.log('Removendo arquivo existente');
-        await supabase.storage
-          .from('pagamentos')
-          .remove(existingFile.map(f => `comprovantes/${pagamentoId}/${f.name}`));
-      }
-
-      // Gerar nome único para o arquivo
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${file.name}`;
-      const filePath = `comprovantes/${pagamentoId}/${fileName}`;
-
-      console.log('Fazendo upload para:', filePath);
-
-      // Upload do arquivo
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('pagamentos')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true,
-        });
+        .upload(filePath, file);
 
       if (uploadError) {
-        console.error('Erro no upload:', uploadError);
-        throw uploadError;
+        throw new Error(`Erro no upload: ${uploadError.message}`);
       }
 
-      console.log('Upload concluído:', uploadData);
-
-      // Obter URL pública do arquivo
-      const { data: publicUrl } = supabase.storage
+      // 2. Gerar URL pública
+      const { data: { publicUrl } } = supabase.storage
         .from('pagamentos')
         .getPublicUrl(filePath);
 
-      console.log('URL pública gerada:', publicUrl);
+      if (!publicUrl) {
+        throw new Error('Não foi possível gerar a URL pública do arquivo');
+      }
 
-      // Atualizar registro no banco
+      // 3. Atualizar registro no banco
       const { error: updateError } = await supabase
         .from('pagamentos_usina')
         .update({
@@ -78,24 +57,10 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
           arquivo_comprovante_tipo: file.type,
           arquivo_comprovante_tamanho: file.size,
         })
-        .eq('id', pagamentoId)
-        .select();
+        .eq('id', pagamentoId);
 
       if (updateError) {
-        console.error('Erro ao atualizar registro:', updateError);
-        throw updateError;
-      }
-
-      console.log('Registro atualizado com sucesso');
-      
-      // Teste imediato de acesso ao arquivo
-      const { data: testDownload, error: testError } = await supabase.storage
-        .from('pagamentos')
-        .download(filePath);
-
-      if (testError) {
-        console.error('Erro ao testar acesso ao arquivo:', testError);
-        throw new Error('Arquivo enviado mas não está acessível');
+        throw new Error(`Erro ao atualizar registro: ${updateError.message}`);
       }
 
       toast.success('Arquivo enviado com sucesso!');
@@ -103,8 +68,18 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
       onFileChange?.();
 
     } catch (error: any) {
-      console.error('Erro completo:', error);
+      console.error('Erro no processo de upload:', error);
       toast.error(error.message || 'Erro ao enviar arquivo');
+      
+      // Tentar limpar o arquivo em caso de erro
+      try {
+        if (error.message.includes('atualizar registro')) {
+          const filePath = `${pagamentoId}/${Date.now()}_${file.name}`;
+          await supabase.storage.from('pagamentos').remove([filePath]);
+        }
+      } catch (cleanupError) {
+        console.error('Erro ao limpar arquivo:', cleanupError);
+      }
     } finally {
       setIsUploading(false);
     }
@@ -112,16 +87,11 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
 
   const handleDownload = async (arquivoPath: string, arquivoNome: string) => {
     try {
-      console.log('Iniciando download:', arquivoPath);
-      
       const { data, error } = await supabase.storage
         .from('pagamentos')
         .download(arquivoPath);
 
-      if (error) {
-        console.error('Erro no download:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
@@ -131,27 +101,21 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
       a.click();
       URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
-      console.log('Download concluído com sucesso');
     } catch (error: any) {
       console.error('Erro ao baixar arquivo:', error);
-      toast.error('Erro ao baixar arquivo: ' + error.message);
+      toast.error('Erro ao baixar arquivo');
     }
   };
 
   const handleRemoveFile = async (arquivoPath: string, pagamentoId: string) => {
     try {
       setIsUploading(true);
-      console.log('Removendo arquivo:', arquivoPath);
 
       const { error: removeError } = await supabase.storage
         .from('pagamentos')
         .remove([arquivoPath]);
 
-      if (removeError) {
-        console.error('Erro ao remover arquivo:', removeError);
-        throw removeError;
-      }
+      if (removeError) throw removeError;
 
       const { error: updateError } = await supabase
         .from('pagamentos_usina')
@@ -163,20 +127,15 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
         })
         .eq('id', pagamentoId);
 
-      if (updateError) {
-        console.error('Erro ao atualizar registro:', updateError);
-        throw updateError;
-      }
+      if (updateError) throw updateError;
 
       toast.success('Arquivo removido com sucesso!');
       setPdfUrl(null);
       onFileChange?.();
       onSuccess();
-      
-      console.log('Arquivo removido com sucesso');
     } catch (error: any) {
       console.error('Erro ao remover arquivo:', error);
-      toast.error('Erro ao remover arquivo: ' + error.message);
+      toast.error('Erro ao remover arquivo');
     } finally {
       setIsUploading(false);
     }
@@ -184,25 +143,19 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
 
   const handlePreview = async (arquivoPath: string) => {
     try {
-      console.log('Gerando preview para:', arquivoPath);
-      
       const { data, error } = await supabase.storage
         .from('pagamentos')
         .createSignedUrl(arquivoPath, 60);
 
-      if (error) {
-        console.error('Erro ao gerar URL assinada:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      if (data) {
-        console.log('URL assinada gerada:', data.signedUrl);
+      if (data?.signedUrl) {
         setPdfUrl(data.signedUrl);
         setShowPdfPreview(true);
       }
     } catch (error: any) {
       console.error('Erro ao gerar preview:', error);
-      toast.error('Erro ao gerar preview: ' + error.message);
+      toast.error('Erro ao gerar preview do arquivo');
     }
   };
 
