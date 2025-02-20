@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { FileText, Loader2 } from "lucide-react";
 import { generateBoletimPdf } from "@/utils/generateBoletimPdf";
 import { toast } from "sonner";
-import { BoletimData } from "./types/boletim";
 import { PagamentoData } from "./types/pagamento";
 
 interface BoletimMedicaoButtonProps {
@@ -21,25 +20,7 @@ export function BoletimMedicaoButton({
   const handleGerarBoletim = async () => {
     try {
       setIsGenerating(true);
-      console.log("[Boletim] Buscando histórico de pagamentos...");
-      
-      const pagamentosHistorico = await getPagamentosUltimos12Meses(pagamento);
-      console.log("[Boletim] Histórico obtido:", pagamentosHistorico.length, "pagamentos");
-
-      const boletimData: BoletimData = {
-        usina: {
-          nome_investidor: pagamento.usina.investidor.nome_investidor,
-          numero_uc: pagamento.usina.unidade_usina.numero_uc,
-          valor_kwh: pagamento.usina.valor_kwh
-        },
-        pagamentos: pagamentosHistorico,
-        data_emissao: pagamento.data_emissao ? new Date(pagamento.data_emissao) : new Date(),
-        data_vencimento: pagamento.data_vencimento,
-        valor_receber: pagamento.valor_total
-      };
-
-      console.log("[Boletim] Gerando PDF...");
-      const { doc, fileName } = await generateBoletimPdf(boletimData);
+      const { doc, fileName } = await generateBoletimPdf(pagamento);
       doc.save(fileName);
       toast.success("Boletim de medição gerado com sucesso!");
     } catch (error) {
@@ -66,4 +47,3 @@ export function BoletimMedicaoButton({
     </Button>
   );
 }
-

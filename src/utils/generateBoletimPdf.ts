@@ -1,3 +1,4 @@
+
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { PagamentoData } from '@/components/pagamentos/types/pagamento';
@@ -46,7 +47,7 @@ export async function generateBoletimPdf(pagamento: PagamentoData) {
   const observacao = pagamento.observacao || 'Nenhuma observação.';
   const lineHeight = 6;
   let y = 100;
-  const maxWidth = 180; // Largura máxima para as observações
+  const maxWidth = 180;
 
   const observacoes = doc.splitTextToSize(observacao, maxWidth);
   observacoes.forEach(obs => {
@@ -57,7 +58,7 @@ export async function generateBoletimPdf(pagamento: PagamentoData) {
   // Observações de Pagamento
   doc.text('Observações de Pagamento:', 14, y + 10);
   const observacaoPagamento = pagamento.observacao_pagamento || 'Nenhuma observação de pagamento.';
-  y += 16; // Ajuste para começar abaixo do título de observações de pagamento
+  y += 16;
   const observacoesPagamento = doc.splitTextToSize(observacaoPagamento, maxWidth);
   observacoesPagamento.forEach(obs => {
     doc.text(obs, 14, y);
@@ -79,6 +80,7 @@ export async function generateBoletimPdf(pagamento: PagamentoData) {
   doc.text('Gerado por [Nome da Aplicação]', 14, 290);
   doc.text(format(new Date(), 'dd/MM/yyyy HH:mm', { locale: ptBR }), 170, 290);
 
-  // Salvar o PDF
-  doc.save(`boletim_pagamento_${pagamento.mes}_${pagamento.ano}.pdf`);
+  const fileName = `boletim_pagamento_${pagamento.mes}_${pagamento.ano}.pdf`;
+
+  return { doc, fileName };
 }

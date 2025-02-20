@@ -53,6 +53,7 @@ export function PagamentoEditModal({
                 valorBruto={valorBruto}
                 valorTotalTusdFioB={valorTotalTusdFioB}
                 valorEfetivo={valorEfetivo}
+                pagamentoId={pagamento?.id || ''}
               />
             </TabsContent>
 
