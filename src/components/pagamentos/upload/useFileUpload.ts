@@ -32,14 +32,14 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
       const fileName = `${pagamentoId}_${Date.now()}.${fileExt}`;
       const filePath = `comprovantes/${pagamentoId}/${fileName}`;
 
-      // Fazer upload do arquivo usando o bucket 'pagamentos'
+      // Fazer upload do arquivo
       const { error: uploadError } = await supabase.storage
         .from('pagamentos')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      // Atualizar pagamento com dados do novo arquivo
+      // Atualizar pagamento com dados do arquivo
       const { error: updateError } = await supabase
         .from('pagamentos_usina')
         .update({
@@ -72,11 +72,10 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
 
       if (error) throw error;
 
-      // Criar URL do blob e iniciar download
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
-      a.download = arquivoNome || 'comprovante.pdf';
+      a.download = arquivoNome;
       document.body.appendChild(a);
       a.click();
       URL.revokeObjectURL(url);
@@ -91,14 +90,12 @@ export function useFileUpload(pagamentoId: string, onSuccess: () => void, onFile
     try {
       setIsUploading(true);
 
-      // Remover arquivo do storage usando o bucket 'pagamentos'
       const { error: removeError } = await supabase.storage
         .from('pagamentos')
         .remove([arquivoPath]);
 
       if (removeError) throw removeError;
 
-      // Limpar dados do arquivo no pagamento
       const { error: updateError } = await supabase
         .from('pagamentos_usina')
         .update({

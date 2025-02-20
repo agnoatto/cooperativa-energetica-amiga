@@ -24,7 +24,7 @@ export function FileUploadSection({ form, setForm, pagamentoId }: FileUploadSect
           });
         }}
         onFileChange={() => {
-          // Callback quando arquivo é alterado
+          // Notificar sobre a mudança do arquivo
         }}
       />
     </div>
