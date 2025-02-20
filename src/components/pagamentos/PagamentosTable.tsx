@@ -83,6 +83,7 @@ export function PagamentosTable({
             <TableHead className="text-right">Valor Conc.</TableHead>
             <TableHead className="text-right">Valor Total</TableHead>
             <TableHead className="text-right">Status</TableHead>
+            <TableHead>Conta</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
