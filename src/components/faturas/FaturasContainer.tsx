@@ -24,6 +24,11 @@ export function FaturasContainer() {
     updateFaturaStatus
   } = useFaturas(currentDate);
 
+  if (!faturas && !isLoading) {
+    console.log("Nenhuma fatura encontrada e não está carregando");
+    return <div>Erro ao carregar faturas</div>;
+  }
+
   const handleDeleteFatura = async (id: string) => {
     await deleteFatura(id);
   };

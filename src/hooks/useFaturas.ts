@@ -13,6 +13,9 @@ export const useFaturas = (currentDate: Date): UseFaturasResult => {
   const gerarFaturasMutation = useGerarFaturas(currentDate);
   const updateFaturaStatusMutation = useUpdateFaturaStatus();
 
+  console.log("useFaturas hook - faturas:", faturas);
+  console.log("useFaturas hook - isLoading:", isLoading);
+
   return {
     faturas,
     isLoading,
