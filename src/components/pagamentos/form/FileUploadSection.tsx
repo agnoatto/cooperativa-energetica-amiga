@@ -11,8 +11,8 @@ interface FileUploadSectionProps {
 
 export function FileUploadSection({ form, setForm, pagamentoId }: FileUploadSectionProps) {
   const handleSuccess = () => {
-    // Atualizar o status para pendente apenas se não houver status ou se for rascunho
-    if (!form.status || form.status === 'draft') {
+    // Atualizar o status para pendente apenas se não houver status
+    if (!form.status) {
       setForm({
         ...form,
         status: 'pendente' as PagamentoStatus
