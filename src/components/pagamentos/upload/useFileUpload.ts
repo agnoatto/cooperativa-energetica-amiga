@@ -119,13 +119,18 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileRemoved }: UseFile
 
   const handlePreview = useCallback(async (arquivoPath: string) => {
     try {
-      const { data } = await supabase.storage
+      // Criar URL assinada com tempo de expiração maior para visualização
+      const { data, error } = await supabase.storage
         .from('contas-energia')
-        .createSignedUrl(arquivoPath, 60);
+        .createSignedUrl(arquivoPath, 3600); // 1 hora de expiração
 
-      if (data) {
+      if (error) throw error;
+
+      if (data?.signedUrl) {
         setPdfUrl(data.signedUrl);
         setShowPdfPreview(true);
+      } else {
+        throw new Error('URL não gerada');
       }
     } catch (error) {
       console.error('Erro ao gerar preview:', error);

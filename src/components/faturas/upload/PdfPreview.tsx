@@ -28,7 +28,7 @@ export function PdfPreview({ isOpen, onClose, pdfUrl }: PdfPreviewProps) {
         {pdfUrl && (
           <div className="flex-1 w-full h-full">
             <iframe
-              src={`${pdfUrl}#toolbar=0`}
+              src={`${pdfUrl}#toolbar=0&embedded=true`}
               className="w-full h-full rounded-md"
               title="Visualização da Conta de Energia"
             />
