@@ -1,3 +1,4 @@
+
 import {
   Dialog,
   DialogContent,
@@ -180,7 +181,7 @@ export function PagamentoDetailsDialog({
           )}
 
           {/* Informações de Pagamento */}
-          {(pagamento.data_pagamento || pagamento.data_confirmacao || pagamento.arquivo_comprovante_path) && (
+          {(pagamento.data_pagamento || pagamento.data_confirmacao || pagamento.arquivo_conta_energia_path) && (
             <div className="space-y-2">
               <h3 className="font-semibold flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
@@ -205,10 +206,10 @@ export function PagamentoDetailsDialog({
                     <p>{pagamento.send_method.join(', ')}</p>
                   </div>
                 )}
-                {pagamento.arquivo_comprovante_path && (
+                {pagamento.arquivo_conta_energia_path && (
                   <div>
-                    <span className="text-muted-foreground">Comprovante:</span>
-                    <p>{pagamento.arquivo_comprovante_nome}</p>
+                    <span className="text-muted-foreground">Conta de Energia:</span>
+                    <p>{pagamento.arquivo_conta_energia_nome}</p>
                   </div>
                 )}
               </div>
