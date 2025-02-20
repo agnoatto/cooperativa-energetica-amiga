@@ -34,7 +34,7 @@ export function PaymentFileUpload({
 
   return (
     <div className="space-y-4">
-      {!arquivoNome && (
+      {!arquivoNome && !arquivoPath && (
         <UploadDropZone
           isUploading={isUploading}
           isDragging={isDragging}

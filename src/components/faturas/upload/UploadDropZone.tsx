@@ -44,11 +44,20 @@ export function UploadDropZone({
     onDragStateChange(false);
   }, [onDragStateChange]);
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onDrop(file);
+    }
+  };
+
   return (
     <div
-      className={`border-2 border-dashed rounded-lg p-4 transition-colors ${
+      className={`border-2 border-dashed rounded-lg p-6 transition-colors ${
         isDragging
           ? "border-primary bg-primary/10"
+          : isUploading
+          ? "border-primary/50"
           : "border-gray-300 hover:border-primary"
       }`}
       onDragOver={handleDragOver}
@@ -56,17 +65,29 @@ export function UploadDropZone({
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
     >
-      <div className="flex flex-col items-center justify-center gap-2 text-center">
-        <Upload className={`h-8 w-8 ${isDragging ? "text-primary" : "text-gray-400"}`} />
+      <div className="flex flex-col items-center justify-center gap-3 text-center">
+        <Upload 
+          className={`h-10 w-10 ${
+            isDragging 
+              ? "text-primary" 
+              : isUploading 
+              ? "text-primary/50"
+              : "text-gray-400"
+          }`} 
+        />
         <div className="text-sm text-gray-600">
           {isUploading ? (
-            <span className="flex items-center gap-2">
+            <span className="flex items-center gap-2 text-primary/80">
               <Loader2 className="h-4 w-4 animate-spin" />
               Enviando arquivo...
             </span>
           ) : (
             <>
-              <span className="font-medium">Arraste e solte aqui</span> ou clique para selecionar
+              <span className="font-medium">
+                {isDragging ? 'Solte o arquivo aqui' : 'Arraste e solte aqui'}
+              </span>
+              <br />
+              ou clique para selecionar
             </>
           )}
         </div>
@@ -75,8 +96,9 @@ export function UploadDropZone({
           type="file"
           accept=".pdf"
           className="hidden"
-          onChange={(e) => e.target.files?.[0] && onDrop(e.target.files[0])}
+          onChange={handleFileSelect}
           onClick={(e) => (e.currentTarget.value = '')}
+          disabled={isUploading}
         />
         <Button
           type="button"
@@ -84,8 +106,12 @@ export function UploadDropZone({
           size="sm"
           onClick={() => document.getElementById('file-upload')?.click()}
           disabled={isUploading}
+          className="relative"
         >
           Selecionar arquivo
+          {isUploading && (
+            <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+          )}
         </Button>
       </div>
     </div>
