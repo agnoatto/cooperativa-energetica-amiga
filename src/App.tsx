@@ -17,7 +17,7 @@ import Investidores from "./pages/Investidores";
 import Configuracoes from "./pages/Configuracoes";
 import ContasPagar from "./pages/ContasPagar";
 import ContasReceber from "./pages/ContasReceber";
-import { useAuth, AuthProvider } from "./contexts/AuthContext";
+import { useAuth } from "./contexts/AuthContext";
 
 function AppContent() {
   const { session, isLoading } = useAuth();
@@ -170,12 +170,4 @@ function AppContent() {
   );
 }
 
-function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  );
-}
-
-export default App;
+export default AppContent;
