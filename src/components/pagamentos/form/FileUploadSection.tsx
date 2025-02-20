@@ -10,19 +10,24 @@ interface FileUploadSectionProps {
 }
 
 export function FileUploadSection({ form, setForm, pagamentoId }: FileUploadSectionProps) {
-  const handleSuccess = () => {
+  const handleSuccess = (fileName: string, filePath: string) => {
     // Atualizar o status para pendente apenas se não houver status
-    if (!form.status) {
-      setForm({
-        ...form,
-        status: 'pendente' as PagamentoStatus
-      });
-    }
+    setForm({
+      ...form,
+      status: form.status || 'pendente' as PagamentoStatus,
+      arquivo_conta_energia_nome: fileName,
+      arquivo_conta_energia_path: filePath
+    });
   };
 
-  const handleFileChange = () => {
-    // Recarregar os dados do pagamento após alteração no arquivo
-    console.log('[FileUploadSection] Arquivo alterado, atualizando formulário');
+  const handleFileRemoved = () => {
+    setForm({
+      ...form,
+      arquivo_conta_energia_nome: null,
+      arquivo_conta_energia_path: null,
+      arquivo_conta_energia_tipo: null,
+      arquivo_conta_energia_tamanho: null
+    });
   };
 
   return (
@@ -33,7 +38,7 @@ export function FileUploadSection({ form, setForm, pagamentoId }: FileUploadSect
         arquivoNome={form.arquivo_conta_energia_nome}
         arquivoPath={form.arquivo_conta_energia_path}
         onSuccess={handleSuccess}
-        onFileChange={handleFileChange}
+        onFileRemoved={handleFileRemoved}
       />
       {!form.arquivo_conta_energia_nome && (
         <p className="text-sm text-muted-foreground">

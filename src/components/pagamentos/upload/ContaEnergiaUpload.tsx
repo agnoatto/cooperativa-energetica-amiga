@@ -1,15 +1,15 @@
 
+import { useFileUpload } from "./useFileUpload";
 import { UploadDropZone } from "@/components/faturas/upload/UploadDropZone";
 import { FilePreview } from "@/components/faturas/upload/FilePreview";
 import { PdfPreview } from "@/components/faturas/upload/PdfPreview";
-import { useFileUpload } from "./useFileUpload";
 
 interface ContaEnergiaUploadProps {
   pagamentoId: string;
   arquivoNome?: string | null;
   arquivoPath?: string | null;
-  onSuccess: () => void;
-  onFileChange?: () => void;
+  onSuccess: (fileName: string, filePath: string) => void;
+  onFileRemoved: () => void;
 }
 
 export function ContaEnergiaUpload({
@@ -17,7 +17,7 @@ export function ContaEnergiaUpload({
   arquivoNome,
   arquivoPath,
   onSuccess,
-  onFileChange
+  onFileRemoved
 }: ContaEnergiaUploadProps) {
   const {
     isUploading,
@@ -32,31 +32,13 @@ export function ContaEnergiaUpload({
     handlePreview,
   } = useFileUpload({ 
     pagamentoId, 
-    onSuccess, 
-    onFileChange 
+    onSuccess,
+    onFileRemoved
   });
-
-  const onPreviewClick = () => {
-    if (arquivoPath) {
-      handlePreview(arquivoPath);
-    }
-  };
-
-  const onDownloadClick = () => {
-    if (arquivoPath && arquivoNome) {
-      handleDownload(arquivoPath, arquivoNome);
-    }
-  };
-
-  const onRemoveClick = () => {
-    if (arquivoPath) {
-      handleRemoveFile(arquivoPath, pagamentoId);
-    }
-  };
 
   return (
     <div className="space-y-4">
-      {!arquivoNome && !arquivoPath && (
+      {!arquivoNome && (
         <UploadDropZone
           isUploading={isUploading}
           isDragging={isDragging}
@@ -68,9 +50,9 @@ export function ContaEnergiaUpload({
       {arquivoNome && arquivoPath && (
         <FilePreview
           fileName={arquivoNome}
-          onPreview={onPreviewClick}
-          onDownload={onDownloadClick}
-          onRemove={onRemoveClick}
+          onPreview={() => handlePreview(arquivoPath)}
+          onDownload={() => handleDownload(arquivoPath, arquivoNome)}
+          onRemove={() => handleRemoveFile(arquivoPath, pagamentoId)}
           className="bg-muted"
         />
       )}

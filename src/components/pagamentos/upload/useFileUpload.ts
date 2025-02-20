@@ -1,123 +1,154 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { FileUploadHookProps, FileUploadState } from "./types";
-import { uploadFile, downloadFile, removeFile, getPreviewUrl } from "./fileHandlers";
 
-export function useFileUpload({ pagamentoId, onSuccess, onFileChange }: FileUploadHookProps) {
-  const [state, setState] = useState<FileUploadState>({
-    isUploading: false,
-    isDragging: false,
-    showPdfPreview: false,
-    pdfUrl: null
-  });
+interface UseFileUploadProps {
+  pagamentoId: string;
+  onSuccess: (fileName: string, filePath: string) => void;
+  onFileRemoved: () => void;
+}
 
-  const setIsUploading = (isUploading: boolean) => {
-    setState(prev => ({ ...prev, isUploading }));
-  };
+export function useFileUpload({ pagamentoId, onSuccess, onFileRemoved }: UseFileUploadProps) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   const handleFileUpload = async (file: File) => {
+    if (!file) return;
+
+    // Validar tipo do arquivo
+    if (file.type !== 'application/pdf') {
+      toast.error('Por favor, selecione um arquivo PDF');
+      return;
+    }
+
+    // Validar tamanho (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('O arquivo deve ter no máximo 10MB');
+      return;
+    }
+
     setIsUploading(true);
-    console.log('[Upload] Iniciando upload da conta de energia:', file.name);
 
     try {
-      const { filePath, file: uploadedFile } = await uploadFile(file, pagamentoId);
+      // Gerar nome único para o arquivo
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${pagamentoId}_${Date.now()}.${fileExt}`;
+      const filePath = `${pagamentoId}/${fileName}`;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('pagamentos')
-        .getPublicUrl(filePath);
+      // Fazer upload do arquivo
+      const { error: uploadError } = await supabase.storage
+        .from('contas-energia')
+        .upload(filePath, file);
 
+      if (uploadError) throw uploadError;
+
+      // Atualizar pagamento com dados do novo arquivo
       const { error: updateError } = await supabase
         .from('pagamentos_usina')
         .update({
-          arquivo_conta_energia_nome: uploadedFile.name,
+          arquivo_conta_energia_nome: file.name,
           arquivo_conta_energia_path: filePath,
-          arquivo_conta_energia_tipo: uploadedFile.type,
-          arquivo_conta_energia_tamanho: uploadedFile.size,
+          arquivo_conta_energia_tipo: file.type,
+          arquivo_conta_energia_tamanho: file.size
         })
         .eq('id', pagamentoId);
 
-      if (updateError) {
-        throw new Error(`Erro ao atualizar registro: ${updateError.message}`);
-      }
+      if (updateError) throw updateError;
 
-      toast.success('Conta de energia enviada com sucesso!');
-      onSuccess();
-      onFileChange?.();
+      toast.success('Arquivo enviado com sucesso!');
+      onSuccess(file.name, filePath);
 
     } catch (error: any) {
-      console.error('[Upload] Erro no processo de upload:', error);
-      toast.error(error.message || 'Erro ao enviar conta de energia');
+      console.error('Erro no upload:', error);
+      toast.error('Erro ao enviar arquivo');
     } finally {
       setIsUploading(false);
     }
   };
 
   const handleDownload = async (arquivoPath: string, arquivoNome: string) => {
-    setIsUploading(true);
-    
     try {
-      const { data, arquivoNome: fileName } = await downloadFile(arquivoPath, arquivoNome);
-      
+      const { data, error } = await supabase.storage
+        .from('contas-energia')
+        .download(arquivoPath);
+
+      if (error) throw error;
+
+      // Criar URL do blob e iniciar download
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
-      a.download = fileName;
+      a.download = arquivoNome;
       document.body.appendChild(a);
       a.click();
-      
-      setTimeout(() => {
-        URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }, 100);
-      
-    } catch (error) {
-      toast.error('Erro ao baixar arquivo. Tente novamente.');
-    } finally {
-      setIsUploading(false);
+      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error: any) {
+      console.error('Erro ao baixar arquivo:', error);
+      toast.error('Erro ao baixar arquivo');
     }
   };
 
   const handleRemoveFile = async (arquivoPath: string, pagamentoId: string) => {
-    setIsUploading(true);
-    
     try {
-      await removeFile(arquivoPath, pagamentoId);
-      
-      setState(prev => ({ ...prev, pdfUrl: null, showPdfPreview: false }));
+      setIsUploading(true);
+
+      // Remover arquivo do storage
+      const { error: removeError } = await supabase.storage
+        .from('contas-energia')
+        .remove([arquivoPath]);
+
+      if (removeError) throw removeError;
+
+      // Limpar dados do arquivo no pagamento
+      const { error: updateError } = await supabase
+        .from('pagamentos_usina')
+        .update({
+          arquivo_conta_energia_nome: null,
+          arquivo_conta_energia_path: null,
+          arquivo_conta_energia_tipo: null,
+          arquivo_conta_energia_tamanho: null
+        })
+        .eq('id', pagamentoId);
+
+      if (updateError) throw updateError;
+
       toast.success('Arquivo removido com sucesso!');
-      onFileChange?.();
-      onSuccess();
-    } catch (error) {
-      toast.error('Erro ao remover arquivo. Tente novamente.');
+      onFileRemoved();
+    } catch (error: any) {
+      console.error('Erro ao remover arquivo:', error);
+      toast.error('Erro ao remover arquivo');
     } finally {
       setIsUploading(false);
     }
   };
 
   const handlePreview = async (arquivoPath: string) => {
-    setIsUploading(true);
-    
     try {
-      const signedUrl = await getPreviewUrl(arquivoPath);
-      if (signedUrl) {
-        setState(prev => ({ 
-          ...prev, 
-          pdfUrl: signedUrl, 
-          showPdfPreview: true 
-        }));
+      const { data } = await supabase.storage
+        .from('contas-energia')
+        .createSignedUrl(arquivoPath, 60);
+
+      if (data) {
+        setPdfUrl(data.signedUrl);
+        setShowPdfPreview(true);
       }
     } catch (error) {
-      toast.error('Erro ao gerar preview do arquivo. Tente novamente.');
-    } finally {
-      setIsUploading(false);
+      console.error('Erro ao gerar preview:', error);
+      toast.error('Erro ao gerar preview do arquivo');
     }
   };
 
   return {
-    ...state,
-    setIsDragging: (isDragging: boolean) => setState(prev => ({ ...prev, isDragging })),
-    setShowPdfPreview: (showPdfPreview: boolean) => setState(prev => ({ ...prev, showPdfPreview })),
+    isUploading,
+    isDragging,
+    showPdfPreview,
+    pdfUrl,
+    setIsDragging,
+    setShowPdfPreview,
     handleFileUpload,
     handleDownload,
     handleRemoveFile,
