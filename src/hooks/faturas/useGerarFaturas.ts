@@ -1,37 +1,16 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { lastDayOfMonth, startOfMonth } from "date-fns";
-import { UnidadeBeneficiaria } from "./types";
-import { FaturaStatus } from "@/types/fatura";
-
-interface NovaFatura {
-  unidade_beneficiaria_id: string;
-  mes: number;
-  ano: number;
-  consumo_kwh: number;
-  total_fatura: number; // Corrigido: usando total_fatura em vez de valor_total
-  status: FaturaStatus;
-  data_vencimento: string;
-  economia_acumulada: number;
-  economia_mes: number;
-  saldo_energia_kwh: number;
-  fatura_concessionaria: number;
-  iluminacao_publica: number;
-  outros_valores: number;
-  valor_desconto: number;
-  valor_assinatura: number;
-  historico_status: any[];
-  data_criacao: string;
-  data_atualizacao: string;
-}
+import { lastDayOfMonth, startOfMonth, format, parseISO } from "date-fns";
+import { validarMesFuturo, filtrarUnidadesElegiveis, criarNovaFatura } from "./utils/gerarFaturasUtils";
+import { buscarUnidadesElegiveis, verificarFaturaExistente, inserirFatura } from "./services/faturasService";
+import { ResultadoGeracaoFaturas } from "./types/gerarFaturas";
 
 export const useGerarFaturas = (currentDate: Date) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (): Promise<ResultadoGeracaoFaturas> => {
       try {
         console.log("=== INÍCIO DO PROCESSO DE GERAÇÃO DE FATURAS ===");
         
@@ -44,35 +23,37 @@ export const useGerarFaturas = (currentDate: Date) => {
         console.log(`Data início: ${inicioDiaMes}`);
         console.log(`Data fim: ${ultimoDiaMes}`);
 
+        // Validar mês futuro
+        validarMesFuturo(currentDate);
+
         // 1. Buscar unidades elegíveis
         console.log("\n=== BUSCANDO UNIDADES ELEGÍVEIS ===");
-        const { data: unidades, error: unidadesError } = await supabase
-          .from("unidades_beneficiarias")
-          .select(`
-            id,
-            numero_uc,
-            apelido,
-            data_entrada,
-            percentual_desconto,
-            cooperado:cooperado_id (
-              id,
-              nome
-            )
-          `)
-          .filter('data_saida', 'is', null)
-          .lte('data_entrada', ultimoDiaMes);
-
-        if (unidadesError) {
-          console.error("❌ Erro ao buscar unidades:", unidadesError);
-          throw new Error(`Erro ao buscar unidades beneficiárias: ${unidadesError.message}`);
-        }
+        const unidades = await buscarUnidadesElegiveis(ultimoDiaMes);
 
         if (!unidades || unidades.length === 0) {
           console.log("ℹ️ Nenhuma unidade encontrada para o período");
-          return { faturasGeradas: 0, message: "Não há unidades elegíveis para geração de faturas." };
+          return { 
+            faturasGeradas: 0, 
+            erros: 0,
+            logErros: [],
+            message: "Não há unidades elegíveis para geração de faturas." 
+          };
         }
 
-        console.log(`✅ ${unidades.length} unidades encontradas`);
+        // Filtrar unidades com data_entrada válida
+        const unidadesElegiveis = filtrarUnidadesElegiveis(unidades, mes, ano);
+
+        if (unidadesElegiveis.length === 0) {
+          console.log("ℹ️ Nenhuma unidade elegível encontrada após filtro de data_entrada");
+          return { 
+            faturasGeradas: 0,
+            erros: 0,
+            logErros: [],
+            message: "Não há unidades elegíveis para geração de faturas no período selecionado." 
+          };
+        }
+
+        console.log(`✅ ${unidadesElegiveis.length} unidades elegíveis encontradas`);
 
         let faturasGeradas = 0;
         let erros = 0;
@@ -80,77 +61,26 @@ export const useGerarFaturas = (currentDate: Date) => {
 
         // 2. Processar cada unidade
         console.log("\n=== PROCESSANDO UNIDADES ===");
-        for (const unidade of unidades) {
+        for (const unidade of unidadesElegiveis) {
           try {
             console.log(`\nProcessando UC ${unidade.numero_uc}:`);
+            console.log(`Data de entrada: ${format(parseISO(unidade.data_entrada), 'dd/MM/yyyy')}`);
 
             // 2.1 Verificar fatura existente
             console.log("- Verificando fatura existente...");
-            const { data: faturasExistentes, error: checkError } = await supabase
-              .from("faturas")
-              .select('id')
-              .eq("unidade_beneficiaria_id", unidade.id)
-              .eq("mes", mes)
-              .eq("ano", ano);
-
-            if (checkError) {
-              const errorMsg = `Erro ao verificar fatura existente para UC ${unidade.numero_uc}: ${checkError.message}`;
-              console.error("❌", errorMsg);
-              logErros.push(errorMsg);
-              erros++;
-              continue;
-            }
+            const faturasExistentes = await verificarFaturaExistente(unidade.id, mes, ano);
 
             if (faturasExistentes && faturasExistentes.length > 0) {
               console.log("ℹ️ Fatura já existe para esta unidade");
               continue;
             }
 
-            // 2.2 Preparar dados da fatura
-            console.log("- Preparando dados da fatura...");
-            const novaFatura: NovaFatura = {
-              unidade_beneficiaria_id: unidade.id,
-              mes,
-              ano,
-              consumo_kwh: 0,
-              total_fatura: 0, // Corrigido: usando total_fatura em vez de valor_total
-              status: "gerada",
-              data_vencimento: ultimoDiaMes,
-              economia_acumulada: 0,
-              economia_mes: 0,
-              saldo_energia_kwh: 0,
-              fatura_concessionaria: 0,
-              iluminacao_publica: 0,
-              outros_valores: 0,
-              valor_desconto: 0,
-              valor_assinatura: 0,
-              historico_status: [{
-                status: "gerada",
-                data: new Date().toISOString(),
-                observacao: "Fatura gerada automaticamente pelo sistema"
-              }],
-              data_criacao: new Date().toISOString(),
-              data_atualizacao: new Date().toISOString()
-            };
-
-            // 2.3 Inserir fatura
-            console.log("- Inserindo fatura no banco de dados...");
+            // 2.2 Preparar e inserir nova fatura
+            console.log("- Preparando e inserindo nova fatura...");
+            const novaFatura = criarNovaFatura(unidade.id, mes, ano, ultimoDiaMes);
             console.log("Dados da fatura a ser inserida:", novaFatura);
             
-            const { data: faturaInserida, error: insertError } = await supabase
-              .from("faturas")
-              .insert(novaFatura)
-              .select()
-              .maybeSingle();
-
-            if (insertError) {
-              const errorMsg = `Erro ao inserir fatura para UC ${unidade.numero_uc}: ${insertError.message}`;
-              console.error("❌", errorMsg);
-              console.error("Dados da fatura que causou erro:", novaFatura);
-              logErros.push(errorMsg);
-              erros++;
-              continue;
-            }
+            const faturaInserida = await inserirFatura(novaFatura);
 
             if (!faturaInserida) {
               const errorMsg = `Fatura não foi inserida para UC ${unidade.numero_uc} - Nenhum erro retornado`;
@@ -217,7 +147,7 @@ export const useGerarFaturas = (currentDate: Date) => {
     onError: (error) => {
       const errorMsg = `Erro ao gerar faturas: ${error instanceof Error ? error.message : 'Erro desconhecido'}`;
       console.error("❌", errorMsg);
-      toast.error("Erro ao gerar faturas. Verifique o console para mais detalhes.");
+      toast.error(errorMsg);
     },
   });
 };
