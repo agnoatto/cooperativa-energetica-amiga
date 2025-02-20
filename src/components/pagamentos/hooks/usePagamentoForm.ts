@@ -23,6 +23,7 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
   // Initialize form when pagamento changes
   useEffect(() => {
     if (pagamento) {
+      console.log('[usePagamentoForm] Iniciando formulário com dados:', pagamento);
       setForm({
         geracao_kwh: pagamento.geracao_kwh || 0,
         valor_total: pagamento.valor_total || 0,
@@ -61,6 +62,11 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
     }
 
     try {
+      console.log('[usePagamentoForm] Atualizando pagamento:', {
+        id: pagamento.id,
+        formData: form
+      });
+
       const { error } = await supabase
         .from('pagamentos_usina')
         .update({
@@ -82,11 +88,12 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
 
       if (error) throw error;
 
+      console.log('[usePagamentoForm] Pagamento atualizado com sucesso');
       toast.success('Pagamento atualizado com sucesso!');
       onSave();
       onClose();
     } catch (error) {
-      console.error('Erro ao atualizar pagamento:', error);
+      console.error('[usePagamentoForm] Erro ao atualizar pagamento:', error);
       toast.error('Erro ao atualizar pagamento');
     }
   };
