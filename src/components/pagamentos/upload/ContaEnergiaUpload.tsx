@@ -36,6 +36,24 @@ export function ContaEnergiaUpload({
     onFileChange 
   });
 
+  const onPreviewClick = () => {
+    if (arquivoPath) {
+      handlePreview(arquivoPath);
+    }
+  };
+
+  const onDownloadClick = () => {
+    if (arquivoPath && arquivoNome) {
+      handleDownload(arquivoPath, arquivoNome);
+    }
+  };
+
+  const onRemoveClick = () => {
+    if (arquivoPath) {
+      handleRemoveFile(arquivoPath, pagamentoId);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {!arquivoNome && !arquivoPath && (
@@ -50,9 +68,9 @@ export function ContaEnergiaUpload({
       {arquivoNome && arquivoPath && (
         <FilePreview
           fileName={arquivoNome}
-          onPreview={onPreview}
-          onDownload={onDownload}
-          onRemove={onRemove}
+          onPreview={onPreviewClick}
+          onDownload={onDownloadClick}
+          onRemove={onRemoveClick}
           className="bg-muted"
         />
       )}

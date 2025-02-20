@@ -1,23 +1,62 @@
-
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useState } from "react";
 import { PagamentoData, PagamentoFormValues } from "../types/pagamento";
 
-export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => void, onClose: () => void) {
-  const [form, setForm] = useState<PagamentoFormValues>({
-    geracao_kwh: 0,
-    valor_total: 0,
-    status: 'pendente',
-    data_pagamento: null,
-    data_emissao: null,
-    tusd_fio_b: 0,
-    valor_concessionaria: 0,
-    data_vencimento_concessionaria: null,
-    observacao: '',
-    observacao_pagamento: '',
-    arquivo_conta_energia_nome: null,
-    arquivo_conta_energia_path: null
+export function usePagamentoForm(
+  pagamento: PagamentoData | null,
+  onSave: () => void,
+  onClose: () => void
+) {
+  const [form, setForm] = useState<PagamentoFormValues>(() => {
+    if (pagamento) {
+      return {
+        usina_id: pagamento.usina_id,
+        mes: pagamento.mes,
+        ano: pagamento.ano,
+        geracao_kwh: pagamento.geracao_kwh,
+        tusd_fio_b: pagamento.tusd_fio_b,
+        valor_tusd_fio_b: pagamento.valor_tusd_fio_b,
+        valor_concessionaria: pagamento.valor_concessionaria,
+        valor_total: pagamento.valor_total,
+        data_emissao: pagamento.data_emissao,
+        data_vencimento: pagamento.data_vencimento,
+        data_vencimento_concessionaria: pagamento.data_vencimento_concessionaria,
+        data_pagamento: pagamento.data_pagamento,
+        data_confirmacao: pagamento.data_confirmacao,
+        data_envio: pagamento.data_envio,
+        status: pagamento.status,
+        observacao: pagamento.observacao,
+        observacao_pagamento: pagamento.observacao_pagamento,
+        arquivo_conta_energia_nome: pagamento.arquivo_conta_energia_nome,
+        arquivo_conta_energia_path: pagamento.arquivo_conta_energia_path,
+        arquivo_conta_energia_tipo: pagamento.arquivo_conta_energia_tipo,
+        arquivo_conta_energia_tamanho: pagamento.arquivo_conta_energia_tamanho,
+        send_method: pagamento.send_method
+      };
+    }
+    return {
+      usina_id: "",
+      mes: new Date().getMonth() + 1,
+      ano: new Date().getFullYear(),
+      geracao_kwh: 0,
+      tusd_fio_b: 0,
+      valor_tusd_fio_b: 0,
+      valor_concessionaria: 0,
+      valor_total: 0,
+      data_emissao: null,
+      data_vencimento: "",
+      data_vencimento_concessionaria: null,
+      data_pagamento: null,
+      data_confirmacao: null,
+      data_envio: null,
+      status: "pendente",
+      observacao: null,
+      observacao_pagamento: null,
+      arquivo_conta_energia_nome: null,
+      arquivo_conta_energia_path: null,
+      arquivo_conta_energia_tipo: null,
+      arquivo_conta_energia_tamanho: null,
+      send_method: null
+    };
   });
 
   // Initialize form when pagamento changes
@@ -25,18 +64,28 @@ export function usePagamentoForm(pagamento: PagamentoData | null, onSave: () => 
     if (pagamento) {
       console.log('[usePagamentoForm] Iniciando formulário com dados:', pagamento);
       setForm({
-        geracao_kwh: pagamento.geracao_kwh || 0,
-        valor_total: pagamento.valor_total || 0,
-        status: pagamento.status || 'pendente',
-        data_pagamento: pagamento.data_pagamento,
+        usina_id: pagamento.usina_id,
+        mes: pagamento.mes,
+        ano: pagamento.ano,
+        geracao_kwh: pagamento.geracao_kwh,
+        tusd_fio_b: pagamento.tusd_fio_b,
+        valor_tusd_fio_b: pagamento.valor_tusd_fio_b,
+        valor_concessionaria: pagamento.valor_concessionaria,
+        valor_total: pagamento.valor_total,
         data_emissao: pagamento.data_emissao,
-        tusd_fio_b: pagamento.tusd_fio_b || 0,
-        valor_concessionaria: pagamento.valor_concessionaria || 0,
+        data_vencimento: pagamento.data_vencimento,
         data_vencimento_concessionaria: pagamento.data_vencimento_concessionaria,
-        observacao: pagamento.observacao || '',
-        observacao_pagamento: pagamento.observacao_pagamento || '',
+        data_pagamento: pagamento.data_pagamento,
+        data_confirmacao: pagamento.data_confirmacao,
+        data_envio: pagamento.data_envio,
+        status: pagamento.status,
+        observacao: pagamento.observacao,
+        observacao_pagamento: pagamento.observacao_pagamento,
         arquivo_conta_energia_nome: pagamento.arquivo_conta_energia_nome,
-        arquivo_conta_energia_path: pagamento.arquivo_conta_energia_path
+        arquivo_conta_energia_path: pagamento.arquivo_conta_energia_path,
+        arquivo_conta_energia_tipo: pagamento.arquivo_conta_energia_tipo,
+        arquivo_conta_energia_tamanho: pagamento.arquivo_conta_energia_tamanho,
+        send_method: pagamento.send_method
       });
     }
   }, [pagamento]);

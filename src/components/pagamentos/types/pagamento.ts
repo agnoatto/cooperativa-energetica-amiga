@@ -1,5 +1,11 @@
 
-export type PagamentoStatus = 'pendente' | 'confirmado' | 'atrasado' | 'cancelado';
+export type PagamentoStatus = 'pendente' | 'enviado' | 'confirmado' | 'atrasado' | 'pago' | 'cancelado';
+
+export interface HistoricoStatus {
+  data: string;
+  status_anterior: PagamentoStatus;
+  novo_status: PagamentoStatus;
+}
 
 export interface PagamentoFormValues {
   usina_id: string;
@@ -10,10 +16,12 @@ export interface PagamentoFormValues {
   valor_tusd_fio_b: number;
   valor_concessionaria: number;
   valor_total: number;
-  data_emissao: string;
+  data_emissao: string | null;
   data_vencimento: string;
-  data_vencimento_concessionaria: string;
+  data_vencimento_concessionaria: string | null;
   data_pagamento: string | null;
+  data_confirmacao: string | null;
+  data_envio: string | null;
   status: PagamentoStatus;
   observacao: string | null;
   observacao_pagamento: string | null;
@@ -21,6 +29,7 @@ export interface PagamentoFormValues {
   arquivo_conta_energia_path: string | null;
   arquivo_conta_energia_tipo: string | null;
   arquivo_conta_energia_tamanho: number | null;
+  send_method: string[] | null;
 }
 
 export interface PagamentoData extends PagamentoFormValues {
@@ -28,11 +37,9 @@ export interface PagamentoData extends PagamentoFormValues {
   created_at: string;
   updated_at: string;
   empresa_id: string | null;
-  historico_status: {
-    data: string;
-    status: PagamentoStatus;
-  }[];
+  historico_status: HistoricoStatus[];
   usina: {
+    id: string;
     valor_kwh: number;
     investidor: {
       nome_investidor: string;
