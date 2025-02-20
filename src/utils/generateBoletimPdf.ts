@@ -1,41 +1,84 @@
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import { PagamentoData } from '@/components/pagamentos/types/pagamento';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
-import { jsPDF } from "jspdf";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { BoletimData } from "@/components/pagamentos/types/boletim";
-import { COLORS, FONTS, SPACING } from "./pdf/constants";
-import { addHeader } from "./pdf/pdfHeader";
-import { addUsinaInfo, addDataTable } from "./pdf/boletimSections";
+export async function generateBoletimPdf(pagamento: PagamentoData) {
+  const doc = new jsPDF();
 
-export const generateBoletimPdf = async (data: BoletimData): Promise<{ doc: jsPDF, fileName: string }> => {
-  const doc = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4"
+  // Cabeçalho
+  doc.setFontSize(18);
+  doc.text('Boletim de Pagamento', 14, 22);
+
+  // Informações Gerais
+  doc.setFontSize(12);
+  doc.text(`UC: ${pagamento.usina.unidade_usina.numero_uc}`, 14, 30);
+  doc.text(`Investidor: ${pagamento.usina.investidor.nome_investidor}`, 14, 38);
+  doc.text(`Mês/Ano: ${pagamento.mes}/${pagamento.ano}`, 14, 46);
+
+  // Detalhes do Pagamento
+  const dataEmissaoFormatada = pagamento.data_emissao
+    ? format(new Date(pagamento.data_emissao), 'dd/MM/yyyy', { locale: ptBR })
+    : 'Não informada';
+
+  const dataVencimentoFormatada = pagamento.data_vencimento
+    ? format(new Date(pagamento.data_vencimento), 'dd/MM/yyyy', { locale: ptBR })
+    : 'Não informada';
+
+  const dataPagamentoFormatada = pagamento.data_pagamento
+    ? format(new Date(pagamento.data_pagamento), 'dd/MM/yyyy', { locale: ptBR })
+    : 'Não informada';
+
+  doc.text(`Data de Emissão: ${dataEmissaoFormatada}`, 105, 30);
+  doc.text(`Data de Vencimento: ${dataVencimentoFormatada}`, 105, 38);
+  doc.text(`Data de Pagamento: ${dataPagamentoFormatada}`, 105, 46);
+
+  // Valores
+  doc.text(`Geração (kWh): ${pagamento.geracao_kwh}`, 14, 62);
+  doc.text(`TUSD Fio B: ${pagamento.tusd_fio_b}`, 14, 70);
+  doc.text(`Valor TUSD Fio B: ${pagamento.valor_tusd_fio_b}`, 14, 78);
+  doc.text(`Valor Concessionária: ${pagamento.valor_concessionaria}`, 105, 62);
+  doc.text(`Valor Total: ${pagamento.valor_total}`, 105, 70);
+
+  // Observações
+  doc.text('Observações:', 14, 94);
+  const observacao = pagamento.observacao || 'Nenhuma observação.';
+  const lineHeight = 6;
+  let y = 100;
+  const maxWidth = 180; // Largura máxima para as observações
+
+  const observacoes = doc.splitTextToSize(observacao, maxWidth);
+  observacoes.forEach(obs => {
+    doc.text(obs, 14, y);
+    y += lineHeight;
   });
 
-  let yPos = 0;
+  // Observações de Pagamento
+  doc.text('Observações de Pagamento:', 14, y + 10);
+  const observacaoPagamento = pagamento.observacao_pagamento || 'Nenhuma observação de pagamento.';
+  y += 16; // Ajuste para começar abaixo do título de observações de pagamento
+  const observacoesPagamento = doc.splitTextToSize(observacaoPagamento, maxWidth);
+  observacoesPagamento.forEach(obs => {
+    doc.text(obs, 14, y);
+    y += lineHeight;
+  });
 
-  doc.setFontSize(FONTS.TITLE);
-  doc.text("Boletim de Medição", SPACING.PAGE.WIDTH/2, 15, { align: "center" });
-  doc.setFontSize(FONTS.SUBTITLE);
-  doc.text("Cooperativa Cogesol", SPACING.PAGE.WIDTH/2, 25, { align: "center" });
-  doc.setFontSize(FONTS.NORMAL);
-  doc.text("CNPJ: 57.658.963/0001-02", SPACING.PAGE.WIDTH/2, 32, { align: "center" });
-  
-  doc.setFillColor(240, 249, 255);
-  doc.rect(SPACING.PAGE.WIDTH - 80, 40, 60, 25, 'F');
-  doc.setFontSize(FONTS.SUBTITLE);
-  doc.text("Mês de Referência", SPACING.PAGE.WIDTH - 75, 50);
-  doc.setFontSize(FONTS.NORMAL);
-  doc.text(format(data.data_emissao, 'MMM/yy', { locale: ptBR }).toLowerCase(), SPACING.PAGE.WIDTH - 75, 58);
+  // Atualizar referências ao arquivo da conta de energia
+  const arquivoPath = pagamento.arquivo_conta_energia_path;
+  const arquivoNome = pagamento.arquivo_conta_energia_nome;
 
-  yPos = 70;
+  if (arquivoPath && arquivoNome) {
+    doc.text(`Arquivo da Conta de Energia: ${arquivoNome}`, 14, y + 10);
+  } else {
+    doc.text('Arquivo da Conta de Energia: Não anexado', 14, y + 10);
+  }
 
-  yPos = addUsinaInfo(doc, data, yPos);
-  yPos = addDataTable(doc, data, yPos);
+  // Rodapé
+  doc.setFontSize(10);
+  doc.text('Gerado por [Nome da Aplicação]', 14, 290);
+  doc.text(format(new Date(), 'dd/MM/yyyy HH:mm', { locale: ptBR }), 170, 290);
 
-  const fileName = `boletim-medicao-${data.usina.numero_uc}-${format(data.data_emissao, 'MM-yyyy')}.pdf`;
-
-  return { doc, fileName };
-};
+  // Salvar o PDF
+  doc.save(`boletim_pagamento_${pagamento.mes}_${pagamento.ano}.pdf`);
+}

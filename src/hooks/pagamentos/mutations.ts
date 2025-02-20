@@ -23,7 +23,7 @@ export const gerarPagamentos = async (currentDate: Date) => {
         nome_investidor
       )
     `)
-    .eq('status', 'active') // Corrigido: alterado 'ativa' para 'active'
+    .eq('status', 'active')
     .lte('data_inicio', primeiroDiaMes.toISOString())
     .is("deleted_at", null);
 
@@ -67,7 +67,11 @@ export const gerarPagamentos = async (currentDate: Date) => {
           data_pagamento: null,
           historico_status: [],
           observacao: null,
-          observacao_pagamento: null
+          observacao_pagamento: null,
+          arquivo_conta_energia_nome: null,
+          arquivo_conta_energia_path: null,
+          arquivo_conta_energia_tipo: null,
+          arquivo_conta_energia_tamanho: null
         });
 
       if (insertError) {
