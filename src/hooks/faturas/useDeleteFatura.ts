@@ -27,9 +27,9 @@ export const useDeleteFatura = () => {
     },
     onSuccess: () => {
       console.log('Fatura excluída com sucesso');
-      const date = new Date();
+      // Invalida todas as queries de faturas para garantir atualização
       queryClient.invalidateQueries({
-        queryKey: ['faturas', date.getMonth() + 1, date.getFullYear()]
+        queryKey: ['faturas']
       });
       toast.success("Fatura excluída com sucesso!", { id: "delete-fatura" });
     },
