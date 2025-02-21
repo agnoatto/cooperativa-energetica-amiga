@@ -25,6 +25,8 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
   }, [form, setForm]);
 
   const handleFileUpload = useCallback(async (file: File) => {
+    console.log("[useFileState] Iniciando processo de upload para:", file.name);
+    
     if (!file) {
       console.error("[useFileState] Nenhum arquivo fornecido");
       return;
@@ -32,6 +34,7 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
 
     const validationError = validateFile(file);
     if (validationError) {
+      console.error("[useFileState] Erro de validação:", validationError);
       toast.error(validationError);
       return;
     }
@@ -39,13 +42,20 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
     setIsUploading(true);
 
     try {
+      console.log("[useFileState] Verificando existência do bucket");
       await verifyBucketExists();
+      
       const filePath = generateFilePath(pagamentoId, file.name);
-      console.log("[useFileState] Enviando arquivo para storage:", { filePath });
+      console.log("[useFileState] Caminho do arquivo gerado:", filePath);
 
+      console.log("[useFileState] Iniciando upload para storage");
       const { error: uploadError } = await uploadFileToStorage(filePath, file);
-      if (uploadError) throw new Error(`Erro no upload: ${uploadError.message}`);
+      if (uploadError) {
+        console.error("[useFileState] Erro no upload:", uploadError);
+        throw new Error(`Erro no upload: ${uploadError.message}`);
+      }
 
+      console.log("[useFileState] Upload concluído, atualizando registro no banco");
       const { error: updateError } = await supabase
         .from('pagamentos_usina')
         .update({
@@ -56,7 +66,10 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
         })
         .eq('id', pagamentoId);
 
-      if (updateError) throw new Error(`Erro ao atualizar registro: ${updateError.message}`);
+      if (updateError) {
+        console.error("[useFileState] Erro ao atualizar registro:", updateError);
+        throw new Error(`Erro ao atualizar registro: ${updateError.message}`);
+      }
 
       updateFormWithFile({
         fileName: file.name,
@@ -70,6 +83,7 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
         refetchType: 'all'
       });
 
+      console.log("[useFileState] Upload finalizado com sucesso");
       toast.success('Arquivo enviado com sucesso!');
     } catch (error: any) {
       console.error('[useFileState] Erro no processo de upload:', error);
@@ -87,9 +101,15 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
 
     setIsUploading(true);
     try {
+      console.log("[useFileState] Iniciando remoção do arquivo:", form.arquivo_conta_energia_path);
+      
       const { error: removeError } = await removeFileFromStorage(form.arquivo_conta_energia_path);
-      if (removeError) throw new Error(`Erro ao remover arquivo: ${removeError.message}`);
+      if (removeError) {
+        console.error("[useFileState] Erro ao remover arquivo:", removeError);
+        throw new Error(`Erro ao remover arquivo: ${removeError.message}`);
+      }
 
+      console.log("[useFileState] Arquivo removido, atualizando registro");
       const { error: updateError } = await supabase
         .from('pagamentos_usina')
         .update({
@@ -100,7 +120,10 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
         })
         .eq('id', pagamentoId);
 
-      if (updateError) throw new Error(`Erro ao atualizar registro: ${updateError.message}`);
+      if (updateError) {
+        console.error("[useFileState] Erro ao atualizar registro após remoção:", updateError);
+        throw new Error(`Erro ao atualizar registro: ${updateError.message}`);
+      }
 
       updateFormWithFile({
         fileName: null,
@@ -115,6 +138,7 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
         refetchType: 'all'
       });
 
+      console.log("[useFileState] Remoção finalizada com sucesso");
       toast.success('Arquivo removido com sucesso!');
     } catch (error: any) {
       console.error('[useFileState] Erro ao remover arquivo:', error);
@@ -134,7 +158,10 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
       console.log("[useFileState] Gerando URL de preview para:", form.arquivo_conta_energia_path);
       const { data, error } = await createFileSignedUrl(form.arquivo_conta_energia_path, SIGNED_URL_EXPIRY);
 
-      if (error) throw new Error(`Erro ao gerar URL assinada: ${error.message}`);
+      if (error) {
+        console.error("[useFileState] Erro ao gerar URL assinada:", error);
+        throw new Error(`Erro ao gerar URL assinada: ${error.message}`);
+      }
 
       console.log("[useFileState] URL de preview gerada com sucesso");
       setPdfUrl(data.signedUrl);
