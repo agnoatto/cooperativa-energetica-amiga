@@ -32,6 +32,22 @@ export function PagamentoTableRow({
   onViewDetails,
   getPagamentosUltimos12Meses,
 }: PagamentoTableRowProps) {
+  const [showBoletimPreview, setShowBoletimPreview] = React.useState(false);
+  
+  const handleGeneratePdf = () => {
+    const pdfButton = document.getElementById(`pagamento-pdf-${pagamento.id}`);
+    if (pdfButton) {
+      pdfButton.click();
+    }
+  };
+
+  const handleGenerateBoletim = () => {
+    const boletimButton = document.getElementById(`boletim-${pagamento.id}`);
+    if (boletimButton) {
+      boletimButton.click();
+    }
+  };
+
   return (
     <TableRow>
       <TableCell>{pagamento.usina?.unidade_usina?.numero_uc}</TableCell>
@@ -48,65 +64,51 @@ export function PagamentoTableRow({
         {pagamento.arquivo_conta_energia_nome || "Não anexada"}
       </TableCell>
       <TableCell className="text-right">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="h-8 w-8 p-0"
-            >
-              <span className="sr-only">Abrir menu</span>
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-[160px]">
-            <DropdownMenuItem onClick={() => onViewDetails(pagamento)}>
-              <Eye className="mr-2 h-4 w-4" />
-              Visualizar
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onEdit(pagamento)}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onDelete(pagamento)}>
-              <Trash2 className="mr-2 h-4 w-4" />
-              Excluir
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => {
-                const pdfButton = document.querySelector(`#pagamento-pdf-${pagamento.id}`);
-                if (pdfButton) {
-                  (pdfButton as HTMLButtonElement).click();
-                }
-              }}
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Gerar PDF
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                const boletimButton = document.querySelector(`#boletim-${pagamento.id}`);
-                if (boletimButton) {
-                  (boletimButton as HTMLButtonElement).click();
-                }
-              }}
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Boletim
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Botões ocultos para manter a funcionalidade original */}
-        <div className="hidden">
+        <div className="flex justify-end gap-2">
           <PagamentoPdfButton
             id={`pagamento-pdf-${pagamento.id}`}
             pagamento={pagamento}
           />
+          
           <BoletimMedicaoButton
             id={`boletim-${pagamento.id}`}
             pagamento={pagamento}
             getPagamentosUltimos12Meses={getPagamentosUltimos12Meses}
           />
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="h-8 w-8 p-0"
+              >
+                <span className="sr-only">Abrir menu</span>
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[160px]">
+              <DropdownMenuItem onClick={() => onViewDetails(pagamento)}>
+                <Eye className="mr-2 h-4 w-4" />
+                Visualizar
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit(pagamento)}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Editar
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onDelete(pagamento)}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Excluir
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleGeneratePdf}>
+                <FileText className="mr-2 h-4 w-4" />
+                Gerar PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleGenerateBoletim}>
+                <FileText className="mr-2 h-4 w-4" />
+                Boletim
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </TableCell>
     </TableRow>
