@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit, FileText, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
+import { Eye, Edit, FileText, Loader2, MoreHorizontal, Trash2, Download } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +19,7 @@ interface PagamentoActionsProps {
   onEdit: (pagamento: PagamentoData) => void;
   onDelete: (pagamento: PagamentoData) => void;
   onViewFile: () => void;
+  onDownloadFile: () => void;
   isLoadingFile: boolean;
 }
 
@@ -28,6 +29,7 @@ export function PagamentoActions({
   onEdit,
   onDelete,
   onViewFile,
+  onDownloadFile,
   isLoadingFile
 }: PagamentoActionsProps) {
   const hasFile = !!pagamento.arquivo_conta_energia_path;
@@ -106,10 +108,19 @@ export function PagamentoActions({
             />
 
             {hasFile && (
-              <DropdownMenuItem onClick={onViewFile}>
-                <FileText className="mr-2 h-4 w-4" />
-                <span>Ver Conta de Energia</span>
-              </DropdownMenuItem>
+              <>
+                <DropdownMenuItem onClick={onViewFile} disabled={isLoadingFile}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  <span>Ver Conta de Energia</span>
+                  {isLoadingFile && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={onDownloadFile} disabled={isLoadingFile}>
+                  <Download className="mr-2 h-4 w-4" />
+                  <span>Baixar Conta de Energia</span>
+                  {isLoadingFile && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                </DropdownMenuItem>
+              </>
             )}
 
             <DropdownMenuSeparator />
