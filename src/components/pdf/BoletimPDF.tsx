@@ -100,7 +100,7 @@ export const BoletimPDF: React.FC<BoletimPDFProps> = ({ pagamento, historicoData
               <Text style={[styles.tableHeaderText, { width: '15%' }]}>Fio B</Text>
               <Text style={[styles.tableHeaderText, { width: '15%' }]}>Concessionária</Text>
               <Text style={[styles.tableHeaderText, { width: '15%' }]}>Valor Líquido</Text>
-              <Text style={[styles.tableHeaderText, { width: '13%' }]}>Status</Text>
+              <Text style={[styles.tableHeaderText, { width: '13%' }]}>Pagamento</Text>
             </View>
             
             {historicoData.map((item, index) => {
@@ -117,7 +117,11 @@ export const BoletimPDF: React.FC<BoletimPDFProps> = ({ pagamento, historicoData
                   <Text style={[styles.tableCell, { width: '15%' }]}>{formatCurrency(item.valor_tusd_fio_b)}</Text>
                   <Text style={[styles.tableCell, { width: '15%' }]}>{formatCurrency(item.valor_concessionaria)}</Text>
                   <Text style={[styles.tableCell, { width: '15%' }]}>{formatCurrency(valorLiquido)}</Text>
-                  <Text style={[styles.tableCell, { width: '13%' }]}>{item.status}</Text>
+                  <Text style={[styles.tableCell, { width: '13%' }]}>
+                    {item.data_vencimento 
+                      ? format(new Date(item.data_vencimento), 'dd/MM/yyyy', { locale: ptBR })
+                      : '-'}
+                  </Text>
                 </View>
               );
             })}
