@@ -9,6 +9,7 @@ import { BoletimMedicaoButton } from "../BoletimMedicaoButton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PdfPreview } from "@/components/faturas/upload/PdfPreview";
+import { SIGNED_URL_EXPIRY, STORAGE_BUCKET } from '../hooks/constants';
 
 interface PagamentoTableRowProps {
   pagamento: PagamentoData;
@@ -29,20 +30,29 @@ export function PagamentoTableRow({
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   const handleViewFile = async () => {
-    if (!pagamento.arquivo_conta_energia_path) return;
+    if (!pagamento.arquivo_conta_energia_path) {
+      console.log("[PagamentoTableRow] Nenhum arquivo para visualizar");
+      return;
+    }
     
     setIsLoadingFile(true);
     try {
+      console.log("[PagamentoTableRow] Gerando URL de preview para:", pagamento.arquivo_conta_energia_path);
+      
       const { data, error } = await supabase.storage
-        .from('contas-energia')
-        .createSignedUrl(pagamento.arquivo_conta_energia_path, 3600);
+        .from(STORAGE_BUCKET)
+        .createSignedUrl(pagamento.arquivo_conta_energia_path, SIGNED_URL_EXPIRY);
 
-      if (error) throw error;
+      if (error) {
+        console.error("[PagamentoTableRow] Erro ao gerar URL assinada:", error);
+        throw error;
+      }
 
+      console.log("[PagamentoTableRow] URL de preview gerada com sucesso");
       setPdfUrl(data.signedUrl);
       setShowPdfPreview(true);
     } catch (error) {
-      console.error('Erro ao carregar arquivo:', error);
+      console.error('[PagamentoTableRow] Erro ao carregar arquivo:', error);
       toast.error('Erro ao carregar o arquivo');
     } finally {
       setIsLoadingFile(false);
