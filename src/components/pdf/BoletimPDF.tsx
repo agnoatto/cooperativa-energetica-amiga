@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Document, Page, View, Text } from '@react-pdf/renderer';
 import { styles } from './theme';
@@ -118,8 +117,8 @@ export const BoletimPDF: React.FC<BoletimPDFProps> = ({ pagamento, historicoData
                   <Text style={[styles.tableCell, { width: '15%' }]}>{formatCurrency(item.valor_concessionaria)}</Text>
                   <Text style={[styles.tableCell, { width: '15%' }]}>{formatCurrency(valorLiquido)}</Text>
                   <Text style={[styles.tableCell, { width: '13%' }]}>
-                    {item.data_vencimento 
-                      ? format(new Date(item.data_vencimento), 'dd/MM/yyyy', { locale: ptBR })
+                    {item.data_pagamento 
+                      ? format(new Date(item.data_pagamento), 'dd/MM/yyyy', { locale: ptBR })
                       : '-'}
                   </Text>
                 </View>
