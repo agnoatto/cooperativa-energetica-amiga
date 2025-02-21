@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,7 +61,6 @@ export function usePagamentoForm(
     };
   });
 
-  // Initialize form when pagamento changes
   useEffect(() => {
     if (pagamento) {
       console.log('[usePagamentoForm] Iniciando formulário com dados:', pagamento);
@@ -93,16 +91,9 @@ export function usePagamentoForm(
     }
   }, [pagamento]);
 
-  // Valor do kWh vindo da usina
   const valorKwh = pagamento?.usina?.valor_kwh || 0;
-
-  // Valor total do TUSD Fio B (TUSD Fio B unitário * geração)
   const valorTotalTusdFioB = form.tusd_fio_b * form.geracao_kwh;
-
-  // Valor bruto calculado (valorKwh * geração)
   const valorBruto = valorKwh * form.geracao_kwh;
-
-  // Valor efetivo (valor bruto - valor TUSD Fio B - valor da concessionária)
   const valorEfetivo = valorBruto - valorTotalTusdFioB - form.valor_concessionaria;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -125,11 +116,11 @@ export function usePagamentoForm(
           geracao_kwh: Number(form.geracao_kwh),
           valor_total: Number(valorEfetivo.toFixed(4)),
           status: form.status,
-          data_pagamento: form.data_pagamento,
           data_emissao: form.data_emissao,
           tusd_fio_b: Number(form.tusd_fio_b.toFixed(4)),
           valor_tusd_fio_b: Number(valorTotalTusdFioB.toFixed(4)),
           valor_concessionaria: Number(form.valor_concessionaria.toFixed(4)),
+          data_vencimento: form.data_vencimento,
           data_vencimento_concessionaria: form.data_vencimento_concessionaria,
           observacao: form.observacao || null,
           observacao_pagamento: form.observacao_pagamento || null,

@@ -15,14 +15,14 @@ interface DatasSectionProps {
 export function DatasSection({ form, setForm }: DatasSectionProps) {
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const dataEmissao = e.target.value;
-    const dataPagamento = dataEmissao ? 
+    const dataVencimento = dataEmissao ? 
       addDays(new Date(dataEmissao), 90).toISOString().split('T')[0] : 
       null;
     
     setForm({
       ...form,
       data_emissao: dataEmissao || null,
-      data_pagamento: dataPagamento,
+      data_vencimento: dataVencimento,
       status: 'pendente' as PagamentoStatus
     });
   };
@@ -68,12 +68,12 @@ export function DatasSection({ form, setForm }: DatasSectionProps) {
       </div>
 
       <div>
-        <Label htmlFor="data_pagamento">Data de Pagamento Prevista</Label>
+        <Label htmlFor="data_vencimento">Data de Pagamento Prevista</Label>
         <Input
-          id="data_pagamento"
+          id="data_vencimento"
           type="text"
-          value={form.data_pagamento ? 
-            format(new Date(form.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : 
+          value={form.data_vencimento ? 
+            format(new Date(form.data_vencimento), "dd/MM/yyyy", { locale: ptBR }) : 
             'Aguardando data de emissão'
           }
           disabled
