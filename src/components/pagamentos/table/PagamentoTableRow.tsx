@@ -1,15 +1,14 @@
 
 import React, { useState } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Edit, Trash2, Eye, FileText, Loader2 } from "lucide-react";
+import { FileText } from "lucide-react";
 import { PagamentoData } from "../types/pagamento";
 import { formatCurrency } from "@/utils/formatters";
-import { BoletimMedicaoButton } from "../BoletimMedicaoButton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PdfPreview } from "@/components/faturas/upload/PdfPreview";
 import { SIGNED_URL_EXPIRY, STORAGE_BUCKET } from '../hooks/constants';
+import { PagamentoActions } from "./PagamentoActions";
 
 interface PagamentoTableRowProps {
   pagamento: PagamentoData;
@@ -73,52 +72,14 @@ export function PagamentoTableRow({
         {formatCurrency(pagamento.valor_total)}
       </TableCell>
       <TableCell className="text-right">{pagamento.status}</TableCell>
-      <TableCell>
-        {pagamento.arquivo_conta_energia_path ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleViewFile}
-            disabled={isLoadingFile}
-            title="Visualizar conta de energia"
-          >
-            {isLoadingFile ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <FileText className="h-4 w-4 text-blue-500" />
-            )}
-          </Button>
-        ) : (
-          <div className="w-9 h-9 flex items-center justify-center">
-            <FileText className="h-4 w-4 text-gray-300" />
-          </div>
-        )}
-      </TableCell>
-      <TableCell className="text-right space-x-2">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => onViewDetails(pagamento)}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => onEdit(pagamento)}
-        >
-          <Edit className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => onDelete(pagamento)}
-          className="hover:bg-destructive hover:text-destructive-foreground"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-        <BoletimMedicaoButton 
+      <TableCell className="text-right">
+        <PagamentoActions
           pagamento={pagamento}
+          onViewDetails={onViewDetails}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onViewFile={handleViewFile}
+          isLoadingFile={isLoadingFile}
         />
       </TableCell>
 
