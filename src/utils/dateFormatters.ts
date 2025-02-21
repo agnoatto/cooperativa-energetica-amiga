@@ -12,7 +12,13 @@ export const formatDateToPtBR = (isoDate: string) => {
   // Adiciona o horário meio-dia para evitar problemas com timezone
   const dateWithNoon = `${isoDate}T12:00:00`;
   
-  return format(parseISO(dateWithNoon), 'dd/MM/yyyy', { locale: ptBR });
+  // Primeiro converte para o timezone do Brasil e depois formata
+  return formatInTimeZone(
+    dateWithNoon,
+    TIMEZONE_BR,
+    'dd/MM/yyyy',
+    { locale: ptBR }
+  );
 };
 
 // Converte uma data do formulário (local) para UTC antes de enviar ao banco
