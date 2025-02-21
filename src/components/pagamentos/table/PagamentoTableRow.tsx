@@ -1,14 +1,21 @@
 
-import React, { useState } from "react";
-import { TableCell, TableRow } from "@/components/ui/table";
+import React from "react";
+import {
+  TableCell,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, Eye, FileText, Loader2 } from "lucide-react";
-import { PagamentoData } from "../types/pagamento";
 import { formatCurrency } from "@/utils/formatters";
+import { PagamentoData } from "../types/pagamento";
+import { PagamentoPdfButton } from "../PagamentoPdfButton";
 import { BoletimMedicaoButton } from "../BoletimMedicaoButton";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { PdfPreview } from "@/components/faturas/upload/PdfPreview";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Eye, FileText, MoreVertical, Pencil, Trash2 } from "lucide-react";
 
 interface PagamentoTableRowProps {
   pagamento: PagamentoData;
@@ -25,38 +32,11 @@ export function PagamentoTableRow({
   onViewDetails,
   getPagamentosUltimos12Meses,
 }: PagamentoTableRowProps) {
-  const [isLoadingFile, setIsLoadingFile] = useState(false);
-  const [showPdfPreview, setShowPdfPreview] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-
-  const handleViewFile = async () => {
-    if (!pagamento.arquivo_conta_energia_path) return;
-    
-    setIsLoadingFile(true);
-    try {
-      const { data, error } = await supabase.storage
-        .from('contas-energia')
-        .createSignedUrl(pagamento.arquivo_conta_energia_path, 3600);
-
-      if (error) throw error;
-
-      setPdfUrl(data.signedUrl);
-      setShowPdfPreview(true);
-    } catch (error) {
-      console.error('Erro ao carregar arquivo:', error);
-      toast.error('Erro ao carregar o arquivo');
-    } finally {
-      setIsLoadingFile(false);
-    }
-  };
-
   return (
     <TableRow>
-      <TableCell>{pagamento.usina.unidade_usina.numero_uc}</TableCell>
-      <TableCell>{pagamento.usina.investidor.nome_investidor}</TableCell>
-      <TableCell className="text-right">
-        {pagamento.geracao_kwh.toLocaleString('pt-BR')}
-      </TableCell>
+      <TableCell>{pagamento.usina?.unidade_usina?.numero_uc}</TableCell>
+      <TableCell>{pagamento.usina?.investidor?.nome_investidor}</TableCell>
+      <TableCell className="text-right">{pagamento.geracao_kwh}</TableCell>
       <TableCell className="text-right">
         {formatCurrency(pagamento.valor_concessionaria)}
       </TableCell>
@@ -65,63 +45,70 @@ export function PagamentoTableRow({
       </TableCell>
       <TableCell className="text-right">{pagamento.status}</TableCell>
       <TableCell>
-        {pagamento.arquivo_conta_energia_path ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleViewFile}
-            disabled={isLoadingFile}
-            title="Visualizar conta de energia"
-          >
-            {isLoadingFile ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <FileText className="h-4 w-4 text-blue-500" />
-            )}
-          </Button>
-        ) : (
-          <div className="w-9 h-9 flex items-center justify-center">
-            <FileText className="h-4 w-4 text-gray-300" />
-          </div>
-        )}
+        {pagamento.arquivo_conta_energia_nome || "Não anexada"}
       </TableCell>
-      <TableCell className="text-right space-x-2">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => onViewDetails(pagamento)}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => onEdit(pagamento)}
-        >
-          <Edit className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => onDelete(pagamento)}
-          className="hover:bg-destructive hover:text-destructive-foreground"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-        <BoletimMedicaoButton 
-          pagamento={pagamento}
-          getPagamentosUltimos12Meses={getPagamentosUltimos12Meses}
-        />
-      </TableCell>
+      <TableCell className="text-right">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="h-8 w-8 p-0"
+            >
+              <span className="sr-only">Abrir menu</span>
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[160px]">
+            <DropdownMenuItem onClick={() => onViewDetails(pagamento)}>
+              <Eye className="mr-2 h-4 w-4" />
+              Visualizar
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onEdit(pagamento)}>
+              <Pencil className="mr-2 h-4 w-4" />
+              Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onDelete(pagamento)}>
+              <Trash2 className="mr-2 h-4 w-4" />
+              Excluir
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => {
+                const pdfButton = document.querySelector(`#pagamento-pdf-${pagamento.id}`);
+                if (pdfButton) {
+                  (pdfButton as HTMLButtonElement).click();
+                }
+              }}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Gerar PDF
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                const boletimButton = document.querySelector(`#boletim-${pagamento.id}`);
+                if (boletimButton) {
+                  (boletimButton as HTMLButtonElement).click();
+                }
+              }}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Boletim
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-      <PdfPreview
-        isOpen={showPdfPreview}
-        onClose={() => {
-          setShowPdfPreview(false);
-          setPdfUrl(null);
-        }}
-        pdfUrl={pdfUrl}
-      />
+        {/* Botões ocultos para manter a funcionalidade original */}
+        <div className="hidden">
+          <PagamentoPdfButton
+            id={`pagamento-pdf-${pagamento.id}`}
+            pagamento={pagamento}
+          />
+          <BoletimMedicaoButton
+            id={`boletim-${pagamento.id}`}
+            pagamento={pagamento}
+            getPagamentosUltimos12Meses={getPagamentosUltimos12Meses}
+          />
+        </div>
+      </TableCell>
     </TableRow>
   );
 }
