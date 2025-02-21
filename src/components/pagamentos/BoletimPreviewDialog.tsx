@@ -20,7 +20,9 @@ export function BoletimPreviewDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl h-[80vh]">
         <PDFViewer width="100%" height="100%" className="rounded-lg">
-          <BoletimPDF pagamento={pagamento} />
+          <BoletimPDF 
+            pagamento={pagamento}
+          />
         </PDFViewer>
       </DialogContent>
     </Dialog>

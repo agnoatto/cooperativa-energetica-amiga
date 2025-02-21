@@ -2,17 +2,32 @@
 import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { styles } from '../theme';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface Column {
   header: string;
   accessor: string;
   width?: string;
+  format?: (value: any) => string;
 }
 
 interface PDFTableProps {
   columns: Column[];
   data: any[];
 }
+
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(value);
+};
+
+const formatDate = (date: string) => {
+  if (!date) return '';
+  return format(new Date(date), 'dd/MM/yyyy', { locale: ptBR });
+};
 
 export const PDFTable: React.FC<PDFTableProps> = ({ columns, data }) => (
   <View style={styles.table}>
@@ -39,7 +54,11 @@ export const PDFTable: React.FC<PDFTableProps> = ({ columns, data }) => (
               { width: column.width || `${100 / columns.length}%` }
             ]}
           >
-            <Text>{row[column.accessor]}</Text>
+            <Text>
+              {column.format 
+                ? column.format(row[column.accessor])
+                : row[column.accessor]?.toString() || ''}
+            </Text>
           </View>
         ))}
       </View>
