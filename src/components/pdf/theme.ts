@@ -1,27 +1,26 @@
 
 import { StyleSheet } from '@react-pdf/renderer';
 
-// Cores consistentes com o design system atual
 export const COLORS = {
   PRIMARY: '#1a1f2c',
   SECONDARY: '#f2fce2',
   WHITE: '#FFFFFF',
   BLACK: '#222222',
   GRAY: '#808080',
+  LIGHT_GRAY: '#f8f9fa',
   GREEN: '#008000',
   BLUE: '#0072CE',
   RED: '#ea384c',
 };
 
-// Fontes padronizadas
 export const FONTS = {
-  TITLE: 13,
-  SUBTITLE: 10,
-  NORMAL: 7.5,
-  SMALL: 6,
+  TITLE: 16,
+  SUBTITLE: 14,
+  NORMAL: 10,
+  SMALL: 8,
+  HIGHLIGHT: 12,
 };
 
-// Espaçamentos consistentes
 export const SPACING = {
   MARGIN: '20px',
   TOP: '15px',
@@ -32,7 +31,6 @@ export const SPACING = {
   },
 };
 
-// Estilos base para documentos PDF
 export const styles = StyleSheet.create({
   page: {
     padding: SPACING.MARGIN,
@@ -42,68 +40,92 @@ export const styles = StyleSheet.create({
   header: {
     backgroundColor: COLORS.PRIMARY,
     padding: SPACING.TOP,
-    marginBottom: '10px',
-    flexDirection: 'row',
-    alignItems: 'center',
+    marginBottom: '15px',
+    borderRadius: '4px',
+  },
+  headerContent: {
+    padding: '10px 20px',
   },
   headerTitle: {
     color: COLORS.WHITE,
     fontSize: FONTS.TITLE,
-    marginLeft: '40px',
+    marginBottom: '5px',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
-  logo: {
-    width: '35px',
-    height: '18px',
+  headerSubtitle: {
+    color: COLORS.WHITE,
+    fontSize: FONTS.SUBTITLE,
+    textAlign: 'center',
+    opacity: 0.9,
   },
   section: {
-    marginBottom: '10px',
-    padding: '5px',
+    marginBottom: '15px',
+    padding: '10px',
+    borderRadius: '4px',
   },
   sectionTitle: {
     fontSize: FONTS.SUBTITLE,
-    marginBottom: '5px',
-    color: COLORS.BLACK,
+    marginBottom: '10px',
+    color: COLORS.PRIMARY,
+    fontWeight: 'bold',
   },
   text: {
     fontSize: FONTS.NORMAL,
     color: COLORS.BLACK,
     marginBottom: '5px',
   },
+  infoBox: {
+    padding: '10px',
+    backgroundColor: COLORS.LIGHT_GRAY,
+    borderRadius: '4px',
+  },
+  valoresBox: {
+    padding: '15px',
+    backgroundColor: COLORS.SECONDARY,
+    borderRadius: '4px',
+    marginTop: '5px',
+  },
+  valoresRow: {
+    flexDirection: 'row',
+    marginBottom: '8px',
+    alignItems: 'center',
+  },
+  valorLabel: {
+    width: '40%',
+    fontSize: FONTS.NORMAL,
+    color: COLORS.PRIMARY,
+  },
+  valorValue: {
+    flex: 1,
+    fontSize: FONTS.HIGHLIGHT,
+    color: COLORS.BLUE,
+    fontWeight: 'bold',
+  },
   table: {
     width: 'auto',
-    marginBottom: '10px',
+    marginTop: '10px',
+    border: `1px solid ${COLORS.GRAY}`,
   },
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderBottomColor: COLORS.GRAY,
     borderBottomStyle: 'solid',
+    minHeight: '30px',
     alignItems: 'center',
-    minHeight: '24px',
   },
   tableHeader: {
-    backgroundColor: COLORS.SECONDARY,
+    backgroundColor: COLORS.PRIMARY,
+  },
+  tableHeaderText: {
+    color: COLORS.WHITE,
+    fontSize: FONTS.NORMAL,
+    fontWeight: 'bold',
+    padding: '8px',
   },
   tableCell: {
-    padding: '3px 5px',
-  },
-  infoBox: {
-    backgroundColor: COLORS.SECONDARY,
     padding: '8px',
-    marginBottom: '10px',
-    borderRadius: '3px',
-  },
-  highlight: {
-    color: COLORS.GREEN,
-    fontWeight: 'bold',
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 0,
-    right: 0,
-    padding: SPACING.MARGIN,
-    textAlign: 'center',
-    fontSize: FONTS.SMALL,
+    fontSize: FONTS.NORMAL,
   },
 });
