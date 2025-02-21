@@ -5,12 +5,16 @@ import { styles } from '../theme';
 
 interface PDFHeaderProps {
   title: string;
+  subtitle?: string;
   logoUrl?: string;
 }
 
-export const PDFHeader: React.FC<PDFHeaderProps> = ({ title, logoUrl }) => (
+export const PDFHeader: React.FC<PDFHeaderProps> = ({ title, subtitle, logoUrl }) => (
   <View style={styles.header}>
-    {logoUrl && <Image style={styles.logo} src={logoUrl} />}
-    <Text style={styles.headerTitle}>{title}</Text>
+    <View style={styles.headerContent}>
+      {logoUrl && <Image style={styles.logo} src={logoUrl} />}
+      <Text style={styles.headerTitle}>{title}</Text>
+      {subtitle && <Text style={styles.headerSubtitle}>{subtitle}</Text>}
+    </View>
   </View>
 );

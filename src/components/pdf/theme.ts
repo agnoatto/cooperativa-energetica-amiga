@@ -1,4 +1,3 @@
-
 import { StyleSheet } from '@react-pdf/renderer';
 
 export const COLORS = {
@@ -127,5 +126,11 @@ export const styles = StyleSheet.create({
   tableCell: {
     padding: '8px',
     fontSize: FONTS.NORMAL,
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    marginBottom: 10,
+    alignSelf: 'center',
   },
 });
