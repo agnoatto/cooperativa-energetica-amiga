@@ -12,6 +12,7 @@ import type { FaturaEditModalProps } from "./types";
 import { parseValue } from "./utils/calculateValues";
 import { CooperadoInfoCard } from "./edit-modal/CooperadoInfoCard";
 import { FaturaEditForm } from "./edit-modal/FaturaEditForm";
+import { convertUTCToLocal, convertLocalToUTC } from "@/utils/dateFormatters";
 
 export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEditModalProps) {
   const [consumo, setConsumo] = useState(fatura.consumo_kwh?.toFixed(2) || "0.00");
@@ -21,7 +22,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
   const [outrosValores, setOutrosValores] = useState(fatura.outros_valores.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
   const [saldoEnergiaKwh, setSaldoEnergiaKwh] = useState(fatura.saldo_energia_kwh?.toFixed(2) || "0.00");
   const [observacao, setObservacao] = useState(fatura.observacao || '');
-  const [dataVencimento, setDataVencimento] = useState(fatura.data_vencimento);
+  const [dataVencimento, setDataVencimento] = useState(convertUTCToLocal(fatura.data_vencimento));
   const [arquivoConcessionariaNome, setArquivoConcessionariaNome] = useState(fatura.arquivo_concessionaria_nome);
   const [arquivoConcessionariaPath, setArquivoConcessionariaPath] = useState(fatura.arquivo_concessionaria_path);
   const [isLoading, setIsLoading] = useState(false);
@@ -35,7 +36,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     setOutrosValores(fatura.outros_valores.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
     setSaldoEnergiaKwh(fatura.saldo_energia_kwh?.toFixed(2) || "0.00");
     setObservacao(fatura.observacao || '');
-    setDataVencimento(fatura.data_vencimento);
+    setDataVencimento(convertUTCToLocal(fatura.data_vencimento));
     setArquivoConcessionariaNome(fatura.arquivo_concessionaria_nome);
     setArquivoConcessionariaPath(fatura.arquivo_concessionaria_path);
   }, [fatura]);
@@ -54,7 +55,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
         outros_valores: parseValue(outrosValores),
         saldo_energia_kwh: Number(saldoEnergiaKwh),
         observacao: observacao || null,
-        data_vencimento: dataVencimento,
+        data_vencimento: convertLocalToUTC(dataVencimento),
         percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
       });
 
