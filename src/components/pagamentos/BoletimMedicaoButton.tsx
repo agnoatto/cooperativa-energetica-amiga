@@ -7,6 +7,7 @@ import { PagamentoData } from "./types/pagamento";
 import { pdf } from '@react-pdf/renderer';
 import { BoletimPDF } from "../pdf/BoletimPDF";
 import { BoletimPreviewDialog } from "./BoletimPreviewDialog";
+import { usePagamentosHistorico } from "./hooks/usePagamentosHistorico";
 
 interface BoletimMedicaoButtonProps {
   pagamento: PagamentoData;
@@ -19,13 +20,20 @@ export function BoletimMedicaoButton({
 }: BoletimMedicaoButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [historicoData, setHistoricoData] = useState<PagamentoData[]>([]);
 
   const handleGerarBoletim = async () => {
     try {
       setIsGenerating(true);
       
+      // Carregar histórico antes de gerar o PDF
+      const historico = await getPagamentosUltimos12Meses(pagamento);
+      
       const blob = await pdf(
-        <BoletimPDF pagamento={pagamento} />
+        <BoletimPDF 
+          pagamento={pagamento} 
+          historicoData={historico}
+        />
       ).toBlob();
       
       const url = URL.createObjectURL(blob);
