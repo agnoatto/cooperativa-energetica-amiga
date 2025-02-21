@@ -61,9 +61,9 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
         throw new Error(`Erro ao verificar buckets: ${bucketError.message}`);
       }
 
-      const bucketExists = buckets.some(b => b.name === 'contas-energia');
+      const bucketExists = buckets.some(b => b.name === 'contas-energia-usina');
       if (!bucketExists) {
-        throw new Error('Bucket contas-energia não encontrado');
+        throw new Error('Bucket contas-energia-usina não encontrado');
       }
 
       // Gerar nome único para o arquivo
@@ -75,7 +75,7 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
 
       // Upload do arquivo
       const { error: uploadError } = await supabase.storage
-        .from('contas-energia')
+        .from('contas-energia-usina')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -133,7 +133,7 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
 
     try {
       const { error: removeError } = await supabase.storage
-        .from('contas-energia')
+        .from('contas-energia-usina')
         .remove([form.arquivo_conta_energia_path]);
 
       if (removeError) {
@@ -185,7 +185,7 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
       console.log("[useFileState] Gerando URL de preview para:", form.arquivo_conta_energia_path);
 
       const { data, error } = await supabase.storage
-        .from('contas-energia')
+        .from('contas-energia-usina')
         .createSignedUrl(form.arquivo_conta_energia_path, 3600);
 
       if (error) {
