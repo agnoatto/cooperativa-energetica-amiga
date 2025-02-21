@@ -27,6 +27,11 @@ const Pagamentos = () => {
     setSelectedPagamentoToEdit(pagamento);
   };
 
+  const handleDeletePagamento = (pagamento: PagamentoData) => {
+    // Implementar lógica de exclusão aqui
+    console.log("Deletar pagamento:", pagamento);
+  };
+
   return (
     <div className="space-y-6">
       <PagamentosHeader 
@@ -45,6 +50,7 @@ const Pagamentos = () => {
         isLoading={isLoading}
         onEditPagamento={handleEditPagamento}
         onViewDetails={handleViewDetails}
+        onDeletePagamento={handleDeletePagamento}
       />
 
       {selectedPagamento && (
