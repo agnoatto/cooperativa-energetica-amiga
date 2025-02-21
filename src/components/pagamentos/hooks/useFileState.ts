@@ -3,20 +3,17 @@ import { useState, useCallback } from 'react';
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { PagamentoFormValues } from '../types/pagamento';
-
-interface UseFileStateProps {
-  pagamentoId: string;
-  form: PagamentoFormValues;
-  setForm: (form: PagamentoFormValues) => void;
-}
+import { SIGNED_URL_EXPIRY } from './constants';
+import { UseFileStateProps, FileMetadata } from './types/fileState';
+import { verifyBucketExists, uploadFileToStorage, removeFileFromStorage, createFileSignedUrl } from './utils/storageUtils';
+import { validateFile, generateFilePath } from './utils/fileValidation';
 
 export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const updateFormWithFile = useCallback((fileName: string | null, filePath: string | null, fileType: string | null, fileSize: number | null) => {
+  const updateFormWithFile = useCallback(({ fileName, filePath, fileType, fileSize }: FileMetadata) => {
     console.log("[useFileState] Atualizando form com arquivo:", { fileName, filePath, fileType, fileSize });
     setForm({
       ...form,
@@ -33,61 +30,22 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
       return;
     }
 
-    console.log("[useFileState] Iniciando upload do arquivo:", { 
-      fileName: file.name,
-      fileType: file.type,
-      fileSize: file.size
-    });
-
-    if (file.type !== 'application/pdf') {
-      toast.error('Por favor, selecione um arquivo PDF');
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('O arquivo deve ter no máximo 10MB');
+    const validationError = validateFile(file);
+    if (validationError) {
+      toast.error(validationError);
       return;
     }
 
     setIsUploading(true);
 
     try {
-      // Verificar se o bucket existe
-      const { data: buckets, error: bucketError } = await supabase
-        .storage
-        .listBuckets();
-
-      if (bucketError) {
-        throw new Error(`Erro ao verificar buckets: ${bucketError.message}`);
-      }
-
-      const bucketExists = buckets.some(b => b.name === 'contas-energia-usina');
-      if (!bucketExists) {
-        throw new Error('Bucket contas-energia-usina não encontrado');
-      }
-
-      // Gerar nome único para o arquivo
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${pagamentoId}_${Date.now()}.${fileExt}`;
-      const filePath = `${pagamentoId}/${fileName}`;
-
+      await verifyBucketExists();
+      const filePath = generateFilePath(pagamentoId, file.name);
       console.log("[useFileState] Enviando arquivo para storage:", { filePath });
 
-      // Upload do arquivo
-      const { error: uploadError } = await supabase.storage
-        .from('contas-energia-usina')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+      const { error: uploadError } = await uploadFileToStorage(filePath, file);
+      if (uploadError) throw new Error(`Erro no upload: ${uploadError.message}`);
 
-      if (uploadError) {
-        throw new Error(`Erro no upload: ${uploadError.message}`);
-      }
-
-      console.log("[useFileState] Arquivo enviado com sucesso, atualizando registro no banco");
-
-      // Atualizar registro no banco
       const { error: updateError } = await supabase
         .from('pagamentos_usina')
         .update({
@@ -98,16 +56,15 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
         })
         .eq('id', pagamentoId);
 
-      if (updateError) {
-        throw new Error(`Erro ao atualizar registro: ${updateError.message}`);
-      }
+      if (updateError) throw new Error(`Erro ao atualizar registro: ${updateError.message}`);
 
-      console.log("[useFileState] Registro atualizado com sucesso");
-
-      // Atualizar estado local
-      updateFormWithFile(file.name, filePath, file.type, file.size);
+      updateFormWithFile({
+        fileName: file.name,
+        filePath,
+        fileType: file.type,
+        fileSize: file.size
+      });
       
-      // Invalidar queries para atualizar a UI
       await queryClient.invalidateQueries({
         queryKey: ["pagamentos"],
         refetchType: 'all'
@@ -129,18 +86,9 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
     }
 
     setIsUploading(true);
-    console.log("[useFileState] Iniciando remoção do arquivo:", form.arquivo_conta_energia_path);
-
     try {
-      const { error: removeError } = await supabase.storage
-        .from('contas-energia-usina')
-        .remove([form.arquivo_conta_energia_path]);
-
-      if (removeError) {
-        throw new Error(`Erro ao remover arquivo: ${removeError.message}`);
-      }
-
-      console.log("[useFileState] Arquivo removido do storage, atualizando registro");
+      const { error: removeError } = await removeFileFromStorage(form.arquivo_conta_energia_path);
+      if (removeError) throw new Error(`Erro ao remover arquivo: ${removeError.message}`);
 
       const { error: updateError } = await supabase
         .from('pagamentos_usina')
@@ -152,13 +100,14 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
         })
         .eq('id', pagamentoId);
 
-      if (updateError) {
-        throw new Error(`Erro ao atualizar registro: ${updateError.message}`);
-      }
+      if (updateError) throw new Error(`Erro ao atualizar registro: ${updateError.message}`);
 
-      console.log("[useFileState] Registro atualizado com sucesso");
-
-      updateFormWithFile(null, null, null, null);
+      updateFormWithFile({
+        fileName: null,
+        filePath: null,
+        fileType: null,
+        fileSize: null
+      });
       setPdfUrl(null);
 
       await queryClient.invalidateQueries({
@@ -183,14 +132,9 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
 
     try {
       console.log("[useFileState] Gerando URL de preview para:", form.arquivo_conta_energia_path);
+      const { data, error } = await createFileSignedUrl(form.arquivo_conta_energia_path, SIGNED_URL_EXPIRY);
 
-      const { data, error } = await supabase.storage
-        .from('contas-energia-usina')
-        .createSignedUrl(form.arquivo_conta_energia_path, 3600);
-
-      if (error) {
-        throw new Error(`Erro ao gerar URL assinada: ${error.message}`);
-      }
+      if (error) throw new Error(`Erro ao gerar URL assinada: ${error.message}`);
 
       console.log("[useFileState] URL de preview gerada com sucesso");
       setPdfUrl(data.signedUrl);
