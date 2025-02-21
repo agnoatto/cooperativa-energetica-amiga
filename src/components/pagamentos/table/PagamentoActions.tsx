@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit, FileText, Loader2, MoreHorizontal, FileBarChart2, Download, Trash2 } from "lucide-react";
+import { Eye, Edit, FileText, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PagamentoData } from "../types/pagamento";
-import { cn } from "@/lib/utils";
 import { BoletimMedicaoButton } from "../BoletimMedicaoButton";
 
 interface PagamentoActionsProps {
@@ -101,17 +100,10 @@ export function PagamentoActions({
 
             <DropdownMenuSeparator className="sm:hidden" />
             
-            {/* Ações do Boletim */}
-            <DropdownMenuItem asChild>
-              <BoletimMedicaoButton
-                pagamento={pagamento}
-                variant="ghost"
-                className="w-full justify-start"
-              >
-                <FileBarChart2 className="mr-2 h-4 w-4" />
-                <span>Visualizar Boletim</span>
-              </BoletimMedicaoButton>
-            </DropdownMenuItem>
+            {/* Boletim de Medição */}
+            <BoletimMedicaoButton
+              pagamento={pagamento}
+            />
 
             {hasFile && (
               <DropdownMenuItem onClick={onViewFile}>
