@@ -9,19 +9,31 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PagamentoData } from '../pagamentos/types/pagamento';
 import { formatCurrency } from '../pdf/components/PDFTable';
+import { usePagamentosHistorico } from '../pagamentos/hooks/usePagamentosHistorico';
 
 interface BoletimPDFProps {
   pagamento: PagamentoData;
 }
 
 export const BoletimPDF: React.FC<BoletimPDFProps> = ({ pagamento }) => {
+  const { getPagamentosUltimos12Meses } = usePagamentosHistorico();
+  const [historicoData, setHistoricoData] = React.useState<PagamentoData[]>([]);
+
+  React.useEffect(() => {
+    const carregarHistorico = async () => {
+      const historico = await getPagamentosUltimos12Meses(pagamento);
+      setHistoricoData(historico);
+    };
+    carregarHistorico();
+  }, [pagamento, getPagamentosUltimos12Meses]);
+
   const valorKwh = pagamento.usina?.valor_kwh || 0;
   const valorBruto = valorKwh * pagamento.geracao_kwh;
   const valorEfetivo = valorBruto - pagamento.valor_tusd_fio_b - pagamento.valor_concessionaria;
   
   const headerInfo = {
     title: "Boletim de Medição",
-    subtitle: `${format(new Date(pagamento.ano, pagamento.mes - 1), 'MMMM/yyyy', { locale: ptBR })}`,
+    subtitle: format(new Date(pagamento.ano, pagamento.mes - 1), 'MMMM/yyyy', { locale: ptBR }),
     documentNumber: pagamento.usina?.unidade_usina?.numero_uc || '',
   };
 
@@ -29,7 +41,6 @@ export const BoletimPDF: React.FC<BoletimPDFProps> = ({ pagamento }) => {
     { label: "Investidor", value: pagamento.usina?.investidor?.nome_investidor || '' },
     { label: "Unidade Consumidora", value: pagamento.usina?.unidade_usina?.numero_uc || '' },
     { label: "Data de Emissão", value: format(new Date(pagamento.data_emissao || new Date()), 'dd/MM/yyyy', { locale: ptBR }) },
-    { label: "Data de Vencimento", value: format(new Date(pagamento.data_vencimento), 'dd/MM/yyyy', { locale: ptBR }) },
   ];
 
   const valoresItems = [
@@ -50,17 +61,16 @@ export const BoletimPDF: React.FC<BoletimPDFProps> = ({ pagamento }) => {
     { header: "Recebimento Líquido", accessor: "valorLiquido", width: "20%", format: formatCurrency },
   ];
 
-  const historicoData = [...Array(12)].map((_, index) => {
-    const data = new Date(pagamento.ano, pagamento.mes - 1 - index);
-    const valorBrutoHistorico = pagamento.geracao_kwh * valorKwh;
-    const valorLiquido = valorBrutoHistorico - pagamento.valor_tusd_fio_b - pagamento.valor_concessionaria;
+  const historicoTableData = historicoData.map(historico => {
+    const valorBrutoHistorico = historico.geracao_kwh * (historico.usina?.valor_kwh || 0);
+    const valorLiquido = valorBrutoHistorico - historico.valor_tusd_fio_b - historico.valor_concessionaria;
 
     return {
-      mesAno: format(data, 'MMM/yyyy', { locale: ptBR }),
-      geracao_kwh: pagamento.geracao_kwh,
+      mesAno: format(new Date(historico.ano, historico.mes - 1), 'MMMM/yyyy', { locale: ptBR }),
+      geracao_kwh: historico.geracao_kwh,
       valorBruto: valorBrutoHistorico,
-      valor_tusd_fio_b: pagamento.valor_tusd_fio_b,
-      valor_concessionaria: pagamento.valor_concessionaria,
+      valor_tusd_fio_b: historico.valor_tusd_fio_b,
+      valor_concessionaria: historico.valor_concessionaria,
       valorLiquido: valorLiquido,
     };
   });
@@ -82,7 +92,7 @@ export const BoletimPDF: React.FC<BoletimPDFProps> = ({ pagamento }) => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Histórico dos Últimos 12 Meses</Text>
-          <PDFTable columns={historicoColumns} data={historicoData} />
+          <PDFTable columns={historicoColumns} data={historicoTableData} />
         </View>
 
         {pagamento.observacao && (
