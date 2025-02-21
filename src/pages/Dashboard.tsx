@@ -5,14 +5,29 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Dashboard = () => {
-  const { data, isLoading } = useDashboardData();
+  const { data, isLoading, error } = useDashboardData();
 
   const formatCurrency = (value: number) => {
-    return value.toLocaleString('pt-BR', {
+    return value?.toLocaleString('pt-BR', {
       style: 'currency',
       currency: 'BRL',
-    });
+    }) ?? 'R$ 0,00';
   };
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+            Erro ao carregar dados
+          </h2>
+          <p className="text-gray-600">
+            Não foi possível carregar os dados do dashboard. Por favor, tente novamente.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -32,7 +47,9 @@ const Dashboard = () => {
             {isLoading ? (
               <Skeleton className="h-8 w-20" />
             ) : (
-              <div className="text-2xl font-bold">{data?.totalCooperados}</div>
+              <div className="text-2xl font-bold">
+                {data?.totalCooperados ?? 0}
+              </div>
             )}
           </CardContent>
         </Card>
@@ -48,7 +65,9 @@ const Dashboard = () => {
             {isLoading ? (
               <Skeleton className="h-8 w-20" />
             ) : (
-              <div className="text-2xl font-bold">{data?.totalUsinas}</div>
+              <div className="text-2xl font-bold">
+                {data?.totalUsinas ?? 0}
+              </div>
             )}
           </CardContent>
         </Card>
@@ -64,7 +83,9 @@ const Dashboard = () => {
             {isLoading ? (
               <Skeleton className="h-8 w-20" />
             ) : (
-              <div className="text-2xl font-bold">{data?.faturasPendentes}</div>
+              <div className="text-2xl font-bold">
+                {data?.faturasPendentes ?? 0}
+              </div>
             )}
           </CardContent>
         </Card>
@@ -81,7 +102,7 @@ const Dashboard = () => {
               <Skeleton className="h-8 w-20" />
             ) : (
               <div className="text-2xl font-bold">
-                {formatCurrency(data?.totalPagamentos || 0)}
+                {formatCurrency(data?.totalPagamentos ?? 0)}
               </div>
             )}
           </CardContent>
@@ -94,9 +115,13 @@ const Dashboard = () => {
             <CardTitle>Geração de Energia</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-500">
-              Gráfico de geração será implementado aqui
-            </p>
+            {isLoading ? (
+              <Skeleton className="h-[200px] w-full" />
+            ) : (
+              <p className="text-sm text-gray-500">
+                Gráfico de geração será implementado aqui
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -105,9 +130,13 @@ const Dashboard = () => {
             <CardTitle>Distribuição por Usina</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-500">
-              Gráfico de distribuição será implementado aqui
-            </p>
+            {isLoading ? (
+              <Skeleton className="h-[200px] w-full" />
+            ) : (
+              <p className="text-sm text-gray-500">
+                Gráfico de distribuição será implementado aqui
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
