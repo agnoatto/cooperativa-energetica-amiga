@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Table,
@@ -14,8 +15,8 @@ import { PagamentoData } from "./types/pagamento";
 interface PagamentosTableProps {
   pagamentos?: PagamentoData[];
   isLoading: boolean;
-  onEditPagamento: (PagamentoData) => void;
-  onViewDetails: (PagamentoData) => void;
+  onEditPagamento: (pagamento: PagamentoData) => void;
+  onViewDetails: (pagamento: PagamentoData) => void;
   onDeletePagamento: (pagamento: PagamentoData) => void;
 }
 
@@ -34,14 +35,6 @@ export function PagamentosTable({
     return <PagamentosEmptyState />;
   }
 
-  const handleDelete = async (pagamento: PagamentoData) => {
-    onDeletePagamento(pagamento);
-  };
-
-  const getPagamentosUltimos12Meses = async (pagamento: PagamentoData): Promise<PagamentoData[]> => {
-    return [];
-  };
-
   return (
     <div className="rounded-md border">
       <Table>
@@ -53,6 +46,7 @@ export function PagamentosTable({
             <TableHead className="text-right">Valor Concess.</TableHead>
             <TableHead className="text-right">Valor Total</TableHead>
             <TableHead className="text-right">Status</TableHead>
+            <TableHead className="text-center">Conta</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -62,9 +56,8 @@ export function PagamentosTable({
               key={pagamento.id}
               pagamento={pagamento}
               onEdit={onEditPagamento}
-              onDelete={handleDelete}
+              onDelete={onDeletePagamento}
               onViewDetails={onViewDetails}
-              getPagamentosUltimos12Meses={getPagamentosUltimos12Meses}
             />
           ))}
         </TableBody>

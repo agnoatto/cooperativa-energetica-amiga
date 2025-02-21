@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit, FileText, Loader2, MoreHorizontal, FileBarChart2, Trash2 } from "lucide-react";
+import { Eye, Edit, FileText, Loader2, MoreHorizontal, FileBarChart2, Download, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +12,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PagamentoData } from "../types/pagamento";
 import { cn } from "@/lib/utils";
+import { BoletimMedicaoButton } from "../BoletimMedicaoButton";
 
 interface PagamentoActionsProps {
   pagamento: PagamentoData;
@@ -33,37 +34,35 @@ export function PagamentoActions({
   const hasFile = !!pagamento.arquivo_conta_energia_path;
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center justify-end gap-2">
       <TooltipProvider>
-        {/* Visualizar Detalhes */}
+        {/* Visualizar Detalhes - Visível em telas maiores */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               variant="outline"
-              size="sm"
-              className="hidden sm:inline-flex items-center text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+              size="icon"
+              className="hidden sm:inline-flex h-8 w-8"
               onClick={() => onViewDetails(pagamento)}
             >
-              <Eye className="h-4 w-4 mr-2" />
-              Detalhes
+              <Eye className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Visualizar detalhes do pagamento</p>
+            <p>Visualizar detalhes</p>
           </TooltipContent>
         </Tooltip>
 
-        {/* Editar */}
+        {/* Editar - Visível em telas maiores */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               variant="outline"
-              size="sm"
-              className="hidden sm:inline-flex items-center"
+              size="icon"
+              className="hidden sm:inline-flex h-8 w-8"
               onClick={() => onEdit(pagamento)}
             >
-              <Edit className="h-4 w-4 mr-2" />
-              Editar
+              <Edit className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -71,49 +70,25 @@ export function PagamentoActions({
           </TooltipContent>
         </Tooltip>
 
-        {/* Visualizar Conta de Energia */}
-        {hasFile && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onViewFile}
-                disabled={isLoadingFile}
-                className={cn(
-                  "text-blue-500 hover:text-blue-600",
-                  isLoadingFile && "cursor-not-allowed"
-                )}
-              >
-                {isLoadingFile ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <FileText className="h-4 w-4" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Visualizar conta de energia</p>
-            </TooltipContent>
-          </Tooltip>
-        )}
-
-        {/* Menu Dropdown para Mais Ações */}
+        {/* Menu Dropdown para Todas as Ações */}
         <DropdownMenu>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="ml-2">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Mais ações</p>
-            </TooltipContent>
-          </Tooltip>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="h-8 w-8">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Mais ações</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           
-          <DropdownMenuContent align="end" className="w-[180px]">
+          <DropdownMenuContent align="end" className="w-[200px]">
+            {/* Ações principais no mobile */}
             <DropdownMenuItem onClick={() => onViewDetails(pagamento)} className="sm:hidden">
               <Eye className="mr-2 h-4 w-4" />
               <span>Visualizar Detalhes</span>
@@ -126,10 +101,24 @@ export function PagamentoActions({
 
             <DropdownMenuSeparator className="sm:hidden" />
             
-            <DropdownMenuItem>
-              <FileBarChart2 className="mr-2 h-4 w-4" />
-              <span>Boletim de Medição</span>
+            {/* Ações do Boletim */}
+            <DropdownMenuItem asChild>
+              <BoletimMedicaoButton
+                pagamento={pagamento}
+                variant="ghost"
+                className="w-full justify-start"
+              >
+                <FileBarChart2 className="mr-2 h-4 w-4" />
+                <span>Visualizar Boletim</span>
+              </BoletimMedicaoButton>
             </DropdownMenuItem>
+
+            {hasFile && (
+              <DropdownMenuItem onClick={onViewFile}>
+                <FileText className="mr-2 h-4 w-4" />
+                <span>Ver Conta de Energia</span>
+              </DropdownMenuItem>
+            )}
 
             <DropdownMenuSeparator />
             

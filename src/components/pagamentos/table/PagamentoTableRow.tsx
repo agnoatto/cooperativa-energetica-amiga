@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { FileText } from "lucide-react";
+import { FileText, CheckCircle2 } from "lucide-react";
 import { PagamentoData } from "../types/pagamento";
 import { formatCurrency } from "@/utils/formatters";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,7 +15,6 @@ interface PagamentoTableRowProps {
   onEdit: (pagamento: PagamentoData) => void;
   onDelete: (pagamento: PagamentoData) => void;
   onViewDetails: (pagamento: PagamentoData) => void;
-  getPagamentosUltimos12Meses: (pagamento: PagamentoData) => Promise<PagamentoData[]>;
 }
 
 export function PagamentoTableRow({
@@ -72,6 +71,21 @@ export function PagamentoTableRow({
         {formatCurrency(pagamento.valor_total)}
       </TableCell>
       <TableCell className="text-right">{pagamento.status}</TableCell>
+      <TableCell className="text-center">
+        {pagamento.arquivo_conta_energia_path ? (
+          <div className="flex justify-center">
+            <button
+              onClick={handleViewFile}
+              className="text-blue-500 hover:text-blue-700"
+              disabled={isLoadingFile}
+            >
+              <CheckCircle2 className="h-5 w-5" />
+            </button>
+          </div>
+        ) : (
+          <span className="text-gray-400">-</span>
+        )}
+      </TableCell>
       <TableCell className="text-right">
         <PagamentoActions
           pagamento={pagamento}
