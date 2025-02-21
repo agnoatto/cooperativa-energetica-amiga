@@ -1,3 +1,4 @@
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,6 +30,7 @@ interface FaturaEditFormProps {
   percentualDesconto: number;
   onSuccess: (data: any) => void;
   onSubmit: (e: React.FormEvent) => void;
+  onFileChange: () => void;
 }
 
 export function FaturaEditForm({
@@ -54,6 +56,7 @@ export function FaturaEditForm({
   percentualDesconto,
   onSuccess,
   onSubmit,
+  onFileChange,
 }: FaturaEditFormProps) {
   const queryClient = useQueryClient();
 
@@ -169,9 +172,11 @@ export function FaturaEditForm({
             queryClient.invalidateQueries({
               queryKey: ['faturas']
             });
+            onFileChange();
           }}
         />
       </div>
     </form>
   );
 }
+

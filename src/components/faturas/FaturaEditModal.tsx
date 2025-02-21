@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { FaturaEditModalProps } from "./types";
 import { parseValue } from "./utils/calculateValues";
 import { CooperadoInfoCard } from "./edit-modal/CooperadoInfoCard";
@@ -22,7 +22,23 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
   const [saldoEnergiaKwh, setSaldoEnergiaKwh] = useState(fatura.saldo_energia_kwh?.toFixed(2) || "0.00");
   const [observacao, setObservacao] = useState(fatura.observacao || '');
   const [dataVencimento, setDataVencimento] = useState(fatura.data_vencimento);
+  const [arquivoConcessionariaNome, setArquivoConcessionariaNome] = useState(fatura.arquivo_concessionaria_nome);
+  const [arquivoConcessionariaPath, setArquivoConcessionariaPath] = useState(fatura.arquivo_concessionaria_path);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Atualiza os estados quando a fatura muda
+  useEffect(() => {
+    setConsumo(fatura.consumo_kwh?.toFixed(2) || "0.00");
+    setTotalFatura(fatura.total_fatura.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+    setFaturaConcessionaria(fatura.fatura_concessionaria.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+    setIluminacaoPublica(fatura.iluminacao_publica.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+    setOutrosValores(fatura.outros_valores.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+    setSaldoEnergiaKwh(fatura.saldo_energia_kwh?.toFixed(2) || "0.00");
+    setObservacao(fatura.observacao || '');
+    setDataVencimento(fatura.data_vencimento);
+    setArquivoConcessionariaNome(fatura.arquivo_concessionaria_nome);
+    setArquivoConcessionariaPath(fatura.arquivo_concessionaria_path);
+  }, [fatura]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +66,18 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleFileChange = () => {
+    // Atualiza os estados do arquivo
+    const updatedFatura = {
+      ...fatura,
+      arquivo_concessionaria_nome: arquivoConcessionariaNome,
+      arquivo_concessionaria_path: arquivoConcessionariaPath,
+    };
+    // Atualiza o estado local
+    setArquivoConcessionariaNome(updatedFatura.arquivo_concessionaria_nome);
+    setArquivoConcessionariaPath(updatedFatura.arquivo_concessionaria_path);
   };
 
   return (
@@ -87,11 +115,12 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
             setObservacao={setObservacao}
             dataVencimento={dataVencimento}
             setDataVencimento={setDataVencimento}
-            arquivoConcessionariaNome={fatura.arquivo_concessionaria_nome}
-            arquivoConcessionariaPath={fatura.arquivo_concessionaria_path}
+            arquivoConcessionariaNome={arquivoConcessionariaNome}
+            arquivoConcessionariaPath={arquivoConcessionariaPath}
             percentualDesconto={fatura.unidade_beneficiaria.percentual_desconto}
             onSuccess={onSuccess}
             onSubmit={handleSubmit}
+            onFileChange={handleFileChange}
           />
         </div>
 
@@ -107,3 +136,4 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     </Dialog>
   );
 }
+
