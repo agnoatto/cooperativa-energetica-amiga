@@ -1,7 +1,7 @@
 
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { formatInTimeZone, zonedTimeToUtc } from 'date-fns-tz';
+import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
 
 const TIMEZONE_BR = 'America/Sao_Paulo';
 
@@ -21,7 +21,7 @@ export const convertLocalToUTC = (localDate: string) => {
   if (!localDate) return null;
   
   // Cria uma data no timezone do Brasil
-  const brasilDate = zonedTimeToUtc(localDate, TIMEZONE_BR);
+  const brasilDate = fromZonedTime(localDate, TIMEZONE_BR);
   
   // Retorna apenas a data (sem tempo) em formato ISO
   return format(brasilDate, 'yyyy-MM-dd');
