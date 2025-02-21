@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -125,7 +126,9 @@ export function usePagamentoForm(
           observacao: form.observacao || null,
           observacao_pagamento: form.observacao_pagamento || null,
           arquivo_conta_energia_nome: form.arquivo_conta_energia_nome,
-          arquivo_conta_energia_path: form.arquivo_conta_energia_path
+          arquivo_conta_energia_path: form.arquivo_conta_energia_path,
+          arquivo_conta_energia_tipo: form.arquivo_conta_energia_tipo,
+          arquivo_conta_energia_tamanho: form.arquivo_conta_energia_tamanho
         })
         .eq('id', pagamento.id);
 
