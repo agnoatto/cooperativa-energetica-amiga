@@ -1,7 +1,10 @@
 
+import { useState } from "react";
 import { Label } from "@/components/ui/label";
-import { PagamentoFormValues, PagamentoStatus } from "../types/pagamento";
+import { PagamentoFormValues } from "../types/pagamento";
 import { ContaEnergiaUpload } from "../upload/ContaEnergiaUpload";
+import { useFileState } from "../hooks/useFileState";
+import { PdfPreview } from "@/components/faturas/upload/PdfPreview";
 
 interface FileUploadSectionProps {
   form: PagamentoFormValues;
@@ -10,25 +13,21 @@ interface FileUploadSectionProps {
 }
 
 export function FileUploadSection({ form, setForm, pagamentoId }: FileUploadSectionProps) {
-  const handleSuccess = (fileName: string, filePath: string) => {
-    console.log("[FileUpload] Arquivo enviado com sucesso:", { fileName, filePath });
-    setForm({
-      ...form,
-      status: form.status || 'pendente' as PagamentoStatus,
-      arquivo_conta_energia_nome: fileName,
-      arquivo_conta_energia_path: filePath
-    });
-  };
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const {
+    isUploading,
+    pdfUrl,
+    setPdfUrl,
+    handleFileUpload,
+    handleRemoveFile,
+    handlePreview
+  } = useFileState({ pagamentoId, form, setForm });
 
-  const handleFileRemoved = () => {
-    console.log("[FileUpload] Arquivo removido");
-    setForm({
-      ...form,
-      arquivo_conta_energia_nome: null,
-      arquivo_conta_energia_path: null,
-      arquivo_conta_energia_tipo: null,
-      arquivo_conta_energia_tamanho: null
-    });
+  const handleViewFile = async () => {
+    const url = await handlePreview();
+    if (url) {
+      setShowPdfPreview(true);
+    }
   };
 
   return (
@@ -38,14 +37,25 @@ export function FileUploadSection({ form, setForm, pagamentoId }: FileUploadSect
         pagamentoId={pagamentoId}
         arquivoNome={form.arquivo_conta_energia_nome}
         arquivoPath={form.arquivo_conta_energia_path}
-        onSuccess={handleSuccess}
-        onFileRemoved={handleFileRemoved}
+        isUploading={isUploading}
+        onUpload={handleFileUpload}
+        onRemove={handleRemoveFile}
+        onPreview={handleViewFile}
       />
       {!form.arquivo_conta_energia_nome && (
         <p className="text-sm text-muted-foreground">
           Faça upload da conta de energia em formato PDF (máx. 10MB)
         </p>
       )}
+
+      <PdfPreview
+        isOpen={showPdfPreview}
+        onClose={() => {
+          setShowPdfPreview(false);
+          setPdfUrl(null);
+        }}
+        pdfUrl={pdfUrl}
+      />
     </div>
   );
 }
