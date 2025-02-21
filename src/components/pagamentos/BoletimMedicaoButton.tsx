@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FileText, Loader2, Eye } from "lucide-react";
@@ -11,21 +12,21 @@ import { usePagamentosHistorico } from "./hooks/usePagamentosHistorico";
 interface BoletimMedicaoButtonProps {
   pagamento: PagamentoData;
   getPagamentosUltimos12Meses: (pagamento: PagamentoData) => Promise<PagamentoData[]>;
-  id?: string;
 }
 
 export function BoletimMedicaoButton({ 
   pagamento,
-  getPagamentosUltimos12Meses,
-  id
+  getPagamentosUltimos12Meses 
 }: BoletimMedicaoButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [historicoData, setHistoricoData] = useState<PagamentoData[]>([]);
 
   const handleGerarBoletim = async () => {
     try {
       setIsGenerating(true);
       
+      // Carregar histórico antes de gerar o PDF
       const historico = await getPagamentosUltimos12Meses(pagamento);
       
       const blob = await pdf(
@@ -65,7 +66,6 @@ export function BoletimMedicaoButton({
           <Eye className="h-4 w-4" />
         </Button>
         <Button
-          id={id}
           variant="outline"
           size="icon"
           onClick={handleGerarBoletim}
