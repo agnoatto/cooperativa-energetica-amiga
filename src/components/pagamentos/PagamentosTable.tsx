@@ -1,7 +1,4 @@
-
 import React from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
   TableBody,
@@ -9,19 +6,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PagamentoData } from "./types/pagamento";
-import { toast } from "sonner";
+import { PagamentoTableRow } from "./table/PagamentoTableRow";
 import { PagamentosLoadingState } from "./table/PagamentosLoadingState";
 import { PagamentosEmptyState } from "./table/PagamentosEmptyState";
-import { DeletePagamentoDialog } from "./DeletePagamentoDialog";
-import { PagamentoTableRow } from "./table/PagamentoTableRow";
-import { usePagamentosHistorico } from "./hooks/usePagamentosHistorico";
+import { PagamentoData } from "./types/pagamento";
 
 interface PagamentosTableProps {
-  pagamentos: PagamentoData[];
+  pagamentos?: PagamentoData[];
   isLoading: boolean;
-  onEditPagamento: (pagamento: PagamentoData) => void;
-  onViewDetails: (pagamento: PagamentoData) => void;
+  onEditPagamento: (PagamentoData) => void;
+  onViewDetails: (PagamentoData) => void;
+  onDeletePagamento: (pagamento: PagamentoData) => void;
 }
 
 export function PagamentosTable({
@@ -29,57 +24,8 @@ export function PagamentosTable({
   isLoading,
   onEditPagamento,
   onViewDetails,
+  onDeletePagamento,
 }: PagamentosTableProps) {
-  const queryClient = useQueryClient();
-  const [pagamentoParaDeletar, setPagamentoParaDeletar] = React.useState<PagamentoData | null>(null);
-  const [isDeleting, setIsDeleting] = React.useState(false);
-  const { getPagamentosUltimos12Meses } = usePagamentosHistorico();
-
-  const handleDelete = async () => {
-    if (!pagamentoParaDeletar) return;
-    
-    setIsDeleting(true);
-    console.log("[Deleção] Iniciando processo para pagamento:", pagamentoParaDeletar.id);
-
-    try {
-      // Se houver arquivo, remove primeiro
-      if (pagamentoParaDeletar.arquivo_conta_energia_path) {
-        const { error: storageError } = await supabase.storage
-          .from('contas-energia')
-          .remove([pagamentoParaDeletar.arquivo_conta_energia_path]);
-
-        if (storageError) {
-          console.error("[Deleção] Erro ao remover arquivo:", storageError);
-          throw new Error("Erro ao excluir o arquivo");
-        }
-      }
-
-      const { error } = await supabase.rpc('deletar_pagamento', {
-        pagamento_id: pagamentoParaDeletar.id
-      });
-
-      if (error) {
-        console.error("[Deleção] Erro na transação:", error);
-        throw new Error("Erro ao excluir o pagamento e seus lançamentos");
-      }
-
-      console.log("[Deleção] Pagamento e lançamentos excluídos com sucesso");
-      toast.success("Pagamento excluído com sucesso!");
-      setPagamentoParaDeletar(null);
-      
-      // Invalida todas as queries relacionadas a pagamentos para forçar atualização
-      await queryClient.invalidateQueries({ 
-        queryKey: ["pagamentos"],
-        refetchType: 'all'
-      });
-    } catch (error) {
-      console.error("[Deleção] Erro detalhado:", error);
-      toast.error(error instanceof Error ? error.message : "Erro ao excluir pagamento");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   if (isLoading) {
     return <PagamentosLoadingState />;
   }
@@ -88,18 +34,25 @@ export function PagamentosTable({
     return <PagamentosEmptyState />;
   }
 
+  const handleDelete = async (pagamento: PagamentoData) => {
+    onDeletePagamento(pagamento);
+  };
+
+  const getPagamentosUltimos12Meses = async (pagamento: PagamentoData): Promise<PagamentoData[]> => {
+    return [];
+  };
+
   return (
-    <div className="border rounded-lg">
+    <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>UC</TableHead>
             <TableHead>Investidor</TableHead>
             <TableHead className="text-right">Geração (kWh)</TableHead>
-            <TableHead className="text-right">Valor Conc.</TableHead>
+            <TableHead className="text-right">Valor Concess.</TableHead>
             <TableHead className="text-right">Valor Total</TableHead>
             <TableHead className="text-right">Status</TableHead>
-            <TableHead>Conta</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -109,20 +62,13 @@ export function PagamentosTable({
               key={pagamento.id}
               pagamento={pagamento}
               onEdit={onEditPagamento}
-              onDelete={setPagamentoParaDeletar}
+              onDelete={handleDelete}
               onViewDetails={onViewDetails}
               getPagamentosUltimos12Meses={getPagamentosUltimos12Meses}
             />
           ))}
         </TableBody>
       </Table>
-
-      <DeletePagamentoDialog
-        pagamento={pagamentoParaDeletar}
-        isDeleting={isDeleting}
-        onDelete={handleDelete}
-        onClose={() => setPagamentoParaDeletar(null)}
-      />
     </div>
   );
 }
