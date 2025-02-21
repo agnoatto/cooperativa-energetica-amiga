@@ -2,6 +2,7 @@
 import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { styles } from '../theme';
+import { FONTS } from '../theme';
 
 interface InfoItem {
   label: string;
@@ -16,8 +17,8 @@ export const PDFInfoBox: React.FC<PDFInfoBoxProps> = ({ items }) => (
   <View style={styles.infoBox}>
     {items.map((item, index) => (
       <View key={index} style={{ flexDirection: 'row', marginBottom: 3 }}>
-        <Text style={{ width: '30%', fontSize: styles.table.fontSize }}>{item.label}: </Text>
-        <Text style={{ flex: 1, fontSize: styles.table.fontSize }}>{item.value}</Text>
+        <Text style={{ width: '30%', fontSize: FONTS.NORMAL }}>{item.label}: </Text>
+        <Text style={{ flex: 1, fontSize: FONTS.NORMAL }}>{item.value}</Text>
       </View>
     ))}
   </View>
