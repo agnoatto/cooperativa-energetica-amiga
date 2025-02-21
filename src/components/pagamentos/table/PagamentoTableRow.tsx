@@ -23,7 +23,6 @@ export function PagamentoTableRow({
   onEdit,
   onDelete,
   onViewDetails,
-  getPagamentosUltimos12Meses,
 }: PagamentoTableRowProps) {
   const [isLoadingFile, setIsLoadingFile] = useState(false);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
@@ -110,7 +109,6 @@ export function PagamentoTableRow({
         </Button>
         <BoletimMedicaoButton 
           pagamento={pagamento}
-          getPagamentosUltimos12Meses={getPagamentosUltimos12Meses}
         />
       </TableCell>
 
