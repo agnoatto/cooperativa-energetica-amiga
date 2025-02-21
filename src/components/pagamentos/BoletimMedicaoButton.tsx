@@ -2,9 +2,10 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FileText, Loader2 } from "lucide-react";
-import { generateBoletimPdf } from "@/utils/generateBoletimPdf";
 import { toast } from "sonner";
 import { PagamentoData } from "./types/pagamento";
+import { pdf } from '@react-pdf/renderer';
+import { BoletimPDF } from "../pdf/BoletimPDF";
 
 interface BoletimMedicaoButtonProps {
   pagamento: PagamentoData;
@@ -20,8 +21,22 @@ export function BoletimMedicaoButton({
   const handleGerarBoletim = async () => {
     try {
       setIsGenerating(true);
-      const { doc, fileName } = await generateBoletimPdf(pagamento);
-      doc.save(fileName);
+      
+      // Gerar o PDF usando o novo componente React-PDF
+      const blob = await pdf(
+        <BoletimPDF pagamento={pagamento} />
+      ).toBlob();
+      
+      // Criar URL do blob e iniciar download
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `boletim_pagamento_${pagamento.mes}_${pagamento.ano}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
       toast.success("Boletim de medição gerado com sucesso!");
     } catch (error) {
       console.error("[Boletim] Erro ao gerar boletim:", error);
