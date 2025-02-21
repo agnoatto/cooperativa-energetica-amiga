@@ -9,24 +9,13 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PagamentoData } from '../pagamentos/types/pagamento';
 import { formatCurrency } from '../pdf/components/PDFTable';
-import { usePagamentosHistorico } from '../pagamentos/hooks/usePagamentosHistorico';
 
 interface BoletimPDFProps {
   pagamento: PagamentoData;
+  historicoData: PagamentoData[];
 }
 
-export const BoletimPDF: React.FC<BoletimPDFProps> = ({ pagamento }) => {
-  const { getPagamentosUltimos12Meses } = usePagamentosHistorico();
-  const [historicoData, setHistoricoData] = React.useState<PagamentoData[]>([]);
-
-  React.useEffect(() => {
-    const carregarHistorico = async () => {
-      const historico = await getPagamentosUltimos12Meses(pagamento);
-      setHistoricoData(historico);
-    };
-    carregarHistorico();
-  }, [pagamento, getPagamentosUltimos12Meses]);
-
+export const BoletimPDF: React.FC<BoletimPDFProps> = ({ pagamento, historicoData }) => {
   const valorKwh = pagamento.usina?.valor_kwh || 0;
   const valorBruto = valorKwh * pagamento.geracao_kwh;
   const valorEfetivo = valorBruto - pagamento.valor_tusd_fio_b - pagamento.valor_concessionaria;
