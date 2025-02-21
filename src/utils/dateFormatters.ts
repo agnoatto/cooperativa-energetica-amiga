@@ -7,30 +7,26 @@ const TIMEZONE_BR = 'America/Sao_Paulo';
 
 // Converte uma data ISO para o formato dd/MM/yyyy considerando timezone BR
 export const formatDateToPtBR = (isoDate: string) => {
-  // Garante que a data seja interpretada corretamente no timezone do Brasil
-  return formatInTimeZone(
-    parseISO(isoDate), 
-    TIMEZONE_BR, 
-    'dd/MM/yyyy', 
-    { locale: ptBR }
-  );
+  if (!isoDate) return '';
+  
+  // Adiciona o horário meio-dia para evitar problemas com timezone
+  const dateWithNoon = `${isoDate}T12:00:00`;
+  
+  return format(parseISO(dateWithNoon), 'dd/MM/yyyy', { locale: ptBR });
 };
 
 // Converte uma data do formulário (local) para UTC antes de enviar ao banco
 export const convertLocalToUTC = (localDate: string) => {
   if (!localDate) return null;
   
-  // Cria uma data no timezone do Brasil
-  const brasilDate = fromZonedTime(localDate, TIMEZONE_BR);
-  
-  // Retorna apenas a data (sem tempo) em formato ISO
-  return format(brasilDate, 'yyyy-MM-dd');
+  // Retorna apenas a data, sem conversão de timezone pois o banco espera apenas DATE
+  return localDate;
 };
 
 // Converte uma data UTC do banco para local (formulário)
 export const convertUTCToLocal = (utcDate: string | null) => {
   if (!utcDate) return '';
   
-  // Converte para o timezone do Brasil e formata para o input date
-  return formatInTimeZone(parseISO(utcDate), TIMEZONE_BR, 'yyyy-MM-dd');
+  // Como o banco armazena apenas DATE, retornamos diretamente
+  return utcDate;
 };
