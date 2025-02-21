@@ -30,7 +30,7 @@ export const PDFInfoBox: React.FC<PDFInfoBoxProps> = ({ items }) => (
           flex: 1, 
           fontSize: item.highlight ? FONTS.SUBTITLE : FONTS.NORMAL,
           fontWeight: item.bold ? 'bold' : 'normal',
-          color: item.highlight ? COLORS.BLUE.join(',') : COLORS.BLACK.join(',')
+          color: item.highlight ? COLORS.BLUE : COLORS.BLACK
         }}>
           {item.value}
         </Text>
