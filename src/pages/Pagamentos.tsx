@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { MonthSelector } from "@/components/pagamentos/MonthSelector";
 import { PagamentosHeader } from "@/components/pagamentos/PagamentosHeader";
+import { PagamentosDashboard } from "@/components/pagamentos/PagamentosDashboard";
 import { PagamentosTable } from "@/components/pagamentos/PagamentosTable";
 import { PagamentoEditModal } from "@/components/pagamentos/PagamentoEditModal";
 import { PagamentoDetailsDialog } from "@/components/pagamentos/PagamentoDetailsDialog";
@@ -37,6 +38,11 @@ const Pagamentos = () => {
       <PagamentosHeader 
         onGerarPagamentos={gerarPagamentos}
         isGenerating={isGenerating}
+      />
+
+      <PagamentosDashboard 
+        pagamentos={pagamentos || []}
+        isLoading={isLoading}
       />
 
       <MonthSelector
