@@ -10,6 +10,26 @@ export const useDeleteFatura = () => {
     mutationFn: async (id: string) => {
       console.log('Excluindo fatura:', id);
       
+      // Primeiro, buscar informações do arquivo da fatura
+      const { data: fatura } = await supabase
+        .from('faturas')
+        .select('arquivo_concessionaria_path')
+        .eq('id', id)
+        .single();
+
+      // Se existe arquivo, remover do storage primeiro
+      if (fatura?.arquivo_concessionaria_path) {
+        const { error: storageError } = await supabase.storage
+          .from('faturas_concessionaria')
+          .remove([fatura.arquivo_concessionaria_path]);
+
+        if (storageError) {
+          console.error('Erro ao remover arquivo:', storageError);
+          throw new Error('Erro ao remover arquivo da fatura');
+        }
+      }
+
+      // Agora chama a função de deletar fatura que vai remover os registros do banco
       const { data, error } = await supabase
         .rpc('deletar_fatura', {
           p_fatura_id: id
