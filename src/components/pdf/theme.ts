@@ -64,6 +64,11 @@ export const styles = StyleSheet.create({
     marginBottom: '5px',
     color: COLORS.BLACK,
   },
+  text: {
+    fontSize: FONTS.NORMAL,
+    color: COLORS.BLACK,
+    marginBottom: '5px',
+  },
   table: {
     width: 'auto',
     marginBottom: '10px',

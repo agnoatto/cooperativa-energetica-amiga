@@ -8,6 +8,7 @@ import { styles } from './theme';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PagamentoData } from '../pagamentos/types/pagamento';
+import { formatCurrency } from '../pdf/components/PDFTable';
 
 interface BoletimPDFProps {
   pagamento: PagamentoData;
