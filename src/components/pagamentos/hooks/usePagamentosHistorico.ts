@@ -9,7 +9,17 @@ export function usePagamentosHistorico() {
 
   const getPagamentosUltimos12Meses = useCallback(
     async (pagamento: PagamentoData): Promise<PagamentoData[]> => {
-      return fetchPagamentosHistorico(pagamento);
+      try {
+        const historico = await fetchPagamentosHistorico(pagamento);
+        return historico.sort((a, b) => {
+          // Ordenar por ano e mês decrescente
+          if (a.ano !== b.ano) return b.ano - a.ano;
+          return b.mes - a.mes;
+        });
+      } catch (error) {
+        console.error("Erro ao buscar histórico:", error);
+        throw error;
+      }
     },
     []
   );

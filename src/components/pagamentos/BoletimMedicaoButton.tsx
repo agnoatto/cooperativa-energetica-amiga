@@ -11,16 +11,14 @@ import { usePagamentosHistorico } from "./hooks/usePagamentosHistorico";
 
 interface BoletimMedicaoButtonProps {
   pagamento: PagamentoData;
-  getPagamentosUltimos12Meses: (pagamento: PagamentoData) => Promise<PagamentoData[]>;
 }
 
 export function BoletimMedicaoButton({ 
-  pagamento,
-  getPagamentosUltimos12Meses 
+  pagamento
 }: BoletimMedicaoButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [historicoData, setHistoricoData] = useState<PagamentoData[]>([]);
+  const { getPagamentosUltimos12Meses } = usePagamentosHistorico();
 
   const handleGerarBoletim = async () => {
     try {
