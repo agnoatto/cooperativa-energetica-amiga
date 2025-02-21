@@ -1,11 +1,11 @@
+
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { formatDateToPtBR } from "@/utils/dateFormatters";
 import { Fatura } from "@/types/fatura";
 
 interface FaturaDetailsDialogProps {
@@ -52,7 +52,7 @@ export function FaturaDetailsDialog({ fatura, isOpen, onClose }: FaturaDetailsDi
               </div>
               <div>
                 <span className="text-muted-foreground">Data de Vencimento:</span>
-                <p>{format(new Date(fatura.data_vencimento), 'dd/MM/yyyy')}</p>
+                <p>{formatDateToPtBR(fatura.data_vencimento)}</p>
               </div>
             </div>
           </div>
