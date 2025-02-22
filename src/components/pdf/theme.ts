@@ -14,20 +14,20 @@ export const COLORS = {
 };
 
 export const FONTS = {
-  TITLE: 16,
-  SUBTITLE: 14,
-  NORMAL: 10,
-  SMALL: 8,
-  HIGHLIGHT: 12,
+  TITLE: 14,
+  SUBTITLE: 12,
+  NORMAL: 8,
+  SMALL: 7,
+  HIGHLIGHT: 10,
 };
 
 export const SPACING = {
-  MARGIN: '20px',
-  TOP: '15px',
+  MARGIN: '15px',
+  TOP: '10px',
   PAGE: {
     WIDTH: '210mm',
     HEIGHT: '297mm',
-    CONTENT_WIDTH: '170mm',
+    CONTENT_WIDTH: '180mm',
   },
 };
 
@@ -39,17 +39,17 @@ export const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: COLORS.PRIMARY,
-    padding: SPACING.TOP,
-    marginBottom: '15px',
+    padding: '8px',
+    marginBottom: '10px',
     borderRadius: '4px',
   },
   headerContent: {
-    padding: '10px 20px',
+    padding: '5px 10px',
   },
   headerTitle: {
     color: COLORS.WHITE,
     fontSize: FONTS.TITLE,
-    marginBottom: '5px',
+    marginBottom: '3px',
     textAlign: 'center',
     fontWeight: 'bold',
   },
@@ -60,35 +60,35 @@ export const styles = StyleSheet.create({
     opacity: 0.9,
   },
   section: {
-    marginBottom: '15px',
-    padding: '10px',
+    marginBottom: '8px',
+    padding: '8px',
     borderRadius: '4px',
   },
   sectionTitle: {
     fontSize: FONTS.SUBTITLE,
-    marginBottom: '10px',
+    marginBottom: '5px',
     color: COLORS.PRIMARY,
     fontWeight: 'bold',
   },
   text: {
     fontSize: FONTS.NORMAL,
     color: COLORS.BLACK,
-    marginBottom: '5px',
+    marginBottom: '3px',
   },
   infoBox: {
-    padding: '10px',
+    padding: '8px',
     backgroundColor: COLORS.LIGHT_GRAY,
     borderRadius: '4px',
   },
   valoresBox: {
-    padding: '15px',
+    padding: '10px',
     backgroundColor: COLORS.SECONDARY,
     borderRadius: '4px',
-    marginTop: '5px',
+    marginTop: '3px',
   },
   valoresRow: {
     flexDirection: 'row',
-    marginBottom: '8px',
+    marginBottom: '4px',
     alignItems: 'center',
   },
   valorLabel: {
@@ -105,7 +105,7 @@ export const styles = StyleSheet.create({
   table: {
     display: 'flex',
     width: 'auto',
-    marginTop: '10px',
+    marginTop: '5px',
     borderWidth: 1,
     borderColor: COLORS.GRAY,
     borderStyle: 'solid',
@@ -115,7 +115,7 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.GRAY,
     borderBottomStyle: 'solid',
-    minHeight: '30px',
+    minHeight: '20px',
     alignItems: 'center',
   },
   tableHeader: {
@@ -125,16 +125,16 @@ export const styles = StyleSheet.create({
     color: COLORS.WHITE,
     fontSize: FONTS.NORMAL,
     fontWeight: 'bold',
-    padding: '8px',
+    padding: '4px',
   },
   tableCell: {
-    padding: '8px',
-    fontSize: FONTS.NORMAL,
+    padding: '4px',
+    fontSize: FONTS.SMALL,
   },
   logo: {
-    width: 50,
-    height: 50,
-    marginBottom: 10,
+    width: 40,
+    height: 40,
+    marginBottom: 5,
     alignSelf: 'center',
   },
 });
