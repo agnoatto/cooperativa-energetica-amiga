@@ -20,7 +20,6 @@ import { Label } from "@/components/ui/label";
 export function FaturasContainer() {
   const [status, setStatus] = useState<FaturaStatus | "todos">("todos");
   const [busca, setBusca] = useState("");
-  const isMobile = useIsMobile(); // Podemos remover essa linha já que não usamos mais
   const currentDate = new Date();
 
   const { 
@@ -98,7 +97,7 @@ export function FaturasContainer() {
       <FaturasTable
         faturas={filteredFaturas}
         isLoading={isLoading}
-        onUpdateFatura={updateFatura}
+        onEditFatura={updateFatura}
         onUpdateStatus={updateFaturaStatus}
         onDeleteFatura={async (id) => await deleteFatura(id)}
       />
