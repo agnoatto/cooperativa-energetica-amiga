@@ -4,7 +4,7 @@ import { useFaturas } from "@/hooks/useFaturas";
 import { FaturasHeader } from "./FaturasHeader";
 import { FaturasDashboard } from "./FaturasDashboard";
 import { FaturasTable } from "./FaturasTable";
-import { FaturaStatus } from "@/types/fatura";
+import { Fatura, FaturaStatus } from "@/types/fatura";
 import { FilterBar } from "@/components/shared/FilterBar";
 import {
   Select,
