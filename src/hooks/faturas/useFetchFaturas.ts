@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Fatura } from "@/types/fatura";
+import { Fatura, StatusHistoryEntry } from "@/types/fatura";
 
 export const useFetchFaturas = (currentDate: Date) => {
   return useQuery({
@@ -106,8 +106,18 @@ export const useFetchFaturas = (currentDate: Date) => {
             valor_desconto: Number(h.valor_desconto)
           })) || [];
 
+        // Transformar o historico_status de Json para StatusHistoryEntry[]
+        const historicoStatus = ((fatura.historico_status as any[]) || []).map(entry => ({
+          status: entry.status,
+          data: entry.data,
+          observacao: entry.observacao,
+          motivo_correcao: entry.motivo_correcao,
+          campos_alterados: entry.campos_alterados
+        })) as StatusHistoryEntry[];
+
         return {
           ...fatura,
+          historico_status: historicoStatus,
           historico_faturas: historicoUnidade,
           valor_adicional: fatura.valor_adicional || 0,
           observacao_pagamento: fatura.observacao_pagamento || null,
