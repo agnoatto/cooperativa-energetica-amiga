@@ -30,7 +30,7 @@ export const MonthlyAnalysis: React.FC<MonthlyAnalysisProps> = ({ historicoData 
             </Text>
             <Text style={[styles.tableCell, { width: '25%' }]}>{item.geracao_kwh}</Text>
             <Text style={[styles.tableCell, { width: '25%' }]}>
-              {formatarMoeda(item.valor_kwh)}
+              {formatarMoeda(item.usina?.valor_kwh || 0)}
             </Text>
             <Text style={[styles.tableCell, { width: '25%' }]}>
               {formatarMoeda(item.valor_total)}

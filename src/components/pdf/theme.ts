@@ -1,3 +1,4 @@
+
 import { StyleSheet } from '@react-pdf/renderer';
 
 export const COLORS = {
@@ -102,9 +103,12 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   table: {
+    display: 'flex',
     width: 'auto',
     marginTop: '10px',
-    border: `1px solid ${COLORS.GRAY}`,
+    borderWidth: 1,
+    borderColor: COLORS.GRAY,
+    borderStyle: 'solid',
   },
   tableRow: {
     flexDirection: 'row',
