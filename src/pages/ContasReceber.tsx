@@ -1,31 +1,35 @@
 
 import { useState } from "react";
 import { useLancamentosFinanceiros } from "@/hooks/lancamentos/useLancamentosFinanceiros";
-import { FiltrosLancamento } from "@/components/financeiro/FiltrosLancamento";
 import { StatusLancamento } from "@/types/financeiro";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { LancamentosTable } from "@/components/financeiro/table/LancamentosTable";
 import { LancamentosCards } from "@/components/financeiro/cards/LancamentosCards";
+import { LancamentosDashboard } from "@/components/financeiro/dashboard/LancamentosDashboard";
+import { 
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue 
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { FilterBar } from "@/components/shared/FilterBar";
 
 export default function ContasReceber() {
   const [status, setStatus] = useState<StatusLancamento | 'todos'>('todos');
-  const [dataInicio, setDataInicio] = useState('');
-  const [dataFim, setDataFim] = useState('');
   const [busca, setBusca] = useState('');
   const isMobile = useIsMobile();
 
   const { data: lancamentos, isLoading } = useLancamentosFinanceiros({
     tipo: 'receita',
     status,
-    dataInicio,
-    dataFim,
     busca,
   });
 
   const handleLimparFiltros = () => {
     setStatus('todos');
-    setDataInicio('');
-    setDataFim('');
     setBusca('');
   };
 
@@ -35,17 +39,35 @@ export default function ContasReceber() {
         Contas a Receber
       </h1>
 
-      <FiltrosLancamento
-        status={status}
-        dataInicio={dataInicio}
-        dataFim={dataFim}
+      <LancamentosDashboard lancamentos={lancamentos} />
+
+      <FilterBar
         busca={busca}
-        onStatusChange={setStatus}
-        onDataInicioChange={setDataInicio}
-        onDataFimChange={setDataFim}
         onBuscaChange={setBusca}
         onLimparFiltros={handleLimparFiltros}
-      />
+        placeholder="Buscar por descrição..."
+      >
+        <div className="w-full sm:w-48">
+          <Label htmlFor="status">Status</Label>
+          <Select
+            value={status}
+            onValueChange={(value) => setStatus(value as StatusLancamento | 'todos')}
+          >
+            <SelectTrigger id="status">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="pendente">Pendente</SelectItem>
+                <SelectItem value="pago">Pago</SelectItem>
+                <SelectItem value="atrasado">Atrasado</SelectItem>
+                <SelectItem value="cancelado">Cancelado</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+      </FilterBar>
 
       {isMobile ? (
         <LancamentosCards
