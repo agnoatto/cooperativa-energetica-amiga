@@ -8,6 +8,7 @@ import { UsinaMobileCard } from "./usinas/components/UsinaMobileCard";
 import { UsinasDesktopTable } from "./usinas/components/UsinasDesktopTable";
 import { useUsinas } from "./usinas/hooks/useUsinas";
 import { UsinaFilterBar } from "./usinas/components/UsinaFilterBar";
+import { UsinasDashboard } from "./usinas/components/UsinasDashboard";
 
 const Usinas = () => {
   const [openForm, setOpenForm] = useState(false);
@@ -82,6 +83,8 @@ const Usinas = () => {
     return (
       <div className="space-y-6 p-4">
         <UsinasHeader onAddClick={handleAddClick} />
+        
+        <UsinasDashboard />
 
         <UsinaFilterBar
           busca={busca}
@@ -121,6 +124,8 @@ const Usinas = () => {
   return (
     <div className="space-y-6">
       <UsinasHeader onAddClick={handleAddClick} />
+      
+      <UsinasDashboard />
       
       <UsinaFilterBar
         busca={busca}
