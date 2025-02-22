@@ -58,7 +58,10 @@ export function FaturasContainer() {
         isGenerating={isGenerating}
       />
 
-      <FaturasDashboard faturas={filteredFaturas} />
+      <FaturasDashboard 
+        faturas={filteredFaturas}
+        isLoading={isLoading} // Adicionada a prop isLoading
+      />
 
       <FilterBar
         busca={busca}
@@ -98,7 +101,7 @@ export function FaturasContainer() {
         isMobile={isMobile}
         onUpdateFatura={updateFatura}
         onUpdateStatus={updateFaturaStatus}
-        onDeleteFatura={deleteFatura}
+        onDeleteFatura={async (id) => await deleteFatura(id)} // Convertida para async/await para retornar Promise
       />
     </div>
   );
