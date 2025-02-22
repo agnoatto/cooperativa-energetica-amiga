@@ -1,56 +1,45 @@
+import React from 'react';
+import { View, Text } from '@react-pdf/renderer';
+import { styles, TABLE_HEADERS, COLUMN_WIDTHS } from '@/components/pdf/constants';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { PagamentoData } from '@/components/pagamentos/types/pagamento';
 
-import { jsPDF } from "jspdf";
-import { COLORS, FONTS, SPACING } from "./constants";
-import { StatusHistoryEntry } from "@/types/fatura";
-import { format } from "date-fns";
+interface StatusHistoryProps {
+  historicoData: PagamentoData[];
+}
 
-export const addStatusHistory = (doc: jsPDF, historico: StatusHistoryEntry[], yPos: number): number => {
-  doc.setTextColor(COLORS.BLACK[0], COLORS.BLACK[1], COLORS.BLACK[2]);
-  doc.setFontSize(FONTS.SUBTITLE);
-  doc.text("Histórico de Status", SPACING.MARGIN, yPos);
-  
-  yPos += 12;
-  doc.setFontSize(FONTS.NORMAL);
+export const StatusHistory: React.FC<StatusHistoryProps> = ({ historicoData }) => {
+  const headers = TABLE_HEADERS.historico;
+  const columnWidths = COLUMN_WIDTHS.historico;
 
-  const lineHeight = 15;
-  const circleRadius = 2;
-  const timelineX = SPACING.MARGIN + 8;
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Histórico de Status</Text>
+      <View style={styles.table}>
+        {/* Cabeçalho da tabela */}
+        <View style={[styles.tableRow, styles.tableHeader]}>
+          {headers.map((header, index) => (
+            <Text key={index} style={[styles.tableCell, { width: columnWidths[index] }]}>
+              {header}
+            </Text>
+          ))}
+        </View>
 
-  historico.forEach((entry, index) => {
-    const entryY = yPos + (index * lineHeight);
-
-    // Timeline line
-    if (index < historico.length - 1) {
-      doc.setDrawColor(COLORS.GRAY[0], COLORS.GRAY[1], COLORS.GRAY[2]);
-      doc.line(timelineX, entryY, timelineX, entryY + lineHeight);
-    }
-
-    // Status circle
-    doc.setFillColor(COLORS.BLUE[0], COLORS.BLUE[1], COLORS.BLUE[2]);
-    doc.circle(timelineX, entryY, circleRadius, 'F');
-
-    // Status text
-    doc.text(
-      `${entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}`,
-      timelineX + 8,
-      entryY + 3
-    );
-
-    // Date
-    doc.setFontSize(FONTS.SMALL);
-    doc.text(
-      format(new Date(entry.data), 'dd/MM/yyyy HH:mm'),
-      timelineX + 60,
-      entryY + 3
-    );
-
-    // Observation (if exists)
-    if (entry.observacao) {
-      doc.setFontSize(FONTS.SMALL);
-      doc.setTextColor(COLORS.GRAY[0], COLORS.GRAY[1], COLORS.GRAY[2]);
-      doc.text(entry.observacao, timelineX + 8, entryY + 9);
-    }
-  });
-
-  return yPos + (historico.length * lineHeight) + 10;
+        {/* Linhas de dados */}
+        {historicoData.map((item) => (
+          <View key={item.id} style={styles.tableRow}>
+            <Text style={[styles.tableCell, { width: columnWidths[0] }]}>
+              {format(new Date(item.ano, item.mes - 1), 'MMMM/yyyy', { locale: ptBR })}
+            </Text>
+            <Text style={[styles.tableCell, { width: columnWidths[1] }]}>{item.status}</Text>
+            <Text style={[styles.tableCell, { width: columnWidths[2] }]}>
+              {item.data_pagamento ? format(new Date(item.data_pagamento), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+            </Text>
+            <Text style={[styles.tableCell, { width: columnWidths[3] }]}>{item.observacao || '-'}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
 };
