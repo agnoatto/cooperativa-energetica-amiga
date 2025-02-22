@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useFaturas } from "@/hooks/useFaturas";
 import { FaturasHeader } from "./FaturasHeader";
 import { FaturasDashboard } from "./FaturasDashboard";
@@ -35,6 +34,22 @@ export function FaturasContainer() {
   const handleLimparFiltros = () => {
     setStatus("todos");
     setBusca("");
+  };
+
+  const handleEditFatura = (fatura: Fatura) => {
+    const updateData = {
+      id: fatura.id,
+      consumo_kwh: fatura.consumo_kwh,
+      total_fatura: fatura.total_fatura,
+      fatura_concessionaria: fatura.fatura_concessionaria,
+      iluminacao_publica: fatura.iluminacao_publica,
+      outros_valores: fatura.outros_valores,
+      saldo_energia_kwh: fatura.saldo_energia_kwh,
+      observacao: fatura.observacao,
+      data_vencimento: fatura.data_vencimento,
+      percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
+    };
+    updateFatura(updateData);
   };
 
   const filteredFaturas = faturas?.filter(fatura => {
@@ -97,7 +112,7 @@ export function FaturasContainer() {
       <FaturasTable
         faturas={filteredFaturas}
         isLoading={isLoading}
-        onEditFatura={updateFatura}
+        onEditFatura={handleEditFatura}
         onUpdateStatus={updateFaturaStatus}
         onDeleteFatura={async (id) => await deleteFatura(id)}
       />
