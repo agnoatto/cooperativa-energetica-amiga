@@ -1,30 +1,9 @@
-
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Plus, Edit, Trash, Eye } from "lucide-react";
 import { CooperadoPdfButton } from "./CooperadoPdfButton";
 import { formatarDocumento, formatarTelefone } from "@/utils/formatters";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { 
-  ColumnFiltersState,
-  SortingState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import { useState } from "react";
-import { TablePagination } from "@/components/ui/table-pagination";
-import { TableColumnHeader } from "@/components/ui/table-column-header";
+import { ExcelTable } from "@/components/ui/excel-table/ExcelTable";
 
 interface CooperadosTableProps {
   cooperados: any[];
@@ -44,131 +23,15 @@ export function CooperadosTable({
   onViewDetails,
 }: CooperadosTableProps) {
   const isMobile = useIsMobile();
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const columns = [
-    {
-      accessorKey: "nome",
-      header: ({ column }: any) => (
-        <TableColumnHeader column={column} title="Nome/Razão Social" />
-      ),
-    },
-    {
-      accessorKey: "numero_cadastro",
-      header: ({ column }: any) => (
-        <TableColumnHeader column={column} title="Nº Cadastro" />
-      ),
-    },
-    {
-      accessorKey: "documento",
-      header: "CPF/CNPJ",
-      cell: ({ row }: any) => formatarDocumento(row.getValue("documento")),
-    },
-    {
-      accessorKey: "tipo_pessoa",
-      header: ({ column }: any) => (
-        <TableColumnHeader column={column} title="Tipo" />
-      ),
-      cell: ({ row }: any) => 
-        row.getValue("tipo_pessoa") === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física',
-    },
-    {
-      id: "contato",
-      header: "Contato",
-      cell: ({ row }: any) => (
-        <div className="leading-tight whitespace-nowrap">
-          {formatarTelefone(row.original.telefone)}
-          <br />
-          {row.original.email || '-'}
-        </div>
-      ),
-    },
-    {
-      id: "unidades",
-      header: "Unidades",
-      cell: ({ row }: any) => {
-        const count = unidades.filter(u => u.cooperado_id === row.original.id).length;
-        return (
-          <div className="flex items-center space-x-2">
-            <span>{count}</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddUnidade(row.original.id);
-              }}
-              title="Adicionar Unidade Beneficiária"
-              className="h-6 w-6"
-            >
-              <Plus className="h-3 w-3" />
-            </Button>
-          </div>
-        );
-      },
-    },
-    {
-      id: "actions",
-      header: "",
-      cell: ({ row }: any) => (
-        <div className="text-right space-x-2">
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              onViewDetails(row.original.id);
-            }}
-            className="h-6 w-6"
-          >
-            <Eye className="h-3 w-3" />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(row.original.id);
-            }}
-            className="h-6 w-6"
-          >
-            <Edit className="h-3 w-3" />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(row.original.id);
-            }}
-            className="h-6 w-6"
-          >
-            <Trash className="h-3 w-3" />
-          </Button>
-          <CooperadoPdfButton
-            cooperado={row.original}
-            unidades={unidades.filter(u => u.cooperado_id === row.original.id)}
-          />
-        </div>
-      ),
-    },
+    { id: 'info', label: 'Informações', minWidth: 200 },
+    { id: 'cadastro', label: 'Nº Cadastro', width: 120 },
+    { id: 'tipo', label: 'Tipo', width: 120 },
+    { id: 'contato', label: 'Contato', minWidth: 150 },
+    { id: 'unidades', label: 'Unidades', width: 100 },
+    { id: 'acoes', label: 'Ações', width: 160 }
   ];
-
-  const table = useReactTable({
-    data: cooperados,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    state: {
-      sorting,
-      columnFilters,
-    },
-  });
 
   if (isMobile) {
     return (
@@ -279,58 +142,97 @@ export function CooperadosTable({
   }
 
   return (
-    <div className="rounded-md border">
-      <div className="relative overflow-x-auto">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className="cursor-pointer"
-                  onClick={() => onViewDetails(row.original.id)}
+    <ExcelTable columns={columns}>
+      <tbody>
+        {cooperados.map((cooperado) => (
+          <tr
+            key={cooperado.id}
+            onClick={() => onViewDetails(cooperado.id)}
+            className="cursor-pointer"
+          >
+            <td>
+              <div className="flex flex-col">
+                <span className="font-medium text-gray-900">
+                  {cooperado.nome}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {formatarDocumento(cooperado.documento)}
+                </span>
+              </div>
+            </td>
+            <td>{cooperado.numero_cadastro || '-'}</td>
+            <td>
+              {cooperado.tipo_pessoa === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física'}
+            </td>
+            <td>
+              <div className="leading-tight">
+                {formatarTelefone(cooperado.telefone)}
+                <br />
+                {cooperado.email || '-'}
+              </div>
+            </td>
+            <td>
+              <div className="flex items-center space-x-2">
+                <span>
+                  {unidades.filter(u => u.cooperado_id === cooperado.id).length}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAddUnidade(cooperado.id);
+                  }}
+                  className="h-6 w-6"
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
+            </td>
+            <td>
+              <div className="flex justify-end space-x-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewDetails(cooperado.id);
+                  }}
+                  className="h-8 w-8"
                 >
-                  Nenhum cooperado encontrado.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-      <TablePagination table={table} />
-    </div>
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(cooperado.id);
+                  }}
+                  className="h-8 w-8"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(cooperado.id);
+                  }}
+                  className="h-8 w-8"
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+                <CooperadoPdfButton
+                  cooperado={cooperado}
+                  unidades={unidades.filter(u => u.cooperado_id === cooperado.id)}
+                />
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </ExcelTable>
   );
 }
