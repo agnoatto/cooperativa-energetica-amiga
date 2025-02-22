@@ -1331,6 +1331,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      get_unidades_dashboard_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_cooperados: number
+          total_consumo: number
+        }[]
+      }
       gtrgm_compress: {
         Args: {
           "": unknown

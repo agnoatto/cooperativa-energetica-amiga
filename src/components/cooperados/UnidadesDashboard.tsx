@@ -15,11 +15,26 @@ export function UnidadesDashboard() {
     queryKey: ["unidades-dashboard"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .rpc('get_unidades_dashboard_data')
-        .single();
+        .from('cooperados')
+        .select(`
+          id,
+          unidades_beneficiarias:unidades_beneficiarias(consumo_kwh)
+        `)
+        .is('data_exclusao', null)
+        .throwOnError();
+      
+      if (!data) return { total_cooperados: 0, total_consumo: 0 };
+      
+      const total_cooperados = data.length;
+      const total_consumo = data.reduce((acc, cooperado) => {
+        const consumo = cooperado.unidades_beneficiarias?.reduce(
+          (sum: number, unidade: any) => sum + (unidade.consumo_kwh || 0), 
+          0
+        ) || 0;
+        return acc + consumo;
+      }, 0);
 
-      if (error) throw error;
-      return data as DashboardData;
+      return { total_cooperados, total_consumo };
     },
   });
 
