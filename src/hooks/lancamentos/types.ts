@@ -52,6 +52,11 @@ export interface LancamentoResponse {
   } | null;
   pagamento_usina?: {
     id: string;
+    valor_total: number;
+    geracao_kwh: number;
+    status: string;
+    data_vencimento: string;
+    data_pagamento?: string;
     usina?: {
       unidade_usina?: {
         numero_uc: string;
