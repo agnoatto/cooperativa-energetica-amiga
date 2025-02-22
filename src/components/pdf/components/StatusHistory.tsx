@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
-import { styles, TABLE_HEADERS, COLUMN_WIDTHS } from '@/components/pdf/constants';
+import { styles } from '../theme';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PagamentoData } from '@/components/pagamentos/types/pagamento';
@@ -10,33 +11,27 @@ interface StatusHistoryProps {
 }
 
 export const StatusHistory: React.FC<StatusHistoryProps> = ({ historicoData }) => {
-  const headers = TABLE_HEADERS.historico;
-  const columnWidths = COLUMN_WIDTHS.historico;
-
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Histórico de Status</Text>
       <View style={styles.table}>
-        {/* Cabeçalho da tabela */}
         <View style={[styles.tableRow, styles.tableHeader]}>
-          {headers.map((header, index) => (
-            <Text key={index} style={[styles.tableCell, { width: columnWidths[index] }]}>
-              {header}
-            </Text>
-          ))}
+          <Text style={[styles.tableCell, { width: '25%' }]}>Mês/Ano</Text>
+          <Text style={[styles.tableCell, { width: '20%' }]}>Status</Text>
+          <Text style={[styles.tableCell, { width: '20%' }]}>Data</Text>
+          <Text style={[styles.tableCell, { width: '35%' }]}>Observação</Text>
         </View>
 
-        {/* Linhas de dados */}
-        {historicoData.map((item) => (
-          <View key={item.id} style={styles.tableRow}>
-            <Text style={[styles.tableCell, { width: columnWidths[0] }]}>
+        {historicoData.map((item, index) => (
+          <View key={index} style={styles.tableRow}>
+            <Text style={[styles.tableCell, { width: '25%' }]}>
               {format(new Date(item.ano, item.mes - 1), 'MMMM/yyyy', { locale: ptBR })}
             </Text>
-            <Text style={[styles.tableCell, { width: columnWidths[1] }]}>{item.status}</Text>
-            <Text style={[styles.tableCell, { width: columnWidths[2] }]}>
+            <Text style={[styles.tableCell, { width: '20%' }]}>{item.status}</Text>
+            <Text style={[styles.tableCell, { width: '20%' }]}>
               {item.data_pagamento ? format(new Date(item.data_pagamento), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
             </Text>
-            <Text style={[styles.tableCell, { width: columnWidths[3] }]}>{item.observacao || '-'}</Text>
+            <Text style={[styles.tableCell, { width: '35%' }]}>{item.observacao || '-'}</Text>
           </View>
         ))}
       </View>
