@@ -1,61 +1,32 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { NovaFatura } from "../types/gerarFaturas";
-import { UnidadeBeneficiaria } from "../types";
+import { FaturaStatus } from "@/types/fatura";
 
-export const buscarUnidadesElegiveis = async (ultimoDiaMes: string) => {
-  const { data: unidades, error } = await supabase
-    .from("unidades_beneficiarias")
-    .select(`
-      id,
-      numero_uc,
-      apelido,
-      data_entrada,
-      percentual_desconto,
-      cooperado:cooperado_id (
-        id,
-        nome
-      )
-    `)
-    .filter('data_saida', 'is', null)
-    .lte('data_entrada', ultimoDiaMes);
+export interface NovaFatura {
+  mes: number;
+  ano: number;
+  consumo_kwh: number;
+  valor_assinatura: number;
+  total_fatura: number;
+  fatura_concessionaria: number;
+  iluminacao_publica: number;
+  outros_valores: number;
+  valor_desconto: number;
+  economia_acumulada: number;
+  saldo_energia_kwh: number;
+  data_vencimento: string;
+  unidade_beneficiaria_id: string;
+  status: FaturaStatus;
+  historico_status: {
+    status: FaturaStatus;
+    data: string;
+    observacao?: string;
+  }[];
+}
 
-  if (error) {
-    throw new Error(`Erro ao buscar unidades beneficiárias: ${error.message}`);
+export const faturasService = {
+  async gerarFaturas(faturas: NovaFatura[]) {
+    const { error } = await supabase.from("faturas").insert(faturas);
+    if (error) throw error;
   }
-
-  return unidades as UnidadeBeneficiaria[];
-};
-
-export const verificarFaturaExistente = async (
-  unidade_id: string,
-  mes: number,
-  ano: number
-) => {
-  const { data: faturas, error } = await supabase
-    .from("faturas")
-    .select('id')
-    .eq("unidade_beneficiaria_id", unidade_id)
-    .eq("mes", mes)
-    .eq("ano", ano);
-
-  if (error) {
-    throw new Error(`Erro ao verificar fatura existente: ${error.message}`);
-  }
-
-  return faturas;
-};
-
-export const inserirFatura = async (novaFatura: NovaFatura) => {
-  const { data: faturaInserida, error } = await supabase
-    .from("faturas")
-    .insert(novaFatura)
-    .select()
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(`Erro ao inserir fatura: ${error.message}`);
-  }
-
-  return faturaInserida;
 };
