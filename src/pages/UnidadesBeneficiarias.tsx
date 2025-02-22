@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { UnidadeBeneficiariaForm } from "@/components/cooperados/UnidadeBeneficiariaForm";
 import { UnidadesTable } from "@/components/cooperados/UnidadesTable";
+import { UnidadesDashboard } from "@/components/cooperados/UnidadesDashboard";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -99,6 +100,8 @@ const UnidadesBeneficiarias = () => {
           <Plus className="mr-2 h-4 w-4" /> Nova Unidade
         </Button>
       </div>
+
+      <UnidadesDashboard />
 
       <FilterBar
         busca={busca}
