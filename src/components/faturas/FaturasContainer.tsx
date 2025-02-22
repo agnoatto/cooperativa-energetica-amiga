@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label";
 export function FaturasContainer() {
   const [status, setStatus] = useState<FaturaStatus | "todos">("todos");
   const [busca, setBusca] = useState("");
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile(); // Podemos remover essa linha já que não usamos mais
   const currentDate = new Date();
 
   const { 
@@ -60,7 +60,7 @@ export function FaturasContainer() {
 
       <FaturasDashboard 
         faturas={filteredFaturas}
-        isLoading={isLoading} // Adicionada a prop isLoading
+        isLoading={isLoading}
       />
 
       <FilterBar
@@ -98,10 +98,9 @@ export function FaturasContainer() {
       <FaturasTable
         faturas={filteredFaturas}
         isLoading={isLoading}
-        isMobile={isMobile}
         onUpdateFatura={updateFatura}
         onUpdateStatus={updateFaturaStatus}
-        onDeleteFatura={async (id) => await deleteFatura(id)} // Convertida para async/await para retornar Promise
+        onDeleteFatura={async (id) => await deleteFatura(id)}
       />
     </div>
   );
