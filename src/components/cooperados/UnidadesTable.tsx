@@ -24,6 +24,13 @@ export function UnidadesTable({
 }: UnidadesTableProps) {
   const isMobile = useIsMobile();
 
+  const formatarKwh = (valor: number) => {
+    return valor?.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }) ?? '0,00';
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
@@ -51,6 +58,11 @@ export function UnidadesTable({
               <div className="grid grid-cols-2 gap-1">
                 <span className="text-gray-500">Desconto:</span>
                 <span>{unidade.percentual_desconto}%</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1">
+                <span className="text-gray-500">Consumo:</span>
+                <span>{formatarKwh(unidade.consumo_kwh)} kWh</span>
               </div>
 
               <div className="grid grid-cols-2 gap-1">
@@ -104,6 +116,7 @@ export function UnidadesTable({
               <TableHead>Apelido</TableHead>
               <TableHead>Endereço</TableHead>
               <TableHead>Desconto</TableHead>
+              <TableHead>Consumo</TableHead>
               <TableHead>Data Entrada</TableHead>
               <TableHead>Data Saída</TableHead>
               <TableHead className="text-right">Ações</TableHead>
@@ -116,6 +129,7 @@ export function UnidadesTable({
                 <TableCell className="whitespace-nowrap">{unidade.apelido || '-'}</TableCell>
                 <TableCell className="whitespace-nowrap">{unidade.endereco}</TableCell>
                 <TableCell className="whitespace-nowrap">{unidade.percentual_desconto}%</TableCell>
+                <TableCell className="whitespace-nowrap">{formatarKwh(unidade.consumo_kwh)} kWh</TableCell>
                 <TableCell className="whitespace-nowrap">
                   {formatDate(unidade.data_entrada)}
                 </TableCell>
