@@ -7,6 +7,12 @@ export interface Column {
   width?: number;
   minWidth?: number;
   maxWidth?: number;
+  visible?: boolean;
+}
+
+export interface TableSettings {
+  columnWidths: Record<string, number>;
+  visibleColumns: string[];
 }
 
 export interface ExcelTableProps extends TableHTMLAttributes<HTMLTableElement> {
@@ -14,4 +20,5 @@ export interface ExcelTableProps extends TableHTMLAttributes<HTMLTableElement> {
   defaultColumnWidth?: number;
   onColumnResize?: (columnId: string, newWidth: number) => void;
   stickyHeader?: boolean;
+  storageKey: string;
 }

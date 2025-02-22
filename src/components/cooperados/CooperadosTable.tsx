@@ -1,9 +1,16 @@
 import { Button } from "@/components/ui/button";
-import { Plus, Edit, Trash, Eye } from "lucide-react";
+import { Plus, Edit, Trash, Eye, MoreVertical } from "lucide-react";
 import { CooperadoPdfButton } from "./CooperadoPdfButton";
 import { formatarDocumento, formatarTelefone } from "@/utils/formatters";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ExcelTable } from "@/components/ui/excel-table/ExcelTable";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface CooperadosTableProps {
   cooperados: any[];
@@ -30,7 +37,7 @@ export function CooperadosTable({
     { id: 'tipo', label: 'Tipo', width: 120 },
     { id: 'contato', label: 'Contato', minWidth: 150 },
     { id: 'unidades', label: 'Unidades', width: 100 },
-    { id: 'acoes', label: 'Ações', width: 160 }
+    { id: 'acoes', label: 'Ações', width: 100 }
   ];
 
   if (isMobile) {
@@ -141,13 +148,44 @@ export function CooperadosTable({
     );
   }
 
+  const ActionMenu = ({ cooperado }: { cooperado: any }) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <MoreVertical className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => onViewDetails(cooperado.id)}>
+          <Eye className="mr-2 h-4 w-4" />
+          Visualizar
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onEdit(cooperado.id)}>
+          <Edit className="mr-2 h-4 w-4" />
+          Editar
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onAddUnidade(cooperado.id)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Adicionar Unidade
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => onDelete(cooperado.id)}>
+          <Trash className="mr-2 h-4 w-4" />
+          Excluir
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   return (
-    <ExcelTable columns={columns}>
+    <ExcelTable 
+      columns={columns} 
+      storageKey="cooperados-table-settings"
+    >
       <tbody>
         {cooperados.map((cooperado) => (
           <tr
             key={cooperado.id}
-            onClick={() => onViewDetails(cooperado.id)}
             className="cursor-pointer"
           >
             <td>
@@ -176,59 +214,10 @@ export function CooperadosTable({
                 <span>
                   {unidades.filter(u => u.cooperado_id === cooperado.id).length}
                 </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAddUnidade(cooperado.id);
-                  }}
-                  className="h-6 w-6"
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
               </div>
             </td>
-            <td>
-              <div className="flex justify-end space-x-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onViewDetails(cooperado.id);
-                  }}
-                  className="h-8 w-8"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(cooperado.id);
-                  }}
-                  className="h-8 w-8"
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(cooperado.id);
-                  }}
-                  className="h-8 w-8"
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-                <CooperadoPdfButton
-                  cooperado={cooperado}
-                  unidades={unidades.filter(u => u.cooperado_id === cooperado.id)}
-                />
-              </div>
+            <td className="text-right">
+              <ActionMenu cooperado={cooperado} />
             </td>
           </tr>
         ))}

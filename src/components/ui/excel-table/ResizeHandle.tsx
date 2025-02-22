@@ -1,5 +1,5 @@
 
-import { MouseEvent, useCallback, useState } from "react";
+import { MouseEvent, useCallback, useEffect, useState } from "react";
 
 interface ResizeHandleProps {
   onResize: (width: number) => void;
@@ -12,16 +12,7 @@ export function ResizeHandle({ onResize, minWidth = 50, maxWidth = 1000 }: Resiz
   const [startWidth, setStartWidth] = useState(0);
   const [isResizing, setIsResizing] = useState(false);
 
-  const handleMouseDown = useCallback((e: MouseEvent) => {
-    setIsResizing(true);
-    setStartX(e.pageX);
-    const cell = (e.target as HTMLElement).closest('th');
-    if (cell) {
-      setStartWidth(cell.offsetWidth);
-    }
-  }, []);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
+  const handleMouseMove = useCallback((e: globalThis.MouseEvent) => {
     if (!isResizing) return;
 
     const diff = e.pageX - startX;
@@ -33,13 +24,31 @@ export function ResizeHandle({ onResize, minWidth = 50, maxWidth = 1000 }: Resiz
     setIsResizing(false);
   }, []);
 
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isResizing, handleMouseMove, handleMouseUp]);
+
+  const handleMouseDown = (e: MouseEvent) => {
+    setIsResizing(true);
+    setStartX(e.pageX);
+    const cell = (e.target as HTMLElement).closest('th');
+    if (cell) {
+      setStartWidth(cell.offsetWidth);
+    }
+  };
+
   return (
     <div
       className="absolute right-0 top-0 h-full w-1 cursor-col-resize bg-transparent hover:bg-blue-400 transition-colors"
       onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
     />
   );
 }
