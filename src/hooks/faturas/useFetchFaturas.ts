@@ -9,53 +9,32 @@ export const useFetchFaturas = (currentDate: Date) => {
     queryKey: ['faturas', currentDate.getMonth() + 1, currentDate.getFullYear()],
     queryFn: async () => {
       console.log('Fetching faturas for:', currentDate);
-      // Primeiro, buscar todas as faturas anteriores para calcular a economia acumulada
-      const { data: faturasAnteriores, error: errorAnteriores } = await supabase
+      
+      // Calcular a data limite para os últimos 12 meses
+      const dataLimite = new Date(currentDate);
+      dataLimite.setMonth(dataLimite.getMonth() - 13); // 13 meses para garantir que temos dados suficientes
+      const anoLimite = dataLimite.getFullYear();
+      const mesLimite = dataLimite.getMonth() + 1;
+
+      // Buscar faturas dos últimos 13 meses (incluindo o mês atual)
+      const { data: historicoFaturas, error: errorHistorico } = await supabase
         .from("faturas")
         .select(`
-          valor_desconto,
-          unidade_beneficiaria_id,
+          id,
           mes,
           ano,
-          consumo_kwh
-        `)
-        .lt('ano', currentDate.getFullYear())
-        .order('ano', { ascending: false });
-
-      if (errorAnteriores) {
-        console.error('Erro ao buscar faturas anteriores:', errorAnteriores);
-        throw errorAnteriores;
-      }
-
-      const { data: faturasAnoAtual, error: errorAnoAtual } = await supabase
-        .from("faturas")
-        .select(`
+          consumo_kwh,
           valor_desconto,
-          unidade_beneficiaria_id,
-          mes,
-          ano,
-          consumo_kwh
+          unidade_beneficiaria_id
         `)
-        .eq('ano', currentDate.getFullYear())
-        .lt('mes', currentDate.getMonth() + 1)
+        .or(`ano.gt.${anoLimite},and(ano.eq.${anoLimite},mes.gte.${mesLimite})`)
+        .order('ano', { ascending: false })
         .order('mes', { ascending: false });
 
-      if (errorAnoAtual) {
-        console.error('Erro ao buscar faturas do ano atual:', errorAnoAtual);
-        throw errorAnoAtual;
+      if (errorHistorico) {
+        console.error('Erro ao buscar histórico de faturas:', errorHistorico);
+        throw errorHistorico;
       }
-
-      // Combinar todas as faturas anteriores
-      const todasFaturasAnteriores = [
-        ...(faturasAnteriores || []),
-        ...(faturasAnoAtual || [])
-      ].map(f => ({
-        mes: f.mes,
-        ano: f.ano,
-        consumo_kwh: Number(f.consumo_kwh),
-        valor_desconto: Number(f.valor_desconto),
-        unidade_beneficiaria_id: f.unidade_beneficiaria_id
-      }));
 
       // Buscar faturas do mês atual
       const { data, error } = await supabase
@@ -109,29 +88,27 @@ export const useFetchFaturas = (currentDate: Date) => {
         throw error;
       }
 
-      // Calcular economia acumulada para cada fatura e garantir o tipo correto dos dados
+      // Processar e formatar as faturas
       const faturas: Fatura[] = data.map(fatura => {
-        const faturasAnterioresDaUnidade = todasFaturasAnteriores.filter(
-          f => f.unidade_beneficiaria_id === fatura.unidade_beneficiaria.id
-        );
+        // Filtrar histórico apenas para a unidade beneficiária atual
+        const historicoUnidade = historicoFaturas
+          ?.filter(h => h.unidade_beneficiaria_id === fatura.unidade_beneficiaria.id)
+          .sort((a, b) => {
+            // Ordenar por ano e mês decrescente
+            if (a.ano !== b.ano) return b.ano - a.ano;
+            return b.mes - a.mes;
+          })
+          .slice(0, 12) // Pegar exatamente os últimos 12 meses
+          .map(h => ({
+            mes: h.mes,
+            ano: h.ano,
+            consumo_kwh: Number(h.consumo_kwh),
+            valor_desconto: Number(h.valor_desconto)
+          })) || [];
 
-        const faturaFormatada: Fatura = {
+        return {
           ...fatura,
-          economia_acumulada: faturasAnterioresDaUnidade.reduce(
-            (acc, f) => acc + (f.valor_desconto || 0),
-            0
-          ),
-          historico_status: (fatura.historico_status as any[] || []).map(entry => ({
-            status: entry.status,
-            data: entry.data,
-            observacao: entry.observacao
-          })),
-          historico_faturas: faturasAnterioresDaUnidade.map(f => ({
-            mes: f.mes,
-            ano: f.ano,
-            consumo_kwh: f.consumo_kwh,
-            valor_desconto: f.valor_desconto
-          })),
+          historico_faturas: historicoUnidade,
           valor_adicional: fatura.valor_adicional || 0,
           observacao_pagamento: fatura.observacao_pagamento || null,
           data_pagamento: fatura.data_pagamento || null,
@@ -150,8 +127,6 @@ export const useFetchFaturas = (currentDate: Date) => {
           valor_desconto: Number(fatura.valor_desconto),
           saldo_energia_kwh: Number(fatura.saldo_energia_kwh)
         };
-
-        return faturaFormatada;
       });
 
       return faturas;
