@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { startOfDay, endOfDay, parseISO } from "date-fns";
-import { UseLancamentosFinanceirosOptions, LancamentoResponse, HistoricoStatus } from "./types";
+import { UseLancamentosFinanceirosOptions, LancamentoResponse } from "./types";
 import { LancamentoFinanceiro } from "@/types/financeiro";
 import { Json } from "@/integrations/supabase/types";
 
@@ -35,6 +35,11 @@ export async function fetchLancamentos({
       ),
       pagamento_usina:pagamentos_usina!fk_lancamentos_pagamento_usina(
         id,
+        valor_total,
+        geracao_kwh,
+        status,
+        data_vencimento,
+        data_pagamento,
         usina:usinas(
           unidade_usina:unidades_usina(
             numero_uc
