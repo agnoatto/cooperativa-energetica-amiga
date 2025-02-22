@@ -4,6 +4,7 @@ import { FaturaEditModal } from "@/components/faturas/FaturaEditModal";
 import { FaturasHeader } from "@/components/faturas/FaturasHeader";
 import { MonthSelector } from "@/components/faturas/MonthSelector";
 import { FaturasTable } from "@/components/faturas/FaturasTable";
+import { FaturasDashboard } from "@/components/faturas/FaturasDashboard";
 import { useFaturas } from "@/hooks/useFaturas";
 import { useMonthSelection } from "@/hooks/useMonthSelection";
 import { Fatura, FaturaStatus } from "@/types/fatura";
@@ -53,6 +54,11 @@ export function FaturasContainer() {
           currentDate={currentDate}
           onPreviousMonth={handlePreviousMonth}
           onNextMonth={handleNextMonth}
+        />
+
+        <FaturasDashboard 
+          faturas={faturas}
+          isLoading={isLoading}
         />
 
         <div className={isMobile ? "space-y-4" : "-mx-4 md:mx-0"}>
