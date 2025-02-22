@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { lastDayOfMonth, startOfMonth, format, parseISO } from "date-fns";
 import { validarMesFuturo, filtrarUnidadesElegiveis, criarNovaFatura } from "./utils/gerarFaturasUtils";
-import { buscarUnidadesElegiveis, verificarFaturaExistente, inserirFatura } from "./services/faturasService";
+import { faturasService } from "./services/faturasService";
 import { ResultadoGeracaoFaturas } from "./types/gerarFaturas";
 
 export const useGerarFaturas = (currentDate: Date) => {
@@ -28,7 +28,7 @@ export const useGerarFaturas = (currentDate: Date) => {
 
         // 1. Buscar unidades elegíveis
         console.log("\n=== BUSCANDO UNIDADES ELEGÍVEIS ===");
-        const unidades = await buscarUnidadesElegiveis(ultimoDiaMes);
+        const unidades = await faturasService.buscarUnidadesElegiveis(ultimoDiaMes);
 
         if (!unidades || unidades.length === 0) {
           console.log("ℹ️ Nenhuma unidade encontrada para o período");
@@ -68,7 +68,7 @@ export const useGerarFaturas = (currentDate: Date) => {
 
             // 2.1 Verificar fatura existente
             console.log("- Verificando fatura existente...");
-            const faturasExistentes = await verificarFaturaExistente(unidade.id, mes, ano);
+            const faturasExistentes = await faturasService.verificarFaturaExistente(unidade.id, mes, ano);
 
             if (faturasExistentes && faturasExistentes.length > 0) {
               console.log("ℹ️ Fatura já existe para esta unidade");
@@ -80,7 +80,7 @@ export const useGerarFaturas = (currentDate: Date) => {
             const novaFatura = criarNovaFatura(unidade.id, mes, ano, ultimoDiaMes);
             console.log("Dados da fatura a ser inserida:", novaFatura);
             
-            const faturaInserida = await inserirFatura(novaFatura);
+            const faturaInserida = await faturasService.inserirFatura(novaFatura);
 
             if (!faturaInserida) {
               const errorMsg = `Fatura não foi inserida para UC ${unidade.numero_uc} - Nenhum erro retornado`;

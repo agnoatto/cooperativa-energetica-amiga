@@ -1,6 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { FaturaStatus } from "@/types/fatura";
+import { UnidadeBeneficiaria } from "@/hooks/faturas/types";
+import { Database } from "@/integrations/supabase/types";
+
+type FaturaInsert = Database["public"]["Tables"]["faturas"]["Insert"];
 
 export interface NovaFatura {
   mes: number;
@@ -25,8 +29,91 @@ export interface NovaFatura {
 }
 
 export const faturasService = {
+  async buscarUnidadesElegiveis(dataLimite: string): Promise<UnidadeBeneficiaria[]> {
+    const { data, error } = await supabase
+      .from('unidades_beneficiarias')
+      .select(`
+        id,
+        numero_uc,
+        apelido,
+        data_entrada,
+        cooperado:cooperado_id (
+          nome
+        )
+      `)
+      .lte('data_entrada', dataLimite)
+      .is('data_saida', null);
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async verificarFaturaExistente(unidadeId: string, mes: number, ano: number) {
+    const { data, error } = await supabase
+      .from('faturas')
+      .select('id')
+      .eq('unidade_beneficiaria_id', unidadeId)
+      .eq('mes', mes)
+      .eq('ano', ano);
+
+    if (error) throw error;
+    return data;
+  },
+
+  async inserirFatura(fatura: NovaFatura) {
+    // Converter NovaFatura para o tipo esperado pelo Supabase
+    const faturaInsert: FaturaInsert = {
+      mes: fatura.mes,
+      ano: fatura.ano,
+      consumo_kwh: fatura.consumo_kwh,
+      valor_assinatura: fatura.valor_assinatura,
+      total_fatura: fatura.total_fatura,
+      fatura_concessionaria: fatura.fatura_concessionaria,
+      iluminacao_publica: fatura.iluminacao_publica,
+      outros_valores: fatura.outros_valores,
+      valor_desconto: fatura.valor_desconto,
+      economia_acumulada: fatura.economia_acumulada,
+      saldo_energia_kwh: fatura.saldo_energia_kwh,
+      data_vencimento: fatura.data_vencimento,
+      unidade_beneficiaria_id: fatura.unidade_beneficiaria_id,
+      status: fatura.status,
+      historico_status: fatura.historico_status
+    };
+
+    const { data, error } = await supabase
+      .from('faturas')
+      .insert(faturaInsert)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
   async gerarFaturas(faturas: NovaFatura[]) {
-    const { error } = await supabase.from("faturas").insert(faturas);
+    // Converter cada NovaFatura para o tipo esperado pelo Supabase
+    const faturasInsert: FaturaInsert[] = faturas.map(fatura => ({
+      mes: fatura.mes,
+      ano: fatura.ano,
+      consumo_kwh: fatura.consumo_kwh,
+      valor_assinatura: fatura.valor_assinatura,
+      total_fatura: fatura.total_fatura,
+      fatura_concessionaria: fatura.fatura_concessionaria,
+      iluminacao_publica: fatura.iluminacao_publica,
+      outros_valores: fatura.outros_valores,
+      valor_desconto: fatura.valor_desconto,
+      economia_acumulada: fatura.economia_acumulada,
+      saldo_energia_kwh: fatura.saldo_energia_kwh,
+      data_vencimento: fatura.data_vencimento,
+      unidade_beneficiaria_id: fatura.unidade_beneficiaria_id,
+      status: fatura.status,
+      historico_status: fatura.historico_status
+    }));
+
+    const { error } = await supabase
+      .from('faturas')
+      .insert(faturasInsert);
+
     if (error) throw error;
   }
 };
