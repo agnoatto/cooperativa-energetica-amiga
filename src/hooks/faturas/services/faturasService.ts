@@ -20,9 +20,9 @@ export interface NovaFatura {
   saldo_energia_kwh: number;
   data_vencimento: string;
   unidade_beneficiaria_id: string;
-  status: FaturaStatus;
+  status: Database["public"]["Enums"]["fatura_status"];
   historico_status: {
-    status: FaturaStatus;
+    status: Database["public"]["Enums"]["fatura_status"];
     data: string;
     observacao?: string;
   }[];
@@ -61,7 +61,6 @@ export const faturasService = {
   },
 
   async inserirFatura(fatura: NovaFatura) {
-    // Converter NovaFatura para o tipo esperado pelo Supabase
     const faturaInsert: FaturaInsert = {
       mes: fatura.mes,
       ano: fatura.ano,
@@ -91,7 +90,6 @@ export const faturasService = {
   },
 
   async gerarFaturas(faturas: NovaFatura[]) {
-    // Converter cada NovaFatura para o tipo esperado pelo Supabase
     const faturasInsert: FaturaInsert[] = faturas.map(fatura => ({
       mes: fatura.mes,
       ano: fatura.ano,
