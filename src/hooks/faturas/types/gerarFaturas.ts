@@ -1,5 +1,5 @@
 
-import { FaturaStatus } from "@/types/fatura";
+import { Database } from "@/integrations/supabase/types";
 
 export interface NovaFatura {
   unidade_beneficiaria_id: string;
@@ -7,7 +7,7 @@ export interface NovaFatura {
   ano: number;
   consumo_kwh: number;
   total_fatura: number;
-  status: FaturaStatus;
+  status: Database["public"]["Enums"]["fatura_status"];
   data_vencimento: string;
   economia_acumulada: number;
   economia_mes: number;
@@ -17,7 +17,11 @@ export interface NovaFatura {
   outros_valores: number;
   valor_desconto: number;
   valor_assinatura: number;
-  historico_status: any[];
+  historico_status: {
+    status: Database["public"]["Enums"]["fatura_status"];
+    data: string;
+    observacao?: string;
+  }[];
   data_criacao: string;
   data_atualizacao: string;
 }
