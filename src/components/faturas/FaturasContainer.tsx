@@ -1,85 +1,105 @@
 
 import { useState } from "react";
-import { FaturaEditModal } from "@/components/faturas/FaturaEditModal";
-import { FaturasHeader } from "@/components/faturas/FaturasHeader";
-import { MonthSelector } from "@/components/faturas/MonthSelector";
-import { FaturasTable } from "@/components/faturas/FaturasTable";
-import { FaturasDashboard } from "@/components/faturas/FaturasDashboard";
-import { useFaturas } from "@/hooks/useFaturas";
-import { useMonthSelection } from "@/hooks/useMonthSelection";
-import { Fatura, FaturaStatus } from "@/types/fatura";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useFaturas } from "@/hooks/useFaturas";
+import { FaturasHeader } from "./FaturasHeader";
+import { FaturasDashboard } from "./FaturasDashboard";
+import { FaturasTable } from "./FaturasTable";
+import { FaturaStatus } from "@/types/fatura";
+import { FilterBar } from "@/components/shared/FilterBar";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export function FaturasContainer() {
-  const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
-  const { currentDate, handlePreviousMonth, handleNextMonth } = useMonthSelection();
+  const [status, setStatus] = useState<FaturaStatus | "todos">("todos");
+  const [busca, setBusca] = useState("");
   const isMobile = useIsMobile();
-  
+  const currentDate = new Date();
+
   const { 
     faturas, 
     isLoading, 
-    updateFatura,
     gerarFaturas, 
-    isGenerating, 
+    isGenerating,
+    updateFatura,
+    updateFaturaStatus,
     deleteFatura,
-    updateFaturaStatus
   } = useFaturas(currentDate);
 
-  if (!faturas && !isLoading) {
-    console.log("Nenhuma fatura encontrada e não está carregando");
-    return <div>Erro ao carregar faturas</div>;
-  }
-
-  const handleDeleteFatura = async (id: string) => {
-    await deleteFatura(id);
+  const handleLimparFiltros = () => {
+    setStatus("todos");
+    setBusca("");
   };
 
-  const handleUpdateStatus = async (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => {
-    await updateFaturaStatus({
-      id: fatura.id,
-      status: newStatus,
-      observacao
-    });
-  };
+  const filteredFaturas = faturas?.filter(fatura => {
+    if (status !== "todos" && fatura.status !== status) return false;
+    
+    if (busca) {
+      const searchTerm = busca.toLowerCase();
+      const ucMatch = fatura.unidade_beneficiaria.numero_uc.toLowerCase().includes(searchTerm);
+      const cooperadoMatch = fatura.unidade_beneficiaria.cooperado.nome.toLowerCase().includes(searchTerm);
+      if (!ucMatch && !cooperadoMatch) return false;
+    }
+    
+    return true;
+  });
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <div className="flex-1 space-y-4 p-4 md:p-6">
-        <FaturasHeader 
-          onGerarFaturas={gerarFaturas}
-          isGenerating={isGenerating}
-        />
+    <div className="space-y-6">
+      <FaturasHeader
+        onGerarFaturas={gerarFaturas}
+        isGenerating={isGenerating}
+      />
 
-        <MonthSelector
-          currentDate={currentDate}
-          onPreviousMonth={handlePreviousMonth}
-          onNextMonth={handleNextMonth}
-        />
+      <FaturasDashboard faturas={filteredFaturas} />
 
-        <FaturasDashboard 
-          faturas={faturas}
-          isLoading={isLoading}
-        />
-
-        <div className={isMobile ? "space-y-4" : "-mx-4 md:mx-0"}>
-          <FaturasTable
-            faturas={faturas}
-            isLoading={isLoading}
-            onEditFatura={setSelectedFatura}
-            onDeleteFatura={handleDeleteFatura}
-            onUpdateStatus={handleUpdateStatus}
-          />
+      <FilterBar
+        busca={busca}
+        onBuscaChange={setBusca}
+        onLimparFiltros={handleLimparFiltros}
+        placeholder="Buscar por UC ou nome do cooperado..."
+      >
+        <div className="w-full sm:w-48">
+          <Label htmlFor="status">Status</Label>
+          <Select
+            value={status}
+            onValueChange={(value) => setStatus(value as FaturaStatus | "todos")}
+          >
+            <SelectTrigger id="status">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="gerada">Gerada</SelectItem>
+                <SelectItem value="pendente">Pendente</SelectItem>
+                <SelectItem value="enviada">Enviada</SelectItem>
+                <SelectItem value="corrigida">Corrigida</SelectItem>
+                <SelectItem value="reenviada">Reenviada</SelectItem>
+                <SelectItem value="atrasada">Atrasada</SelectItem>
+                <SelectItem value="paga">Paga</SelectItem>
+                <SelectItem value="finalizada">Finalizada</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
+      </FilterBar>
 
-        {selectedFatura && (
-          <FaturaEditModal
-            isOpen={!!selectedFatura}
-            onClose={() => setSelectedFatura(null)}
-            fatura={selectedFatura}
-            onSuccess={updateFatura}
-          />
-        )}
-      </div>
+      <FaturasTable
+        faturas={filteredFaturas}
+        isLoading={isLoading}
+        isMobile={isMobile}
+        onUpdateFatura={updateFatura}
+        onUpdateStatus={updateFaturaStatus}
+        onDeleteFatura={deleteFatura}
+      />
     </div>
   );
 }
