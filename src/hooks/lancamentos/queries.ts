@@ -1,6 +1,5 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { startOfDay, endOfDay, parseISO } from "date-fns";
 import { UseLancamentosFinanceirosOptions, LancamentoResponse } from "./types";
 import { LancamentoFinanceiro } from "@/types/financeiro";
 import { Json } from "@/integrations/supabase/types";
@@ -8,15 +7,11 @@ import { Json } from "@/integrations/supabase/types";
 export async function fetchLancamentos({
   tipo,
   status,
-  dataInicio,
-  dataFim,
   busca,
 }: UseLancamentosFinanceirosOptions): Promise<LancamentoFinanceiro[]> {
   console.log('Buscando lançamentos com parâmetros:', {
     tipo,
     status,
-    dataInicio,
-    dataFim,
     busca
   });
 
@@ -59,18 +54,6 @@ export async function fetchLancamentos({
   if (status && status !== 'todos') {
     query = query.eq('status', status);
     console.log('Filtro de status aplicado:', status);
-  }
-
-  if (dataInicio) {
-    const dataInicioISO = startOfDay(parseISO(dataInicio)).toISOString();
-    query = query.gte('data_vencimento', dataInicioISO);
-    console.log('Filtro de data início aplicado:', dataInicioISO);
-  }
-
-  if (dataFim) {
-    const dataFimISO = endOfDay(parseISO(dataFim)).toISOString();
-    query = query.lte('data_vencimento', dataFimISO);
-    console.log('Filtro de data fim aplicado:', dataFimISO);
   }
 
   if (busca) {
@@ -142,7 +125,12 @@ function mapLancamentosResponse(data: any[]): LancamentoFinanceiro[] {
       }
     } : undefined,
     pagamento_usina: item.pagamento_usina ? {
-      ...item.pagamento_usina,
+      id: item.pagamento_usina.id,
+      valor_total: item.pagamento_usina.valor_total,
+      geracao_kwh: item.pagamento_usina.geracao_kwh,
+      status: item.pagamento_usina.status,
+      data_vencimento: item.pagamento_usina.data_vencimento,
+      data_pagamento: item.pagamento_usina.data_pagamento,
       usina: item.pagamento_usina.usina ? {
         unidade_usina: {
           numero_uc: item.pagamento_usina.usina.unidade_usina?.numero_uc || ''

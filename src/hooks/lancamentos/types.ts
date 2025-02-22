@@ -4,8 +4,6 @@ import { TipoLancamento, StatusLancamento } from "@/types/financeiro";
 export interface UseLancamentosFinanceirosOptions {
   tipo: TipoLancamento;
   status?: StatusLancamento | 'todos';
-  dataInicio?: string;
-  dataFim?: string;
   busca?: string;
 }
 
