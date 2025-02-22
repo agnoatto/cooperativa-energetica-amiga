@@ -2,9 +2,10 @@
 import { Button } from "@/components/ui/button";
 import { FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { generateFaturaPdf } from "@/utils/generateFaturaPdf";
 import { PdfFaturaData } from "@/types/pdf";
 import { useState } from "react";
+import { pdf } from "@react-pdf/renderer";
+import { FaturaPDF } from "./pdf/FaturaPDF";
 
 interface FaturaPdfButtonProps {
   fatura: PdfFaturaData;
@@ -21,8 +22,13 @@ export function FaturaPdfButton({ fatura }: FaturaPdfButtonProps) {
 
     setIsGenerating(true);
     try {
-      const { doc, fileName } = await generateFaturaPdf(fatura);
-      doc.save(fileName);
+      const blob = await pdf(<FaturaPDF fatura={fatura} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `fatura-${fatura.unidade_beneficiaria.numero_uc}-${String(fatura.mes).padStart(2, '0')}-${fatura.ano}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
       toast.success("PDF gerado com sucesso!");
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
