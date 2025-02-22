@@ -1,4 +1,3 @@
-
 export const formatarDocumento = (doc: string) => {
   if (!doc) return '-';
   const numero = doc.replace(/\D/g, '');
@@ -26,3 +25,10 @@ export const formatarMoeda = (valor: number) => {
 
 // Alias para manter compatibilidade com o nome usado em alguns componentes
 export const formatCurrency = formatarMoeda;
+
+export const formatarKwh = (valor: number) => {
+  return valor?.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }) ?? '0,00';
+};
