@@ -3,9 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { UsinaData } from "../types";
 
+export const usinaKeys = {
+  all: ['usinas'] as const,
+  lists: () => [...usinaKeys.all, 'list'] as const,
+  dashboard: () => [...usinaKeys.all, 'dashboard'] as const,
+};
+
 export function useUsinas() {
   return useQuery({
-    queryKey: ['usinas'],
+    queryKey: usinaKeys.lists(),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('usinas')

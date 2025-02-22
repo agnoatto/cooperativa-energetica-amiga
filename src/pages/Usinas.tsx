@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UsinaForm } from "@/components/usinas/UsinaForm";
@@ -6,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { UsinasHeader } from "./usinas/components/UsinasHeader";
 import { UsinaMobileCard } from "./usinas/components/UsinaMobileCard";
 import { UsinasDesktopTable } from "./usinas/components/UsinasDesktopTable";
-import { useUsinas } from "./usinas/hooks/useUsinas";
+import { useUsinas, usinaKeys } from "./usinas/hooks/useUsinas";
 import { UsinaFilterBar } from "./usinas/components/UsinaFilterBar";
 import { UsinasDashboard } from "./usinas/components/UsinasDashboard";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Usinas = () => {
   const [openForm, setOpenForm] = useState(false);
@@ -24,7 +24,12 @@ const Usinas = () => {
   ]);
   
   const isMobile = useIsMobile();
-  const { data: usinas, refetch } = useUsinas();
+  const { data: usinas } = useUsinas();
+  const queryClient = useQueryClient();
+
+  const invalidateUsinasQueries = () => {
+    queryClient.invalidateQueries({ queryKey: usinaKeys.all });
+  };
 
   const handleDelete = async (usinaId: string) => {
     try {
@@ -34,7 +39,7 @@ const Usinas = () => {
         .eq('id', usinaId);
 
       if (error) throw error;
-      refetch();
+      invalidateUsinasQueries();
     } catch (error: any) {
       console.error('Error deleting usina:', error);
     }
@@ -46,7 +51,7 @@ const Usinas = () => {
   };
 
   const handleSuccess = () => {
-    refetch();
+    invalidateUsinasQueries();
   };
 
   const handleAddClick = () => {

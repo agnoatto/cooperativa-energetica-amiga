@@ -5,6 +5,7 @@ import { BatteryCharging, Factory, Zap } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatarKwh } from "@/utils/formatters";
+import { usinaKeys } from "../hooks/useUsinas";
 
 interface DashboardData {
   total_usinas: number;
@@ -14,7 +15,7 @@ interface DashboardData {
 
 export function UsinasDashboard() {
   const { data, isLoading } = useQuery({
-    queryKey: ["usinas-dashboard"],
+    queryKey: usinaKeys.dashboard(),
     queryFn: async () => {
       const { data: usinas, error } = await supabase
         .from('usinas')
