@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import { Edit, Eye, Trash2, Send, CheckCircle2 } from "lucide-react";
+import { Edit, Eye, Trash2, Send, CheckCircle2, PenTool, RotateCw } from "lucide-react";
 import { FaturaPdfButton } from "../FaturaPdfButton";
 
 interface FaturaRowActionsProps {
@@ -35,7 +35,8 @@ export function FaturaRowActions({
     </Button>
   );
 
-  if (['gerada', 'pendente'].includes(fatura.status)) {
+  // Permitir edição em status específicos
+  if (['gerada', 'pendente', 'corrigida'].includes(fatura.status)) {
     actions.push(
       <Button
         key="edit"
@@ -49,6 +50,7 @@ export function FaturaRowActions({
     );
   }
 
+  // Botão de envio inicial ou reenvio
   if (fatura.status === 'pendente') {
     actions.push(
       <Button
@@ -63,7 +65,38 @@ export function FaturaRowActions({
     );
   }
 
-  if (['enviada', 'atrasada'].includes(fatura.status)) {
+  // Botão para iniciar correção
+  if (fatura.status === 'enviada') {
+    actions.push(
+      <Button
+        key="correct"
+        variant="outline"
+        size="icon"
+        onClick={() => onUpdateStatus(fatura, 'corrigida', 'Fatura marcada para correção')}
+        title="Corrigir Fatura"
+      >
+        <PenTool className="h-4 w-4" />
+      </Button>
+    );
+  }
+
+  // Botão para reenviar após correção
+  if (fatura.status === 'corrigida') {
+    actions.push(
+      <Button
+        key="resend"
+        variant="outline"
+        size="icon"
+        onClick={() => onUpdateStatus(fatura, 'reenviada', 'Fatura reenviada após correção')}
+        title="Reenviar Fatura"
+      >
+        <RotateCw className="h-4 w-4" />
+      </Button>
+    );
+  }
+
+  // Confirmação de pagamento
+  if (['enviada', 'reenviada', 'atrasada'].includes(fatura.status)) {
     actions.push(
       <Button
         key="confirm"
@@ -77,6 +110,7 @@ export function FaturaRowActions({
     );
   }
 
+  // Finalizar fatura
   if (fatura.status === 'paga') {
     actions.push(
       <Button
@@ -91,6 +125,7 @@ export function FaturaRowActions({
     );
   }
 
+  // Permitir exclusão apenas de faturas recém geradas
   if (fatura.status === 'gerada') {
     actions.push(
       <Button

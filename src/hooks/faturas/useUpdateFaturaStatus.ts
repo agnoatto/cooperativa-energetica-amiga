@@ -30,10 +30,14 @@ export const useUpdateFaturaStatus = () => {
         status: FaturaStatus;
         data: string;
         observacao?: string;
+        motivo_correcao?: string;
+        campos_alterados?: string[];
       }> || []).map(entry => ({
         status: entry.status,
         data: entry.data,
-        observacao: entry.observacao
+        observacao: entry.observacao,
+        motivo_correcao: entry.motivo_correcao,
+        campos_alterados: entry.campos_alterados
       }));
 
       const novoHistorico: StatusHistoryEntry[] = [
@@ -41,7 +45,9 @@ export const useUpdateFaturaStatus = () => {
         {
           status: data.status,
           data: now,
-          observacao: data.observacao
+          observacao: data.observacao,
+          motivo_correcao: data.motivo_correcao,
+          campos_alterados: data.campos_alterados
         }
       ];
 
@@ -51,7 +57,7 @@ export const useUpdateFaturaStatus = () => {
       };
 
       // Adicionar campos específicos baseados no status e dados de pagamento
-      if (data.status === 'enviada') {
+      if (data.status === 'enviada' || data.status === 'reenviada') {
         updateData.data_envio = now;
       } else if (data.status === 'paga') {
         updateData.data_confirmacao_pagamento = now;
@@ -106,7 +112,9 @@ export const useUpdateFaturaStatus = () => {
                 {
                   status: data.status,
                   data: new Date().toISOString(),
-                  observacao: data.observacao
+                  observacao: data.observacao,
+                  motivo_correcao: data.motivo_correcao,
+                  campos_alterados: data.campos_alterados
                 }
               ]
             };
@@ -136,7 +144,18 @@ export const useUpdateFaturaStatus = () => {
       queryClient.invalidateQueries({
         queryKey: ['faturas', date.getMonth() + 1, date.getFullYear()]
       });
-      toast.success("Status da fatura atualizado com sucesso!");
+      
+      // Mensagem específica baseada no novo status
+      const statusMessages = {
+        enviada: "Fatura enviada com sucesso!",
+        corrigida: "Fatura marcada para correção!",
+        reenviada: "Fatura reenviada com sucesso!",
+        paga: "Pagamento confirmado com sucesso!",
+        finalizada: "Fatura finalizada com sucesso!",
+        atrasada: "Fatura marcada como atrasada!"
+      };
+      
+      toast.success(statusMessages[variables.status] || "Status da fatura atualizado com sucesso!");
     }
   });
 };

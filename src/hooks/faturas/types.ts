@@ -28,6 +28,8 @@ export interface UpdateFaturaStatusInput {
   id: string;
   status: FaturaStatus;
   observacao?: string;
+  motivo_correcao?: string;
+  campos_alterados?: string[];
   data_pagamento?: string;
   valor_adicional?: number;
   observacao_pagamento?: string;

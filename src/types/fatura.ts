@@ -12,12 +12,14 @@ export interface UnidadeBeneficiaria {
   cooperado: Cooperado;
 }
 
-export type FaturaStatus = 'gerada' | 'pendente' | 'enviada' | 'atrasada' | 'paga' | 'finalizada';
+export type FaturaStatus = 'gerada' | 'pendente' | 'enviada' | 'corrigida' | 'reenviada' | 'atrasada' | 'paga' | 'finalizada';
 
 export interface StatusHistoryEntry {
   status: FaturaStatus;
   data: string;
   observacao?: string;
+  motivo_correcao?: string;
+  campos_alterados?: string[];
 }
 
 export interface HistoricoFatura {
@@ -58,4 +60,3 @@ export interface Fatura {
   historico_faturas: HistoricoFatura[];
   unidade_beneficiaria: UnidadeBeneficiaria;
 }
-
