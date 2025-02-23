@@ -6,6 +6,8 @@ import { FaturasDashboard } from "./FaturasDashboard";
 import { FaturasTable } from "./FaturasTable";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { FilterBar } from "@/components/shared/FilterBar";
+import { useMonthSelection } from "@/hooks/useMonthSelection";
+import { MonthSelector } from "./MonthSelector";
 import {
   Select,
   SelectContent,
@@ -19,7 +21,7 @@ import { Label } from "@/components/ui/label";
 export function FaturasContainer() {
   const [status, setStatus] = useState<FaturaStatus | "todos">("todos");
   const [busca, setBusca] = useState("");
-  const currentDate = new Date();
+  const { currentDate, handlePreviousMonth, handleNextMonth } = useMonthSelection();
 
   const { 
     faturas, 
@@ -70,6 +72,12 @@ export function FaturasContainer() {
       <FaturasHeader
         onGerarFaturas={gerarFaturas}
         isGenerating={isGenerating}
+      />
+
+      <MonthSelector 
+        currentDate={currentDate}
+        onPreviousMonth={handlePreviousMonth}
+        onNextMonth={handleNextMonth}
       />
 
       <FaturasDashboard 
