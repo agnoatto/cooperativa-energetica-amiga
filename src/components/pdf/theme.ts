@@ -10,127 +10,138 @@ export const COLORS = {
   LIGHT_GRAY: '#f8f9fa',
   GREEN: '#008000',
   BLUE: '#0072CE',
-  RED: '#ea384c',
+  RED: '#ff0000',
+  HIGHLIGHT_BG: '#d7ff8f',
+  HEADER_BG: '#1a1f2c',
+  SUCCESS_GREEN: '#84cc16',
 };
 
 export const FONTS = {
+  HEADER: 20,
   TITLE: 14,
   SUBTITLE: 12,
-  NORMAL: 8,
-  SMALL: 7,
-  HIGHLIGHT: 10,
-};
-
-export const SPACING = {
-  MARGIN: '10px',
-  TOP: '5px',
-  PAGE: {
-    WIDTH: '210mm',
-    HEIGHT: '297mm',
-    CONTENT_WIDTH: '180mm',
-  },
+  NORMAL: 10,
+  SMALL: 9,
+  HIGHLIGHT: 16,
 };
 
 export const styles = StyleSheet.create({
   page: {
-    padding: SPACING.MARGIN,
-    fontSize: FONTS.NORMAL,
     fontFamily: 'Helvetica',
-    backgroundColor: COLORS.WHITE,
+    fontSize: FONTS.NORMAL,
+    color: COLORS.BLACK,
+    padding: 0,
   },
   header: {
-    backgroundColor: COLORS.PRIMARY,
-    padding: '6px',
-    borderRadius: '4px',
-  },
-  headerContent: {
-    padding: '4px',
+    backgroundColor: COLORS.HEADER_BG,
+    padding: '20px',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerTitle: {
     color: COLORS.WHITE,
-    fontSize: FONTS.TITLE,
-    marginBottom: '2px',
-    textAlign: 'center',
+    fontSize: FONTS.HEADER,
     fontWeight: 'bold',
   },
-  headerSubtitle: {
-    color: COLORS.WHITE,
-    fontSize: FONTS.SUBTITLE,
-    textAlign: 'center',
-    opacity: 0.9,
+  headerLogo: {
+    width: 120,
+    height: 40,
   },
-  section: {
-    padding: '6px',
-    borderRadius: '4px',
+  clientInfo: {
+    padding: '10px 20px',
+    borderBottom: 1,
+    borderColor: COLORS.GRAY,
   },
-  sectionTitle: {
-    fontSize: FONTS.SUBTITLE,
-    marginBottom: '4px',
-    color: COLORS.PRIMARY,
-    fontWeight: 'bold',
-  },
-  text: {
-    fontSize: FONTS.NORMAL,
-    color: COLORS.BLACK,
-    marginBottom: '1px',
-  },
-  infoBox: {
-    padding: '6px',
-    backgroundColor: COLORS.LIGHT_GRAY,
-    borderRadius: '4px',
-  },
-  valoresBox: {
-    padding: '6px',
-    backgroundColor: COLORS.SECONDARY,
-    borderRadius: '4px',
-  },
-  valoresRow: {
+  clientRow: {
     flexDirection: 'row',
-    marginBottom: '2px',
-    alignItems: 'center',
+    marginBottom: 5,
   },
-  valorLabel: {
-    width: '40%',
-    fontSize: FONTS.NORMAL,
-    color: COLORS.PRIMARY,
-  },
-  valorValue: {
-    flex: 1,
-    fontSize: FONTS.HIGHLIGHT,
-    color: COLORS.BLUE,
+  clientLabel: {
+    width: '80px',
     fontWeight: 'bold',
+  },
+  highlightBox: {
+    backgroundColor: COLORS.HIGHLIGHT_BG,
+    padding: '10px 20px',
+    margin: '10px 0',
+    borderRadius: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  highlightItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  highlightLabel: {
+    fontSize: FONTS.SMALL,
+    marginBottom: 5,
+  },
+  highlightValue: {
+    fontSize: FONTS.HIGHLIGHT,
+    fontWeight: 'bold',
+  },
+  contentSection: {
+    padding: '10px 20px',
+  },
+  sectionHeader: {
+    backgroundColor: COLORS.HEADER_BG,
+    color: COLORS.WHITE,
+    padding: '5px 10px',
+    fontSize: FONTS.SUBTITLE,
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
   table: {
-    width: 'auto',
-    borderWidth: 1,
-    borderColor: COLORS.GRAY,
-    borderStyle: 'solid',
+    width: '100%',
+    marginBottom: 10,
+  },
+  tableHeader: {
+    backgroundColor: COLORS.LIGHT_GRAY,
+    flexDirection: 'row',
+    borderBottomColor: COLORS.GRAY,
+    borderBottomWidth: 1,
+    padding: '5px 0',
   },
   tableRow: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
     borderBottomColor: COLORS.GRAY,
-    borderBottomStyle: 'solid',
-    minHeight: '16px',
-    alignItems: 'center',
-  },
-  tableHeader: {
-    backgroundColor: COLORS.PRIMARY,
-  },
-  tableHeaderText: {
-    color: COLORS.WHITE,
-    fontSize: FONTS.NORMAL,
-    fontWeight: 'bold',
-    padding: '3px',
+    borderBottomWidth: 1,
+    padding: '5px 0',
   },
   tableCell: {
-    padding: '3px',
-    fontSize: FONTS.SMALL,
+    flex: 1,
+    padding: '0 5px',
   },
-  logo: {
-    width: 40,
-    height: 40,
-    marginBottom: 4,
-    alignSelf: 'center',
+  tableCellRight: {
+    flex: 1,
+    padding: '0 5px',
+    textAlign: 'right',
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.HIGHLIGHT_BG,
+    padding: '10px',
+    marginTop: 10,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 0,
+    right: 0,
+    padding: '20px',
+  },
+  footerText: {
+    fontSize: FONTS.SMALL,
+    textAlign: 'center',
+    color: COLORS.GRAY,
+  },
+  warningText: {
+    textAlign: 'center',
+    padding: '10px',
+    backgroundColor: '#4b7931',
+    color: COLORS.WHITE,
+    fontSize: FONTS.SMALL,
   },
 });
