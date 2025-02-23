@@ -36,15 +36,15 @@ export const styles = StyleSheet.create({
     padding: SPACING.MARGIN,
     fontSize: FONTS.NORMAL,
     fontFamily: 'Helvetica',
+    backgroundColor: COLORS.WHITE,
   },
   header: {
     backgroundColor: COLORS.PRIMARY,
     padding: '8px',
-    marginBottom: '10px',
     borderRadius: '4px',
   },
   headerContent: {
-    padding: '5px 10px',
+    padding: '5px',
   },
   headerTitle: {
     color: COLORS.WHITE,
@@ -60,7 +60,6 @@ export const styles = StyleSheet.create({
     opacity: 0.9,
   },
   section: {
-    marginBottom: '8px',
     padding: '8px',
     borderRadius: '4px',
   },
@@ -73,7 +72,7 @@ export const styles = StyleSheet.create({
   text: {
     fontSize: FONTS.NORMAL,
     color: COLORS.BLACK,
-    marginBottom: '3px',
+    marginBottom: '2px',
   },
   infoBox: {
     padding: '8px',
@@ -81,14 +80,13 @@ export const styles = StyleSheet.create({
     borderRadius: '4px',
   },
   valoresBox: {
-    padding: '10px',
+    padding: '8px',
     backgroundColor: COLORS.SECONDARY,
     borderRadius: '4px',
-    marginTop: '3px',
   },
   valoresRow: {
     flexDirection: 'row',
-    marginBottom: '4px',
+    marginBottom: '3px',
     alignItems: 'center',
   },
   valorLabel: {
@@ -103,9 +101,7 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   table: {
-    display: 'flex',
     width: 'auto',
-    marginTop: '5px',
     borderWidth: 1,
     borderColor: COLORS.GRAY,
     borderStyle: 'solid',

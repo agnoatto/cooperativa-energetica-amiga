@@ -16,18 +16,18 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
   
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
+      <Page size="A4" style={[styles.page, { paddingVertical: 20 }]}>
+        <View style={[styles.header, { marginBottom: 15 }]}>
           <View style={styles.headerContent}>
             <Text style={styles.headerTitle}>Fatura de Energia</Text>
             <Text style={styles.headerSubtitle}>Referência: {mesReferencia}</Text>
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', gap: '10px' }}>
+        <View style={{ flexDirection: 'row', gap: 15, marginBottom: 15 }}>
           {/* Coluna da esquerda */}
           <View style={{ flex: 1 }}>
-            <View style={styles.section}>
+            <View style={[styles.section, { marginBottom: 15 }]}>
               <Text style={styles.sectionTitle}>Dados do Cliente</Text>
               <View style={styles.infoBox}>
                 <View style={styles.valoresRow}>
@@ -97,16 +97,16 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
         </View>
 
         {/* Histórico dos últimos 12 meses */}
-        <View style={styles.section}>
+        <View style={[styles.section, { marginTop: 10 }]}>
           <Text style={styles.sectionTitle}>Histórico de Consumo</Text>
-          <View style={styles.table}>
+          <View style={[styles.table, { marginBottom: 15 }]}>
             <View style={[styles.tableRow, styles.tableHeader]}>
               <Text style={[styles.tableHeaderText, { width: '25%' }]}>Mês/Ano</Text>
               <Text style={[styles.tableHeaderText, { width: '25%' }]}>Consumo (kWh)</Text>
               <Text style={[styles.tableHeaderText, { width: '25%' }]}>Desconto</Text>
               <Text style={[styles.tableHeaderText, { width: '25%' }]}>Economia</Text>
             </View>
-            {fatura.historico_faturas.slice(0, 12).map((historico, index) => (
+            {fatura.historico_faturas.map((historico, index) => (
               <View key={index} style={styles.tableRow}>
                 <Text style={[styles.tableCell, { width: '25%' }]}>
                   {format(new Date(historico.ano, historico.mes - 1), 'MMM/yyyy', { locale: ptBR })}
