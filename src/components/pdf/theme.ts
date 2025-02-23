@@ -57,6 +57,50 @@ export const styles = StyleSheet.create({
     width: 120,
     height: 40,
   },
+  clientInfo: {
+    padding: '10px 20px',
+    borderBottom: 1,
+    borderColor: COLORS.GRAY,
+  },
+  clientRow: {
+    flexDirection: 'row',
+    marginBottom: 5,
+  },
+  clientLabel: {
+    width: '80px',
+    fontWeight: 'bold',
+  },
+  contentSection: {
+    padding: '10px 20px',
+  },
+  sectionHeader: {
+    backgroundColor: COLORS.HEADER_BG,
+    color: COLORS.WHITE,
+    padding: '5px 10px',
+    fontSize: FONTS.SUBTITLE,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  highlightBox: {
+    backgroundColor: COLORS.HIGHLIGHT_BG,
+    padding: '10px 20px',
+    margin: '10px 0',
+    borderRadius: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  highlightItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  highlightLabel: {
+    fontSize: FONTS.SMALL,
+    marginBottom: 5,
+  },
+  highlightValue: {
+    fontSize: FONTS.HIGHLIGHT,
+    fontWeight: 'bold',
+  },
   section: {
     margin: '10px 20px',
   },
