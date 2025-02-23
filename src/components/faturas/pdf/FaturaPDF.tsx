@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
-import { styles } from '@/components/pdf/theme';
+import { styles, COLORS, FONTS } from '@/components/pdf/theme';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PdfFaturaData } from '@/types/pdf';

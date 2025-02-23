@@ -39,58 +39,61 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  headerContent: {
+    flex: 1,
+    marginRight: 20,
+  },
   headerTitle: {
     color: COLORS.WHITE,
     fontSize: FONTS.HEADER,
     fontWeight: 'bold',
   },
+  headerSubtitle: {
+    color: COLORS.WHITE,
+    fontSize: FONTS.SUBTITLE,
+    marginTop: 5,
+  },
   headerLogo: {
     width: 120,
     height: 40,
   },
-  clientInfo: {
-    padding: '10px 20px',
-    borderBottom: 1,
-    borderColor: COLORS.GRAY,
+  section: {
+    margin: '10px 20px',
   },
-  clientRow: {
-    flexDirection: 'row',
-    marginBottom: 5,
-  },
-  clientLabel: {
-    width: '80px',
-    fontWeight: 'bold',
-  },
-  highlightBox: {
-    backgroundColor: COLORS.HIGHLIGHT_BG,
-    padding: '10px 20px',
-    margin: '10px 0',
-    borderRadius: 5,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  highlightItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  highlightLabel: {
-    fontSize: FONTS.SMALL,
-    marginBottom: 5,
-  },
-  highlightValue: {
-    fontSize: FONTS.HIGHLIGHT,
-    fontWeight: 'bold',
-  },
-  contentSection: {
-    padding: '10px 20px',
-  },
-  sectionHeader: {
+  sectionTitle: {
     backgroundColor: COLORS.HEADER_BG,
     color: COLORS.WHITE,
     padding: '5px 10px',
     fontSize: FONTS.SUBTITLE,
     fontWeight: 'bold',
     marginBottom: 10,
+  },
+  infoBox: {
+    backgroundColor: COLORS.LIGHT_GRAY,
+    padding: '10px',
+    marginBottom: '10px',
+  },
+  valoresBox: {
+    backgroundColor: COLORS.LIGHT_GRAY,
+    padding: '10px',
+    marginTop: '5px',
+  },
+  valoresRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: '5px',
+  },
+  valorLabel: {
+    flex: 1,
+    fontWeight: 'bold',
+  },
+  valorValue: {
+    flex: 1,
+    textAlign: 'right',
+  },
+  text: {
+    fontSize: FONTS.NORMAL,
+    marginBottom: 5,
   },
   table: {
     width: '100%',
@@ -102,6 +105,10 @@ export const styles = StyleSheet.create({
     borderBottomColor: COLORS.GRAY,
     borderBottomWidth: 1,
     padding: '5px 0',
+  },
+  tableHeaderText: {
+    fontWeight: 'bold',
+    fontSize: FONTS.SMALL,
   },
   tableRow: {
     flexDirection: 'row',
