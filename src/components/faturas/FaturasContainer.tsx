@@ -8,6 +8,7 @@ import { Fatura, FaturaStatus } from "@/types/fatura";
 import { FilterBar } from "@/components/shared/FilterBar";
 import { useMonthSelection } from "@/hooks/useMonthSelection";
 import { MonthSelector } from "./MonthSelector";
+import { FaturaEditModal } from "./FaturaEditModal";
 import {
   Select,
   SelectContent,
@@ -21,6 +22,8 @@ import { Label } from "@/components/ui/label";
 export function FaturasContainer() {
   const [status, setStatus] = useState<FaturaStatus | "todos">("todos");
   const [busca, setBusca] = useState("");
+  const [editingFatura, setEditingFatura] = useState<Fatura | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { currentDate, handlePreviousMonth, handleNextMonth } = useMonthSelection();
 
   const { 
@@ -39,18 +42,16 @@ export function FaturasContainer() {
   };
 
   const handleEditFatura = (fatura: Fatura) => {
-    const updateData = {
-      id: fatura.id,
-      consumo_kwh: fatura.consumo_kwh,
-      total_fatura: fatura.total_fatura,
-      fatura_concessionaria: fatura.fatura_concessionaria,
-      iluminacao_publica: fatura.iluminacao_publica,
-      outros_valores: fatura.outros_valores,
-      saldo_energia_kwh: fatura.saldo_energia_kwh,
-      observacao: fatura.observacao,
-      data_vencimento: fatura.data_vencimento,
-      percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
-    };
+    setEditingFatura(fatura);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingFatura(null);
+  };
+
+  const handleEditSuccess = (updateData: any) => {
     updateFatura(updateData);
   };
 
@@ -124,6 +125,15 @@ export function FaturasContainer() {
         onUpdateStatus={updateFaturaStatus}
         onDeleteFatura={async (id) => await deleteFatura(id)}
       />
+
+      {editingFatura && (
+        <FaturaEditModal
+          isOpen={isEditModalOpen}
+          onClose={handleCloseEditModal}
+          fatura={editingFatura}
+          onSuccess={handleEditSuccess}
+        />
+      )}
     </div>
   );
 }
