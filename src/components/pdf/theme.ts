@@ -22,8 +22,8 @@ export const FONTS = {
 };
 
 export const SPACING = {
-  MARGIN: '15px',
-  TOP: '10px',
+  MARGIN: '10px',
+  TOP: '5px',
   PAGE: {
     WIDTH: '210mm',
     HEIGHT: '297mm',
@@ -40,16 +40,16 @@ export const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: COLORS.PRIMARY,
-    padding: '8px',
+    padding: '6px',
     borderRadius: '4px',
   },
   headerContent: {
-    padding: '5px',
+    padding: '4px',
   },
   headerTitle: {
     color: COLORS.WHITE,
     fontSize: FONTS.TITLE,
-    marginBottom: '3px',
+    marginBottom: '2px',
     textAlign: 'center',
     fontWeight: 'bold',
   },
@@ -60,33 +60,33 @@ export const styles = StyleSheet.create({
     opacity: 0.9,
   },
   section: {
-    padding: '8px',
+    padding: '6px',
     borderRadius: '4px',
   },
   sectionTitle: {
     fontSize: FONTS.SUBTITLE,
-    marginBottom: '5px',
+    marginBottom: '4px',
     color: COLORS.PRIMARY,
     fontWeight: 'bold',
   },
   text: {
     fontSize: FONTS.NORMAL,
     color: COLORS.BLACK,
-    marginBottom: '2px',
+    marginBottom: '1px',
   },
   infoBox: {
-    padding: '8px',
+    padding: '6px',
     backgroundColor: COLORS.LIGHT_GRAY,
     borderRadius: '4px',
   },
   valoresBox: {
-    padding: '8px',
+    padding: '6px',
     backgroundColor: COLORS.SECONDARY,
     borderRadius: '4px',
   },
   valoresRow: {
     flexDirection: 'row',
-    marginBottom: '3px',
+    marginBottom: '2px',
     alignItems: 'center',
   },
   valorLabel: {
@@ -111,7 +111,7 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.GRAY,
     borderBottomStyle: 'solid',
-    minHeight: '20px',
+    minHeight: '16px',
     alignItems: 'center',
   },
   tableHeader: {
@@ -121,16 +121,16 @@ export const styles = StyleSheet.create({
     color: COLORS.WHITE,
     fontSize: FONTS.NORMAL,
     fontWeight: 'bold',
-    padding: '4px',
+    padding: '3px',
   },
   tableCell: {
-    padding: '4px',
+    padding: '3px',
     fontSize: FONTS.SMALL,
   },
   logo: {
     width: 40,
     height: 40,
-    marginBottom: 5,
+    marginBottom: 4,
     alignSelf: 'center',
   },
 });

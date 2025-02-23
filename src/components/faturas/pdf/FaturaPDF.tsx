@@ -16,18 +16,18 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
   
   return (
     <Document>
-      <Page size="A4" style={[styles.page, { paddingVertical: 20 }]}>
-        <View style={[styles.header, { marginBottom: 15 }]}>
+      <Page size="A4" style={[styles.page, { padding: 10 }]}>
+        <View style={[styles.header, { marginBottom: 10 }]}>
           <View style={styles.headerContent}>
             <Text style={styles.headerTitle}>Fatura de Energia</Text>
             <Text style={styles.headerSubtitle}>Referência: {mesReferencia}</Text>
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', gap: 15, marginBottom: 15 }}>
+        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
           {/* Coluna da esquerda */}
           <View style={{ flex: 1 }}>
-            <View style={[styles.section, { marginBottom: 15 }]}>
+            <View style={[styles.section, { marginBottom: 10 }]}>
               <Text style={styles.sectionTitle}>Dados do Cliente</Text>
               <View style={styles.infoBox}>
                 <View style={styles.valoresRow}>
@@ -97,9 +97,9 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
         </View>
 
         {/* Histórico dos últimos 12 meses */}
-        <View style={[styles.section, { marginTop: 10 }]}>
+        <View style={[styles.section, { marginTop: 5 }]}>
           <Text style={styles.sectionTitle}>Histórico de Consumo</Text>
-          <View style={[styles.table, { marginBottom: 15 }]}>
+          <View style={[styles.table, { marginBottom: 10 }]}>
             <View style={[styles.tableRow, styles.tableHeader]}>
               <Text style={[styles.tableHeaderText, { width: '25%' }]}>Mês/Ano</Text>
               <Text style={[styles.tableHeaderText, { width: '25%' }]}>Consumo (kWh)</Text>
@@ -125,7 +125,7 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
 
         {/* Rodapé */}
         <View style={[styles.section, { marginTop: 'auto' }]}>
-          <View style={[styles.infoBox, { marginTop: 5 }]}>
+          <View style={[styles.infoBox, { padding: 5 }]}>
             <Text style={[styles.text, { fontSize: FONTS.SMALL, textAlign: 'center', color: COLORS.GRAY }]}>
               Deverá ser pago a sua fatura COGESOL e a fatura RGE!
             </Text>
