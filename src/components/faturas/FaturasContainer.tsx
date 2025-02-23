@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useFaturas } from "@/hooks/useFaturas";
 import { FaturasHeader } from "./FaturasHeader";
@@ -58,7 +59,11 @@ export function FaturasContainer() {
                             fatura_concessionaria > 0;
 
     if (todosPreenchidos && editingFatura?.status === 'gerada') {
-      await updateFaturaStatus(editingFatura, 'pendente', 'Fatura pronta para envio ao cliente');
+      await updateFaturaStatus({
+        id: editingFatura.id,
+        status: 'pendente',
+        observacao: 'Fatura pronta para envio ao cliente'
+      });
     }
     
     updateFatura(updateData);
