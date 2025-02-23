@@ -1,8 +1,15 @@
 
 import { Button } from "@/components/ui/button";
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import { Edit, Eye, Trash2, Send, CheckCircle2, PenTool, RotateCw } from "lucide-react";
+import { Edit, Eye, Trash2, Send, CheckCircle2, PenTool, RotateCw, Mail, Phone } from "lucide-react";
 import { FaturaPdfButton } from "../FaturaPdfButton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 interface FaturaRowActionsProps {
   fatura: Fatura;
@@ -21,6 +28,26 @@ export function FaturaRowActions({
   onUpdateStatus,
   onShowPaymentModal,
 }: FaturaRowActionsProps) {
+  const handleSendEmail = async () => {
+    try {
+      // TODO: Implementar envio por email
+      toast.success("Em breve: Envio por email");
+      await onUpdateStatus(fatura, 'enviada', 'Fatura enviada por email');
+    } catch (error) {
+      toast.error("Erro ao enviar email");
+    }
+  };
+
+  const handleSendWhatsApp = async () => {
+    try {
+      // TODO: Implementar envio por WhatsApp
+      toast.success("Em breve: Envio por WhatsApp");
+      await onUpdateStatus(fatura, 'enviada', 'Fatura enviada por WhatsApp');
+    } catch (error) {
+      toast.error("Erro ao enviar WhatsApp");
+    }
+  };
+
   const actions = [];
 
   actions.push(
@@ -50,18 +77,30 @@ export function FaturaRowActions({
     );
   }
 
-  // Botão de envio inicial ou reenvio
+  // Botão de envio para faturas pendentes
   if (fatura.status === 'pendente') {
     actions.push(
-      <Button
-        key="send"
-        variant="outline"
-        size="icon"
-        onClick={() => onUpdateStatus(fatura, 'enviada', 'Fatura enviada ao cliente')}
-        title="Enviar Fatura"
-      >
-        <Send className="h-4 w-4" />
-      </Button>
+      <DropdownMenu key="send">
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            title="Enviar Fatura"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={handleSendEmail}>
+            <Mail className="mr-2 h-4 w-4" />
+            Enviar por Email
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleSendWhatsApp}>
+            <Phone className="mr-2 h-4 w-4" />
+            Enviar por WhatsApp
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     );
   }
 

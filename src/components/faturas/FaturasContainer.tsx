@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useFaturas } from "@/hooks/useFaturas";
 import { FaturasHeader } from "./FaturasHeader";
@@ -51,8 +50,19 @@ export function FaturasContainer() {
     setEditingFatura(null);
   };
 
-  const handleEditSuccess = (updateData: any) => {
+  const handleEditSuccess = async (updateData: any) => {
+    const { data_vencimento, consumo_kwh, total_fatura, fatura_concessionaria } = updateData;
+    const todosPreenchidos = data_vencimento && 
+                            consumo_kwh > 0 && 
+                            total_fatura > 0 && 
+                            fatura_concessionaria > 0;
+
+    if (todosPreenchidos && editingFatura?.status === 'gerada') {
+      await updateFaturaStatus(editingFatura, 'pendente', 'Fatura pronta para envio ao cliente');
+    }
+    
     updateFatura(updateData);
+    setIsEditModalOpen(false);
   };
 
   const filteredFaturas = faturas?.filter(fatura => {
