@@ -22,7 +22,6 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
           <Text style={styles.headerTitle}>
             Relatório Mensal - Ref.: {mesReferencia}
           </Text>
-          {/* TODO: Adicionar logo da COGESOL quando disponível */}
         </View>
 
         {/* Informações do Cliente */}
