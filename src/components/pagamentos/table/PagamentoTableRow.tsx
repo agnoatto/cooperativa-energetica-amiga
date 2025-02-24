@@ -1,8 +1,9 @@
+
 import { format } from "date-fns";
 import { FileDown, Send, Eye, Pencil, Trash, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { PagamentoData } from "../types/pagamento";
+import { PagamentoData, SendMethod } from "../types/pagamento";
 import { formatarMoeda } from "@/utils/formatters";
 import { usePagamentoStatus } from "../hooks/usePagamentoStatus";
 import { useState } from "react";
@@ -40,62 +41,49 @@ export function PagamentoTableRow({
   const valorBruto = pagamento.geracao_kwh * (pagamento.usina?.valor_kwh || 0);
   const valorEfetivo = valorBruto - pagamento.valor_tusd_fio_b - pagamento.valor_concessionaria;
 
-  const handleSend = async (method: 'email' | 'whatsapp') => {
-    try {
-      await handleSendPagamento(pagamento, method);
-      setShowSendDialog(false);
-    } catch (error) {
-      console.error('Erro ao enviar boletim:', error);
-    }
-  };
+  const handlePreviewContaEnergia = async () => {
+    if (pagamento.arquivo_conta_energia_path) {
+      try {
+        const { data: { publicUrl }, error } = await supabase
+          .storage
+          .from('pagamentos')
+          .getPublicUrl(pagamento.arquivo_conta_energia_path);
 
-  const handleViewContaEnergia = async () => {
-    try {
-      if (!pagamento.arquivo_conta_energia_path) return;
-
-      const { data, error } = await supabase.storage
-        .from('pagamentos')
-        .createSignedUrl(pagamento.arquivo_conta_energia_path, 60);
-
-      if (error) {
-        console.error('Erro ao gerar URL da conta de energia:', error);
-        toast.error('Erro ao carregar conta de energia');
-        return;
+        if (error) throw error;
+        setPdfUrl(publicUrl);
+        setShowContaEnergiaPreview(true);
+      } catch (error) {
+        console.error('Erro ao obter URL do PDF:', error);
+        toast.error('Erro ao carregar o PDF');
       }
-
-      setPdfUrl(data.signedUrl);
-      setShowContaEnergiaPreview(true);
-    } catch (error) {
-      console.error('Erro ao visualizar conta de energia:', error);
-      toast.error('Erro ao carregar conta de energia');
     }
   };
 
   const handleDownloadContaEnergia = async () => {
-    try {
-      if (!pagamento.arquivo_conta_energia_path || !pagamento.arquivo_conta_energia_nome) return;
+    if (pagamento.arquivo_conta_energia_path) {
+      try {
+        const { data, error } = await supabase
+          .storage
+          .from('pagamentos')
+          .download(pagamento.arquivo_conta_energia_path);
 
-      const { data, error } = await supabase.storage
-        .from('pagamentos')
-        .download(pagamento.arquivo_conta_energia_path);
+        if (error) throw error;
 
-      if (error) {
-        console.error('Erro ao baixar conta de energia:', error);
-        toast.error('Erro ao baixar conta de energia');
-        return;
+        // Criar URL do blob e fazer download
+        const url = window.URL.createObjectURL(data);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = pagamento.arquivo_conta_energia_nome || 'conta-energia.pdf';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+
+        toast.success('Download iniciado');
+      } catch (error) {
+        console.error('Erro ao fazer download:', error);
+        toast.error('Erro ao fazer download do arquivo');
       }
-
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = pagamento.arquivo_conta_energia_nome;
-      document.body.appendChild(a);
-      a.click();
-      URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Erro ao baixar conta de energia:', error);
-      toast.error('Erro ao baixar conta de energia');
     }
   };
 
@@ -115,39 +103,39 @@ export function PagamentoTableRow({
         <div className="flex items-center justify-end gap-2">
           <TooltipProvider>
             {pagamento.arquivo_conta_energia_path && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={handleDownloadContaEnergia}
-                  >
-                    <FileDown className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Baixar conta de energia</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
+              <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={handlePreviewContaEnergia}
+                    >
+                      <FileText className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Visualizar Conta</p>
+                  </TooltipContent>
+                </Tooltip>
 
-            {pagamento.arquivo_conta_energia_path && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={handleViewContaEnergia}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Visualizar conta de energia</p>
-                </TooltipContent>
-              </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={handleDownloadContaEnergia}
+                    >
+                      <FileDown className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Download Conta</p>
+                  </TooltipContent>
+                </Tooltip>
+              </>
             )}
 
             <Tooltip>
@@ -190,22 +178,6 @@ export function PagamentoTableRow({
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8"
-                  onClick={() => onViewDetails(pagamento)}
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Ver detalhes</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
                   onClick={() => onEdit(pagamento)}
                 >
                   <Pencil className="h-4 w-4" />
@@ -221,7 +193,7 @@ export function PagamentoTableRow({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-destructive hover:text-destructive"
+                  className="h-8 w-8"
                   onClick={() => onDelete(pagamento)}
                 >
                   <Trash className="h-4 w-4" />
@@ -235,6 +207,7 @@ export function PagamentoTableRow({
         </div>
       </TableCell>
 
+      {/* Modais */}
       <PdfPreview 
         isOpen={showContaEnergiaPreview}
         onClose={() => {
@@ -253,7 +226,15 @@ export function PagamentoTableRow({
       <SendPagamentoDialog
         isOpen={showSendDialog}
         onClose={() => setShowSendDialog(false)}
-        onSend={handleSend}
+        onSend={async (method) => {
+          try {
+            await handleSendPagamento(pagamento, method);
+            setShowSendDialog(false);
+          } catch (error) {
+            console.error('Erro ao enviar boletim:', error);
+            toast.error('Erro ao enviar boletim');
+          }
+        }}
       />
     </TableRow>
   );
