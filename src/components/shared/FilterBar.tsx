@@ -10,6 +10,7 @@ interface FilterBarProps {
   onLimparFiltros: () => void;
   placeholder?: string;
   children?: React.ReactNode;
+  showColumnsButton?: boolean;
 }
 
 export function FilterBar({
@@ -17,7 +18,8 @@ export function FilterBar({
   onBuscaChange,
   onLimparFiltros,
   placeholder = "Buscar...",
-  children
+  children,
+  showColumnsButton
 }: FilterBarProps) {
   return (
     <div className="bg-white p-4 rounded-lg border space-y-4">
@@ -38,7 +40,12 @@ export function FilterBar({
 
         {children}
 
-        <div className="flex items-end">
+        <div className="flex items-end gap-2">
+          {showColumnsButton && (
+            <Button variant="outline">
+              Colunas
+            </Button>
+          )}
           <Button
             variant="outline"
             onClick={onLimparFiltros}
