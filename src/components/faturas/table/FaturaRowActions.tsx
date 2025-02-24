@@ -36,6 +36,7 @@ export function FaturaRowActions({
 }: FaturaRowActionsProps) {
   const [showCorrectionDialog, setShowCorrectionDialog] = useState(false);
   const [motivo, setMotivo] = useState("");
+  const [isProcessingCorrection, setIsProcessingCorrection] = useState(false);
 
   const handleSendEmail = async () => {
     try {
@@ -64,12 +65,17 @@ export function FaturaRowActions({
     }
 
     try {
+      setIsProcessingCorrection(true);
       await onUpdateStatus(fatura, 'corrigida', motivo);
       setShowCorrectionDialog(false);
       setMotivo("");
       toast.success("Fatura marcada para correção");
+      // Após confirmar a correção, abre automaticamente o modal de edição
+      onEdit(fatura);
     } catch (error) {
       toast.error("Erro ao marcar fatura para correção");
+    } finally {
+      setIsProcessingCorrection(false);
     }
   };
 
@@ -228,11 +234,18 @@ export function FaturaRowActions({
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCorrectionDialog(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCorrectionDialog(false)}
+              disabled={isProcessingCorrection}
+            >
               Cancelar
             </Button>
-            <Button onClick={handleCorrection}>
-              Confirmar Correção
+            <Button 
+              onClick={handleCorrection}
+              disabled={isProcessingCorrection}
+            >
+              {isProcessingCorrection ? "Processando..." : "Confirmar e Editar"}
             </Button>
           </DialogFooter>
         </DialogContent>
