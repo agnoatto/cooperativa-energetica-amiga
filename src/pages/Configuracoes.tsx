@@ -4,8 +4,13 @@ import { ProfileSettingsForm } from "@/components/configuracoes/ProfileSettingsF
 import { IntegracaoCoraForm } from "@/components/configuracoes/IntegracaoCoraForm";
 import { SystemSettingsForm } from "@/components/configuracoes/SystemSettingsForm";
 import { EmpresaForm } from "@/components/configuracoes/EmpresaForm";
+import { UsersList } from "@/components/configuracoes/UsersList";
+import { CooperativaInfo } from "@/components/configuracoes/CooperativaInfo";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Configuracoes() {
+  const { profile } = useAuth();
+
   return (
     <div className="space-y-6">
       <div>
@@ -14,6 +19,11 @@ export default function Configuracoes() {
           Gerencie suas configurações de perfil e sistema
         </p>
       </div>
+
+      <CooperativaInfo />
+
+      {profile?.role === 'master' && <UsersList />}
+
       <Tabs defaultValue="profile" className="space-y-4">
         <TabsList>
           <TabsTrigger value="profile">Perfil</TabsTrigger>
