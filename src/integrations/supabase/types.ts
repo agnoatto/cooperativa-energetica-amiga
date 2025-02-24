@@ -104,6 +104,7 @@ export type Database = {
           email: string | null
           id: string
           nome: string
+          razao_social: string | null
           telefone: string | null
           updated_at: string
         }
@@ -114,6 +115,7 @@ export type Database = {
           email?: string | null
           id?: string
           nome: string
+          razao_social?: string | null
           telefone?: string | null
           updated_at?: string
         }
@@ -124,6 +126,7 @@ export type Database = {
           email?: string | null
           id?: string
           nome?: string
+          razao_social?: string | null
           telefone?: string | null
           updated_at?: string
         }
