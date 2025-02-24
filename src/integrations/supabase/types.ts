@@ -841,9 +841,9 @@ export type Database = {
           avatar_storage_path: string | null
           avatar_url: string | null
           cargo: string | null
+          cooperativa_id: string | null
           created_at: string
           email: string
-          empresa_id: string | null
           id: string
           nome: string
           telefone: string | null
@@ -853,9 +853,9 @@ export type Database = {
           avatar_storage_path?: string | null
           avatar_url?: string | null
           cargo?: string | null
+          cooperativa_id?: string | null
           created_at?: string
           email?: string
-          empresa_id?: string | null
           id?: string
           nome?: string
           telefone?: string | null
@@ -865,9 +865,9 @@ export type Database = {
           avatar_storage_path?: string | null
           avatar_url?: string | null
           cargo?: string | null
+          cooperativa_id?: string | null
           created_at?: string
           email?: string
-          empresa_id?: string | null
           id?: string
           nome?: string
           telefone?: string | null
@@ -875,10 +875,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "profiles_empresa_id_fkey"
-            columns: ["empresa_id"]
+            foreignKeyName: "profiles_cooperativa_id_fkey"
+            columns: ["cooperativa_id"]
             isOneToOne: false
-            referencedRelation: "empresas"
+            referencedRelation: "cooperativas"
             referencedColumns: ["id"]
           },
         ]
@@ -1096,24 +1096,35 @@ export type Database = {
       }
       user_roles: {
         Row: {
+          cooperativa_id: string | null
           created_at: string
           id: string
-          role: string
+          role: Database["public"]["Enums"]["user_role"]
           user_id: string | null
         }
         Insert: {
+          cooperativa_id?: string | null
           created_at?: string
           id?: string
-          role: string
+          role?: Database["public"]["Enums"]["user_role"]
           user_id?: string | null
         }
         Update: {
+          cooperativa_id?: string | null
           created_at?: string
           id?: string
-          role?: string
+          role?: Database["public"]["Enums"]["user_role"]
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_cooperativa_id_fkey"
+            columns: ["cooperativa_id"]
+            isOneToOne: false
+            referencedRelation: "cooperativas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       usinas: {
         Row: {
@@ -1463,6 +1474,7 @@ export type Database = {
         | "cancelado"
       status_lancamento: "pendente" | "pago" | "atrasado" | "cancelado"
       tipo_lancamento: "receita" | "despesa"
+      user_role: "master" | "user"
     }
     CompositeTypes: {
       [_ in never]: never

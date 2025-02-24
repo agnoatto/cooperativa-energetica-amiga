@@ -13,6 +13,17 @@ export const profileFormSchema = z.object({
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
+export interface ProfileWithRole {
+  id: string;
+  nome: string;
+  email: string;
+  telefone?: string | null;
+  cargo?: string | null;
+  avatar_url?: string | null;
+  cooperativa_id?: string | null;
+  role?: 'master' | 'user';
+}
+
 export function useProfile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -23,14 +34,21 @@ export function useProfile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      const { data, error } = await supabase
+      // Buscar perfil e role do usuário
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("*")
+        .select("*, user_roles!inner(role)")
         .eq("id", user.id)
         .single();
 
-      if (error) throw error;
-      return data;
+      if (profileError) throw profileError;
+
+      const profileWithRole: ProfileWithRole = {
+        ...profile,
+        role: profile.user_roles?.[0]?.role || 'user'
+      };
+
+      return profileWithRole;
     },
   });
 

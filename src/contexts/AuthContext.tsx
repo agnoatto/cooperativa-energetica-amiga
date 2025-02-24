@@ -1,13 +1,13 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import type { ProfileWithRole } from '@/components/configuracoes/hooks/useProfile';
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
-  profile: any | null;
+  profile: ProfileWithRole | null;
   isLoading: boolean;
   signOut: () => Promise<void>;
 }
@@ -18,7 +18,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any | null>(null);
+  const [profile, setProfile] = useState<ProfileWithRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const MAX_RETRIES = 3;
@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Função para verificar se o token está expirado
     const isTokenExpired = (session: Session | null) => {
       if (!session) return true;
-      const expirationTime = session.expires_at * 1000; // Converter para milissegundos
+      const expirationTime = session.expires_at * 1000;
       const isExpired = Date.now() >= expirationTime;
       console.log('AuthContext: Token expirado?', isExpired);
       return isExpired;
@@ -41,13 +41,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('AuthContext: Carregando perfil do usuário:', userId);
         const { data, error } = await supabase
           .from('profiles')
-          .select('*')
+          .select('*, user_roles!inner(role)')
           .eq('id', userId)
           .maybeSingle();
 
         if (error) throw error;
-        console.log('AuthContext: Perfil carregado com sucesso:', data);
-        return data;
+        
+        if (data) {
+          const profileWithRole: ProfileWithRole = {
+            ...data,
+            role: data.user_roles?.[0]?.role || 'user'
+          };
+          console.log('AuthContext: Perfil carregado com sucesso:', profileWithRole);
+          return profileWithRole;
+        }
+        
+        return null;
       } catch (error) {
         console.error('AuthContext: Erro ao carregar perfil:', error);
         if (retryCount < MAX_RETRIES) {
@@ -128,7 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate, profile, retryCount]); // Adicionado retryCount às dependências
+  }, [navigate, profile, retryCount]);
 
   const signOut = async () => {
     try {
