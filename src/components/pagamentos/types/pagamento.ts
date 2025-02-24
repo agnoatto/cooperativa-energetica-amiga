@@ -23,7 +23,7 @@ export interface PagamentoFormValues {
   data_vencimento_concessionaria: string | null;
   data_pagamento: string | null;
   data_envio: string | null;
-  status: PagamentoStatus;
+  status: PagamentoStatus | null;
   observacao: string | null;
   observacao_pagamento: string | null;
   arquivo_conta_energia_nome: string | null;

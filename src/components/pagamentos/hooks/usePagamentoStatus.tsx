@@ -48,8 +48,11 @@ const STATUS_CONFIG: Record<PagamentoStatus, StatusConfig> = {
 export function usePagamentoStatus() {
   const queryClient = useQueryClient();
 
-  const StatusBadge = ({ status }: { status: PagamentoStatus }) => {
+  const StatusBadge = ({ status }: { status: PagamentoStatus | null }) => {
+    if (!status) return null;
+    
     const config = STATUS_CONFIG[status];
+    if (!config) return null;
 
     return (
       <TooltipProvider>
@@ -94,15 +97,13 @@ export function usePagamentoStatus() {
   });
 
   const handleSendPagamento = async (pagamento: PagamentoData, method: SendMethod) => {
-    if (pagamento.status !== 'pendente') {
+    if (!pagamento.status || pagamento.status !== 'pendente') {
       throw new Error('Apenas pagamentos pendentes podem ser enviados');
     }
 
     try {
       console.log('Iniciando envio do pagamento:', { id: pagamento.id, method });
       await updateStatusMutation.mutateAsync({ id: pagamento.id, method });
-      // Aqui você implementaria a lógica real de envio
-      console.log(`Enviando por ${method}...`);
     } catch (error) {
       console.error('Erro no processo de envio:', error);
       throw error;
