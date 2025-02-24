@@ -127,7 +127,7 @@ export function EmpresaForm() {
   }
 
   return (
-    <Form {...form}>
+    <div>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
@@ -195,7 +195,7 @@ export function EmpresaForm() {
                 <Input {...field} />
               </FormControl>
               <FormMessage />
-            </Item>
+            </FormItem>
           )}
         />
 
@@ -240,6 +240,6 @@ export function EmpresaForm() {
           )}
         </Button>
       </form>
-    </Form>
+    </div>
   );
 }
