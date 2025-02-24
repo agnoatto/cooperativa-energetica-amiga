@@ -1,17 +1,7 @@
 
 import { format } from "date-fns";
-import { FileDown, MoreVertical, Send, Eye, Pencil, Trash } from "lucide-react";
+import { FileDown, Send, Eye, Pencil, Trash, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { PagamentoData } from "../types/pagamento";
 import { formatarMoeda } from "@/utils/formatters";
@@ -81,54 +71,94 @@ export function PagamentoTableRow({
           </TooltipProvider>
         )}
       </TableCell>
-      <TableCell className="text-right">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={() => onViewDetails(pagamento)}>
-              <Eye className="mr-2 h-4 w-4" />
-              Ver detalhes
-            </DropdownMenuItem>
-            
-            <DropdownMenuItem onClick={() => onEdit(pagamento)}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Editar
-            </DropdownMenuItem>
+      <TableCell>
+        <div className="flex items-center justify-end gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => onViewDetails(pagamento)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Ver detalhes</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => onEdit(pagamento)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Editar</p>
+              </TooltipContent>
+            </Tooltip>
 
             {pagamento.status === 'pendente' && (
               <>
-                <DropdownMenuSeparator />
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <Send className="mr-2 h-4 w-4" />
-                    Enviar por
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="w-48">
-                    <DropdownMenuItem onClick={() => handleSend('email')}>
-                      E-mail
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleSend('whatsapp')}>
-                      WhatsApp
-                    </DropdownMenuItem>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => handleSend('email')}
+                    >
+                      <Mail className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Enviar por E-mail</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => handleSend('whatsapp')}
+                    >
+                      <Phone className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Enviar por WhatsApp</p>
+                  </TooltipContent>
+                </Tooltip>
               </>
             )}
 
-            <DropdownMenuSeparator />
-            <DropdownMenuItem 
-              onClick={() => onDelete(pagamento)}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash className="mr-2 h-4 w-4" />
-              Excluir
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive"
+                  onClick={() => onDelete(pagamento)}
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Excluir</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </TableCell>
     </TableRow>
   );
