@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { PagamentoData, PagamentoStatus, SendMethod } from "../types/pagamento";
+import { toast } from "sonner";
 
 interface StatusConfig {
   label: string;
@@ -64,29 +65,50 @@ export function usePagamentoStatus() {
     );
   };
 
+  const updateStatusMutation = useMutation({
+    mutationFn: async (variables: { id: string; method: SendMethod }) => {
+      const { error } = await supabase
+        .from('pagamentos_usina')
+        .update({
+          status: 'enviado',
+          send_method: [variables.method],
+          data_envio: new Date().toISOString(),
+        })
+        .eq('id', variables.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pagamentos'] });
+      toast.success('Status atualizado para enviado');
+    },
+    onError: (error) => {
+      console.error('Erro ao atualizar status:', error);
+      toast.error('Erro ao atualizar status do pagamento');
+    },
+  });
+
   const handleSendPagamento = async (pagamento: PagamentoData, method: SendMethod) => {
     if (pagamento.status !== 'pendente') {
       throw new Error('Apenas pagamentos pendentes podem ser enviados');
     }
 
-    const { error } = await supabase
-      .from('pagamentos_usina')
-      .update({
-        status: 'enviado',
-        send_method: [method], // Agora enviamos como array para corresponder ao tipo do banco
-        data_envio: new Date().toISOString(),
-        observacao: `Boletim enviado por ${method === 'email' ? 'e-mail' : 'WhatsApp'}`
-      })
-      .eq('id', pagamento.id);
+    try {
+      // Primeiro atualiza o status
+      await updateStatusMutation.mutateAsync({ id: pagamento.id, method });
 
-    if (error) throw error;
-
-    await queryClient.invalidateQueries({ queryKey: ['pagamentos'] });
-
-    if (method === 'email') {
-      console.log('Enviando por email...');
-    } else if (method === 'whatsapp') {
-      console.log('Enviando por WhatsApp...');
+      // Simula o envio (aqui você implementaria a lógica real de envio)
+      if (method === 'email') {
+        console.log('Enviando por email...');
+        toast.success('Boletim enviado por e-mail');
+      } else if (method === 'whatsapp') {
+        console.log('Enviando por WhatsApp...');
+        toast.success('Boletim enviado por WhatsApp');
+      }
+    } catch (error) {
+      console.error('Erro no processo de envio:', error);
+      toast.error(`Erro ao enviar por ${method === 'email' ? 'e-mail' : 'WhatsApp'}`);
+      throw error;
     }
   };
 
