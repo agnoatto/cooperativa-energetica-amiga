@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Column, ExcelTableProps, TableSettings } from "./types";
+import { ResizeHandle } from "./ResizeHandle";
 
 export function ExcelTable({
   columns,
@@ -55,6 +56,30 @@ export function ExcelTable({
         )}
         {...props}
       >
+        <thead className={cn(stickyHeader && "sticky top-0 z-10")}>
+          <tr>
+            {columns.map((column) => (
+              <th
+                key={column.id}
+                className="px-3 py-3 text-left font-medium border-b border-r border-gray-200 bg-[#F8FAFC] relative"
+                style={{
+                  width: settings.columnWidths[column.id] || column.width || defaultColumnWidth,
+                  minWidth: column.minWidth,
+                  maxWidth: column.maxWidth
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="truncate">{column.label}</span>
+                </div>
+                <ResizeHandle
+                  onResize={(width) => handleResize(column.id, width)}
+                  minWidth={column.minWidth}
+                  maxWidth={column.maxWidth}
+                />
+              </th>
+            ))}
+          </tr>
+        </thead>
         {children}
       </table>
     </div>
