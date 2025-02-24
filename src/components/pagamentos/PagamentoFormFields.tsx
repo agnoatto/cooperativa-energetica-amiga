@@ -56,8 +56,7 @@ export function PagamentoFormFields({
         />
         
         <StatusSection 
-          form={form} 
-          setForm={setForm} 
+          form={form}
         />
 
         <div className="flex justify-end gap-4 pt-4">
