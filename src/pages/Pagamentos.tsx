@@ -15,15 +15,18 @@ import { useMonthSelection } from "@/hooks/useMonthSelection";
 import { supabase } from "@/integrations/supabase/client";
 
 const Pagamentos = () => {
+  // Estados
   const [selectedPagamento, setSelectedPagamento] = useState<PagamentoData | null>(null);
   const [selectedPagamentoToEdit, setSelectedPagamentoToEdit] = useState<PagamentoData | null>(null);
   const [pagamentoToDelete, setPagamentoToDelete] = useState<PagamentoData | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   
+  // Hooks
   const queryClient = useQueryClient();
   const { currentDate, handlePreviousMonth, handleNextMonth } = useMonthSelection();
   const { pagamentos, isLoading, gerarPagamentos, isGenerating } = usePagamentos(currentDate);
 
+  // Mutation para exclusão
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.rpc('deletar_pagamento', { pagamento_id: id });
@@ -34,11 +37,13 @@ const Pagamentos = () => {
       toast.success("Pagamento excluído com sucesso");
       setPagamentoToDelete(null);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("[Pagamentos] Erro ao excluir pagamento:", error);
       toast.error("Erro ao excluir pagamento");
     },
   });
 
+  // Handlers
   const handleViewDetails = (pagamento: PagamentoData) => {
     setSelectedPagamento(pagamento);
     setShowDetails(true);
@@ -53,8 +58,17 @@ const Pagamentos = () => {
   };
 
   const handleConfirmDelete = async () => {
-    if (!pagamentoToDelete) return;
-    await deleteMutation.mutateAsync(pagamentoToDelete.id);
+    if (!pagamentoToDelete?.id) {
+      console.error("[Pagamentos] Tentativa de excluir pagamento sem ID");
+      toast.error("Erro ao excluir pagamento: ID não encontrado");
+      return;
+    }
+
+    try {
+      await deleteMutation.mutateAsync(pagamentoToDelete.id);
+    } catch (error) {
+      console.error("[Pagamentos] Erro ao executar mutation de exclusão:", error);
+    }
   };
 
   return (
@@ -105,10 +119,9 @@ const Pagamentos = () => {
 
       <DeletePagamentoDialog
         pagamento={pagamentoToDelete}
-        isOpen={!!pagamentoToDelete}
         isDeleting={deleteMutation.isPending}
         onClose={() => setPagamentoToDelete(null)}
-        onConfirm={handleConfirmDelete}
+        onDelete={handleConfirmDelete}
       />
     </div>
   );
