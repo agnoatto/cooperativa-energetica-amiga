@@ -191,6 +191,10 @@ export function IntegracaoCoraForm() {
     },
   });
 
+  const onSubmit = (values: IntegracaoCoraFormValues) => {
+    mutation.mutate(values);
+  };
+
   const testConnection = async () => {
     try {
       setIsTestingConnection(true);
