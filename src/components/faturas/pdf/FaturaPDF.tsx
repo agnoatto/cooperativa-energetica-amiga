@@ -96,22 +96,25 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
                 <Text style={styles.highlightValue}>{formatarMoeda(economiaAcumulada)}</Text>
               </View>
 
-              {/* Histórico de Economia com título destacado */}
-              <View style={{ marginTop: 20 }}>
+              {/* Histórico de Economia com título em destaque */}
+              <View style={{ 
+                marginTop: 30,
+                backgroundColor: COLORS.LIGHT_BLUE,
+                padding: 15,
+                borderRadius: 8,
+                marginBottom: 20
+              }}>
                 <Text style={{ 
-                  fontSize: FONTS.TITLE,
-                  marginBottom: 15,
-                  fontWeight: 'bold',
+                  fontSize: FONTS.HEADER,
                   color: COLORS.PRIMARY,
-                  backgroundColor: COLORS.LIGHT_BLUE,
-                  padding: 10,
-                  borderRadius: 4,
+                  fontWeight: 'bold',
                   textAlign: 'center',
-                  textTransform: 'uppercase'
+                  textTransform: 'uppercase',
+                  marginBottom: 5
                 }}>
                   Histórico de Economia
                 </Text>
-                <View style={styles.table}>
+                <View style={[styles.table, { marginTop: 15 }]}>
                   <View style={styles.tableHeader}>
                     <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Mês</Text>
                     <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Consumo</Text>

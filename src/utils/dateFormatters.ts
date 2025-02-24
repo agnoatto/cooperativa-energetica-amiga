@@ -1,7 +1,7 @@
 
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { formatInTimeZone } from 'date-fns-tz';
+import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 
 const TIMEZONE_BR = 'America/Sao_Paulo';
 
@@ -10,13 +10,9 @@ export const formatDateToPtBR = (isoDate: string) => {
   if (!isoDate) return '';
   
   try {
-    // Converte a data para o timezone do Brasil e formata
-    return formatInTimeZone(
-      new Date(isoDate),
-      TIMEZONE_BR,
-      'dd/MM/yyyy',
-      { locale: ptBR }
-    );
+    // Converte a data para o timezone do Brasil considerando meio-dia para evitar problemas de UTC
+    const zonedDate = toZonedTime(new Date(isoDate + 'T12:00:00'), TIMEZONE_BR);
+    return format(zonedDate, 'dd/MM/yyyy', { locale: ptBR });
   } catch (error) {
     console.error('Erro ao formatar data:', error);
     return '';
@@ -28,9 +24,8 @@ export const convertLocalToUTC = (localDate: string) => {
   if (!localDate) return null;
   
   try {
-    // Converte a data local para UTC mantendo o mesmo dia
-    const date = new Date(localDate);
-    date.setUTCHours(12, 0, 0, 0); // Define meio-dia UTC para evitar problemas de timezone
+    // Adiciona o horário meio-dia e timezone Brasil para garantir a data correta
+    const date = toZonedTime(new Date(localDate + 'T12:00:00'), TIMEZONE_BR);
     return date.toISOString().split('T')[0];
   } catch (error) {
     console.error('Erro ao converter data para UTC:', error);
@@ -43,9 +38,9 @@ export const convertUTCToLocal = (utcDate: string | null) => {
   if (!utcDate) return '';
   
   try {
-    // Como estamos trabalhando apenas com datas (sem hora), 
-    // retornamos a data diretamente sem conversão de timezone
-    return utcDate;
+    // Adiciona o horário meio-dia para garantir a data correta
+    const date = toZonedTime(new Date(utcDate + 'T12:00:00'), TIMEZONE_BR);
+    return format(date, 'yyyy-MM-dd');
   } catch (error) {
     console.error('Erro ao converter data para local:', error);
     return '';
