@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,7 +30,7 @@ import { integracaoCoraSchema, IntegracaoCoraFormValues } from "./types/integrac
 export function IntegracaoCoraForm() {
   const { toast } = useToast();
   const [isTestingConnection, setIsTestingConnection] = useState(false);
-  const { configExistente, isLoading, loadError, mutation } = useIntegracaoCora();
+  const { integracao, isLoading, saveIntegracao, isPending } = useIntegracaoCora();
 
   const form = useForm<IntegracaoCoraFormValues>({
     resolver: zodResolver(integracaoCoraSchema),
@@ -57,9 +56,9 @@ export function IntegracaoCoraForm() {
   });
 
   React.useEffect(() => {
-    if (configExistente) {
-      console.log("Atualizando formulário com configurações existentes:", configExistente);
-      const { configuracoes_boleto, ...rest } = configExistente;
+    if (integracao) {
+      console.log("Atualizando formulário com configurações existentes:", integracao);
+      const { configuracoes_boleto, ...rest } = integracao;
       form.reset({
         ...rest,
         configuracoes_boleto: typeof configuracoes_boleto === 'string' 
@@ -67,10 +66,10 @@ export function IntegracaoCoraForm() {
           : configuracoes_boleto
       });
     }
-  }, [configExistente, form]);
+  }, [integracao, form]);
 
   const onSubmit = (values: IntegracaoCoraFormValues) => {
-    mutation.mutate(values);
+    saveIntegracao(values);
   };
 
   const testConnection = async () => {
@@ -188,8 +187,8 @@ export function IntegracaoCoraForm() {
         </div>
 
         <div className="flex gap-4">
-          <Button type="submit" disabled={mutation.isPending}>
-            {mutation.isPending ? (
+          <Button type="submit" disabled={isPending}>
+            {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Salvando...

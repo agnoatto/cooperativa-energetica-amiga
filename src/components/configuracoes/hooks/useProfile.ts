@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -20,7 +21,7 @@ export interface ProfileWithRole {
   cargo?: string | null;
   avatar_url?: string | null;
   cooperativa_id?: string | null;
-  user_roles?: Array<{role: 'master' | 'user'}>;
+  user_roles: Array<{role: 'master' | 'user'}>;
   role?: 'master' | 'user';
 }
 
@@ -34,10 +35,14 @@ export function useProfile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      // Buscar perfil e role do usuário
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("*, user_roles!inner(role)")
+        .select(`
+          *,
+          user_roles (
+            role
+          )
+        `)
         .eq("id", user.id)
         .single();
 
@@ -45,6 +50,7 @@ export function useProfile() {
 
       const profileWithRole: ProfileWithRole = {
         ...profile,
+        user_roles: profile.user_roles || [],
         role: profile.user_roles?.[0]?.role || 'user'
       };
 

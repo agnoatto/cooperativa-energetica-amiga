@@ -45,12 +45,16 @@ export function useIntegracaoCora() {
 
       if (!profile?.cooperativa_id) throw new Error("Usuário sem cooperativa vinculada");
 
+      const insertData = {
+        ...values,
+        empresa_id: profile.cooperativa_id,
+        client_id: values.client_id || '',
+        client_secret: values.client_secret || '',
+      };
+
       const { error } = await supabase
         .from("integracao_cora")
-        .upsert({
-          ...values,
-          empresa_id: profile.cooperativa_id
-        });
+        .upsert(insertData);
 
       if (error) throw error;
     },

@@ -39,7 +39,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('AuthContext: Carregando perfil do usuário:', userId);
         const { data, error } = await supabase
           .from('profiles')
-          .select('*, user_roles!inner(role)')
+          .select(`
+            *,
+            user_roles (
+              role
+            )
+          `)
           .eq('id', userId)
           .maybeSingle();
 
@@ -48,6 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (data) {
           const profileWithRole: ProfileWithRole = {
             ...data,
+            user_roles: data.user_roles || [],
             role: data.user_roles?.[0]?.role || 'user'
           };
           console.log('AuthContext: Perfil carregado com sucesso:', profileWithRole);
