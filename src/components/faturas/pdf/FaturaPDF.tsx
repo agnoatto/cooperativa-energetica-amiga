@@ -1,5 +1,5 @@
 import React from 'react';
-import { Document, Page, View, Text } from '@react-pdf/renderer';
+import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
 import { styles, COLORS, FONTS } from '@/components/pdf/theme';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -50,6 +50,24 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
           <View style={styles.clientRow}>
             <Text style={styles.clientLabel}>Endereço:</Text>
             <Text>{fatura.unidade_beneficiaria.endereco}</Text>
+          </View>
+        </View>
+
+        {/* Informações Destacadas */}
+        <View style={styles.highlightBox}>
+          <View style={styles.highlightItem}>
+            <Text style={styles.highlightLabel}>Unidade Consumidora:</Text>
+            <Text style={styles.highlightValue}>{fatura.unidade_beneficiaria.numero_uc}</Text>
+          </View>
+          <View style={styles.highlightItem}>
+            <Text style={styles.highlightLabel}>Data de Vencimento:</Text>
+            <Text style={styles.highlightValue}>
+              {format(new Date(fatura.data_vencimento), 'dd/MM/yyyy')}
+            </Text>
+          </View>
+          <View style={styles.highlightItem}>
+            <Text style={styles.highlightLabel}>Valor a Pagar a Cogesol:</Text>
+            <Text style={styles.highlightValue}>{formatarMoeda(fatura.valor_assinatura)}</Text>
           </View>
         </View>
 
