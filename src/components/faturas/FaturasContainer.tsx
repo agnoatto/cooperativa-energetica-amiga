@@ -90,15 +90,15 @@ export function FaturasContainer() {
         isGenerating={isGenerating}
       />
 
+      <FaturasDashboard 
+        faturas={filteredFaturas}
+        isLoading={isLoading}
+      />
+
       <MonthSelector 
         currentDate={currentDate}
         onPreviousMonth={handlePreviousMonth}
         onNextMonth={handleNextMonth}
-      />
-
-      <FaturasDashboard 
-        faturas={filteredFaturas}
-        isLoading={isLoading}
       />
 
       <FilterBar
@@ -106,6 +106,7 @@ export function FaturasContainer() {
         onBuscaChange={setBusca}
         onLimparFiltros={handleLimparFiltros}
         placeholder="Buscar por UC ou nome do cooperado..."
+        showColumnsButton
       >
         <div className="w-full sm:w-48">
           <Label htmlFor="status">Status</Label>
