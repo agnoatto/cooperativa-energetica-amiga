@@ -1,5 +1,6 @@
 
-export type PagamentoStatus = 'pendente' | 'enviado' | 'confirmado' | 'atrasado' | 'pago' | 'cancelado';
+export type PagamentoStatus = 'pendente' | 'enviado' | 'pago' | 'atrasado' | 'cancelado';
+export type SendMethod = 'email' | 'whatsapp' | null;
 
 export interface HistoricoStatus {
   data: string;
@@ -20,7 +21,6 @@ export interface PagamentoFormValues {
   data_vencimento: string;
   data_vencimento_concessionaria: string | null;
   data_pagamento: string | null;
-  data_confirmacao: string | null;
   data_envio: string | null;
   status: PagamentoStatus;
   observacao: string | null;
@@ -29,7 +29,7 @@ export interface PagamentoFormValues {
   arquivo_conta_energia_path: string | null;
   arquivo_conta_energia_tipo: string | null;
   arquivo_conta_energia_tamanho: number | null;
-  send_method: string[] | null;
+  send_method: SendMethod;
 }
 
 export interface PagamentoData extends PagamentoFormValues {
