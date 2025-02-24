@@ -6,6 +6,8 @@ import { FileText } from "lucide-react";
 import { FaturaStatusBadge } from "../FaturaStatusBadge";
 import { FaturaRowActions } from "../FaturaRowActions";
 import { formatarDocumento } from "@/utils/formatters";
+import { useEffect, useState } from "react";
+import { Column } from "@/components/ui/excel-table/types";
 
 interface FaturasExcelTableProps {
   faturas: Fatura[];
@@ -17,7 +19,7 @@ interface FaturasExcelTableProps {
   onViewPdf: () => void;
 }
 
-const columns = [
+const defaultColumns: Column[] = [
   {
     id: 'cooperado',
     label: 'Cooperado',
@@ -83,6 +85,27 @@ export function FaturasExcelTable({
   onShowPaymentModal,
   onViewPdf
 }: FaturasExcelTableProps) {
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
+    const saved = localStorage.getItem('faturas-columns-visibility');
+    return saved ? JSON.parse(saved) : defaultColumns.map(col => col.id);
+  });
+
+  useEffect(() => {
+    localStorage.setItem('faturas-columns-visibility', JSON.stringify(visibleColumns));
+  }, [visibleColumns]);
+
+  const handleColumnVisibilityChange = (columnId: string, visible: boolean) => {
+    setVisibleColumns(prev =>
+      visible
+        ? [...prev, columnId]
+        : prev.filter(id => id !== columnId)
+    );
+  };
+
+  const handleResetColumns = () => {
+    setVisibleColumns(defaultColumns.map(col => col.id));
+  };
+
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', {
       style: 'currency',
@@ -90,61 +113,60 @@ export function FaturasExcelTable({
     });
   };
 
+  const filteredColumns = defaultColumns.filter(col => visibleColumns.includes(col.id));
+
   return (
     <ExcelTable
-      columns={columns}
+      columns={filteredColumns}
       storageKey="faturas-table-config"
       stickyHeader
+      visibleColumns={visibleColumns}
+      onColumnVisibilityChange={handleColumnVisibilityChange}
+      onResetColumns={handleResetColumns}
     >
       <tbody>
         {faturas.map((fatura) => (
           <tr key={fatura.id} className="border-b hover:bg-gray-50 transition-colors text-sm">
-            <td className="px-2 py-1 whitespace-nowrap">
-              <span className="text-gray-900">
-                {fatura.unidade_beneficiaria.cooperado.nome}
-              </span>
-              {fatura.unidade_beneficiaria.apelido && (
-                <span className="text-gray-400 ml-1">
-                  ({fatura.unidade_beneficiaria.apelido})
-                </span>
-              )}
-            </td>
-            <td className="px-2 py-1 whitespace-nowrap text-gray-600">
-              {formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)}
-            </td>
-            <td className="px-2 py-1 whitespace-nowrap text-gray-600">
-              {fatura.unidade_beneficiaria.numero_uc}
-            </td>
-            <td className="px-2 py-1 whitespace-nowrap">
-              {formatDateToPtBR(fatura.data_vencimento)}
-            </td>
-            <td className="px-2 py-1 text-right whitespace-nowrap">
-              {fatura.consumo_kwh} kWh
-            </td>
-            <td className="px-2 py-1 text-right whitespace-nowrap font-mono">
-              {formatCurrency(fatura.total_fatura)}
-            </td>
-            <td className="px-2 py-1 text-right whitespace-nowrap font-mono">
-              {formatCurrency(fatura.valor_assinatura)}
-              {fatura.valor_adicional > 0 && (
-                <span className="text-yellow-600 text-xs ml-1">
-                  +{formatCurrency(fatura.valor_adicional)}
-                </span>
-              )}
-            </td>
-            <td className="px-2 py-1 whitespace-nowrap">
-              <FaturaStatusBadge fatura={fatura} />
-            </td>
-            <td className="px-2 py-1 text-right whitespace-nowrap">
-              <FaturaRowActions
-                fatura={fatura}
-                onViewDetails={onViewDetails}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onUpdateStatus={onUpdateStatus}
-                onShowPaymentModal={onShowPaymentModal}
-              />
-            </td>
+            {filteredColumns.map(column => (
+              <td key={column.id} className="px-2 py-1 whitespace-nowrap">
+                {column.id === 'cooperado' && (
+                  <span className="text-gray-900">
+                    {fatura.unidade_beneficiaria.cooperado.nome}
+                    {fatura.unidade_beneficiaria.apelido && (
+                      <span className="text-gray-400 ml-1">
+                        ({fatura.unidade_beneficiaria.apelido})
+                      </span>
+                    )}
+                  </span>
+                )}
+                {column.id === 'documento' && formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)}
+                {column.id === 'uc' && fatura.unidade_beneficiaria.numero_uc}
+                {column.id === 'vencimento' && formatDateToPtBR(fatura.data_vencimento)}
+                {column.id === 'consumo' && `${fatura.consumo_kwh} kWh`}
+                {column.id === 'valor_original' && formatCurrency(fatura.total_fatura)}
+                {column.id === 'valor_assinatura' && (
+                  <>
+                    {formatCurrency(fatura.valor_assinatura)}
+                    {fatura.valor_adicional > 0 && (
+                      <span className="text-yellow-600 text-xs ml-1">
+                        +{formatCurrency(fatura.valor_adicional)}
+                      </span>
+                    )}
+                  </>
+                )}
+                {column.id === 'status' && <FaturaStatusBadge fatura={fatura} />}
+                {column.id === 'acoes' && (
+                  <FaturaRowActions
+                    fatura={fatura}
+                    onViewDetails={onViewDetails}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onUpdateStatus={onUpdateStatus}
+                    onShowPaymentModal={onShowPaymentModal}
+                  />
+                )}
+              </td>
+            ))}
           </tr>
         ))}
       </tbody>

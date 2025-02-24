@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Search, X } from "lucide-react";
+import { ColumnSettings } from "@/components/ui/excel-table/ColumnSettings";
+import { Column } from "@/components/ui/excel-table/types";
 
 interface FilterBarProps {
   busca: string;
@@ -11,6 +13,10 @@ interface FilterBarProps {
   placeholder?: string;
   children?: React.ReactNode;
   showColumnsButton?: boolean;
+  columns?: Column[];
+  visibleColumns?: string[];
+  onColumnVisibilityChange?: (columnId: string, visible: boolean) => void;
+  onResetColumns?: () => void;
 }
 
 export function FilterBar({
@@ -19,7 +25,11 @@ export function FilterBar({
   onLimparFiltros,
   placeholder = "Buscar...",
   children,
-  showColumnsButton
+  showColumnsButton,
+  columns,
+  visibleColumns,
+  onColumnVisibilityChange,
+  onResetColumns
 }: FilterBarProps) {
   return (
     <div className="bg-white p-4 rounded-lg border space-y-4">
@@ -41,10 +51,13 @@ export function FilterBar({
         {children}
 
         <div className="flex items-end gap-2">
-          {showColumnsButton && (
-            <Button variant="outline">
-              Colunas
-            </Button>
+          {showColumnsButton && columns && visibleColumns && onColumnVisibilityChange && (
+            <ColumnSettings
+              columns={columns}
+              visibleColumns={visibleColumns}
+              onColumnVisibilityChange={onColumnVisibilityChange}
+              onReset={onResetColumns}
+            />
           )}
           <Button
             variant="outline"
