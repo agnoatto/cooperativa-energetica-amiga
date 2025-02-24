@@ -16,7 +16,7 @@ export const useUpdateFaturaStatus = () => {
       // Buscar histórico atual
       const { data: fatura, error: fetchError } = await supabase
         .from("faturas")
-        .select('historico_status')
+        .select('historico_status, status')
         .eq('id', data.id)
         .single();
 
@@ -32,13 +32,7 @@ export const useUpdateFaturaStatus = () => {
         observacao?: string;
         motivo_correcao?: string;
         campos_alterados?: string[];
-      }> || []).map(entry => ({
-        status: entry.status,
-        data: entry.data,
-        observacao: entry.observacao,
-        motivo_correcao: entry.motivo_correcao,
-        campos_alterados: entry.campos_alterados
-      }));
+      }> || []);
 
       const novoHistorico: StatusHistoryEntry[] = [
         ...historicoAtual,
@@ -51,12 +45,15 @@ export const useUpdateFaturaStatus = () => {
         }
       ];
 
+      console.log('Histórico atualizado:', novoHistorico);
+      console.log('Novo status:', data.status);
+
       const updateData: Record<string, any> = {
         status: data.status,
         historico_status: novoHistorico
       };
 
-      // Adicionar campos específicos baseados no status e dados de pagamento
+      // Adicionar campos específicos baseados no status
       if (data.status === 'enviada' || data.status === 'reenviada') {
         updateData.data_envio = now;
       } else if (data.status === 'paga') {
@@ -74,17 +71,20 @@ export const useUpdateFaturaStatus = () => {
 
       console.log('Dados de atualização:', updateData);
 
-      const { error: updateError } = await supabase
+      const { error: updateError, data: updatedFatura } = await supabase
         .from("faturas")
         .update(updateData)
-        .eq("id", data.id);
+        .eq("id", data.id)
+        .select()
+        .single();
 
       if (updateError) {
         console.error('Erro ao atualizar fatura:', updateError);
         throw updateError;
       }
 
-      console.log('Fatura atualizada com sucesso');
+      console.log('Fatura atualizada com sucesso:', updatedFatura);
+      return updatedFatura;
     },
     onMutate: async (data) => {
       // Mostra toast de loading
@@ -97,31 +97,35 @@ export const useUpdateFaturaStatus = () => {
 
       // Snapshot do estado anterior
       const date = new Date();
-      const previousFaturas = queryClient.getQueryData(['faturas', date.getMonth() + 1, date.getFullYear()]);
+      const previousFaturas = queryClient.getQueryData(
+        ['faturas', date.getMonth() + 1, date.getFullYear()]
+      );
 
       // Atualiza o cache otimisticamente
-      queryClient.setQueryData(['faturas', date.getMonth() + 1, date.getFullYear()], (old: Fatura[] | undefined) => {
-        if (!old) return old;
-        return old.map(fatura => {
-          if (fatura.id === data.id) {
-            return {
-              ...fatura,
-              status: data.status,
-              historico_status: [
-                ...(fatura.historico_status || []),
-                {
-                  status: data.status,
-                  data: new Date().toISOString(),
-                  observacao: data.observacao,
-                  motivo_correcao: data.motivo_correcao,
-                  campos_alterados: data.campos_alterados
-                }
-              ]
-            };
-          }
-          return fatura;
-        });
-      });
+      queryClient.setQueryData(['faturas', date.getMonth() + 1, date.getFullYear()], 
+        (old: Fatura[] | undefined) => {
+          if (!old) return old;
+          return old.map(fatura => {
+            if (fatura.id === data.id) {
+              return {
+                ...fatura,
+                status: data.status,
+                historico_status: [
+                  ...(fatura.historico_status || []),
+                  {
+                    status: data.status,
+                    data: new Date().toISOString(),
+                    observacao: data.observacao,
+                    motivo_correcao: data.motivo_correcao,
+                    campos_alterados: data.campos_alterados
+                  }
+                ]
+              };
+            }
+            return fatura;
+          });
+        }
+      );
 
       return { previousFaturas };
     },
@@ -138,9 +142,11 @@ export const useUpdateFaturaStatus = () => {
         );
       }
     },
-    onSuccess: (_, variables) => {
-      console.log('Mutation concluída com sucesso');
+    onSuccess: (updatedFatura, variables) => {
+      console.log('Mutation concluída com sucesso:', updatedFatura);
       const date = new Date();
+      
+      // Invalida e recarrega os dados
       queryClient.invalidateQueries({
         queryKey: ['faturas', date.getMonth() + 1, date.getFullYear()]
       });
@@ -156,6 +162,11 @@ export const useUpdateFaturaStatus = () => {
       };
       
       toast.success(statusMessages[variables.status] || "Status da fatura atualizado com sucesso!");
+
+      // Força recarregamento dos dados após sucesso
+      queryClient.refetchQueries({
+        queryKey: ['faturas', date.getMonth() + 1, date.getFullYear()]
+      });
     }
   });
 };
