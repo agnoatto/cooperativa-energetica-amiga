@@ -67,16 +67,25 @@ export function usePagamentoStatus() {
 
   const updateStatusMutation = useMutation({
     mutationFn: async (variables: { id: string; method: SendMethod }) => {
-      const { error } = await supabase
+      console.log('Atualizando status do pagamento:', variables);
+      
+      const { data, error } = await supabase
         .from('pagamentos_usina')
         .update({
           status: 'enviado',
           send_method: [variables.method],
           data_envio: new Date().toISOString(),
         })
-        .eq('id', variables.id);
+        .eq('id', variables.id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro na atualização:', error);
+        throw error;
+      }
+
+      console.log('Resposta da atualização:', data);
+      return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['pagamentos'] });
@@ -94,6 +103,7 @@ export function usePagamentoStatus() {
     }
 
     try {
+      console.log('Iniciando envio do pagamento:', { id: pagamento.id, method });
       await updateStatusMutation.mutateAsync({ id: pagamento.id, method });
       // Aqui você implementaria a lógica real de envio
       console.log(`Enviando por ${method}...`);
