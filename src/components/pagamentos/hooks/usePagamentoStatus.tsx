@@ -13,7 +13,7 @@ import { PagamentoData, PagamentoStatus, SendMethod } from "../types/pagamento";
 interface StatusConfig {
   label: string;
   tooltip: string;
-  variant: "default" | "success" | "destructive" | "warning" | "outline";
+  variant: "default" | "destructive" | "outline" | "secondary";
 }
 
 const STATUS_CONFIG: Record<PagamentoStatus, StatusConfig> = {
@@ -30,7 +30,7 @@ const STATUS_CONFIG: Record<PagamentoStatus, StatusConfig> = {
   pago: {
     label: "Pago",
     tooltip: "Pagamento confirmado",
-    variant: "success",
+    variant: "default",
   },
   atrasado: {
     label: "Atrasado",
@@ -40,7 +40,7 @@ const STATUS_CONFIG: Record<PagamentoStatus, StatusConfig> = {
   cancelado: {
     label: "Cancelado",
     tooltip: "Pagamento cancelado",
-    variant: "warning",
+    variant: "secondary",
   },
 };
 
@@ -81,15 +81,11 @@ export function usePagamentoStatus() {
 
     if (error) throw error;
 
-    // Invalidar cache para forçar atualização
     await queryClient.invalidateQueries({ queryKey: ['pagamentos'] });
 
-    // Aqui você pode adicionar a lógica real de envio por email ou WhatsApp
     if (method === 'email') {
-      // Implementar lógica de envio por email
       console.log('Enviando por email...');
     } else if (method === 'whatsapp') {
-      // Implementar lógica de envio por WhatsApp
       console.log('Enviando por WhatsApp...');
     }
   };

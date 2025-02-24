@@ -50,3 +50,11 @@ export interface PagamentoData extends PagamentoFormValues {
     };
   };
 }
+
+export interface DeletePagamentoDialogProps {
+  pagamento: PagamentoData | null;
+  isOpen: boolean;
+  isDeleting: boolean;
+  onClose: () => void;
+  onConfirm: () => Promise<void>;
+}

@@ -1,8 +1,8 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { PagamentoData, HistoricoStatus } from "@/components/pagamentos/types/pagamento";
+import { PagamentoData } from "@/components/pagamentos/types/pagamento";
 
-export const fetchPagamentos = async (currentDate: Date) => {
+export const fetchPagamentos = async (currentDate: Date): Promise<PagamentoData[]> => {
   const mes = currentDate.getMonth() + 1;
   const ano = currentDate.getFullYear();
 
