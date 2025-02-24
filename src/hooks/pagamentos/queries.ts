@@ -42,6 +42,10 @@ export const fetchPagamentos = async (currentDate: Date): Promise<PagamentoData[
 };
 
 export const fetchPagamentosHistorico = async (pagamentoAtual: PagamentoData): Promise<PagamentoData[]> => {
+  // Calcula a data do pagamento atual
+  const dataAtual = new Date(pagamentoAtual.ano, pagamentoAtual.mes - 1);
+
+  // Buscar apenas pagamentos anteriores ao atual
   const { data, error } = await supabase
     .from("pagamentos_usina")
     .select(`
@@ -58,6 +62,7 @@ export const fetchPagamentosHistorico = async (pagamentoAtual: PagamentoData): P
       )
     `)
     .eq("usina_id", pagamentoAtual.usina_id)
+    .or(`ano.lt.${pagamentoAtual.ano},and(ano.eq.${pagamentoAtual.ano},mes.lt.${pagamentoAtual.mes})`)
     .order("ano", { ascending: false })
     .order("mes", { ascending: false })
     .limit(12);
