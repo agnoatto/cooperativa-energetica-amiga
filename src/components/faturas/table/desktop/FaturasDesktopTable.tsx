@@ -1,11 +1,9 @@
 
-import { Table, TableBody } from "@/components/ui/table";
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import { FaturasTableHeader } from "../FaturasTableHeader";
-import { FaturaDesktopRow } from "./FaturaDesktopRow";
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { PaymentConfirmationModal } from "../../PaymentConfirmationModal";
+import { FaturasExcelTable } from "./FaturasExcelTable";
 
 interface FaturasDesktopTableProps {
   faturas: Fatura[];
@@ -41,29 +39,21 @@ export function FaturasDesktopTable({
   return (
     <>
       <div className="rounded-md border">
-        <Table>
-          <FaturasTableHeader />
-          <TableBody>
-            {faturas.map((fatura) => (
-              <FaturaDesktopRow
-                key={fatura.id}
-                fatura={fatura}
-                onViewDetails={onViewDetails}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onUpdateStatus={onUpdateStatus}
-                onShowPaymentModal={() => {
-                  setSelectedFatura(fatura);
-                  setShowPaymentModal(true);
-                }}
-                onViewPdf={() => {
-                  setPdfUrl(fatura.arquivo_concessionaria_path);
-                  setShowPdfModal(true);
-                }}
-              />
-            ))}
-          </TableBody>
-        </Table>
+        <FaturasExcelTable
+          faturas={faturas}
+          onViewDetails={onViewDetails}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onUpdateStatus={onUpdateStatus}
+          onShowPaymentModal={() => {
+            setSelectedFatura(selectedFatura);
+            setShowPaymentModal(true);
+          }}
+          onViewPdf={() => {
+            setPdfUrl(selectedFatura?.arquivo_concessionaria_path || null);
+            setShowPdfModal(true);
+          }}
+        />
       </div>
 
       <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
