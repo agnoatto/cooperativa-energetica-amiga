@@ -13,10 +13,8 @@ port = 54322
 enabled = true
 port = 54323
 
-[[functions]]
-name = "cora-auth"
+[functions.cora-auth]
 verify_jwt = true
 
-[[functions]]
-name = "cora-boleto"
+[functions.cora-boleto]
 verify_jwt = true
