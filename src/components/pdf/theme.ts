@@ -10,6 +10,7 @@ export const COLORS = {
   LIGHT_GRAY: '#f8f9fa',
   GREEN: '#008000',
   BLUE: '#0072CE',
+  LIGHT_BLUE: '#D3E4FD', // Adicionando a cor LIGHT_BLUE
   RED: '#ff0000',
   HIGHLIGHT_BG: '#d7ff8f',
   HEADER_BG: '#1a1f2c',
