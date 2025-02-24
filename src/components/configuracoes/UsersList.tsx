@@ -12,10 +12,21 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
+type UserWithRole = {
+  id: string;
+  nome: string;
+  email: string;
+  telefone: string | null;
+  cargo: string | null;
+  user_roles: Array<{
+    role: 'master' | 'user';
+  }>;
+};
+
 export function UsersList() {
   const { profile } = useAuth();
 
-  const { data: users, isLoading } = useQuery({
+  const { data: users, isLoading } = useQuery<UserWithRole[]>({
     queryKey: ["users", profile?.cooperativa_id],
     enabled: !!profile?.cooperativa_id && profile?.role === 'master',
     queryFn: async () => {
@@ -38,7 +49,7 @@ export function UsersList() {
     },
   });
 
-  if (!profile?.role === 'master') return null;
+  if (profile?.role !== 'master') return null;
   if (isLoading) return <div>Carregando...</div>;
 
   return (
