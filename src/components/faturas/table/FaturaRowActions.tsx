@@ -10,6 +10,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { Dialog } from "@/components/ui/dialog";
+import { useState } from "react";
+import { DialogContent } from "@radix-ui/react-dialog";
+import { DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface FaturaRowActionsProps {
   fatura: Fatura;
@@ -28,6 +34,9 @@ export function FaturaRowActions({
   onUpdateStatus,
   onShowPaymentModal,
 }: FaturaRowActionsProps) {
+  const [showCorrectionDialog, setShowCorrectionDialog] = useState(false);
+  const [motivo, setMotivo] = useState("");
+
   const handleSendEmail = async () => {
     try {
       // TODO: Implementar envio por email
@@ -45,6 +54,22 @@ export function FaturaRowActions({
       await onUpdateStatus(fatura, 'enviada', 'Fatura enviada por WhatsApp');
     } catch (error) {
       toast.error("Erro ao enviar WhatsApp");
+    }
+  };
+
+  const handleCorrection = async () => {
+    if (!motivo.trim()) {
+      toast.error("Por favor, insira o motivo da correção");
+      return;
+    }
+
+    try {
+      await onUpdateStatus(fatura, 'corrigida', motivo);
+      setShowCorrectionDialog(false);
+      setMotivo("");
+      toast.success("Fatura marcada para correção");
+    } catch (error) {
+      toast.error("Erro ao marcar fatura para correção");
     }
   };
 
@@ -111,7 +136,7 @@ export function FaturaRowActions({
         key="correct"
         variant="outline"
         size="icon"
-        onClick={() => onUpdateStatus(fatura, 'corrigida', 'Fatura marcada para correção')}
+        onClick={() => setShowCorrectionDialog(true)}
         title="Corrigir Fatura"
       >
         <PenTool className="h-4 w-4" />
@@ -184,8 +209,34 @@ export function FaturaRowActions({
   );
 
   return (
-    <div className="text-right space-x-2">
-      {actions}
-    </div>
+    <>
+      <div className="text-right space-x-2">
+        {actions}
+      </div>
+
+      <Dialog open={showCorrectionDialog} onOpenChange={setShowCorrectionDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="motivo">Motivo da Correção</Label>
+              <Textarea
+                id="motivo"
+                placeholder="Digite o motivo da correção"
+                value={motivo}
+                onChange={(e) => setMotivo(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCorrectionDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleCorrection}>
+              Confirmar Correção
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
