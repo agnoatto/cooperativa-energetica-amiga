@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
 import { styles, COLORS, FONTS } from '@/components/pdf/theme';
@@ -13,6 +12,9 @@ interface FaturaPDFProps {
 
 export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
   const mesReferencia = format(new Date(fatura.ano, fatura.mes - 1), 'MMMM/yy', { locale: ptBR });
+  
+  // Calcula a economia acumulada somando os valores de desconto do histórico
+  const economiaAcumulada = fatura.historico_faturas?.reduce((total, hist) => total + hist.valor_desconto, 0) || 0;
   
   return (
     <Document>
@@ -65,8 +67,13 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
           <View style={{ flexDirection: 'row' }}>
             {/* Coluna Esquerda */}
             <View style={{ flex: 1, marginRight: 20, borderRight: 1, borderColor: COLORS.GRAY, paddingRight: 20 }}>
-              <Text style={{ marginBottom: 10 }}>Consumo do mês</Text>
-              <Text style={{ fontSize: FONTS.TITLE, marginBottom: 20 }}>{fatura.consumo_kwh} kWh</Text>
+              <Text style={{ marginBottom: 10, fontSize: FONTS.SUBTITLE }}>Consumo do mês</Text>
+              <Text style={{ 
+                fontSize: FONTS.HEADER,
+                marginBottom: 20,
+                color: COLORS.PRIMARY,
+                fontWeight: 'bold'
+              }}>{fatura.consumo_kwh} kWh</Text>
               
               <Text style={{ marginBottom: 5 }}>Neste mês você economizou:</Text>
               <View style={styles.highlightBox}>
@@ -75,12 +82,20 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
               
               <Text style={{ marginBottom: 5, marginTop: 10 }}>Até agora já economizou:</Text>
               <View style={styles.highlightBox}>
-                <Text style={styles.highlightValue}>{formatarMoeda(fatura.economia_acumulada)}</Text>
+                <Text style={styles.highlightValue}>{formatarMoeda(economiaAcumulada)}</Text>
               </View>
 
               {/* Histórico de Economia */}
               <View style={{ marginTop: 20 }}>
-                <Text style={{ fontSize: FONTS.SUBTITLE, marginBottom: 10, fontWeight: 'bold' }}>
+                <Text style={{ 
+                  fontSize: FONTS.TITLE,
+                  marginBottom: 10,
+                  fontWeight: 'bold',
+                  color: COLORS.PRIMARY,
+                  backgroundColor: COLORS.LIGHT_GRAY,
+                  padding: '5px 10px',
+                  borderRadius: 4
+                }}>
                   Histórico de Economia
                 </Text>
                 <View style={styles.table}>
