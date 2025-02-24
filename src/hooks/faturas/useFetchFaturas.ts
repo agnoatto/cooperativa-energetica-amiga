@@ -52,7 +52,6 @@ export const useFetchFaturas = (currentDate: Date) => {
           iluminacao_publica,
           outros_valores,
           valor_desconto,
-          economia_acumulada,
           saldo_energia_kwh,
           observacao,
           data_envio,
@@ -98,13 +97,14 @@ export const useFetchFaturas = (currentDate: Date) => {
             if (a.ano !== b.ano) return b.ano - a.ano;
             return b.mes - a.mes;
           })
-          .slice(0, 12) // Pegar exatamente os últimos 12 meses
-          .map(h => ({
-            mes: h.mes,
-            ano: h.ano,
-            consumo_kwh: Number(h.consumo_kwh),
-            valor_desconto: Number(h.valor_desconto)
-          })) || [];
+          .slice(0, 12); // Pegar exatamente os últimos 12 meses
+
+        // Calcular economia acumulada
+        const economiaAcumulada = historicoUnidade?.reduce((total, h) => {
+          // Não incluir o mês atual no cálculo da economia acumulada
+          if (h.ano === fatura.ano && h.mes === fatura.mes) return total;
+          return total + Number(h.valor_desconto);
+        }, 0) || 0;
 
         // Transformar o historico_status de Json para StatusHistoryEntry[]
         const historicoStatus = ((fatura.historico_status as any[]) || []).map(entry => ({
@@ -118,7 +118,12 @@ export const useFetchFaturas = (currentDate: Date) => {
         return {
           ...fatura,
           historico_status: historicoStatus,
-          historico_faturas: historicoUnidade,
+          historico_faturas: historicoUnidade?.map(h => ({
+            mes: h.mes,
+            ano: h.ano,
+            consumo_kwh: Number(h.consumo_kwh),
+            valor_desconto: Number(h.valor_desconto)
+          })) || [],
           valor_adicional: fatura.valor_adicional || 0,
           observacao_pagamento: fatura.observacao_pagamento || null,
           data_pagamento: fatura.data_pagamento || null,
@@ -135,7 +140,8 @@ export const useFetchFaturas = (currentDate: Date) => {
           iluminacao_publica: Number(fatura.iluminacao_publica),
           outros_valores: Number(fatura.outros_valores),
           valor_desconto: Number(fatura.valor_desconto),
-          saldo_energia_kwh: Number(fatura.saldo_energia_kwh)
+          saldo_energia_kwh: Number(fatura.saldo_energia_kwh),
+          economia_acumulada: economiaAcumulada // Adicionando a economia acumulada calculada
         };
       });
 
