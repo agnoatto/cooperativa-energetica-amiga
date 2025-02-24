@@ -1,4 +1,5 @@
 
+import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -55,17 +56,33 @@ export function IntegracaoCoraForm() {
   const queryClient = useQueryClient();
   const [isTestingConnection, setIsTestingConnection] = useState(false);
 
-  // Buscar configurações existentes
+  // Buscar configurações existentes e perfil do usuário
   const { data: configExistente, isLoading } = useQuery({
     queryKey: ["integracao-cora"],
     queryFn: async () => {
+      const { data: profile } = await supabase.auth.getUser();
+      if (!profile.user) throw new Error("Usuário não autenticado");
+
+      const { data: userProfile } = await supabase
+        .from("profiles")
+        .select("empresa_id")
+        .eq("id", profile.user.id)
+        .single();
+
+      if (!userProfile?.empresa_id) throw new Error("Empresa não encontrada");
+
       const { data, error } = await supabase
         .from("integracao_cora")
         .select("*")
-        .single();
+        .eq("empresa_id", userProfile.empresa_id)
+        .maybeSingle();
 
       if (error) throw error;
-      return data;
+
+      return {
+        ...data,
+        empresa_id: userProfile.empresa_id,
+      };
     },
   });
 
@@ -95,15 +112,28 @@ export function IntegracaoCoraForm() {
   // Atualizar form quando dados forem carregados
   React.useEffect(() => {
     if (configExistente) {
-      form.reset(configExistente);
+      const { configuracoes_boleto, ...rest } = configExistente;
+      form.reset({
+        ...rest,
+        configuracoes_boleto: typeof configuracoes_boleto === 'string' 
+          ? JSON.parse(configuracoes_boleto)
+          : configuracoes_boleto
+      });
     }
   }, [configExistente, form]);
 
   const mutation = useMutation({
     mutationFn: async (values: IntegracaoCoraFormValues) => {
+      if (!configExistente?.empresa_id) {
+        throw new Error("Empresa ID não encontrado");
+      }
+
       const { error } = await supabase
         .from("integracao_cora")
-        .upsert(values, { onConflict: "empresa_id" });
+        .upsert({
+          ...values,
+          empresa_id: configExistente.empresa_id,
+        }, { onConflict: "empresa_id" });
 
       if (error) throw error;
     },
