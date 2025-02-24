@@ -21,4 +21,7 @@ export interface ExcelTableProps extends TableHTMLAttributes<HTMLTableElement> {
   onColumnResize?: (columnId: string, newWidth: number) => void;
   stickyHeader?: boolean;
   storageKey: string;
+  visibleColumns?: string[];
+  onColumnVisibilityChange?: (columnId: string, visible: boolean) => void;
+  onResetColumns?: () => void;
 }
