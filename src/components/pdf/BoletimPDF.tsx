@@ -79,7 +79,7 @@ export const BoletimPDF: React.FC<BoletimPDFProps> = ({ pagamento, historicoData
               <Text style={[styles.valorValue, { fontSize: 16 }]}>{formatCurrency(valorEfetivo)}</Text>
             </View>
             <View style={[styles.valoresRow, { marginTop: '5px' }]}>
-              <Text style={[styles.valorLabel, { fontWeight: 'bold' }]}>Previsão de Pagamento:</Text>
+              <Text style={[styles.valorLabel, { fontWeight: 'bold' }]}>Data de Vencimento:</Text>
               <Text style={[styles.valorValue, { fontSize: 14 }]}>
                 {pagamento.data_vencimento 
                   ? format(new Date(pagamento.data_vencimento), 'dd/MM/yyyy', { locale: ptBR })
@@ -100,7 +100,7 @@ export const BoletimPDF: React.FC<BoletimPDFProps> = ({ pagamento, historicoData
               <Text style={[styles.tableHeaderText, { width: '15%' }]}>Fio B</Text>
               <Text style={[styles.tableHeaderText, { width: '15%' }]}>Concessionária</Text>
               <Text style={[styles.tableHeaderText, { width: '15%' }]}>Valor Líquido</Text>
-              <Text style={[styles.tableHeaderText, { width: '13%' }]}>Pagamento</Text>
+              <Text style={[styles.tableHeaderText, { width: '13%' }]}>Vencimento</Text>
             </View>
             
             {historicoData.map((item, index) => {
