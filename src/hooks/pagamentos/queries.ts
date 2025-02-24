@@ -32,6 +32,7 @@ export const fetchPagamentos = async (currentDate: Date): Promise<PagamentoData[
 
   return (data || []).map(pagamento => ({
     ...pagamento,
+    send_method: pagamento.send_method as PagamentoData['send_method'],
     historico_status: ((pagamento.historico_status || []) as any[]).map(historico => ({
       data: historico.data,
       status_anterior: historico.status_anterior,
@@ -68,6 +69,7 @@ export const fetchPagamentosHistorico = async (pagamentoAtual: PagamentoData): P
 
   return (data || []).map(pagamento => ({
     ...pagamento,
+    send_method: pagamento.send_method as PagamentoData['send_method'],
     historico_status: ((pagamento.historico_status || []) as any[]).map(historico => ({
       data: historico.data,
       status_anterior: historico.status_anterior,

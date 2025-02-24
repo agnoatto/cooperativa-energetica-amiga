@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +23,6 @@ export function usePagamentoForm(
         data_vencimento: pagamento.data_vencimento,
         data_vencimento_concessionaria: pagamento.data_vencimento_concessionaria,
         data_pagamento: pagamento.data_pagamento,
-        data_confirmacao: pagamento.data_confirmacao,
         data_envio: pagamento.data_envio,
         status: pagamento.status,
         observacao: pagamento.observacao,
@@ -49,7 +47,6 @@ export function usePagamentoForm(
       data_vencimento: "",
       data_vencimento_concessionaria: null,
       data_pagamento: null,
-      data_confirmacao: null,
       data_envio: null,
       status: "pendente",
       observacao: null,
@@ -64,7 +61,6 @@ export function usePagamentoForm(
 
   useEffect(() => {
     if (pagamento) {
-      console.log('[usePagamentoForm] Iniciando formulário com dados:', pagamento);
       setForm({
         usina_id: pagamento.usina_id,
         mes: pagamento.mes,
@@ -78,7 +74,6 @@ export function usePagamentoForm(
         data_vencimento: pagamento.data_vencimento,
         data_vencimento_concessionaria: pagamento.data_vencimento_concessionaria,
         data_pagamento: pagamento.data_pagamento,
-        data_confirmacao: pagamento.data_confirmacao,
         data_envio: pagamento.data_envio,
         status: pagamento.status,
         observacao: pagamento.observacao,

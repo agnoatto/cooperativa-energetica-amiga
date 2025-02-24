@@ -1,4 +1,3 @@
-
 import {
   Dialog,
   DialogContent,
@@ -39,7 +38,6 @@ export function PagamentoDetailsDialog({
         return "secondary";
       case "enviado":
         return "default";
-      case "confirmado":
       case "pago":
         return "default";
       case "atrasado":
@@ -181,7 +179,7 @@ export function PagamentoDetailsDialog({
           )}
 
           {/* Informações de Pagamento */}
-          {(pagamento.data_pagamento || pagamento.data_confirmacao || pagamento.arquivo_conta_energia_path) && (
+          {(pagamento.data_pagamento || pagamento.data_envio || pagamento.arquivo_conta_energia_path) && (
             <div className="space-y-2">
               <h3 className="font-semibold flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
@@ -194,16 +192,16 @@ export function PagamentoDetailsDialog({
                     <p>{formatDate(pagamento.data_pagamento)}</p>
                   </div>
                 )}
-                {pagamento.data_confirmacao && (
+                {pagamento.data_envio && (
                   <div>
-                    <span className="text-muted-foreground">Data de Confirmação:</span>
-                    <p>{formatDate(pagamento.data_confirmacao)}</p>
+                    <span className="text-muted-foreground">Data de Envio:</span>
+                    <p>{formatDate(pagamento.data_envio)}</p>
                   </div>
                 )}
-                {pagamento.send_method && pagamento.send_method.length > 0 && (
+                {pagamento.send_method && (
                   <div>
                     <span className="text-muted-foreground">Método de Envio:</span>
-                    <p>{pagamento.send_method.join(', ')}</p>
+                    <p>{pagamento.send_method === 'email' ? 'E-mail' : 'WhatsApp'}</p>
                   </div>
                 )}
                 {pagamento.arquivo_conta_energia_path && (
