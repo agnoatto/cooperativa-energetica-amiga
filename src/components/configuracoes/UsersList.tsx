@@ -31,30 +31,45 @@ export function UsersList() {
     enabled: !!profile?.cooperativa_id && profile?.role === 'master',
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("profiles")
+        .from("user_roles")
         .select(`
-          id,
-          nome,
-          email,
-          telefone,
-          cargo,
-          user_roles (
-            role
-          )
+          profiles!user_roles_user_id_fkey (
+            id,
+            nome,
+            email,
+            telefone,
+            cargo
+          ),
+          role
         `)
         .eq("cooperativa_id", profile?.cooperativa_id);
 
       if (error) throw error;
 
       // Transformar os dados para garantir o formato correto
-      const formattedUsers: UserWithRole[] = data.map(user => ({
-        id: user.id,
-        nome: user.nome,
-        email: user.email,
-        telefone: user.telefone,
-        cargo: user.cargo,
-        user_roles: user.user_roles || [{ role: 'user' }]
-      }));
+      const formattedUsers: UserWithRole[] = data.reduce((acc: UserWithRole[], userRole) => {
+        const profile = userRole.profiles;
+        if (!profile) return acc;
+
+        // Procura se já existe um usuário com este id
+        const existingUser = acc.find(u => u.id === profile.id);
+        if (existingUser) {
+          existingUser.user_roles.push({ role: userRole.role });
+          return acc;
+        }
+
+        // Caso não exista, cria um novo usuário
+        acc.push({
+          id: profile.id,
+          nome: profile.nome,
+          email: profile.email,
+          telefone: profile.telefone,
+          cargo: profile.cargo,
+          user_roles: [{ role: userRole.role }]
+        });
+
+        return acc;
+      }, []);
 
       return formattedUsers;
     },
