@@ -136,6 +136,11 @@ export type Database = {
           arquivo_concessionaria_path: string | null
           arquivo_concessionaria_tamanho: number | null
           arquivo_concessionaria_tipo: string | null
+          boleto_codigo_barras: string | null
+          boleto_id: string | null
+          boleto_linha_digitavel: string | null
+          boleto_pdf_path: string | null
+          boleto_url: string | null
           consumo_kwh: number
           created_at: string
           data_atualizacao: string | null
@@ -172,6 +177,11 @@ export type Database = {
           arquivo_concessionaria_path?: string | null
           arquivo_concessionaria_tamanho?: number | null
           arquivo_concessionaria_tipo?: string | null
+          boleto_codigo_barras?: string | null
+          boleto_id?: string | null
+          boleto_linha_digitavel?: string | null
+          boleto_pdf_path?: string | null
+          boleto_url?: string | null
           consumo_kwh: number
           created_at?: string
           data_atualizacao?: string | null
@@ -208,6 +218,11 @@ export type Database = {
           arquivo_concessionaria_path?: string | null
           arquivo_concessionaria_tamanho?: number | null
           arquivo_concessionaria_tipo?: string | null
+          boleto_codigo_barras?: string | null
+          boleto_id?: string | null
+          boleto_linha_digitavel?: string | null
+          boleto_pdf_path?: string | null
+          boleto_url?: string | null
           consumo_kwh?: number
           created_at?: string
           data_atualizacao?: string | null
@@ -399,6 +414,47 @@ export type Database = {
             columns: ["unidade_usina_id"]
             isOneToOne: false
             referencedRelation: "unidades_usina"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integracao_cora: {
+        Row: {
+          ambiente: Database["public"]["Enums"]["integracao_ambiente"]
+          client_id: string
+          client_secret: string
+          configuracoes_boleto: Json
+          created_at: string
+          empresa_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          ambiente?: Database["public"]["Enums"]["integracao_ambiente"]
+          client_id: string
+          client_secret: string
+          configuracoes_boleto?: Json
+          created_at?: string
+          empresa_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          ambiente?: Database["public"]["Enums"]["integracao_ambiente"]
+          client_id?: string
+          client_secret?: string
+          configuracoes_boleto?: Json
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integracao_cora_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
             referencedColumns: ["id"]
           },
         ]
@@ -1394,6 +1450,7 @@ export type Database = {
         | "atrasada"
         | "paga"
         | "finalizada"
+      integracao_ambiente: "sandbox" | "production"
       pagamento_status:
         | "pendente"
         | "enviado"
