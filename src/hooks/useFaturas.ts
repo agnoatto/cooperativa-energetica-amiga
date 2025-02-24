@@ -24,6 +24,9 @@ export const useFaturas = (currentDate: Date): UseFaturasResult => {
     gerarFaturas: () => gerarFaturasMutation.mutate(),
     isGenerating: gerarFaturasMutation.isPending,
     deleteFatura: (id: string) => deleteFaturaMutation.mutate(id),
-    updateFaturaStatus: (data: UpdateFaturaStatusInput) => updateFaturaStatusMutation.mutateAsync(data),
+    updateFaturaStatus: async (data: UpdateFaturaStatusInput) => {
+      await updateFaturaStatusMutation.mutateAsync(data);
+      // Não retornamos nada pois a função espera Promise<void>
+    }
   };
 };
