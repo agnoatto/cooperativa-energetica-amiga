@@ -1,4 +1,3 @@
-
 import { format } from "date-fns";
 import { FileDown, Send, Eye, Pencil, Trash, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -44,13 +43,12 @@ export function PagamentoTableRow({
   const handlePreviewContaEnergia = async () => {
     if (pagamento.arquivo_conta_energia_path) {
       try {
-        const { data: { publicUrl }, error } = await supabase
+        const { data } = await supabase
           .storage
           .from('pagamentos')
           .getPublicUrl(pagamento.arquivo_conta_energia_path);
 
-        if (error) throw error;
-        setPdfUrl(publicUrl);
+        setPdfUrl(data.publicUrl);
         setShowContaEnergiaPreview(true);
       } catch (error) {
         console.error('Erro ao obter URL do PDF:', error);
