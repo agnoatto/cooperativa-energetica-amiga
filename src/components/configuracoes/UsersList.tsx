@@ -26,11 +26,11 @@ type UserWithRole = {
 export function UsersList() {
   const { profile } = useAuth();
 
-  const { data: users, isLoading } = useQuery<UserWithRole[]>({
+  const { data: users, isLoading } = useQuery({
     queryKey: ["users", profile?.cooperativa_id],
     enabled: !!profile?.cooperativa_id && profile?.role === 'master',
     queryFn: async () => {
-      const { data: users, error } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select(`
           id,
@@ -38,14 +38,25 @@ export function UsersList() {
           email,
           telefone,
           cargo,
-          user_roles!profiles_id_fkey (
+          user_roles (
             role
           )
         `)
         .eq("cooperativa_id", profile?.cooperativa_id);
 
       if (error) throw error;
-      return users;
+
+      // Transformar os dados para garantir o formato correto
+      const formattedUsers: UserWithRole[] = data.map(user => ({
+        id: user.id,
+        nome: user.nome,
+        email: user.email,
+        telefone: user.telefone,
+        cargo: user.cargo,
+        user_roles: user.user_roles || [{ role: 'user' }]
+      }));
+
+      return formattedUsers;
     },
   });
 
