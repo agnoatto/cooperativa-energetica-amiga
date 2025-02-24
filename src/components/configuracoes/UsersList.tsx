@@ -30,46 +30,38 @@ export function UsersList() {
     queryKey: ["users", profile?.cooperativa_id],
     enabled: !!profile?.cooperativa_id && profile?.role === 'master',
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Primeiro, buscamos os perfis da cooperativa
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("cooperativa_id", profile?.cooperativa_id);
+
+      if (profilesError) throw profilesError;
+
+      // Depois, buscamos as roles de cada perfil
+      const { data: rolesData, error: rolesError } = await supabase
         .from("user_roles")
-        .select(`
-          profiles:user_id (
-            id,
-            nome,
-            email,
-            telefone,
-            cargo
-          ),
-          role
-        `)
-        .eq("profiles.cooperativa_id", profile?.cooperativa_id);
+        .select("*")
+        .in("user_id", profilesData.map(p => p.id))
+        .eq("cooperativa_id", profile?.cooperativa_id);
 
-      if (error) throw error;
+      if (rolesError) throw rolesError;
 
-      // Transformar os dados para garantir o formato correto
-      const formattedUsers: UserWithRole[] = data.reduce((acc: UserWithRole[], userRole) => {
-        const profile = userRole.profiles;
-        if (!profile) return acc;
+      // Combinamos os dados em um formato adequado
+      const formattedUsers: UserWithRole[] = profilesData.map(profile => {
+        const userRoles = rolesData
+          .filter(r => r.user_id === profile.id)
+          .map(r => ({ role: r.role as 'master' | 'user' }));
 
-        // Procura se já existe um usuário com este id
-        const existingUser = acc.find(u => u.id === profile.id);
-        if (existingUser) {
-          existingUser.user_roles.push({ role: userRole.role });
-          return acc;
-        }
-
-        // Caso não exista, cria um novo usuário
-        acc.push({
+        return {
           id: profile.id,
           nome: profile.nome,
           email: profile.email,
           telefone: profile.telefone,
           cargo: profile.cargo,
-          user_roles: [{ role: userRole.role }]
-        });
-
-        return acc;
-      }, []);
+          user_roles: userRoles.length > 0 ? userRoles : [{ role: 'user' }]
+        };
+      });
 
       return formattedUsers;
     },
