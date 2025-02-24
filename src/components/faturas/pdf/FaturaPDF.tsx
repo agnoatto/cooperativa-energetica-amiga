@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
 import { styles, COLORS, FONTS } from '@/components/pdf/theme';
@@ -14,22 +13,18 @@ interface FaturaPDFProps {
 export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
   const mesReferencia = format(new Date(fatura.ano, fatura.mes - 1), 'MMMM/yy', { locale: ptBR });
   
-  // Filtra o histórico até o mês atual e calcula a economia acumulada
   const historicoFiltrado = fatura.historico_faturas
     ?.filter(hist => {
-      // Compara ano e mês para pegar apenas até o mês do relatório
       if (hist.ano < fatura.ano) return true;
       if (hist.ano === fatura.ano && hist.mes <= fatura.mes) return true;
       return false;
     })
     .sort((a, b) => {
-      // Ordenar por ano e mês decrescente
       if (a.ano !== b.ano) return b.ano - a.ano;
       return b.mes - a.mes;
     })
-    .slice(0, 12) || []; // Limita aos últimos 12 meses
+    .slice(0, 12) || [];
 
-  // Calcula a economia acumulada somando os valores de desconto do histórico filtrado
   const economiaAcumulada = historicoFiltrado.reduce((total, hist) => total + hist.valor_desconto, 0) || 0;
   
   return (
@@ -101,16 +96,18 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
                 <Text style={styles.highlightValue}>{formatarMoeda(economiaAcumulada)}</Text>
               </View>
 
-              {/* Histórico de Economia */}
+              {/* Histórico de Economia com título destacado */}
               <View style={{ marginTop: 20 }}>
                 <Text style={{ 
                   fontSize: FONTS.TITLE,
-                  marginBottom: 10,
+                  marginBottom: 15,
                   fontWeight: 'bold',
                   color: COLORS.PRIMARY,
-                  backgroundColor: COLORS.LIGHT_GRAY,
-                  padding: '5px 10px',
-                  borderRadius: 4
+                  backgroundColor: COLORS.LIGHT_BLUE,
+                  padding: 10,
+                  borderRadius: 4,
+                  textAlign: 'center',
+                  textTransform: 'uppercase'
                 }}>
                   Histórico de Economia
                 </Text>

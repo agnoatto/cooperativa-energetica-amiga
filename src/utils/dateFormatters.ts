@@ -1,7 +1,7 @@
 
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
+import { formatInTimeZone } from 'date-fns-tz';
 
 const TIMEZONE_BR = 'America/Sao_Paulo';
 
@@ -9,30 +9,45 @@ const TIMEZONE_BR = 'America/Sao_Paulo';
 export const formatDateToPtBR = (isoDate: string) => {
   if (!isoDate) return '';
   
-  // Adiciona o horário meio-dia para evitar problemas com timezone
-  const dateWithNoon = `${isoDate}T12:00:00`;
-  
-  // Primeiro converte para o timezone do Brasil e depois formata
-  return formatInTimeZone(
-    dateWithNoon,
-    TIMEZONE_BR,
-    'dd/MM/yyyy',
-    { locale: ptBR }
-  );
+  try {
+    // Converte a data para o timezone do Brasil e formata
+    return formatInTimeZone(
+      new Date(isoDate),
+      TIMEZONE_BR,
+      'dd/MM/yyyy',
+      { locale: ptBR }
+    );
+  } catch (error) {
+    console.error('Erro ao formatar data:', error);
+    return '';
+  }
 };
 
 // Converte uma data do formulário (local) para UTC antes de enviar ao banco
 export const convertLocalToUTC = (localDate: string) => {
   if (!localDate) return null;
   
-  // Retorna apenas a data, sem conversão de timezone pois o banco espera apenas DATE
-  return localDate;
+  try {
+    // Converte a data local para UTC mantendo o mesmo dia
+    const date = new Date(localDate);
+    date.setUTCHours(12, 0, 0, 0); // Define meio-dia UTC para evitar problemas de timezone
+    return date.toISOString().split('T')[0];
+  } catch (error) {
+    console.error('Erro ao converter data para UTC:', error);
+    return null;
+  }
 };
 
 // Converte uma data UTC do banco para local (formulário)
 export const convertUTCToLocal = (utcDate: string | null) => {
   if (!utcDate) return '';
   
-  // Como o banco armazena apenas DATE, retornamos diretamente
-  return utcDate;
+  try {
+    // Como estamos trabalhando apenas com datas (sem hora), 
+    // retornamos a data diretamente sem conversão de timezone
+    return utcDate;
+  } catch (error) {
+    console.error('Erro ao converter data para local:', error);
+    return '';
+  }
 };
