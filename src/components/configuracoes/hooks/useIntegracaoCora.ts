@@ -25,9 +25,13 @@ export function useIntegracaoCora() {
         .eq("id", user.id)
         .single();
 
-      if (profileError || !userProfile?.empresa_id) {
+      if (profileError) {
         console.error("Erro ao buscar perfil:", profileError);
-        throw new Error("Empresa não encontrada para o usuário");
+        throw new Error("Erro ao buscar perfil do usuário");
+      }
+
+      if (!userProfile?.empresa_id) {
+        throw new Error("Por favor, cadastre sua empresa na aba 'Empresa' antes de configurar a integração");
       }
 
       const { data: config, error: configError } = await supabase
