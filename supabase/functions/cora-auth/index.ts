@@ -1,63 +1,80 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
+
+interface CoraConfiguracao {
+  empresa_id: string;
+  client_id: string;
+  client_secret: string;
+  ambiente: 'sandbox' | 'production';
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    // Inicializar cliente Supabase
-    const supabaseClient = createClient(
+    const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    )
 
-    // Obter usuário autenticado
-    const authHeader = req.headers.get('Authorization');
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(
-      authHeader?.split(' ')[1] ?? ''
-    );
-
-    if (userError || !user) {
-      throw new Error('Usuário não autenticado');
+    // Verificar autenticação
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      throw new Error('Não autorizado: token não fornecido')
     }
 
-    // Buscar perfil do usuário para obter empresa_id
-    const { data: profile, error: profileError } = await supabaseClient
+    // Obter usuário autenticado
+    const { data: { user }, error: userError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    )
+
+    if (userError || !user) {
+      console.error('Erro ao obter usuário:', userError)
+      throw new Error('Não autorizado: usuário não encontrado')
+    }
+
+    // Obter configurações do Cora para a empresa do usuário
+    const { data: profile } = await supabase
       .from('profiles')
       .select('empresa_id')
       .eq('id', user.id)
-      .single();
+      .single()
 
-    if (profileError || !profile?.empresa_id) {
-      throw new Error('Empresa não encontrada');
+    if (!profile?.empresa_id) {
+      throw new Error('Empresa não encontrada para o usuário')
     }
 
-    // Buscar configurações do Cora
-    const { data: config, error: configError } = await supabaseClient
+    const { data: config, error: configError } = await supabase
       .from('integracao_cora')
       .select('*')
       .eq('empresa_id', profile.empresa_id)
-      .single();
+      .maybeSingle()
 
-    if (configError || !config) {
-      throw new Error('Configurações do Cora não encontradas');
+    if (configError) {
+      console.error('Erro ao buscar configurações:', configError)
+      throw new Error('Erro ao buscar configurações do Cora')
     }
 
-    const baseUrl = config.ambiente === 'production' 
-      ? 'https://api.cora.com.br'
-      : 'https://sandbox.api.cora.com.br';
+    if (!config) {
+      throw new Error('Configurações do Cora não encontradas')
+    }
 
-    // Autenticar com o Cora
-    const response = await fetch(`${baseUrl}/token`, {
+    // Determinar URL base baseado no ambiente
+    const baseUrl = config.ambiente === 'sandbox' 
+      ? 'https://sandbox.api.cora.com.br/token'
+      : 'https://api.cora.com.br/token';
+
+    // Tentar autenticar com o Cora
+    const response = await fetch(baseUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -67,34 +84,35 @@ serve(async (req) => {
         client_id: config.client_id,
         client_secret: config.client_secret,
       }),
-    });
+    })
+
+    const data = await response.json()
 
     if (!response.ok) {
-      const error = await response.json();
-      console.error('Erro na autenticação Cora:', error);
-      throw new Error('Falha na autenticação com o Cora');
+      console.error('Erro na resposta do Cora:', data)
+      throw new Error(`Erro na autenticação com o Cora: ${data.error_description || 'Erro desconhecido'}`)
     }
 
-    const data = await response.json();
-
-    return new Response(JSON.stringify(data), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json',
-      },
-    });
-
-  } catch (error) {
-    console.error('Erro na função cora-auth:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 400,
-        headers: {
+      JSON.stringify(data),
+      { 
+        headers: { 
           ...corsHeaders,
           'Content-Type': 'application/json',
         },
-      }
-    );
+      },
+    )
+  } catch (error) {
+    console.error('Erro na função cora-auth:', error)
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { 
+        status: 400,
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+      },
+    )
   }
-});
+})

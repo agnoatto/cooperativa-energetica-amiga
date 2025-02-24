@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,7 +27,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-// Interface que representa a estrutura exata do banco de dados
 interface IntegracaoCoraDB {
   id?: string;
   created_at?: string;
@@ -71,16 +71,28 @@ export function IntegracaoCoraForm() {
   const { data: configExistente, isLoading } = useQuery({
     queryKey: ["integracao-cora"],
     queryFn: async () => {
+      console.log("Buscando configurações do Cora...");
       const { data: profile } = await supabase.auth.getUser();
-      if (!profile.user) throw new Error("Usuário não autenticado");
+      if (!profile.user) {
+        console.error("Usuário não autenticado");
+        throw new Error("Usuário não autenticado");
+      }
 
-      const { data: userProfile } = await supabase
+      const { data: userProfile, error: profileError } = await supabase
         .from("profiles")
         .select("empresa_id")
         .eq("id", profile.user.id)
         .single();
 
-      if (!userProfile?.empresa_id) throw new Error("Empresa não encontrada");
+      if (profileError) {
+        console.error("Erro ao buscar perfil:", profileError);
+        throw new Error("Erro ao buscar perfil do usuário");
+      }
+
+      if (!userProfile?.empresa_id) {
+        console.error("Empresa não encontrada");
+        throw new Error("Empresa não encontrada");
+      }
 
       const { data, error } = await supabase
         .from("integracao_cora")
@@ -88,7 +100,10 @@ export function IntegracaoCoraForm() {
         .eq("empresa_id", userProfile.empresa_id)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro ao buscar configurações:", error);
+        throw error;
+      }
 
       return {
         ...data,
@@ -123,6 +138,7 @@ export function IntegracaoCoraForm() {
   // Atualizar form quando dados forem carregados
   React.useEffect(() => {
     if (configExistente) {
+      console.log("Atualizando formulário com configurações existentes:", configExistente);
       const { configuracoes_boleto, ...rest } = configExistente;
       form.reset({
         ...rest,
@@ -135,24 +151,27 @@ export function IntegracaoCoraForm() {
 
   const mutation = useMutation({
     mutationFn: async (values: IntegracaoCoraFormValues) => {
+      console.log("Salvando configurações:", values);
       if (!configExistente?.empresa_id) {
         throw new Error("Empresa ID não encontrado");
       }
 
-      // Garantir que os dados estejam no formato correto para o banco
       const dbData: IntegracaoCoraDB = {
         empresa_id: configExistente.empresa_id,
         client_id: values.client_id,
         client_secret: values.client_secret,
         ambiente: values.ambiente,
-        configuracoes_boleto: values.configuracoes_boleto as Record<string, any>,
+        configuracoes_boleto: values.configuracoes_boleto,
       };
 
       const { error } = await supabase
         .from("integracao_cora")
         .upsert(dbData, { onConflict: "empresa_id" });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro ao salvar no banco:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       toast({
@@ -162,12 +181,12 @@ export function IntegracaoCoraForm() {
       queryClient.invalidateQueries({ queryKey: ["integracao-cora"] });
     },
     onError: (error) => {
+      console.error("Erro detalhado ao salvar:", error);
       toast({
         title: "Erro ao salvar",
-        description: "Ocorreu um erro ao salvar as configurações.",
+        description: `Erro ao salvar as configurações: ${error.message}`,
         variant: "destructive",
       });
-      console.error("Erro ao salvar configurações:", error);
     },
   });
 
@@ -178,21 +197,33 @@ export function IntegracaoCoraForm() {
   const testConnection = async () => {
     try {
       setIsTestingConnection(true);
-      const { error } = await supabase.functions.invoke("cora-auth", {
+      console.log("Testando conexão com o Cora...");
+      
+      const { error, data } = await supabase.functions.invoke("cora-auth", {
         method: "POST",
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro ao testar conexão:", error);
+        throw error;
+      }
+
+      if (data.error) {
+        console.error("Erro retornado pela API:", data.error);
+        throw new Error(data.error);
+      }
+
+      console.log("Resposta do teste de conexão:", data);
 
       toast({
         title: "Conexão estabelecida",
         description: "A conexão com o Cora foi estabelecida com sucesso.",
       });
     } catch (error) {
-      console.error("Erro ao testar conexão:", error);
+      console.error("Erro detalhado ao testar conexão:", error);
       toast({
         title: "Erro na conexão",
-        description: "Não foi possível estabelecer conexão com o Cora.",
+        description: `Não foi possível estabelecer conexão com o Cora: ${error.message}`,
         variant: "destructive",
       });
     } finally {
