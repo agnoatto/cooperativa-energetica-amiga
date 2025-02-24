@@ -64,7 +64,7 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
           
           <View style={{ flexDirection: 'row' }}>
             {/* Coluna Esquerda */}
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, marginRight: 20, borderRight: 1, borderColor: COLORS.GRAY, paddingRight: 20 }}>
               <Text style={{ marginBottom: 10 }}>Consumo do mês</Text>
               <Text style={{ fontSize: FONTS.TITLE, marginBottom: 20 }}>{fatura.consumo_kwh} kWh</Text>
               
@@ -76,6 +76,29 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
               <Text style={{ marginBottom: 5, marginTop: 10 }}>Até agora já economizou:</Text>
               <View style={styles.highlightBox}>
                 <Text style={styles.highlightValue}>{formatarMoeda(fatura.economia_acumulada)}</Text>
+              </View>
+
+              {/* Histórico de Economia */}
+              <View style={{ marginTop: 20 }}>
+                <Text style={{ fontSize: FONTS.SUBTITLE, marginBottom: 10, fontWeight: 'bold' }}>
+                  Histórico de Economia
+                </Text>
+                <View style={styles.table}>
+                  <View style={styles.tableHeader}>
+                    <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Mês</Text>
+                    <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Consumo</Text>
+                    <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Economia</Text>
+                  </View>
+                  {fatura.historico_faturas?.map((hist) => (
+                    <View key={`${hist.mes}-${hist.ano}`} style={styles.tableRow}>
+                      <Text style={styles.tableCell}>
+                        {format(new Date(hist.ano, hist.mes - 1), 'MMM/yy', { locale: ptBR })}
+                      </Text>
+                      <Text style={styles.tableCell}>{hist.consumo_kwh} kWh</Text>
+                      <Text style={styles.tableCellRight}>{formatarMoeda(hist.valor_desconto)}</Text>
+                    </View>
+                  ))}
+                </View>
               </View>
             </View>
 
@@ -104,7 +127,7 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
                   <Text style={styles.tableCellRight}>{formatarMoeda(fatura.outros_valores)}</Text>
                 </View>
                 <View style={[styles.tableRow, { backgroundColor: COLORS.LIGHT_GRAY }]}>
-                  <Text style={[styles.tableCell, { flex: 2 }]}>Total</Text>
+                  <Text style={[styles.tableCell, { flex: 2, textAlign: 'right', paddingRight: 10 }]}>Total:</Text>
                   <Text style={styles.tableCellRight}>{formatarMoeda(fatura.total_fatura)}</Text>
                 </View>
               </View>
@@ -123,7 +146,7 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
                   <Text style={styles.tableCellRight}>{formatarMoeda(fatura.valor_assinatura)}</Text>
                 </View>
                 <View style={[styles.tableRow, { backgroundColor: COLORS.LIGHT_GRAY }]}>
-                  <Text style={styles.tableCell}>Total</Text>
+                  <Text style={[styles.tableCell, { textAlign: 'right', paddingRight: 10 }]}>Total:</Text>
                   <Text style={styles.tableCellRight}>
                     {formatarMoeda(fatura.fatura_concessionaria + fatura.valor_assinatura)}
                   </Text>
@@ -160,8 +183,11 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
               <Text>CNPJ: 00.175.059/0001-00</Text>
               <Text>Rua Julio Golin, 552 - Centro - Nonoai/RS</Text>
             </View>
-            <View style={[styles.highlightBox, { width: 200 }]}>
-              <Text style={styles.highlightValue}>{formatarMoeda(fatura.valor_assinatura)}</Text>
+            <View style={[styles.highlightBox, { width: 250 }]}>
+              <View>
+                <Text style={{ fontSize: FONTS.SMALL, marginBottom: 5 }}>Total a pagar pela Assinatura</Text>
+                <Text style={styles.highlightValue}>{formatarMoeda(fatura.valor_assinatura)}</Text>
+              </View>
             </View>
           </View>
           <Text style={styles.warningText}>
