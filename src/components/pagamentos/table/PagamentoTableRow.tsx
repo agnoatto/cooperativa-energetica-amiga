@@ -1,3 +1,4 @@
+
 import { format } from "date-fns";
 import { FileDown, Send, Eye, Pencil, Trash, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import {
 } from "@/components/ui/tooltip";
 import { BoletimPreviewDialog } from "../BoletimPreviewDialog";
 import { SendPagamentoDialog } from "../SendPagamentoDialog";
+import { STORAGE_BUCKET } from "../hooks/constants";
 
 interface PagamentoTableRowProps {
   pagamento: PagamentoData;
@@ -43,15 +45,33 @@ export function PagamentoTableRow({
   const handlePreviewContaEnergia = async () => {
     if (pagamento.arquivo_conta_energia_path) {
       try {
-        const { data } = await supabase
+        console.log('[handlePreviewContaEnergia] Tentando obter URL do arquivo:', pagamento.arquivo_conta_energia_path);
+        
+        // Tenta criar uma URL assinada primeiro
+        const { data: signedUrlData, error: signedUrlError } = await supabase
           .storage
-          .from('pagamentos')
-          .getPublicUrl(pagamento.arquivo_conta_energia_path);
+          .from(STORAGE_BUCKET)
+          .createSignedUrl(pagamento.arquivo_conta_energia_path, 3600);
 
-        setPdfUrl(data.publicUrl);
+        if (signedUrlError) {
+          console.error('[handlePreviewContaEnergia] Erro ao gerar URL assinada:', signedUrlError);
+          
+          // Se falhar, tenta obter URL pública
+          const { data } = await supabase
+            .storage
+            .from(STORAGE_BUCKET)
+            .getPublicUrl(pagamento.arquivo_conta_energia_path);
+            
+          console.log('[handlePreviewContaEnergia] URL pública obtida:', data.publicUrl);
+          setPdfUrl(data.publicUrl);
+        } else {
+          console.log('[handlePreviewContaEnergia] URL assinada obtida:', signedUrlData.signedUrl);
+          setPdfUrl(signedUrlData.signedUrl);
+        }
+        
         setShowContaEnergiaPreview(true);
       } catch (error) {
-        console.error('Erro ao obter URL do PDF:', error);
+        console.error('[handlePreviewContaEnergia] Erro ao obter URL do PDF:', error);
         toast.error('Erro ao carregar o PDF');
       }
     }
@@ -60,12 +80,17 @@ export function PagamentoTableRow({
   const handleDownloadContaEnergia = async () => {
     if (pagamento.arquivo_conta_energia_path) {
       try {
+        console.log('[handleDownloadContaEnergia] Tentando baixar arquivo:', pagamento.arquivo_conta_energia_path);
+        
         const { data, error } = await supabase
           .storage
-          .from('pagamentos')
+          .from(STORAGE_BUCKET)
           .download(pagamento.arquivo_conta_energia_path);
 
-        if (error) throw error;
+        if (error) {
+          console.error('[handleDownloadContaEnergia] Erro no download:', error);
+          throw error;
+        }
 
         // Criar URL do blob e fazer download
         const url = window.URL.createObjectURL(data);
@@ -79,7 +104,7 @@ export function PagamentoTableRow({
 
         toast.success('Download iniciado');
       } catch (error) {
-        console.error('Erro ao fazer download:', error);
+        console.error('[handleDownloadContaEnergia] Erro ao fazer download:', error);
         toast.error('Erro ao fazer download do arquivo');
       }
     }
