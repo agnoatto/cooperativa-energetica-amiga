@@ -69,15 +69,11 @@ export function usePagamentoStatus() {
     mutationFn: async (variables: { id: string; method: SendMethod }) => {
       console.log('Atualizando status do pagamento:', variables);
       
-      const { data, error } = await supabase
-        .from('pagamentos_usina')
-        .update({
-          status: 'enviado',
-          send_method: [variables.method],
-          data_envio: new Date().toISOString(),
-        })
-        .eq('id', variables.id)
-        .select();
+      const { data, error } = await supabase.rpc('update_pagamento_status', {
+        p_pagamento_id: variables.id,
+        p_novo_status: 'enviado',
+        p_method: variables.method
+      });
 
       if (error) {
         console.error('Erro na atualização:', error);

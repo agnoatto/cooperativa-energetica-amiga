@@ -660,7 +660,7 @@ export type Database = {
           observacao: string | null
           observacao_pagamento: string | null
           send_method: string[] | null
-          status: Database["public"]["Enums"]["pagamento_status"]
+          status: Database["public"]["Enums"]["pagamento_status"] | null
           tusd_fio_b: number | null
           updated_at: string
           usina_id: string | null
@@ -689,7 +689,7 @@ export type Database = {
           observacao?: string | null
           observacao_pagamento?: string | null
           send_method?: string[] | null
-          status?: Database["public"]["Enums"]["pagamento_status"]
+          status?: Database["public"]["Enums"]["pagamento_status"] | null
           tusd_fio_b?: number | null
           updated_at?: string
           usina_id?: string | null
@@ -718,7 +718,7 @@ export type Database = {
           observacao?: string | null
           observacao_pagamento?: string | null
           send_method?: string[] | null
-          status?: Database["public"]["Enums"]["pagamento_status"]
+          status?: Database["public"]["Enums"]["pagamento_status"] | null
           tusd_fio_b?: number | null
           updated_at?: string
           usina_id?: string | null
@@ -1454,6 +1454,49 @@ export type Database = {
         }
         Returns: string[]
       }
+      update_pagamento_status: {
+        Args: {
+          p_pagamento_id: string
+          p_novo_status: Database["public"]["Enums"]["pagamento_status"]
+          p_method?: string
+        }
+        Returns: {
+          ano: number
+          arquivo_conta_energia_nome: string | null
+          arquivo_conta_energia_path: string | null
+          arquivo_conta_energia_tamanho: number | null
+          arquivo_conta_energia_tipo: string | null
+          created_at: string
+          data_confirmacao: string | null
+          data_emissao: string | null
+          data_envio: string | null
+          data_pagamento: string | null
+          data_vencimento: string
+          data_vencimento_concessionaria: string | null
+          empresa_id: string | null
+          geracao_kwh: number
+          historico_status: Json | null
+          id: string
+          mes: number
+          observacao: string | null
+          observacao_pagamento: string | null
+          send_method: string[] | null
+          status: Database["public"]["Enums"]["pagamento_status"] | null
+          tusd_fio_b: number | null
+          updated_at: string
+          usina_id: string | null
+          valor_concessionaria: number
+          valor_total: number
+          valor_tusd_fio_b: number
+        }
+      }
+      validate_pagamento_status_transition: {
+        Args: {
+          old_status: Database["public"]["Enums"]["pagamento_status"]
+          new_status: Database["public"]["Enums"]["pagamento_status"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       communication_method: "email" | "whatsapp"
@@ -1468,9 +1511,8 @@ export type Database = {
       pagamento_status:
         | "pendente"
         | "enviado"
-        | "confirmado"
-        | "atrasado"
         | "pago"
+        | "atrasado"
         | "cancelado"
       status_lancamento: "pendente" | "pago" | "atrasado" | "cancelado"
       tipo_lancamento: "receita" | "despesa"

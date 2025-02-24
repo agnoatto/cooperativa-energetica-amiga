@@ -6,6 +6,7 @@ export interface HistoricoStatus {
   data: string;
   status_anterior: PagamentoStatus;
   novo_status: PagamentoStatus;
+  method?: SendMethod;
 }
 
 export interface PagamentoFormValues {
@@ -49,12 +50,4 @@ export interface PagamentoData extends PagamentoFormValues {
       numero_uc: string;
     };
   };
-}
-
-export interface DeletePagamentoDialogProps {
-  pagamento: PagamentoData | null;
-  isOpen: boolean;
-  isDeleting: boolean;
-  onClose: () => void;
-  onConfirm: () => Promise<void>;
 }
