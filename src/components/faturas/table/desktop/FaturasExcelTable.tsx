@@ -21,9 +21,21 @@ interface FaturasExcelTableProps {
 const columns = [
   {
     id: 'cooperado',
-    label: 'Informações do Cooperado',
-    width: 300,
-    minWidth: 200
+    label: 'Cooperado',
+    width: 250,
+    minWidth: 180
+  },
+  {
+    id: 'documento',
+    label: 'CPF/CNPJ',
+    width: 150,
+    minWidth: 130
+  },
+  {
+    id: 'uc',
+    label: 'UC',
+    width: 120,
+    minWidth: 100
   },
   {
     id: 'vencimento',
@@ -112,50 +124,47 @@ export function FaturasExcelTable({
       <tbody>
         {faturas.map((fatura) => (
           <tr key={fatura.id} className="border-b hover:bg-gray-50 transition-colors">
-            <td className="p-3">
-              <div className="flex flex-col">
-                <span className="font-medium text-gray-900">
-                  {fatura.unidade_beneficiaria.cooperado.nome}
+            <td className="p-2 whitespace-nowrap">
+              <span className="font-medium text-gray-900">
+                {fatura.unidade_beneficiaria.cooperado.nome}
+              </span>
+              {fatura.unidade_beneficiaria.apelido && (
+                <span className="text-gray-400 ml-1">
+                  ({fatura.unidade_beneficiaria.apelido})
                 </span>
-                <div className="text-sm text-gray-500 space-x-2">
-                  <span>{formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)}</span>
-                  <span>•</span>
-                  <span>
-                    UC: {fatura.unidade_beneficiaria.numero_uc}
-                    {fatura.unidade_beneficiaria.apelido && (
-                      <span className="text-gray-400 ml-1">
-                        ({fatura.unidade_beneficiaria.apelido})
-                      </span>
-                    )}
-                  </span>
-                </div>
-              </div>
+              )}
             </td>
-            <td className="p-3 whitespace-nowrap">{formatDateToPtBR(fatura.data_vencimento)}</td>
-            <td className="p-3 text-right whitespace-nowrap">{fatura.consumo_kwh} kWh</td>
-            <td className="p-3 text-right whitespace-nowrap font-mono">{formatCurrency(fatura.total_fatura)}</td>
-            <td className="p-3 text-right whitespace-nowrap font-mono">{formatCurrency(fatura.fatura_concessionaria)}</td>
-            <td className="p-3 text-right whitespace-nowrap font-mono">{fatura.unidade_beneficiaria.percentual_desconto}%</td>
-            <td className="p-3 text-right whitespace-nowrap font-mono">{formatCurrency(fatura.valor_desconto)}</td>
-            <td className="p-3 text-right whitespace-nowrap font-mono">
+            <td className="p-2 whitespace-nowrap text-gray-600">
+              {formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)}
+            </td>
+            <td className="p-2 whitespace-nowrap text-gray-600">
+              {fatura.unidade_beneficiaria.numero_uc}
+            </td>
+            <td className="p-2 whitespace-nowrap">{formatDateToPtBR(fatura.data_vencimento)}</td>
+            <td className="p-2 text-right whitespace-nowrap">{fatura.consumo_kwh} kWh</td>
+            <td className="p-2 text-right whitespace-nowrap font-mono">{formatCurrency(fatura.total_fatura)}</td>
+            <td className="p-2 text-right whitespace-nowrap font-mono">{formatCurrency(fatura.fatura_concessionaria)}</td>
+            <td className="p-2 text-right whitespace-nowrap font-mono">{fatura.unidade_beneficiaria.percentual_desconto}%</td>
+            <td className="p-2 text-right whitespace-nowrap font-mono">{formatCurrency(fatura.valor_desconto)}</td>
+            <td className="p-2 text-right whitespace-nowrap font-mono">
               {formatCurrency(fatura.valor_assinatura)}
               {fatura.valor_adicional > 0 && (
-                <span className="text-yellow-600 text-sm block">
+                <span className="text-yellow-600 text-xs ml-1">
                   +{formatCurrency(fatura.valor_adicional)}
                 </span>
               )}
             </td>
-            <td className="p-3 whitespace-nowrap">
+            <td className="p-2 whitespace-nowrap">
               <FaturaStatusBadge fatura={fatura} />
             </td>
-            <td className="p-3 whitespace-nowrap text-center">
+            <td className="p-2 whitespace-nowrap text-center">
               {fatura.arquivo_concessionaria_path ? (
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={onViewPdf}
                   title="Visualizar conta de energia"
-                  className="h-8 w-8"
+                  className="h-6 w-6"
                 >
                   <FileText className="h-4 w-4" />
                 </Button>
@@ -163,7 +172,7 @@ export function FaturasExcelTable({
                 <span className="text-gray-400 text-sm">-</span>
               )}
             </td>
-            <td className="p-3 text-right whitespace-nowrap">
+            <td className="p-2 text-right whitespace-nowrap">
               <FaturaRowActions
                 fatura={fatura}
                 onViewDetails={onViewDetails}
