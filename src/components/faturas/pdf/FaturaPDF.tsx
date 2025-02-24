@@ -1,5 +1,5 @@
 import React from 'react';
-import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
+import { Document, Page, View, Text } from '@react-pdf/renderer';
 import { styles, COLORS, FONTS } from '@/components/pdf/theme';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -53,24 +53,6 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
           </View>
         </View>
 
-        {/* Informações Destacadas */}
-        <View style={styles.highlightBox}>
-          <View style={styles.highlightItem}>
-            <Text style={styles.highlightLabel}>Unidade Consumidora:</Text>
-            <Text style={styles.highlightValue}>{fatura.unidade_beneficiaria.numero_uc}</Text>
-          </View>
-          <View style={styles.highlightItem}>
-            <Text style={styles.highlightLabel}>Data de Vencimento:</Text>
-            <Text style={styles.highlightValue}>
-              {format(new Date(fatura.data_vencimento), 'dd/MM/yyyy')}
-            </Text>
-          </View>
-          <View style={styles.highlightItem}>
-            <Text style={styles.highlightLabel}>Valor a Pagar a Cogesol:</Text>
-            <Text style={styles.highlightValue}>{formatarMoeda(fatura.valor_assinatura)}</Text>
-          </View>
-        </View>
-
         {/* Análise Mensal */}
         <View style={styles.contentSection}>
           <Text style={styles.sectionHeader}>Análise Mensal</Text>
@@ -97,24 +79,21 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
               </View>
 
               {/* Histórico de Economia com título em destaque */}
-              <View style={{ 
-                marginTop: 30,
-                backgroundColor: COLORS.LIGHT_BLUE,
-                padding: 15,
-                borderRadius: 8,
-                marginBottom: 20
-              }}>
+              <View style={{ marginTop: 20 }}>
                 <Text style={{ 
-                  fontSize: FONTS.HEADER,
-                  color: COLORS.PRIMARY,
+                  fontSize: FONTS.TITLE,
+                  marginBottom: 15,
                   fontWeight: 'bold',
+                  color: COLORS.PRIMARY,
+                  backgroundColor: COLORS.LIGHT_BLUE,
+                  padding: 10,
+                  borderRadius: 4,
                   textAlign: 'center',
-                  textTransform: 'uppercase',
-                  marginBottom: 5
+                  textTransform: 'uppercase'
                 }}>
                   Histórico de Economia
                 </Text>
-                <View style={[styles.table, { marginTop: 15 }]}>
+                <View style={styles.table}>
                   <View style={styles.tableHeader}>
                     <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Mês</Text>
                     <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Consumo</Text>
