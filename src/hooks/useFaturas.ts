@@ -25,8 +25,14 @@ export const useFaturas = (currentDate: Date): UseFaturasResult => {
     isGenerating: gerarFaturasMutation.isPending,
     deleteFatura: (id: string) => deleteFaturaMutation.mutate(id),
     updateFaturaStatus: async (data: UpdateFaturaStatusInput) => {
-      await updateFaturaStatusMutation.mutateAsync(data);
-      // Não retornamos nada pois a função espera Promise<void>
+      try {
+        console.log('Iniciando atualização de status em useFaturas:', data);
+        const result = await updateFaturaStatusMutation.mutateAsync(data);
+        console.log('Resultado da atualização em useFaturas:', result);
+      } catch (error) {
+        console.error('Erro ao atualizar status em useFaturas:', error);
+        throw error;
+      }
     }
   };
 };

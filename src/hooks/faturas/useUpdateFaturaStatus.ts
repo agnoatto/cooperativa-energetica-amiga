@@ -10,30 +10,29 @@ export const useUpdateFaturaStatus = () => {
 
   return useMutation({
     mutationFn: async (data: UpdateFaturaStatusInput) => {
-      console.log('Atualizando status da fatura:', data);
+      console.log('Iniciando atualização de status da fatura:', data);
       const now = new Date().toISOString();
       
-      // Buscar histórico atual
-      const { data: fatura, error: fetchError } = await supabase
+      // Buscar fatura atual para verificar se a atualização é necessária
+      const { data: currentFatura, error: fetchError } = await supabase
         .from("faturas")
-        .select('historico_status, status')
+        .select('*')
         .eq('id', data.id)
         .single();
 
       if (fetchError) {
-        console.error('Erro ao buscar histórico da fatura:', fetchError);
-        throw fetchError;
+        console.error('Erro ao buscar fatura:', fetchError);
+        throw new Error('Erro ao buscar fatura: ' + fetchError.message);
       }
 
-      // Convert the raw JSON data to our type safely
-      const historicoAtual = (fatura?.historico_status as Array<{
-        status: FaturaStatus;
-        data: string;
-        observacao?: string;
-        motivo_correcao?: string;
-        campos_alterados?: string[];
-      }> || []);
+      if (!currentFatura) {
+        throw new Error('Fatura não encontrada');
+      }
 
+      console.log('Fatura atual:', currentFatura);
+
+      // Prepara o histórico
+      const historicoAtual = currentFatura.historico_status || [];
       const novoHistorico: StatusHistoryEntry[] = [
         ...historicoAtual,
         {
@@ -45,17 +44,16 @@ export const useUpdateFaturaStatus = () => {
         }
       ];
 
-      console.log('Histórico atualizado:', novoHistorico);
-      console.log('Novo status:', data.status);
-
       const updateData: Record<string, any> = {
         status: data.status,
-        historico_status: novoHistorico
+        historico_status: novoHistorico,
+        data_atualizacao: now
       };
 
-      // Adicionar campos específicos baseados no status
+      // Adiciona campos específicos baseados no status
       if (data.status === 'enviada' || data.status === 'reenviada') {
         updateData.data_envio = now;
+        updateData.send_method = currentFatura.send_method || [];
       } else if (data.status === 'paga') {
         updateData.data_confirmacao_pagamento = now;
         if (data.data_pagamento) {
@@ -69,89 +67,80 @@ export const useUpdateFaturaStatus = () => {
         }
       }
 
-      console.log('Dados de atualização:', updateData);
+      console.log('Dados para atualização:', updateData);
 
-      const { error: updateError, data: updatedFatura } = await supabase
+      // Realiza a atualização
+      const { data: updatedFatura, error: updateError } = await supabase
         .from("faturas")
         .update(updateData)
-        .eq("id", data.id)
-        .select()
+        .eq('id', data.id)
+        .select('*')
         .single();
 
       if (updateError) {
         console.error('Erro ao atualizar fatura:', updateError);
-        throw updateError;
+        throw new Error('Erro ao atualizar fatura: ' + updateError.message);
+      }
+
+      if (!updatedFatura) {
+        throw new Error('Fatura não foi atualizada');
       }
 
       console.log('Fatura atualizada com sucesso:', updatedFatura);
       return updatedFatura;
     },
     onMutate: async (data) => {
-      // Mostra toast de loading
-      toast.loading("Atualizando status da fatura...");
-
-      // Cancela queries em andamento para evitar sobrescrever nosso update otimista
-      await queryClient.cancelQueries({
-        queryKey: ['faturas']
-      });
+      console.log('Iniciando mutação otimista:', data);
+      await queryClient.cancelQueries({ queryKey: ['faturas'] });
 
       // Snapshot do estado anterior
       const date = new Date();
-      const previousFaturas = queryClient.getQueryData(
-        ['faturas', date.getMonth() + 1, date.getFullYear()]
-      );
+      const queryKey = ['faturas', date.getMonth() + 1, date.getFullYear()];
+      const previousFaturas = queryClient.getQueryData<Fatura[]>(queryKey);
 
-      // Atualiza o cache otimisticamente
-      queryClient.setQueryData(['faturas', date.getMonth() + 1, date.getFullYear()], 
-        (old: Fatura[] | undefined) => {
-          if (!old) return old;
-          return old.map(fatura => {
-            if (fatura.id === data.id) {
-              return {
-                ...fatura,
-                status: data.status,
-                historico_status: [
-                  ...(fatura.historico_status || []),
-                  {
-                    status: data.status,
-                    data: new Date().toISOString(),
-                    observacao: data.observacao,
-                    motivo_correcao: data.motivo_correcao,
-                    campos_alterados: data.campos_alterados
-                  }
-                ]
-              };
-            }
-            return fatura;
-          });
-        }
-      );
+      // Update otimista
+      queryClient.setQueryData<Fatura[]>(queryKey, (old) => {
+        if (!old) return old;
+        return old.map(fatura => {
+          if (fatura.id === data.id) {
+            return {
+              ...fatura,
+              status: data.status,
+              historico_status: [
+                ...(fatura.historico_status || []),
+                {
+                  status: data.status,
+                  data: new Date().toISOString(),
+                  observacao: data.observacao
+                }
+              ]
+            };
+          }
+          return fatura;
+        });
+      });
 
       return { previousFaturas };
     },
     onError: (error, variables, context) => {
-      console.error("Erro ao atualizar status da fatura:", error);
-      toast.error("Erro ao atualizar status da fatura");
+      console.error("Erro na mutação:", error);
+      toast.error("Erro ao atualizar status da fatura: " + error.message);
       
-      // Reverte para o estado anterior em caso de erro
+      // Reverter alterações otimistas
       if (context?.previousFaturas) {
         const date = new Date();
-        queryClient.setQueryData(
-          ['faturas', date.getMonth() + 1, date.getFullYear()],
-          context.previousFaturas
-        );
+        const queryKey = ['faturas', date.getMonth() + 1, date.getFullYear()];
+        queryClient.setQueryData(queryKey, context.previousFaturas);
       }
     },
     onSuccess: (updatedFatura, variables) => {
       console.log('Mutation concluída com sucesso:', updatedFatura);
       const date = new Date();
+      const queryKey = ['faturas', date.getMonth() + 1, date.getFullYear()];
       
-      // Invalida e recarrega os dados
-      queryClient.invalidateQueries({
-        queryKey: ['faturas', date.getMonth() + 1, date.getFullYear()]
-      });
+      // Força recarregamento dos dados
+      queryClient.invalidateQueries({ queryKey });
       
-      // Mensagem específica baseada no novo status
       const statusMessages = {
         enviada: "Fatura enviada com sucesso!",
         corrigida: "Fatura marcada para correção!",
@@ -162,11 +151,6 @@ export const useUpdateFaturaStatus = () => {
       };
       
       toast.success(statusMessages[variables.status] || "Status da fatura atualizado com sucesso!");
-
-      // Força recarregamento dos dados após sucesso
-      queryClient.refetchQueries({
-        queryKey: ['faturas', date.getMonth() + 1, date.getFullYear()]
-      });
     }
   });
 };

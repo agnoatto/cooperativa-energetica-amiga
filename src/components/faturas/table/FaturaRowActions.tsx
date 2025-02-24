@@ -42,10 +42,13 @@ export function FaturaRowActions({
   const handleSendEmail = async () => {
     try {
       setIsProcessingSend(true);
+      console.log('Iniciando envio por email para fatura:', fatura.id);
       // TODO: Implementar envio por email
-      await onUpdateStatus(fatura, 'enviada', 'Fatura enviada por email');
+      const result = await onUpdateStatus(fatura, 'enviada', 'Fatura enviada por email');
+      console.log('Resultado da atualização:', result);
       toast.success("Fatura enviada por email com sucesso");
     } catch (error) {
+      console.error('Erro ao enviar email:', error);
       toast.error("Erro ao enviar email");
     } finally {
       setIsProcessingSend(false);
@@ -55,10 +58,13 @@ export function FaturaRowActions({
   const handleSendWhatsApp = async () => {
     try {
       setIsProcessingSend(true);
+      console.log('Iniciando envio por WhatsApp para fatura:', fatura.id);
       // TODO: Implementar envio por WhatsApp
-      await onUpdateStatus(fatura, 'enviada', 'Fatura enviada por WhatsApp');
+      const result = await onUpdateStatus(fatura, 'enviada', 'Fatura enviada por WhatsApp');
+      console.log('Resultado da atualização:', result);
       toast.success("Fatura enviada por WhatsApp com sucesso");
     } catch (error) {
+      console.error('Erro ao enviar WhatsApp:', error);
       toast.error("Erro ao enviar WhatsApp");
     } finally {
       setIsProcessingSend(false);
