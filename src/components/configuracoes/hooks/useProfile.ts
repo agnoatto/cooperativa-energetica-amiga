@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -21,6 +20,7 @@ export interface ProfileWithRole {
   cargo?: string | null;
   avatar_url?: string | null;
   cooperativa_id?: string | null;
+  user_roles?: Array<{role: 'master' | 'user'}>;
   role?: 'master' | 'user';
 }
 

@@ -41,16 +41,16 @@ export function EmpresaForm() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("empresa_id")
+        .select("cooperativa_id")
         .eq("id", user.id)
         .single();
 
-      if (!profile?.empresa_id) return null;
+      if (!profile?.cooperativa_id) return null;
 
       const { data: empresa } = await supabase
         .from("empresas")
         .select("*")
-        .eq("id", profile.empresa_id)
+        .eq("id", profile.cooperativa_id)
         .single();
 
       return empresa;
@@ -89,7 +89,7 @@ export function EmpresaForm() {
 
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ empresa_id: data.id })
+        .update({ cooperativa_id: data.id })
         .eq("id", user.id);
 
       if (updateError) throw updateError;
