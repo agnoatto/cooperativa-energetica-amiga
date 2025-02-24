@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
 import { styles, COLORS, FONTS } from '@/components/pdf/theme';
@@ -13,8 +14,23 @@ interface FaturaPDFProps {
 export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
   const mesReferencia = format(new Date(fatura.ano, fatura.mes - 1), 'MMMM/yy', { locale: ptBR });
   
-  // Calcula a economia acumulada somando os valores de desconto do histórico
-  const economiaAcumulada = fatura.historico_faturas?.reduce((total, hist) => total + hist.valor_desconto, 0) || 0;
+  // Filtra o histórico até o mês atual e calcula a economia acumulada
+  const historicoFiltrado = fatura.historico_faturas
+    ?.filter(hist => {
+      // Compara ano e mês para pegar apenas até o mês do relatório
+      if (hist.ano < fatura.ano) return true;
+      if (hist.ano === fatura.ano && hist.mes <= fatura.mes) return true;
+      return false;
+    })
+    .sort((a, b) => {
+      // Ordenar por ano e mês decrescente
+      if (a.ano !== b.ano) return b.ano - a.ano;
+      return b.mes - a.mes;
+    })
+    .slice(0, 12) || []; // Limita aos últimos 12 meses
+
+  // Calcula a economia acumulada somando os valores de desconto do histórico filtrado
+  const economiaAcumulada = historicoFiltrado.reduce((total, hist) => total + hist.valor_desconto, 0) || 0;
   
   return (
     <Document>
@@ -104,7 +120,7 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
                     <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Consumo</Text>
                     <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Economia</Text>
                   </View>
-                  {fatura.historico_faturas?.map((hist) => (
+                  {historicoFiltrado.map((hist) => (
                     <View key={`${hist.mes}-${hist.ano}`} style={styles.tableRow}>
                       <Text style={styles.tableCell}>
                         {format(new Date(hist.ano, hist.mes - 1), 'MMM/yy', { locale: ptBR })}
