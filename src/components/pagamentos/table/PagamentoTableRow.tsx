@@ -1,6 +1,6 @@
 
 import { format } from "date-fns";
-import { FileDown, Send, Eye, Pencil, Trash, Mail, Phone } from "lucide-react";
+import { FileDown, Send, Eye, Pencil, Trash, Mail, Phone, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { PagamentoData } from "../types/pagamento";
@@ -51,9 +51,26 @@ export function PagamentoTableRow({
       <TableCell className="text-right">
         <StatusBadge status={pagamento.status} />
       </TableCell>
-      <TableCell className="text-center">
-        {pagamento.arquivo_conta_energia_path && (
+      <TableCell>
+        <div className="flex items-center justify-end gap-2">
           <TooltipProvider>
+            {pagamento.arquivo_conta_energia_path && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                  >
+                    <FileDown className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Visualizar conta de energia</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -61,19 +78,29 @@ export function PagamentoTableRow({
                   size="icon"
                   className="h-8 w-8"
                 >
-                  <FileDown className="h-4 w-4" />
+                  <Eye className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Visualizar conta de energia</p>
+                <p>Visualizar Boletim</p>
               </TooltipContent>
             </Tooltip>
-          </TooltipProvider>
-        )}
-      </TableCell>
-      <TableCell>
-        <div className="flex items-center justify-end gap-2">
-          <TooltipProvider>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                >
+                  <FileText className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Baixar Boletim</p>
+              </TooltipContent>
+            </Tooltip>
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
