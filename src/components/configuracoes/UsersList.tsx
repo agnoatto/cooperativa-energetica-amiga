@@ -33,7 +33,7 @@ export function UsersList() {
       const { data, error } = await supabase
         .from("user_roles")
         .select(`
-          profiles!user_roles_user_id_fkey (
+          profiles:user_id (
             id,
             nome,
             email,
@@ -42,7 +42,7 @@ export function UsersList() {
           ),
           role
         `)
-        .eq("cooperativa_id", profile?.cooperativa_id);
+        .eq("profiles.cooperativa_id", profile?.cooperativa_id);
 
       if (error) throw error;
 
