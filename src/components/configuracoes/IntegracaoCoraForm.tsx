@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,7 +35,7 @@ interface IntegracaoCoraDB {
   client_id: string;
   client_secret: string;
   ambiente: "sandbox" | "production";
-  configuracoes_boleto: unknown;
+  configuracoes_boleto: Record<string, any>;
 }
 
 const integracaoCoraSchema = z.object({
@@ -146,7 +145,7 @@ export function IntegracaoCoraForm() {
         client_id: values.client_id,
         client_secret: values.client_secret,
         ambiente: values.ambiente,
-        configuracoes_boleto: values.configuracoes_boleto,
+        configuracoes_boleto: values.configuracoes_boleto as Record<string, any>,
       };
 
       const { error } = await supabase
