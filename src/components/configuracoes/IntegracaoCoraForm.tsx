@@ -2,7 +2,6 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -21,95 +20,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
-interface IntegracaoCoraDB {
-  id?: string;
-  created_at?: string;
-  updated_at?: string;
-  empresa_id: string;
-  client_id: string;
-  client_secret: string;
-  ambiente: "sandbox" | "production";
-  configuracoes_boleto: Record<string, any>;
-}
-
-const integracaoCoraSchema = z.object({
-  client_id: z.string().min(1, "Client ID é obrigatório"),
-  client_secret: z.string().min(1, "Client Secret é obrigatório"),
-  ambiente: z.enum(["sandbox", "production"]),
-  configuracoes_boleto: z.object({
-    instrucoes: z.array(z.string()),
-    multa: z.object({
-      percentual: z.number().min(0).max(100),
-      valor: z.number().min(0),
-    }),
-    juros: z.object({
-      percentual: z.number().min(0).max(100),
-      valor: z.number().min(0),
-    }),
-    desconto: z.object({
-      percentual: z.number().min(0).max(100),
-      valor: z.number().min(0),
-      data_limite: z.string().nullable(),
-    }),
-  }),
-});
-
-type IntegracaoCoraFormValues = z.infer<typeof integracaoCoraSchema>;
+import { useToast } from "@/components/ui/use-toast";
+import { ConfiguracoesBoletoFields } from "./components/ConfiguracoesBoletoFields";
+import { useIntegracaoCora } from "./hooks/useIntegracaoCora";
+import { integracaoCoraSchema, IntegracaoCoraFormValues } from "./types/integracao-cora";
 
 export function IntegracaoCoraForm() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isTestingConnection, setIsTestingConnection] = useState(false);
-
-  // Buscar configurações existentes e perfil do usuário
-  const { data: configExistente, isLoading, error: loadError } = useQuery({
-    queryKey: ["integracao-cora"],
-    queryFn: async () => {
-      console.log("Buscando configurações do Cora...");
-      
-      // Verificar autenticação
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        console.error("Erro de autenticação:", authError);
-        throw new Error("Usuário não autenticado");
-      }
-
-      // Buscar perfil do usuário
-      const { data: userProfile, error: profileError } = await supabase
-        .from("profiles")
-        .select("empresa_id")
-        .eq("id", user.id)
-        .single();
-
-      if (profileError || !userProfile?.empresa_id) {
-        console.error("Erro ao buscar perfil:", profileError);
-        throw new Error("Empresa não encontrada para o usuário");
-      }
-
-      // Buscar configurações do Cora
-      const { data: config, error: configError } = await supabase
-        .from("integracao_cora")
-        .select("*")
-        .eq("empresa_id", userProfile.empresa_id)
-        .maybeSingle();
-
-      if (configError) {
-        console.error("Erro ao buscar configurações:", configError);
-        throw configError;
-      }
-
-      return {
-        ...config,
-        empresa_id: userProfile.empresa_id,
-      };
-    },
-  });
+  const { configExistente, isLoading, loadError, mutation } = useIntegracaoCora();
 
   const form = useForm<IntegracaoCoraFormValues>({
     resolver: zodResolver(integracaoCoraSchema),
@@ -134,7 +56,6 @@ export function IntegracaoCoraForm() {
     },
   });
 
-  // Atualizar form quando dados forem carregados
   React.useEffect(() => {
     if (configExistente) {
       console.log("Atualizando formulário com configurações existentes:", configExistente);
@@ -147,49 +68,6 @@ export function IntegracaoCoraForm() {
       });
     }
   }, [configExistente, form]);
-
-  const mutation = useMutation({
-    mutationFn: async (values: IntegracaoCoraFormValues) => {
-      if (!configExistente?.empresa_id) {
-        throw new Error("Empresa não encontrada");
-      }
-
-      const dbData: IntegracaoCoraDB = {
-        empresa_id: configExistente.empresa_id,
-        client_id: values.client_id,
-        client_secret: values.client_secret,
-        ambiente: values.ambiente,
-        configuracoes_boleto: values.configuracoes_boleto,
-      };
-
-      const { error } = await supabase
-        .from("integracao_cora")
-        .upsert(dbData, { 
-          onConflict: "empresa_id",
-          ignoreDuplicates: false,
-        });
-
-      if (error) {
-        console.error("Erro ao salvar configurações:", error);
-        throw new Error(`Erro ao salvar: ${error.message}`);
-      }
-    },
-    onSuccess: () => {
-      toast({
-        title: "Configurações salvas",
-        description: "As configurações da integração foram salvas com sucesso.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["integracao-cora"] });
-    },
-    onError: (error) => {
-      console.error("Erro ao salvar:", error);
-      toast({
-        title: "Erro ao salvar",
-        description: error.message || "Erro ao salvar as configurações",
-        variant: "destructive",
-      });
-    },
-  });
 
   const onSubmit = (values: IntegracaoCoraFormValues) => {
     mutation.mutate(values);
@@ -306,43 +184,7 @@ export function IntegracaoCoraForm() {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="configuracoes_boleto.multa.percentual"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Percentual de Multa (%)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="configuracoes_boleto.juros.percentual"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Percentual de Juros ao mês (%)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <ConfiguracoesBoletoFields form={form} />
         </div>
 
         <div className="flex gap-4">
