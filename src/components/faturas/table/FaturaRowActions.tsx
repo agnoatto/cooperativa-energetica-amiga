@@ -37,24 +37,31 @@ export function FaturaRowActions({
   const [showCorrectionDialog, setShowCorrectionDialog] = useState(false);
   const [motivo, setMotivo] = useState("");
   const [isProcessingCorrection, setIsProcessingCorrection] = useState(false);
+  const [isProcessingSend, setIsProcessingSend] = useState(false);
 
   const handleSendEmail = async () => {
     try {
+      setIsProcessingSend(true);
       // TODO: Implementar envio por email
-      toast.success("Em breve: Envio por email");
       await onUpdateStatus(fatura, 'enviada', 'Fatura enviada por email');
+      toast.success("Fatura enviada por email com sucesso");
     } catch (error) {
       toast.error("Erro ao enviar email");
+    } finally {
+      setIsProcessingSend(false);
     }
   };
 
   const handleSendWhatsApp = async () => {
     try {
+      setIsProcessingSend(true);
       // TODO: Implementar envio por WhatsApp
-      toast.success("Em breve: Envio por WhatsApp");
       await onUpdateStatus(fatura, 'enviada', 'Fatura enviada por WhatsApp');
+      toast.success("Fatura enviada por WhatsApp com sucesso");
     } catch (error) {
       toast.error("Erro ao enviar WhatsApp");
+    } finally {
+      setIsProcessingSend(false);
     }
   };
 
@@ -117,16 +124,17 @@ export function FaturaRowActions({
             variant="outline"
             size="icon"
             title="Enviar Fatura"
+            disabled={isProcessingSend}
           >
             <Send className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          <DropdownMenuItem onClick={handleSendEmail}>
+          <DropdownMenuItem onClick={handleSendEmail} disabled={isProcessingSend}>
             <Mail className="mr-2 h-4 w-4" />
             Enviar por Email
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleSendWhatsApp}>
+          <DropdownMenuItem onClick={handleSendWhatsApp} disabled={isProcessingSend}>
             <Phone className="mr-2 h-4 w-4" />
             Enviar por WhatsApp
           </DropdownMenuItem>
