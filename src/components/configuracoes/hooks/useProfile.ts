@@ -13,6 +13,10 @@ export const profileFormSchema = z.object({
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
+type UserRole = {
+  role: 'master' | 'user';
+};
+
 export interface ProfileWithRole {
   id: string;
   nome: string;
@@ -21,7 +25,7 @@ export interface ProfileWithRole {
   cargo?: string | null;
   avatar_url?: string | null;
   cooperativa_id?: string | null;
-  user_roles: Array<{role: 'master' | 'user'}>;
+  user_roles: UserRole[];
   role?: 'master' | 'user';
 }
 
@@ -38,8 +42,14 @@ export function useProfile() {
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select(`
-          *,
-          user_roles (
+          id,
+          nome,
+          email,
+          telefone,
+          cargo,
+          avatar_url,
+          cooperativa_id,
+          user_roles!profiles_id_fkey (
             role
           )
         `)
@@ -48,10 +58,13 @@ export function useProfile() {
 
       if (profileError) throw profileError;
 
+      const userRoles = profile.user_roles || [];
+      const defaultRole: UserRole = { role: 'user' };
+
       const profileWithRole: ProfileWithRole = {
         ...profile,
-        user_roles: profile.user_roles || [],
-        role: profile.user_roles?.[0]?.role || 'user'
+        user_roles: Array.isArray(userRoles) ? userRoles : [defaultRole],
+        role: Array.isArray(userRoles) && userRoles.length > 0 ? userRoles[0].role : 'user'
       };
 
       return profileWithRole;

@@ -109,14 +109,6 @@ export function IntegracaoCoraForm() {
     return <div>Carregando...</div>;
   }
 
-  if (loadError) {
-    return (
-      <div className="p-4 text-red-500">
-        Erro ao carregar configurações: {loadError.message}
-      </div>
-    );
-  }
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

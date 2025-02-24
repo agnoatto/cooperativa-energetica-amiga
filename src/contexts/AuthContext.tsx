@@ -40,8 +40,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data, error } = await supabase
           .from('profiles')
           .select(`
-            *,
-            user_roles (
+            id,
+            nome,
+            email,
+            telefone,
+            cargo,
+            avatar_url,
+            cooperativa_id,
+            user_roles!profiles_id_fkey (
               role
             )
           `)
@@ -51,10 +57,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (error) throw error;
         
         if (data) {
+          const userRoles = data.user_roles || [];
+          const defaultRole: { role: 'master' | 'user' } = { role: 'user' };
+
           const profileWithRole: ProfileWithRole = {
             ...data,
-            user_roles: data.user_roles || [],
-            role: data.user_roles?.[0]?.role || 'user'
+            user_roles: Array.isArray(userRoles) ? userRoles : [defaultRole],
+            role: Array.isArray(userRoles) && userRoles.length > 0 ? userRoles[0].role : 'user'
           };
           console.log('AuthContext: Perfil carregado com sucesso:', profileWithRole);
           return profileWithRole;
