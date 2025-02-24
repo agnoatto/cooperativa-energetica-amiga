@@ -73,7 +73,7 @@ export function usePagamentoStatus() {
       .from('pagamentos_usina')
       .update({
         status: 'enviado',
-        send_method: method,
+        send_method: [method], // Agora enviamos como array para corresponder ao tipo do banco
         data_envio: new Date().toISOString(),
         observacao: `Boletim enviado por ${method === 'email' ? 'e-mail' : 'WhatsApp'}`
       })
