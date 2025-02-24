@@ -1,33 +1,53 @@
 
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { PagamentoFormValues, PagamentoStatus } from "../types/pagamento";
 
 interface StatusSectionProps {
   form: PagamentoFormValues;
-  setForm: (form: PagamentoFormValues) => void;
 }
 
-export function StatusSection({ form, setForm }: StatusSectionProps) {
+export function StatusSection({ form }: StatusSectionProps) {
   return (
     <div>
-      <Label htmlFor="status">Status</Label>
-      <Select
-        value={form.status}
-        onValueChange={(value: PagamentoStatus) => setForm({ ...form, status: value })}
-      >
-        <SelectTrigger>
-          <SelectValue placeholder="Selecione o status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="pendente">Pendente</SelectItem>
-          <SelectItem value="enviado">Enviado</SelectItem>
-          <SelectItem value="confirmado">Confirmado</SelectItem>
-          <SelectItem value="pago">Pago</SelectItem>
-          <SelectItem value="atrasado">Atrasado</SelectItem>
-          <SelectItem value="cancelado">Cancelado</SelectItem>
-        </SelectContent>
-      </Select>
+      <Label>Status</Label>
+      <div className="mt-2">
+        <Badge variant={getBadgeVariant(form.status)}>{getStatusLabel(form.status)}</Badge>
+      </div>
     </div>
   );
+}
+
+function getBadgeVariant(status: PagamentoStatus) {
+  switch (status) {
+    case 'pendente':
+      return 'outline';
+    case 'enviado':
+      return 'default';
+    case 'pago':
+      return 'default';
+    case 'atrasado':
+      return 'destructive';
+    case 'cancelado':
+      return 'secondary';
+    default:
+      return 'outline';
+  }
+}
+
+function getStatusLabel(status: PagamentoStatus) {
+  switch (status) {
+    case 'pendente':
+      return 'Pendente';
+    case 'enviado':
+      return 'Enviado';
+    case 'pago':
+      return 'Pago';
+    case 'atrasado':
+      return 'Atrasado';
+    case 'cancelado':
+      return 'Cancelado';
+    default:
+      return 'Pendente';
+  }
 }

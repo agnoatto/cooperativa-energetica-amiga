@@ -1,6 +1,5 @@
-
 import { format } from "date-fns";
-import { FileDown, Send, Eye, Pencil, Trash, Mail, Phone, FileText } from "lucide-react";
+import { FileDown, Send, Eye, Pencil, Trash, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { PagamentoData } from "../types/pagamento";
@@ -17,6 +16,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { BoletimPreviewDialog } from "../BoletimPreviewDialog";
+import { SendPagamentoDialog } from "../SendPagamentoDialog";
 
 interface PagamentoTableRowProps {
   pagamento: PagamentoData;
@@ -34,6 +34,7 @@ export function PagamentoTableRow({
   const { StatusBadge, handleSendPagamento } = usePagamentoStatus();
   const [showContaEnergiaPreview, setShowContaEnergiaPreview] = useState(false);
   const [showBoletimPreview, setShowBoletimPreview] = useState(false);
+  const [showSendDialog, setShowSendDialog] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   
   const valorBruto = pagamento.geracao_kwh * (pagamento.usina?.valor_kwh || 0);
@@ -42,6 +43,7 @@ export function PagamentoTableRow({
   const handleSend = async (method: 'email' | 'whatsapp') => {
     try {
       await handleSendPagamento(pagamento, method);
+      setShowSendDialog(false);
     } catch (error) {
       console.error('Erro ao enviar boletim:', error);
     }
@@ -83,7 +85,6 @@ export function PagamentoTableRow({
         return;
       }
 
-      // Criar URL do blob e iniciar download
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
@@ -165,6 +166,24 @@ export function PagamentoTableRow({
               </TooltipContent>
             </Tooltip>
 
+            {pagamento.status === 'pendente' && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setShowSendDialog(true)}
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Enviar Boletim</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -197,42 +216,6 @@ export function PagamentoTableRow({
               </TooltipContent>
             </Tooltip>
 
-            {pagamento.status === 'pendente' && (
-              <>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => handleSend('email')}
-                    >
-                      <Mail className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Enviar por E-mail</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => handleSend('whatsapp')}
-                    >
-                      <Phone className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Enviar por WhatsApp</p>
-                  </TooltipContent>
-                </Tooltip>
-              </>
-            )}
-
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -252,7 +235,6 @@ export function PagamentoTableRow({
         </div>
       </TableCell>
 
-      {/* Modais de preview */}
       <PdfPreview 
         isOpen={showContaEnergiaPreview}
         onClose={() => {
@@ -266,6 +248,12 @@ export function PagamentoTableRow({
         isOpen={showBoletimPreview}
         onClose={() => setShowBoletimPreview(false)}
         pagamento={pagamento}
+      />
+
+      <SendPagamentoDialog
+        isOpen={showSendDialog}
+        onClose={() => setShowSendDialog(false)}
+        onSend={handleSend}
       />
     </TableRow>
   );

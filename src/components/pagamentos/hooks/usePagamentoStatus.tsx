@@ -78,13 +78,13 @@ export function usePagamentoStatus() {
 
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['pagamentos'] });
-      toast.success('Status atualizado para enviado');
+      toast.success(`Boletim enviado por ${variables.method === 'email' ? 'e-mail' : 'WhatsApp'}`);
     },
     onError: (error) => {
       console.error('Erro ao atualizar status:', error);
-      toast.error('Erro ao atualizar status do pagamento');
+      toast.error('Erro ao enviar boletim');
     },
   });
 
@@ -94,26 +94,17 @@ export function usePagamentoStatus() {
     }
 
     try {
-      // Primeiro atualiza o status
       await updateStatusMutation.mutateAsync({ id: pagamento.id, method });
-
-      // Simula o envio (aqui você implementaria a lógica real de envio)
-      if (method === 'email') {
-        console.log('Enviando por email...');
-        toast.success('Boletim enviado por e-mail');
-      } else if (method === 'whatsapp') {
-        console.log('Enviando por WhatsApp...');
-        toast.success('Boletim enviado por WhatsApp');
-      }
+      // Aqui você implementaria a lógica real de envio
+      console.log(`Enviando por ${method}...`);
     } catch (error) {
       console.error('Erro no processo de envio:', error);
-      toast.error(`Erro ao enviar por ${method === 'email' ? 'e-mail' : 'WhatsApp'}`);
       throw error;
     }
   };
 
   return {
     StatusBadge,
-    handleSendPagamento
+    handleSendPagamento,
   };
 }
