@@ -27,6 +27,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
+// Interface que representa a estrutura exata do banco de dados
+interface IntegracaoCoraDB {
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
+  empresa_id: string;
+  client_id: string;
+  client_secret: string;
+  ambiente: "sandbox" | "production";
+  configuracoes_boleto: unknown;
+}
+
 const integracaoCoraSchema = z.object({
   client_id: z.string().min(1, "Client ID é obrigatório"),
   client_secret: z.string().min(1, "Client Secret é obrigatório"),
@@ -128,12 +140,18 @@ export function IntegracaoCoraForm() {
         throw new Error("Empresa ID não encontrado");
       }
 
+      // Garantir que os dados estejam no formato correto para o banco
+      const dbData: IntegracaoCoraDB = {
+        empresa_id: configExistente.empresa_id,
+        client_id: values.client_id,
+        client_secret: values.client_secret,
+        ambiente: values.ambiente,
+        configuracoes_boleto: values.configuracoes_boleto,
+      };
+
       const { error } = await supabase
         .from("integracao_cora")
-        .upsert({
-          ...values,
-          empresa_id: configExistente.empresa_id,
-        }, { onConflict: "empresa_id" });
+        .upsert(dbData, { onConflict: "empresa_id" });
 
       if (error) throw error;
     },
