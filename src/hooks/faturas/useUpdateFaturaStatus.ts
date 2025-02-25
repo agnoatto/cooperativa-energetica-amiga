@@ -39,6 +39,15 @@ const convertHistoryToJson = (history: StatusHistoryEntry[]): Json => {
   })) as Json;
 };
 
+type FaturaUpdateData = {
+  status: FaturaStatus;
+  historico_status: Json;
+  data_atualizacao: string;
+  data_envio?: string;
+  data_confirmacao_pagamento?: string;
+  data_pagamento?: string;
+}
+
 export const useUpdateFaturaStatus = () => {
   const queryClient = useQueryClient();
 
@@ -59,16 +68,16 @@ export const useUpdateFaturaStatus = () => {
       const novoHistorico = [
         ...historicoAtual,
         { 
-          status: status as Fatura['status'],
+          status: status,
           data: now, 
           observacao 
         }
       ];
 
-      const updateData = {
-        status: status as Fatura['status'],
+      const updateData: FaturaUpdateData = {
+        status,
         historico_status: convertHistoryToJson(novoHistorico),
-        data_atualizacao: now,
+        data_atualizacao: now
       };
 
       if (status === 'enviada') {
@@ -88,7 +97,7 @@ export const useUpdateFaturaStatus = () => {
       if (updateError) throw new Error('Erro ao atualizar fatura: ' + updateError.message);
       if (!updatedFatura) throw new Error('Fatura não foi atualizada');
 
-      return updatedFatura;
+      return updatedFatura as Fatura;
     },
     onMutate: async (data) => {
       await queryClient.cancelQueries({ queryKey: ['faturas'] });
@@ -105,17 +114,17 @@ export const useUpdateFaturaStatus = () => {
             const novoHistorico = [
               ...currentHistorico,
               {
-                status: data.status as Fatura['status'],
+                status: data.status,
                 data: new Date().toISOString(),
                 observacao: data.observacao
               }
-            ];
+            ] as StatusHistoryEntry[];
             
             return {
               ...fatura,
-              status: data.status as Fatura['status'],
-              historico_status: convertHistoryToJson(novoHistorico)
-            };
+              status: data.status,
+              historico_status: novoHistorico
+            } as Fatura;
           }
           return fatura;
         });
