@@ -1,7 +1,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { X } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface PdfPreviewProps {
   isOpen: boolean;
@@ -10,7 +11,7 @@ interface PdfPreviewProps {
 }
 
 export function PdfPreview({ isOpen, onClose, pdfUrl }: PdfPreviewProps) {
-  if (!pdfUrl) return null;
+  if (!isOpen) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -28,11 +29,20 @@ export function PdfPreview({ isOpen, onClose, pdfUrl }: PdfPreviewProps) {
           </Button>
         </DialogHeader>
         <div className="flex-1 w-full h-full">
-          <iframe
-            src={pdfUrl}
-            className="w-full h-full rounded-md"
-            title="Visualização da Conta de Energia"
-          />
+          {pdfUrl ? (
+            <iframe
+              src={pdfUrl}
+              className="w-full h-full rounded-md"
+              title="Visualização da Conta de Energia"
+            />
+          ) : (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Não foi possível carregar o arquivo. Verifique se o arquivo existe ou tente novamente mais tarde.
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
       </DialogContent>
     </Dialog>
