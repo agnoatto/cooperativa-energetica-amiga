@@ -31,9 +31,9 @@ export const useUpdateFaturaStatus = () => {
 
       console.log('Fatura atual:', currentFatura);
 
-      // Prepara o histórico garantindo que é um array
+      // Prepara o histórico garantindo que é um array e fazendo a conversão de tipo
       const historicoAtual: StatusHistoryEntry[] = Array.isArray(currentFatura.historico_status) 
-        ? currentFatura.historico_status 
+        ? (currentFatura.historico_status as StatusHistoryEntry[])
         : [];
 
       const novoHistorico: StatusHistoryEntry[] = [
@@ -107,7 +107,7 @@ export const useUpdateFaturaStatus = () => {
         return old.map(fatura => {
           if (fatura.id === data.id) {
             const currentHistorico = Array.isArray(fatura.historico_status) 
-              ? fatura.historico_status 
+              ? (fatura.historico_status as StatusHistoryEntry[])
               : [];
             
             return {
