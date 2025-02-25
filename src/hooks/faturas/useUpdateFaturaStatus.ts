@@ -27,6 +27,17 @@ const convertToStatusHistory = (history: unknown): StatusHistoryEntry[] => {
   });
 };
 
+// Função auxiliar para converter StatusHistoryEntry[] para formato JSON
+const convertHistoryToJson = (history: StatusHistoryEntry[]): Record<string, any>[] => {
+  return history.map(entry => ({
+    status: entry.status,
+    data: entry.data,
+    observacao: entry.observacao,
+    motivo_correcao: entry.motivo_correcao,
+    campos_alterados: entry.campos_alterados
+  }));
+};
+
 export const useUpdateFaturaStatus = () => {
   const queryClient = useQueryClient();
 
@@ -44,14 +55,15 @@ export const useUpdateFaturaStatus = () => {
       if (!currentFatura) throw new Error('Fatura não encontrada');
 
       const historicoAtual = convertToStatusHistory(currentFatura.historico_status);
-      const novoHistorico: StatusHistoryEntry[] = [
+      const novoHistorico = [
         ...historicoAtual,
         { status, data: now, observacao }
       ];
 
+      // Convertendo o histórico para formato JSON antes de enviar ao Supabase
       const updateData = {
         status,
-        historico_status: novoHistorico,
+        historico_status: convertHistoryToJson(novoHistorico),
         data_atualizacao: now,
         ...(status === 'enviada' && { data_envio: now }),
         ...(status === 'paga' && { 
@@ -84,17 +96,19 @@ export const useUpdateFaturaStatus = () => {
         return old.map(fatura => {
           if (fatura.id === data.id) {
             const currentHistorico = convertToStatusHistory(fatura.historico_status);
+            const novoHistorico = [
+              ...currentHistorico,
+              {
+                status: data.status,
+                data: new Date().toISOString(),
+                observacao: data.observacao
+              }
+            ];
+            
             return {
               ...fatura,
               status: data.status,
-              historico_status: [
-                ...currentHistorico,
-                {
-                  status: data.status,
-                  data: new Date().toISOString(),
-                  observacao: data.observacao
-                }
-              ]
+              historico_status: convertHistoryToJson(novoHistorico)
             };
           }
           return fatura;

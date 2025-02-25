@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { Edit, Eye, Trash2, Send, CheckCircle2, PenTool, RotateCw } from "lucide-react";
@@ -7,6 +6,7 @@ import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 interface FaturaRowActionsProps {
   fatura: Fatura;
@@ -40,7 +40,6 @@ export function FaturaRowActions({
       await onUpdateStatus(fatura, 'corrigida', motivo);
       setShowCorrectionDialog(false);
       setMotivo("");
-      // Após confirmar a correção, abre automaticamente o modal de edição
       onEdit(fatura);
     } catch (error) {
       toast.error("Erro ao marcar fatura para correção");
@@ -71,7 +70,6 @@ export function FaturaRowActions({
     </Button>
   );
 
-  // Permitir edição em status específicos
   if (['gerada', 'pendente', 'corrigida'].includes(fatura.status)) {
     actions.push(
       <Button
@@ -86,7 +84,6 @@ export function FaturaRowActions({
     );
   }
 
-  // Botão de envio para faturas pendentes
   if (fatura.status === 'pendente') {
     actions.push(
       <Button
@@ -101,7 +98,6 @@ export function FaturaRowActions({
     );
   }
 
-  // Botão para iniciar correção
   if (fatura.status === 'enviada') {
     actions.push(
       <Button
@@ -116,7 +112,6 @@ export function FaturaRowActions({
     );
   }
 
-  // Botão para reenviar após correção
   if (fatura.status === 'corrigida') {
     actions.push(
       <Button
@@ -131,7 +126,6 @@ export function FaturaRowActions({
     );
   }
 
-  // Confirmação de pagamento
   if (['enviada', 'reenviada', 'atrasada'].includes(fatura.status)) {
     actions.push(
       <Button
@@ -146,7 +140,6 @@ export function FaturaRowActions({
     );
   }
 
-  // Permitir exclusão apenas de faturas recém geradas
   if (fatura.status === 'gerada') {
     actions.push(
       <Button
