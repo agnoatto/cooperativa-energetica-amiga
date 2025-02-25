@@ -5,6 +5,10 @@ import { toast } from "sonner";
 import { UpdateFaturaStatusInput } from "./types";
 import { StatusHistoryEntry, FaturaStatus, Fatura } from "@/types/fatura";
 import { Json } from "@/integrations/supabase/types";
+import { Database } from "@/integrations/supabase/types";
+
+type FaturaTable = Database['public']['Tables']['faturas'];
+type DbFaturaStatus = FaturaTable['Row']['status'];
 
 const convertToStatusHistory = (history: unknown): StatusHistoryEntry[] => {
   if (!Array.isArray(history)) return [];
@@ -28,7 +32,6 @@ const convertToStatusHistory = (history: unknown): StatusHistoryEntry[] => {
   });
 };
 
-// Função auxiliar para converter StatusHistoryEntry[] para formato JSON
 const convertHistoryToJson = (history: StatusHistoryEntry[]): Json => {
   return history.map(entry => ({
     status: entry.status,
@@ -40,7 +43,7 @@ const convertHistoryToJson = (history: StatusHistoryEntry[]): Json => {
 };
 
 type FaturaUpdateData = {
-  status: FaturaStatus;
+  status: DbFaturaStatus;
   historico_status: Json;
   data_atualizacao: string;
   data_envio?: string;
@@ -57,7 +60,7 @@ export const useUpdateFaturaStatus = () => {
       
       const { data: currentFatura, error: fetchError } = await supabase
         .from("faturas")
-        .select('*')
+        .select('*, unidade_beneficiaria (*)')
         .eq('id', id)
         .single();
 
@@ -75,7 +78,7 @@ export const useUpdateFaturaStatus = () => {
       ];
 
       const updateData: FaturaUpdateData = {
-        status,
+        status: status as DbFaturaStatus,
         historico_status: convertHistoryToJson(novoHistorico),
         data_atualizacao: now
       };
@@ -91,13 +94,13 @@ export const useUpdateFaturaStatus = () => {
         .from("faturas")
         .update(updateData)
         .eq('id', id)
-        .select()
+        .select('*, unidade_beneficiaria (*)')
         .single();
 
       if (updateError) throw new Error('Erro ao atualizar fatura: ' + updateError.message);
       if (!updatedFatura) throw new Error('Fatura não foi atualizada');
 
-      return updatedFatura as Fatura;
+      return updatedFatura as unknown as Fatura;
     },
     onMutate: async (data) => {
       await queryClient.cancelQueries({ queryKey: ['faturas'] });
@@ -124,7 +127,7 @@ export const useUpdateFaturaStatus = () => {
               ...fatura,
               status: data.status,
               historico_status: novoHistorico
-            } as Fatura;
+            };
           }
           return fatura;
         });
