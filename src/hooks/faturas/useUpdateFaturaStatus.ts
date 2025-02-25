@@ -5,6 +5,31 @@ import { toast } from "sonner";
 import { UpdateFaturaStatusInput } from "./types";
 import { StatusHistoryEntry, FaturaStatus, Fatura } from "@/types/fatura";
 
+// Função auxiliar para validar e converter o histórico
+const convertToStatusHistory = (history: unknown): StatusHistoryEntry[] => {
+  if (!Array.isArray(history)) {
+    return [];
+  }
+
+  return history.map(entry => {
+    if (typeof entry === 'object' && entry !== null) {
+      const item = entry as Record<string, unknown>;
+      return {
+        status: item.status as FaturaStatus,
+        data: item.data as string,
+        observacao: item.observacao as string | undefined,
+        motivo_correcao: item.motivo_correcao as string | undefined,
+        campos_alterados: item.campos_alterados as string[] | undefined
+      };
+    }
+    return {
+      status: 'gerada' as FaturaStatus,
+      data: new Date().toISOString(),
+      observacao: 'Registro histórico inválido'
+    };
+  });
+};
+
 export const useUpdateFaturaStatus = () => {
   const queryClient = useQueryClient();
 
@@ -31,10 +56,8 @@ export const useUpdateFaturaStatus = () => {
 
       console.log('Fatura atual:', currentFatura);
 
-      // Prepara o histórico garantindo que é um array e fazendo a conversão de tipo
-      const historicoAtual: StatusHistoryEntry[] = Array.isArray(currentFatura.historico_status) 
-        ? (currentFatura.historico_status as StatusHistoryEntry[])
-        : [];
+      // Prepara o histórico usando a função de conversão segura
+      const historicoAtual = convertToStatusHistory(currentFatura.historico_status);
 
       const novoHistorico: StatusHistoryEntry[] = [
         ...historicoAtual,
@@ -106,9 +129,7 @@ export const useUpdateFaturaStatus = () => {
         if (!old) return old;
         return old.map(fatura => {
           if (fatura.id === data.id) {
-            const currentHistorico = Array.isArray(fatura.historico_status) 
-              ? (fatura.historico_status as StatusHistoryEntry[])
-              : [];
+            const currentHistorico = convertToStatusHistory(fatura.historico_status);
             
             return {
               ...fatura,
