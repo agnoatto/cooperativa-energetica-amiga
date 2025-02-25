@@ -28,9 +28,9 @@ const convertToStatusHistory = (history: unknown): StatusHistoryEntry[] => {
 };
 
 // Função auxiliar para converter StatusHistoryEntry[] para formato JSON
-const convertHistoryToJson = (history: StatusHistoryEntry[]): Record<string, any>[] => {
+const convertHistoryToJson = (history: StatusHistoryEntry[]): StatusHistoryEntry[] => {
   return history.map(entry => ({
-    status: entry.status,
+    status: entry.status as FaturaStatus,
     data: entry.data,
     observacao: entry.observacao,
     motivo_correcao: entry.motivo_correcao,
@@ -57,20 +57,25 @@ export const useUpdateFaturaStatus = () => {
       const historicoAtual = convertToStatusHistory(currentFatura.historico_status);
       const novoHistorico = [
         ...historicoAtual,
-        { status, data: now, observacao }
+        { 
+          status: status as Fatura['status'],
+          data: now, 
+          observacao 
+        }
       ];
 
-      // Convertendo o histórico para formato JSON antes de enviar ao Supabase
-      const updateData = {
-        status,
+      const updateData: Partial<Fatura> = {
+        status: status as Fatura['status'],
         historico_status: convertHistoryToJson(novoHistorico),
         data_atualizacao: now,
-        ...(status === 'enviada' && { data_envio: now }),
-        ...(status === 'paga' && { 
-          data_confirmacao_pagamento: now,
-          data_pagamento: now
-        })
       };
+
+      if (status === 'enviada') {
+        updateData.data_envio = now;
+      } else if (status === 'paga') {
+        updateData.data_confirmacao_pagamento = now;
+        updateData.data_pagamento = now;
+      }
 
       const { data: updatedFatura, error: updateError } = await supabase
         .from("faturas")
@@ -91,15 +96,15 @@ export const useUpdateFaturaStatus = () => {
       const queryKey = ['faturas', date.getMonth() + 1, date.getFullYear()];
       const previousFaturas = queryClient.getQueryData<Fatura[]>(queryKey);
 
-      queryClient.setQueryData<Fatura[]>(queryKey, (old) => {
-        if (!old) return old;
+      queryClient.setQueryData<Fatura[]>(queryKey, (old): Fatura[] => {
+        if (!old) return [];
         return old.map(fatura => {
           if (fatura.id === data.id) {
             const currentHistorico = convertToStatusHistory(fatura.historico_status);
             const novoHistorico = [
               ...currentHistorico,
               {
-                status: data.status,
+                status: data.status as Fatura['status'],
                 data: new Date().toISOString(),
                 observacao: data.observacao
               }
@@ -107,7 +112,7 @@ export const useUpdateFaturaStatus = () => {
             
             return {
               ...fatura,
-              status: data.status,
+              status: data.status as Fatura['status'],
               historico_status: convertHistoryToJson(novoHistorico)
             };
           }
