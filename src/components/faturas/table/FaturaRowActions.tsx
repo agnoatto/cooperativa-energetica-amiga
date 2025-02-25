@@ -1,19 +1,10 @@
 
 import { Button } from "@/components/ui/button";
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import { Edit, Eye, Trash2, Send, CheckCircle2, PenTool, RotateCw, Mail, Phone } from "lucide-react";
+import { Edit, Eye, Trash2, Send, CheckCircle2, PenTool, RotateCw } from "lucide-react";
 import { FaturaPdfButton } from "../FaturaPdfButton";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { useState } from "react";
-import { DialogContent } from "@radix-ui/react-dialog";
-import { DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -37,39 +28,6 @@ export function FaturaRowActions({
   const [showCorrectionDialog, setShowCorrectionDialog] = useState(false);
   const [motivo, setMotivo] = useState("");
   const [isProcessingCorrection, setIsProcessingCorrection] = useState(false);
-  const [isProcessingSend, setIsProcessingSend] = useState(false);
-
-  const handleSendEmail = async () => {
-    try {
-      setIsProcessingSend(true);
-      console.log('Iniciando envio por email para fatura:', fatura.id);
-      // TODO: Implementar envio por email
-      const result = await onUpdateStatus(fatura, 'enviada', 'Fatura enviada por email');
-      console.log('Resultado da atualização:', result);
-      toast.success("Fatura enviada por email com sucesso");
-    } catch (error) {
-      console.error('Erro ao enviar email:', error);
-      toast.error("Erro ao enviar email");
-    } finally {
-      setIsProcessingSend(false);
-    }
-  };
-
-  const handleSendWhatsApp = async () => {
-    try {
-      setIsProcessingSend(true);
-      console.log('Iniciando envio por WhatsApp para fatura:', fatura.id);
-      // TODO: Implementar envio por WhatsApp
-      const result = await onUpdateStatus(fatura, 'enviada', 'Fatura enviada por WhatsApp');
-      console.log('Resultado da atualização:', result);
-      toast.success("Fatura enviada por WhatsApp com sucesso");
-    } catch (error) {
-      console.error('Erro ao enviar WhatsApp:', error);
-      toast.error("Erro ao enviar WhatsApp");
-    } finally {
-      setIsProcessingSend(false);
-    }
-  };
 
   const handleCorrection = async () => {
     if (!motivo.trim()) {
@@ -82,13 +40,20 @@ export function FaturaRowActions({
       await onUpdateStatus(fatura, 'corrigida', motivo);
       setShowCorrectionDialog(false);
       setMotivo("");
-      toast.success("Fatura marcada para correção");
       // Após confirmar a correção, abre automaticamente o modal de edição
       onEdit(fatura);
     } catch (error) {
       toast.error("Erro ao marcar fatura para correção");
     } finally {
       setIsProcessingCorrection(false);
+    }
+  };
+
+  const handleSendFatura = async () => {
+    try {
+      await onUpdateStatus(fatura, 'enviada', 'Fatura enviada automaticamente');
+    } catch (error) {
+      console.error('Erro ao enviar fatura:', error);
     }
   };
 
@@ -124,28 +89,15 @@ export function FaturaRowActions({
   // Botão de envio para faturas pendentes
   if (fatura.status === 'pendente') {
     actions.push(
-      <DropdownMenu key="send">
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            title="Enviar Fatura"
-            disabled={isProcessingSend}
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem onClick={handleSendEmail} disabled={isProcessingSend}>
-            <Mail className="mr-2 h-4 w-4" />
-            Enviar por Email
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleSendWhatsApp} disabled={isProcessingSend}>
-            <Phone className="mr-2 h-4 w-4" />
-            Enviar por WhatsApp
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Button
+        key="send"
+        variant="outline"
+        size="icon"
+        onClick={handleSendFatura}
+        title="Enviar Fatura"
+      >
+        <Send className="h-4 w-4" />
+      </Button>
     );
   }
 
@@ -188,21 +140,6 @@ export function FaturaRowActions({
         size="icon"
         onClick={onShowPaymentModal}
         title="Confirmar Pagamento"
-      >
-        <CheckCircle2 className="h-4 w-4" />
-      </Button>
-    );
-  }
-
-  // Finalizar fatura
-  if (fatura.status === 'paga') {
-    actions.push(
-      <Button
-        key="finish"
-        variant="outline"
-        size="icon"
-        onClick={() => onUpdateStatus(fatura, 'finalizada', 'Fatura finalizada - pagamento processado')}
-        title="Finalizar Fatura"
       >
         <CheckCircle2 className="h-4 w-4" />
       </Button>
