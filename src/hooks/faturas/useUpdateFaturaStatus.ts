@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UpdateFaturaStatusInput } from "./types";
 import { StatusHistoryEntry, FaturaStatus, Fatura } from "@/types/fatura";
+import { Json } from "@/integrations/supabase/types";
 
 const convertToStatusHistory = (history: unknown): StatusHistoryEntry[] => {
   if (!Array.isArray(history)) return [];
@@ -28,14 +29,14 @@ const convertToStatusHistory = (history: unknown): StatusHistoryEntry[] => {
 };
 
 // Função auxiliar para converter StatusHistoryEntry[] para formato JSON
-const convertHistoryToJson = (history: StatusHistoryEntry[]): StatusHistoryEntry[] => {
+const convertHistoryToJson = (history: StatusHistoryEntry[]): Json => {
   return history.map(entry => ({
-    status: entry.status as FaturaStatus,
+    status: entry.status,
     data: entry.data,
     observacao: entry.observacao,
     motivo_correcao: entry.motivo_correcao,
     campos_alterados: entry.campos_alterados
-  }));
+  })) as Json;
 };
 
 export const useUpdateFaturaStatus = () => {
@@ -64,7 +65,7 @@ export const useUpdateFaturaStatus = () => {
         }
       ];
 
-      const updateData: Partial<Fatura> = {
+      const updateData = {
         status: status as Fatura['status'],
         historico_status: convertHistoryToJson(novoHistorico),
         data_atualizacao: now,
