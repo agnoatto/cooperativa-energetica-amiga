@@ -31,8 +31,11 @@ export const useUpdateFaturaStatus = () => {
 
       console.log('Fatura atual:', currentFatura);
 
-      // Prepara o histórico
-      const historicoAtual = currentFatura.historico_status || [];
+      // Prepara o histórico garantindo que é um array
+      const historicoAtual: StatusHistoryEntry[] = Array.isArray(currentFatura.historico_status) 
+        ? currentFatura.historico_status 
+        : [];
+
       const novoHistorico: StatusHistoryEntry[] = [
         ...historicoAtual,
         {
@@ -103,11 +106,15 @@ export const useUpdateFaturaStatus = () => {
         if (!old) return old;
         return old.map(fatura => {
           if (fatura.id === data.id) {
+            const currentHistorico = Array.isArray(fatura.historico_status) 
+              ? fatura.historico_status 
+              : [];
+            
             return {
               ...fatura,
               status: data.status,
               historico_status: [
-                ...(fatura.historico_status || []),
+                ...currentHistorico,
                 {
                   status: data.status,
                   data: new Date().toISOString(),
