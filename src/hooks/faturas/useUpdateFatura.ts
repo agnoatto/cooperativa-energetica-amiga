@@ -4,8 +4,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { calculateValues } from "@/components/faturas/utils/calculateValues";
 import { UpdateFaturaInput } from "./types";
-import { StatusHistoryEntry } from "@/types/fatura";
+import { StatusHistoryEntry, FaturaStatus } from "@/types/fatura";
 import { Json } from "@/integrations/supabase/types";
+
+// Função auxiliar para validar e converter o histórico do banco para StatusHistoryEntry[]
+const parseHistoryFromDb = (history: Json | null): StatusHistoryEntry[] => {
+  if (!history || !Array.isArray(history)) return [];
+  
+  return history.filter((entry): entry is StatusHistoryEntry => {
+    if (!entry || typeof entry !== 'object') return false;
+    return 'status' in entry && 'data' in entry;
+  });
+};
+
+// Função auxiliar para converter StatusHistoryEntry[] para o formato do banco
+const prepareHistoryForDb = (entries: StatusHistoryEntry[]): Json => {
+  return entries.map(entry => ({
+    status: entry.status,
+    data: entry.data,
+    observacao: entry.observacao
+  }));
+};
 
 export const useUpdateFatura = () => {
   const queryClient = useQueryClient();
@@ -75,8 +94,8 @@ export const useUpdateFatura = () => {
         // Se todos os campos estiverem preenchidos e o status atual for 'gerada',
         // atualiza o status para 'pendente'
         if (todosPreenchidos && currentFatura.status === 'gerada') {
-          // Garante que historico_status seja um array
-          const historicoAtual = (currentFatura.historico_status || []) as StatusHistoryEntry[];
+          // Converte o histórico atual usando a função auxiliar
+          const historicoAtual = parseHistoryFromDb(currentFatura.historico_status);
 
           const novaEntrada: StatusHistoryEntry = {
             status: 'pendente',
@@ -87,7 +106,7 @@ export const useUpdateFatura = () => {
           // Adiciona o status e histórico aos dados de atualização
           Object.assign(faturaData, {
             status: 'pendente',
-            historico_status: [...historicoAtual, novaEntrada] as Json
+            historico_status: prepareHistoryForDb([...historicoAtual, novaEntrada])
           });
         }
 
