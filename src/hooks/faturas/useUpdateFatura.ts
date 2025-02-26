@@ -74,20 +74,21 @@ export const useUpdateFatura = () => {
         // Se todos os campos estiverem preenchidos e o status atual for 'gerada',
         // atualiza o status para 'pendente'
         if (todosPreenchidos && currentFatura.status === 'gerada') {
-          const historicoAtual = currentFatura.historico_status || [];
-          const novoHistorico = [
-            ...historicoAtual,
-            {
-              status: 'pendente',
-              data: new Date().toISOString(),
-              observacao: 'Fatura pronta para envio ao cliente'
-            }
-          ];
+          // Garante que historico_status seja um array
+          const historicoAtual: StatusHistoryEntry[] = Array.isArray(currentFatura.historico_status) 
+            ? currentFatura.historico_status 
+            : [];
+
+          const novaEntrada: StatusHistoryEntry = {
+            status: 'pendente',
+            data: new Date().toISOString(),
+            observacao: 'Fatura pronta para envio ao cliente'
+          };
 
           // Adiciona o status e histórico aos dados de atualização
           Object.assign(faturaData, {
             status: 'pendente',
-            historico_status: novoHistorico
+            historico_status: [...historicoAtual, novaEntrada]
           });
         }
 
