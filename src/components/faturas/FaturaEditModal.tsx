@@ -14,6 +14,7 @@ import { CooperadoInfoCard } from "./edit-modal/CooperadoInfoCard";
 import { FaturaEditForm } from "./edit-modal/FaturaEditForm";
 import { convertUTCToLocal, convertLocalToUTC } from "@/utils/dateFormatters";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEditModalProps) {
   const [consumo, setConsumo] = useState(fatura.consumo_kwh?.toFixed(2) || "0.00");
@@ -100,7 +101,8 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
         percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
       });
 
-      if (result instanceof Promise) {
+      // Verifica se o resultado é uma Promise através do método then
+      if (result && typeof result.then === 'function') {
         await result;
       }
       
