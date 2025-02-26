@@ -4,38 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { calculateValues } from "@/components/faturas/utils/calculateValues";
 import { UpdateFaturaInput } from "./types";
-import { StatusHistoryEntry, FaturaStatus } from "@/types/fatura";
+import { StatusHistoryEntry } from "@/types/fatura";
 import { Json } from "@/integrations/supabase/types";
-
-// Função auxiliar para converter o histórico do formato Json para StatusHistoryEntry
-const convertToStatusHistory = (history: Json | null): StatusHistoryEntry[] => {
-  if (!Array.isArray(history)) return [];
-  
-  return history.map(entry => {
-    if (typeof entry === 'object' && entry !== null) {
-      const item = entry as Record<string, unknown>;
-      return {
-        status: item.status as FaturaStatus,
-        data: item.data as string,
-        observacao: item.observacao as string | undefined
-      };
-    }
-    return {
-      status: 'gerada' as FaturaStatus,
-      data: new Date().toISOString(),
-      observacao: 'Registro histórico inválido'
-    };
-  });
-};
-
-// Função auxiliar para converter o histórico para o formato Json
-const convertHistoryToJson = (history: StatusHistoryEntry[]): Json => {
-  return history.map(entry => ({
-    status: entry.status,
-    data: entry.data,
-    observacao: entry.observacao
-  })) as Json;
-};
 
 export const useUpdateFatura = () => {
   const queryClient = useQueryClient();
@@ -71,10 +41,10 @@ export const useUpdateFatura = () => {
 
         // Calcula os valores usando as strings formatadas
         const calculatedValues = calculateValues(
-          data.total_fatura.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-          data.iluminacao_publica.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-          data.outros_valores.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-          data.fatura_concessionaria.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+          data.total_fatura.toString(),
+          data.iluminacao_publica.toString(),
+          data.outros_valores.toString(),
+          data.fatura_concessionaria.toString(),
           data.percentual_desconto
         );
 
@@ -105,20 +75,19 @@ export const useUpdateFatura = () => {
         // Se todos os campos estiverem preenchidos e o status atual for 'gerada',
         // atualiza o status para 'pendente'
         if (todosPreenchidos && currentFatura.status === 'gerada') {
-          const historicoAtual = convertToStatusHistory(currentFatura.historico_status);
-          
+          // Garante que historico_status seja um array
+          const historicoAtual = (currentFatura.historico_status || []) as StatusHistoryEntry[];
+
           const novaEntrada: StatusHistoryEntry = {
             status: 'pendente',
             data: new Date().toISOString(),
             observacao: 'Fatura pronta para envio ao cliente'
           };
 
-          const novoHistorico = [...historicoAtual, novaEntrada];
-
           // Adiciona o status e histórico aos dados de atualização
           Object.assign(faturaData, {
             status: 'pendente',
-            historico_status: convertHistoryToJson(novoHistorico)
+            historico_status: [...historicoAtual, novaEntrada] as Json
           });
         }
 
