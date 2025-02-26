@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { Edit, Eye, Trash2, Send, CheckCircle2, PenTool, RotateCw } from "lucide-react";
@@ -28,6 +29,7 @@ export function FaturaRowActions({
   const [showCorrectionDialog, setShowCorrectionDialog] = useState(false);
   const [motivo, setMotivo] = useState("");
   const [isProcessingCorrection, setIsProcessingCorrection] = useState(false);
+  const [isProcessingAction, setIsProcessingAction] = useState(false);
 
   const handleCorrection = async () => {
     if (!motivo.trim()) {
@@ -43,6 +45,7 @@ export function FaturaRowActions({
       onEdit(fatura);
     } catch (error) {
       toast.error("Erro ao marcar fatura para correção");
+      console.error('Erro na correção:', error);
     } finally {
       setIsProcessingCorrection(false);
     }
@@ -50,9 +53,27 @@ export function FaturaRowActions({
 
   const handleSendFatura = async () => {
     try {
-      await onUpdateStatus(fatura, 'enviada', 'Fatura enviada automaticamente');
+      setIsProcessingAction(true);
+      await onUpdateStatus(fatura, 'enviada', 'Fatura enviada ao cliente');
+      toast.success('Fatura enviada com sucesso');
     } catch (error) {
       console.error('Erro ao enviar fatura:', error);
+      toast.error('Erro ao enviar fatura');
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
+  const handleReenviarFatura = async () => {
+    try {
+      setIsProcessingAction(true);
+      await onUpdateStatus(fatura, 'reenviada', 'Fatura reenviada após correção');
+      toast.success('Fatura reenviada com sucesso');
+    } catch (error) {
+      console.error('Erro ao reenviar fatura:', error);
+      toast.error('Erro ao reenviar fatura');
+    } finally {
+      setIsProcessingAction(false);
     }
   };
 
@@ -78,6 +99,7 @@ export function FaturaRowActions({
         size="icon"
         onClick={() => onEdit(fatura)}
         title="Editar Fatura"
+        disabled={isProcessingAction}
       >
         <Edit className="h-4 w-4" />
       </Button>
@@ -92,6 +114,7 @@ export function FaturaRowActions({
         size="icon"
         onClick={handleSendFatura}
         title="Enviar Fatura"
+        disabled={isProcessingAction}
       >
         <Send className="h-4 w-4" />
       </Button>
@@ -106,6 +129,7 @@ export function FaturaRowActions({
         size="icon"
         onClick={() => setShowCorrectionDialog(true)}
         title="Corrigir Fatura"
+        disabled={isProcessingAction}
       >
         <PenTool className="h-4 w-4" />
       </Button>
@@ -118,8 +142,9 @@ export function FaturaRowActions({
         key="resend"
         variant="outline"
         size="icon"
-        onClick={() => onUpdateStatus(fatura, 'reenviada', 'Fatura reenviada após correção')}
+        onClick={handleReenviarFatura}
         title="Reenviar Fatura"
+        disabled={isProcessingAction}
       >
         <RotateCw className="h-4 w-4" />
       </Button>
@@ -134,6 +159,7 @@ export function FaturaRowActions({
         size="icon"
         onClick={onShowPaymentModal}
         title="Confirmar Pagamento"
+        disabled={isProcessingAction}
       >
         <CheckCircle2 className="h-4 w-4" />
       </Button>
@@ -148,6 +174,7 @@ export function FaturaRowActions({
         size="icon"
         onClick={() => onDelete(fatura)}
         title="Excluir Fatura"
+        disabled={isProcessingAction}
       >
         <Trash2 className="h-4 w-4" />
       </Button>

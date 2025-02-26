@@ -37,6 +37,13 @@ export const useUpdateFatura = () => {
 
         console.log('Valores calculados antes do envio:', calculatedValues);
 
+        // Verifica se todos os campos obrigatórios estão preenchidos
+        const todosPreenchidos = 
+          data.consumo_kwh > 0 && 
+          data.total_fatura > 0 && 
+          data.fatura_concessionaria > 0 && 
+          data.data_vencimento;
+
         // Prepara os dados para o banco garantindo valores numéricos corretos
         const faturaData = {
           consumo_kwh: Number(data.consumo_kwh),
@@ -49,7 +56,18 @@ export const useUpdateFatura = () => {
           saldo_energia_kwh: Number(data.saldo_energia_kwh),
           observacao: data.observacao,
           data_vencimento: data.data_vencimento,
-          data_atualizacao: new Date().toISOString()
+          data_atualizacao: new Date().toISOString(),
+          // Atualiza o status se todos os campos obrigatórios estiverem preenchidos
+          ...(todosPreenchidos && { 
+            status: 'pendente' as const,
+            historico_status: [
+              {
+                status: 'pendente',
+                data: new Date().toISOString(),
+                observacao: 'Fatura pronta para envio ao cliente'
+              }
+            ]
+          })
         };
 
         console.log('Dados formatados para envio ao banco:', faturaData);
@@ -67,6 +85,13 @@ export const useUpdateFatura = () => {
         }
 
         console.log('Fatura atualizada com sucesso:', updatedFatura);
+        
+        if (todosPreenchidos) {
+          toast.success('Fatura atualizada e marcada como pendente');
+        } else {
+          toast.success('Fatura atualizada com sucesso');
+        }
+
         return updatedFatura;
       } catch (error: any) {
         console.error("Erro detalhado ao atualizar fatura:", error);
@@ -87,7 +112,7 @@ export const useUpdateFatura = () => {
       // Força uma nova busca dos dados
       await queryClient.refetchQueries({ 
         queryKey: ['faturas', mes, ano],
-        exact: true // Garante que apenas esta query específica seja recarregada
+        exact: true
       });
     }
   });
