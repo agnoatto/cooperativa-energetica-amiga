@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useFaturas } from "@/hooks/useFaturas";
 import { FaturasHeader } from "./FaturasHeader";
@@ -61,8 +62,10 @@ export function FaturasContainer() {
                               total_fatura > 0 && 
                               fatura_concessionaria > 0;
 
+      // Primeiro atualizamos a fatura e aguardamos a conclusão
       await updateFatura(updateData);
       
+      // Se necessário, atualizamos o status
       if (todosPreenchidos && editingFatura?.status === 'gerada') {
         await updateFaturaStatus({
           id: editingFatura.id,
@@ -71,8 +74,12 @@ export function FaturasContainer() {
         });
       }
 
-      toast.success('Fatura atualizada com sucesso!');
+      // Aguardamos um pequeno intervalo para garantir que os dados foram atualizados
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Fechamos o modal e mostramos a mensagem de sucesso
       handleCloseEditModal();
+      toast.success('Fatura atualizada com sucesso!');
     } catch (error) {
       console.error('Erro ao atualizar fatura:', error);
       toast.error('Erro ao salvar as alterações da fatura');

@@ -5,8 +5,11 @@ import { toast } from "sonner";
 import { Fatura, StatusHistoryEntry } from "@/types/fatura";
 
 export const useFetchFaturas = (currentDate: Date) => {
+  const mes = currentDate.getMonth() + 1;
+  const ano = currentDate.getFullYear();
+  
   return useQuery({
-    queryKey: ['faturas', currentDate.getMonth() + 1, currentDate.getFullYear()],
+    queryKey: ['faturas', mes, ano],
     queryFn: async () => {
       console.log('Fetching faturas for:', currentDate);
       
@@ -147,7 +150,9 @@ export const useFetchFaturas = (currentDate: Date) => {
 
       return faturas;
     },
-    staleTime: 0,
-    gcTime: 1000 * 60 * 5 // 5 minutos
+    staleTime: 0, // Dados são considerados obsoletos imediatamente
+    gcTime: 1000 * 60 * 5, // 5 minutos
+    refetchOnMount: true, // Força refetch quando o componente monta
+    refetchOnWindowFocus: true // Recarrega quando a janela ganha foco
   });
 };

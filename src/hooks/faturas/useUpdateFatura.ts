@@ -68,11 +68,22 @@ export const useUpdateFatura = () => {
         throw new Error(error.message || "Erro ao atualizar fatura");
       }
     },
-    onSuccess: () => {
-      // Força a atualização dos dados na lista de faturas
-      queryClient.invalidateQueries({ queryKey: ["faturas"] });
-      // Atualiza imediatamente o cache com os novos dados
-      queryClient.refetchQueries({ queryKey: ["faturas"] });
+    onSuccess: async (_, variables) => {
+      // Obtém o mês e ano da fatura atualizada a partir da data de vencimento
+      const faturaDate = new Date(variables.data_vencimento);
+      const mes = faturaDate.getMonth() + 1;
+      const ano = faturaDate.getFullYear();
+
+      // Invalida o cache específico para este mês/ano
+      await queryClient.invalidateQueries({ 
+        queryKey: ['faturas', mes, ano]
+      });
+
+      // Força uma nova busca dos dados
+      await queryClient.refetchQueries({ 
+        queryKey: ['faturas', mes, ano],
+        exact: true // Garante que apenas esta query específica seja recarregada
+      });
     }
   });
 };
