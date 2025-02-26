@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { Edit, Eye, Trash2, Send, CheckCircle2, PenTool, RotateCw } from "lucide-react";
@@ -8,6 +7,7 @@ import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface FaturaRowActionsProps {
   fatura: Fatura;
@@ -30,6 +30,7 @@ export function FaturaRowActions({
   const [motivo, setMotivo] = useState("");
   const [isProcessingCorrection, setIsProcessingCorrection] = useState(false);
   const [isProcessingAction, setIsProcessingAction] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleCorrection = async () => {
     if (!motivo.trim()) {
@@ -37,41 +38,51 @@ export function FaturaRowActions({
       return;
     }
 
+    setErrorMessage(null);
     try {
       setIsProcessingCorrection(true);
       await onUpdateStatus(fatura, 'corrigida', motivo);
+      toast.success("Fatura marcada para correção com sucesso");
       setShowCorrectionDialog(false);
       setMotivo("");
       onEdit(fatura);
     } catch (error) {
-      toast.error("Erro ao marcar fatura para correção");
-      console.error('Erro na correção:', error);
+      const message = error instanceof Error ? error.message : 'Erro desconhecido ao corrigir fatura';
+      setErrorMessage(message);
+      toast.error(message);
+      console.error('Erro detalhado na correção:', error);
     } finally {
       setIsProcessingCorrection(false);
     }
   };
 
   const handleSendFatura = async () => {
+    setErrorMessage(null);
     try {
       setIsProcessingAction(true);
-      await onUpdateStatus(fatura, 'enviada');
+      await onUpdateStatus(fatura, 'enviada', 'Fatura enviada ao cliente');
       toast.success('Fatura enviada com sucesso');
     } catch (error) {
-      console.error('Erro ao enviar fatura:', error);
-      toast.error('Erro ao enviar fatura');
+      const message = error instanceof Error ? error.message : 'Erro desconhecido ao enviar fatura';
+      setErrorMessage(message);
+      toast.error(message);
+      console.error('Erro detalhado no envio:', error);
     } finally {
       setIsProcessingAction(false);
     }
   };
 
   const handleReenviarFatura = async () => {
+    setErrorMessage(null);
     try {
       setIsProcessingAction(true);
-      await onUpdateStatus(fatura, 'reenviada');
+      await onUpdateStatus(fatura, 'reenviada', 'Fatura reenviada após correção');
       toast.success('Fatura reenviada com sucesso');
     } catch (error) {
-      console.error('Erro ao reenviar fatura:', error);
-      toast.error('Erro ao reenviar fatura');
+      const message = error instanceof Error ? error.message : 'Erro desconhecido ao reenviar fatura';
+      setErrorMessage(message);
+      toast.error(message);
+      console.error('Erro detalhado no reenvio:', error);
     } finally {
       setIsProcessingAction(false);
     }
@@ -191,6 +202,12 @@ export function FaturaRowActions({
         {actions}
       </div>
 
+      {errorMessage && (
+        <Alert variant="destructive" className="mt-2">
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+      )}
+
       <Dialog open={showCorrectionDialog} onOpenChange={setShowCorrectionDialog}>
         <DialogContent className="sm:max-w-[425px]">
           <div className="grid gap-4 py-4">
@@ -202,12 +219,20 @@ export function FaturaRowActions({
                 value={motivo}
                 onChange={(e) => setMotivo(e.target.value)}
               />
+              {errorMessage && (
+                <Alert variant="destructive">
+                  <AlertDescription>{errorMessage}</AlertDescription>
+                </Alert>
+              )}
             </div>
           </div>
           <DialogFooter>
             <Button 
               variant="outline" 
-              onClick={() => setShowCorrectionDialog(false)}
+              onClick={() => {
+                setShowCorrectionDialog(false);
+                setErrorMessage(null);
+              }}
               disabled={isProcessingCorrection}
             >
               Cancelar
