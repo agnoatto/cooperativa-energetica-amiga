@@ -13,19 +13,31 @@ import { parseValue } from "./utils/calculateValues";
 import { CooperadoInfoCard } from "./edit-modal/CooperadoInfoCard";
 import { FaturaEditForm } from "./edit-modal/FaturaEditForm";
 import { convertUTCToLocal, convertLocalToUTC } from "@/utils/dateFormatters";
+import { Loader2 } from "lucide-react";
 
 export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEditModalProps) {
   const [consumo, setConsumo] = useState(fatura.consumo_kwh?.toFixed(2) || "0.00");
-  const [totalFatura, setTotalFatura] = useState(fatura.total_fatura.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-  const [faturaConcessionaria, setFaturaConcessionaria] = useState(fatura.fatura_concessionaria.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-  const [iluminacaoPublica, setIluminacaoPublica] = useState(fatura.iluminacao_publica.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-  const [outrosValores, setOutrosValores] = useState(fatura.outros_valores.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-  const [saldoEnergiaKwh, setSaldoEnergiaKwh] = useState(fatura.saldo_energia_kwh?.toFixed(2) || "0.00");
+  const [totalFatura, setTotalFatura] = useState(
+    fatura.total_fatura.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  );
+  const [faturaConcessionaria, setFaturaConcessionaria] = useState(
+    fatura.fatura_concessionaria.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  );
+  const [iluminacaoPublica, setIluminacaoPublica] = useState(
+    fatura.iluminacao_publica.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  );
+  const [outrosValores, setOutrosValores] = useState(
+    fatura.outros_valores.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  );
+  const [saldoEnergiaKwh, setSaldoEnergiaKwh] = useState(
+    fatura.saldo_energia_kwh?.toFixed(2) || "0.00"
+  );
   const [observacao, setObservacao] = useState(fatura.observacao || '');
   const [dataVencimento, setDataVencimento] = useState(convertUTCToLocal(fatura.data_vencimento));
   const [arquivoConcessionariaNome, setArquivoConcessionariaNome] = useState(fatura.arquivo_concessionaria_nome);
   const [arquivoConcessionariaPath, setArquivoConcessionariaPath] = useState(fatura.arquivo_concessionaria_path);
   const [isLoading, setIsLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   // Atualiza os estados quando a fatura muda
   useEffect(() => {
@@ -41,12 +53,41 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     setArquivoConcessionariaPath(fatura.arquivo_concessionaria_path);
   }, [fatura]);
 
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!dataVencimento) {
+      errors.dataVencimento = 'Data de vencimento é obrigatória';
+    }
+
+    if (Number(consumo) <= 0) {
+      errors.consumo = 'Consumo deve ser maior que zero';
+    }
+
+    if (parseValue(totalFatura) <= 0) {
+      errors.totalFatura = 'Valor total deve ser maior que zero';
+    }
+
+    if (parseValue(faturaConcessionaria) <= 0) {
+      errors.faturaConcessionaria = 'Valor da conta de energia deve ser maior que zero';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast.error('Por favor, corrija os erros no formulário');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const result = onSuccess({
+      const result = await onSuccess({
         id: fatura.id,
         consumo_kwh: Number(consumo),
         total_fatura: parseValue(totalFatura),
@@ -64,19 +105,20 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
       }
       
       onClose();
+    } catch (error) {
+      console.error('Erro ao salvar:', error);
+      toast.error('Erro ao salvar as alterações');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleFileChange = () => {
-    // Atualiza os estados do arquivo
     const updatedFatura = {
       ...fatura,
       arquivo_concessionaria_nome: arquivoConcessionariaNome,
       arquivo_concessionaria_path: arquivoConcessionariaPath,
     };
-    // Atualiza o estado local
     setArquivoConcessionariaNome(updatedFatura.arquivo_concessionaria_nome);
     setArquivoConcessionariaPath(updatedFatura.arquivo_concessionaria_path);
   };
@@ -122,6 +164,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
             onSuccess={onSuccess}
             onSubmit={handleSubmit}
             onFileChange={handleFileChange}
+            formErrors={formErrors}
           />
         </div>
 
@@ -129,12 +172,22 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
           <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={isLoading}>
-            {isLoading ? "Salvando..." : "Salvar"}
+          <Button 
+            onClick={handleSubmit} 
+            disabled={isLoading}
+            className="min-w-[100px]"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              'Salvar'
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
-

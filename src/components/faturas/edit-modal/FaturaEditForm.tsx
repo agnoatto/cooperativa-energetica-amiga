@@ -2,6 +2,8 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import { CurrencyInput } from "../CurrencyInput";
 import { FaturaFileUpload } from "../FaturaFileUpload";
 import { parseValue } from "../utils/calculateValues";
@@ -31,6 +33,7 @@ interface FaturaEditFormProps {
   onSuccess: (data: any) => void;
   onSubmit: (e: React.FormEvent) => void;
   onFileChange: () => void;
+  formErrors: Record<string, string>;
 }
 
 export function FaturaEditForm({
@@ -57,23 +60,33 @@ export function FaturaEditForm({
   onSuccess,
   onSubmit,
   onFileChange,
+  formErrors,
 }: FaturaEditFormProps) {
   const queryClient = useQueryClient();
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid w-full items-center gap-2">
-        <Label htmlFor="dataVencimento">Data de Vencimento</Label>
+        <Label htmlFor="dataVencimento" className="font-semibold">
+          Data de Vencimento *
+        </Label>
         <Input
           type="date"
           id="dataVencimento"
           value={dataVencimento}
           onChange={(e) => setDataVencimento(e.target.value)}
           required
+          className={formErrors.dataVencimento ? 'border-red-500' : ''}
         />
+        {formErrors.dataVencimento && (
+          <span className="text-sm text-red-500">{formErrors.dataVencimento}</span>
+        )}
       </div>
+
       <div className="grid w-full items-center gap-2">
-        <Label htmlFor="consumo">Consumo (kWh)</Label>
+        <Label htmlFor="consumo" className="font-semibold">
+          Consumo (kWh) *
+        </Label>
         <Input
           type="number"
           id="consumo"
@@ -82,30 +95,51 @@ export function FaturaEditForm({
           step="0.01"
           min="0"
           required
+          className={formErrors.consumo ? 'border-red-500' : ''}
         />
+        {formErrors.consumo && (
+          <span className="text-sm text-red-500">{formErrors.consumo}</span>
+        )}
       </div>
+
       <div className="grid w-full items-center gap-2">
-        <Label htmlFor="totalFatura">Valor Total Sem Assinatura</Label>
+        <Label htmlFor="totalFatura" className="font-semibold">
+          Valor Total Sem Assinatura *
+        </Label>
         <CurrencyInput
           id="totalFatura"
           value={totalFatura}
           onChange={setTotalFatura}
           required
           decimalScale={2}
+          className={formErrors.totalFatura ? 'border-red-500' : ''}
         />
+        {formErrors.totalFatura && (
+          <span className="text-sm text-red-500">{formErrors.totalFatura}</span>
+        )}
       </div>
+
       <div className="grid w-full items-center gap-2">
-        <Label htmlFor="faturaConcessionaria">Valor Conta de Energia</Label>
+        <Label htmlFor="faturaConcessionaria" className="font-semibold">
+          Valor Conta de Energia *
+        </Label>
         <CurrencyInput
           id="faturaConcessionaria"
           value={faturaConcessionaria}
           onChange={setFaturaConcessionaria}
           required
           decimalScale={2}
+          className={formErrors.faturaConcessionaria ? 'border-red-500' : ''}
         />
+        {formErrors.faturaConcessionaria && (
+          <span className="text-sm text-red-500">{formErrors.faturaConcessionaria}</span>
+        )}
       </div>
+
       <div className="grid w-full items-center gap-2">
-        <Label htmlFor="iluminacaoPublica">Iluminação Pública</Label>
+        <Label htmlFor="iluminacaoPublica" className="font-semibold">
+          Iluminação Pública *
+        </Label>
         <CurrencyInput
           id="iluminacaoPublica"
           value={iluminacaoPublica}
@@ -114,8 +148,11 @@ export function FaturaEditForm({
           decimalScale={2}
         />
       </div>
+
       <div className="grid w-full items-center gap-2">
-        <Label htmlFor="outrosValores">Outros Valores</Label>
+        <Label htmlFor="outrosValores" className="font-semibold">
+          Outros Valores *
+        </Label>
         <CurrencyInput
           id="outrosValores"
           value={outrosValores}
@@ -124,8 +161,11 @@ export function FaturaEditForm({
           decimalScale={2}
         />
       </div>
+
       <div className="grid w-full items-center gap-2">
-        <Label htmlFor="saldoEnergiaKwh">Saldo de Energia (kWh)</Label>
+        <Label htmlFor="saldoEnergiaKwh" className="font-semibold">
+          Saldo de Energia (kWh) *
+        </Label>
         <Input
           type="number"
           id="saldoEnergiaKwh"
@@ -136,6 +176,7 @@ export function FaturaEditForm({
           required
         />
       </div>
+
       <div className="grid w-full items-center gap-2">
         <Label htmlFor="observacao">Observações</Label>
         <Textarea
@@ -149,7 +190,7 @@ export function FaturaEditForm({
       </div>
       
       <div className="grid w-full items-center gap-2">
-        <Label>Conta de Energia (PDF)</Label>
+        <Label className="font-semibold">Conta de Energia (PDF)</Label>
         <FaturaFileUpload
           faturaId={faturaId}
           arquivoNome={arquivoConcessionariaNome}
@@ -176,7 +217,15 @@ export function FaturaEditForm({
           }}
         />
       </div>
+
+      {Object.keys(formErrors).length > 0 && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Por favor, corrija os erros no formulário antes de salvar.
+          </AlertDescription>
+        </Alert>
+      )}
     </form>
   );
 }
-
