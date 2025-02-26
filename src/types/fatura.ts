@@ -14,14 +14,6 @@ export interface UnidadeBeneficiaria {
 
 export type FaturaStatus = 'gerada' | 'pendente' | 'enviada' | 'corrigida' | 'reenviada' | 'atrasada' | 'paga' | 'finalizada';
 
-export interface StatusHistoryEntry {
-  status: FaturaStatus;
-  data: string;
-  observacao?: string;
-  motivo_correcao?: string;
-  campos_alterados?: string[];
-}
-
 export interface HistoricoFatura {
   mes: number;
   ano: number;
@@ -56,7 +48,6 @@ export interface Fatura {
   data_confirmacao_pagamento?: string | null;
   data_criacao?: string;
   data_atualizacao?: string;
-  historico_status: StatusHistoryEntry[];
   historico_faturas: HistoricoFatura[];
   unidade_beneficiaria: UnidadeBeneficiaria;
 }
