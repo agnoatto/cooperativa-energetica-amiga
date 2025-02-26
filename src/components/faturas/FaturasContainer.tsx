@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useFaturas } from "@/hooks/useFaturas";
 import { FaturasHeader } from "./FaturasHeader";
@@ -53,11 +54,28 @@ export function FaturasContainer() {
 
   const handleEditSuccess = async (updateData: any) => {
     try {
+      const { data_vencimento, consumo_kwh, total_fatura, fatura_concessionaria } = updateData;
+      const todosPreenchidos = data_vencimento && 
+                              consumo_kwh > 0 && 
+                              total_fatura > 0 && 
+                              fatura_concessionaria > 0;
+
+      // Atualiza a fatura
       await updateFatura(updateData);
       
+      // Se necessário, atualiza o status
+      if (todosPreenchidos && editingFatura?.status === 'gerada') {
+        await updateFaturaStatus({
+          id: editingFatura.id,
+          status: 'pendente',
+          observacao: 'Fatura pronta para envio ao cliente'
+        });
+      }
+
+      // Mostra mensagem de sucesso e fecha o modal
       toast.success('Fatura atualizada com sucesso!');
-      setIsEditModalOpen(false);
-      setEditingFatura(null);
+      setIsEditModalOpen(false); // Força o fechamento do modal
+      setEditingFatura(null); // Limpa a fatura em edição
     } catch (error) {
       console.error('Erro ao atualizar fatura:', error);
       toast.error('Erro ao salvar as alterações da fatura');

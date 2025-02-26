@@ -4,40 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { calculateValues } from "@/components/faturas/utils/calculateValues";
 import { UpdateFaturaInput } from "./types";
-import { StatusHistoryEntry, FaturaStatus } from "@/types/fatura";
-import { Json } from "@/integrations/supabase/types";
-
-// Type guard para verificar se um objeto é um StatusHistoryEntry válido
-const isStatusHistoryEntry = (entry: unknown): entry is StatusHistoryEntry => {
-  if (!entry || typeof entry !== 'object') return false;
-  const e = entry as any;
-  return (
-    typeof e.status === 'string' &&
-    typeof e.data === 'string' &&
-    (!e.observacao || typeof e.observacao === 'string')
-  );
-};
-
-// Função auxiliar para validar e converter o histórico do banco para StatusHistoryEntry[]
-const parseHistoryFromDb = (history: Json | null): StatusHistoryEntry[] => {
-  if (!history || !Array.isArray(history)) return [];
-  
-  return history.reduce<StatusHistoryEntry[]>((acc, entry) => {
-    if (isStatusHistoryEntry(entry)) {
-      acc.push(entry);
-    }
-    return acc;
-  }, []);
-};
-
-// Função auxiliar para converter StatusHistoryEntry[] para o formato do banco
-const prepareHistoryForDb = (entries: StatusHistoryEntry[]): Json[] => {
-  return entries.map(entry => ({
-    status: entry.status,
-    data: entry.data,
-    observacao: entry.observacao
-  }));
-};
 
 export const useUpdateFatura = () => {
   const queryClient = useQueryClient();
@@ -60,29 +26,18 @@ export const useUpdateFatura = () => {
           throw new Error("A data de vencimento é obrigatória");
         }
 
-        // Primeiro, busca a fatura atual para verificar o status
-        const { data: currentFatura, error: fetchError } = await supabase
-          .from("faturas")
-          .select('*, historico_status')
-          .eq('id', data.id)
-          .single();
-
-        if (fetchError) {
-          throw new Error('Erro ao buscar fatura atual: ' + fetchError.message);
-        }
-
         // Calcula os valores usando as strings formatadas
         const calculatedValues = calculateValues(
-          data.total_fatura.toString(),
-          data.iluminacao_publica.toString(),
-          data.outros_valores.toString(),
-          data.fatura_concessionaria.toString(),
+          data.total_fatura.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+          data.iluminacao_publica.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+          data.outros_valores.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+          data.fatura_concessionaria.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
           data.percentual_desconto
         );
 
         console.log('Valores calculados antes do envio:', calculatedValues);
 
-        // Prepara os dados base para atualização
+        // Prepara os dados para o banco garantindo valores numéricos corretos
         const faturaData = {
           consumo_kwh: Number(data.consumo_kwh),
           total_fatura: Number(data.total_fatura.toFixed(2)),
@@ -97,44 +52,18 @@ export const useUpdateFatura = () => {
           data_atualizacao: new Date().toISOString()
         };
 
-        // Verifica se todos os campos obrigatórios foram preenchidos
-        const todosPreenchidos = 
-          data.data_vencimento && 
-          data.consumo_kwh > 0 && 
-          data.total_fatura > 0 && 
-          data.fatura_concessionaria > 0;
-
-        // Se todos os campos estiverem preenchidos e o status atual for 'gerada',
-        // atualiza o status para 'pendente'
-        if (todosPreenchidos && currentFatura.status === 'gerada') {
-          // Converte o histórico atual usando a função auxiliar
-          const historicoAtual = parseHistoryFromDb(currentFatura.historico_status);
-
-          const novaEntrada: StatusHistoryEntry = {
-            status: 'pendente',
-            data: new Date().toISOString(),
-            observacao: 'Fatura pronta para envio ao cliente'
-          };
-
-          // Adiciona o status e histórico aos dados de atualização
-          Object.assign(faturaData, {
-            status: 'pendente',
-            historico_status: prepareHistoryForDb([...historicoAtual, novaEntrada])
-          });
-        }
-
         console.log('Dados formatados para envio ao banco:', faturaData);
 
-        const { error: updateError, data: updatedFatura } = await supabase
+        const { error, data: updatedFatura } = await supabase
           .from("faturas")
           .update(faturaData)
           .eq("id", data.id)
           .select()
           .single();
 
-        if (updateError) {
-          console.error("Erro Supabase:", updateError);
-          throw new Error(updateError.message);
+        if (error) {
+          console.error("Erro Supabase:", error);
+          throw new Error(error.message);
         }
 
         console.log('Fatura atualizada com sucesso:', updatedFatura);
@@ -158,7 +87,7 @@ export const useUpdateFatura = () => {
       // Força uma nova busca dos dados
       await queryClient.refetchQueries({ 
         queryKey: ['faturas', mes, ano],
-        exact: true
+        exact: true // Garante que apenas esta query específica seja recarregada
       });
     }
   });
