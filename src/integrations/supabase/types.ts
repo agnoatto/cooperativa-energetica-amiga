@@ -135,6 +135,24 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_historico_faturas: {
+        Row: {
+          historico_status: Json | null
+          id: string | null
+          status: Database["public"]["Enums"]["fatura_status"] | null
+        }
+        Insert: {
+          historico_status?: Json | null
+          id?: string | null
+          status?: Database["public"]["Enums"]["fatura_status"] | null
+        }
+        Update: {
+          historico_status?: Json | null
+          id?: string | null
+          status?: Database["public"]["Enums"]["fatura_status"] | null
+        }
+        Relationships: []
+      }
       cooperados: {
         Row: {
           created_at: string
@@ -281,7 +299,6 @@ export type Database = {
           economia_acumulada: number | null
           economia_mes: number | null
           fatura_concessionaria: number
-          historico_status: Json | null
           id: string
           iluminacao_publica: number
           mes: number
@@ -322,7 +339,6 @@ export type Database = {
           economia_acumulada?: number | null
           economia_mes?: number | null
           fatura_concessionaria?: number
-          historico_status?: Json | null
           id?: string
           iluminacao_publica?: number
           mes: number
@@ -363,7 +379,6 @@ export type Database = {
           economia_acumulada?: number | null
           economia_mes?: number | null
           fatura_concessionaria?: number
-          historico_status?: Json | null
           id?: string
           iluminacao_publica?: number
           mes?: number
