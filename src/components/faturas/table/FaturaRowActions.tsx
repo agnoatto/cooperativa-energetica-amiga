@@ -54,7 +54,7 @@ export function FaturaRowActions({
   const handleSendFatura = async () => {
     try {
       setIsProcessingAction(true);
-      await onUpdateStatus(fatura, 'enviada', 'Fatura enviada ao cliente');
+      await onUpdateStatus(fatura, 'enviada');
       toast.success('Fatura enviada com sucesso');
     } catch (error) {
       console.error('Erro ao enviar fatura:', error);
@@ -67,7 +67,7 @@ export function FaturaRowActions({
   const handleReenviarFatura = async () => {
     try {
       setIsProcessingAction(true);
-      await onUpdateStatus(fatura, 'reenviada', 'Fatura reenviada após correção');
+      await onUpdateStatus(fatura, 'reenviada');
       toast.success('Fatura reenviada com sucesso');
     } catch (error) {
       console.error('Erro ao reenviar fatura:', error);

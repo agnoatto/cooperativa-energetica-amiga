@@ -2,67 +2,27 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { Database } from "@/integrations/supabase/types";
-import { validateStatusTransition } from "../utils/statusTransitions";
-
-type FaturaTable = Database['public']['Tables']['faturas'];
-type DbFaturaStatus = FaturaTable['Row']['status'];
 
 export interface UpdateFaturaStatusInput {
   id: string;
   status: FaturaStatus;
   observacao?: string;
-  motivo_correcao?: string;
 }
 
 export const updateFaturaStatus = async ({
   id,
-  status,
-  observacao
+  status
 }: UpdateFaturaStatusInput): Promise<Fatura> => {
-  console.log('Iniciando atualização de status:', { id, status, observacao });
+  console.log('Iniciando atualização de status:', { id, status });
 
-  // 1. Buscar fatura atual
-  const { data: currentFatura, error: fetchError } = await supabase
-    .from("faturas")
-    .select('*, unidade_beneficiaria (*)')
-    .eq('id', id)
-    .single();
-
-  if (fetchError) {
-    console.error('Erro ao buscar fatura:', fetchError);
-    throw new Error(`Erro ao buscar fatura: ${fetchError.message}`);
-  }
-
-  if (!currentFatura) {
-    console.error('Fatura não encontrada');
-    throw new Error('Fatura não encontrada');
-  }
-
-  // 2. Validar transição de status
-  if (!validateStatusTransition(currentFatura.status, status)) {
-    const errorMsg = `Transição de status inválida: ${currentFatura.status} -> ${status}`;
-    console.error(errorMsg);
-    throw new Error(errorMsg);
-  }
-
-  // 3. Preparar dados para atualização
-  const now = new Date().toISOString();
-  const updateData = {
-    status: status as DbFaturaStatus,
-    data_atualizacao: now,
-    ...(status === 'enviada' && { data_envio: now }),
-    ...(status === 'paga' && {
-      data_confirmacao_pagamento: now,
-      data_pagamento: now
-    })
-  };
-
-  console.log('Dados preparados para atualização:', updateData);
-
-  // 4. Atualizar fatura
+  // Atualizar status da fatura
   const { data: updatedFatura, error: updateError } = await supabase
     .from("faturas")
-    .update(updateData)
+    .update({
+      status: status,
+      data_envio: status === 'enviada' ? new Date().toISOString() : undefined,
+      data_atualizacao: new Date().toISOString()
+    })
     .eq('id', id)
     .select('*, unidade_beneficiaria (*)')
     .single();
