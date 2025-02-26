@@ -21,11 +21,6 @@ export interface NovaFatura {
   data_vencimento: string;
   unidade_beneficiaria_id: string;
   status: Database["public"]["Enums"]["fatura_status"];
-  historico_status: {
-    status: Database["public"]["Enums"]["fatura_status"];
-    data: string;
-    observacao?: string;
-  }[];
 }
 
 export const faturasService = {
@@ -75,8 +70,7 @@ export const faturasService = {
       saldo_energia_kwh: fatura.saldo_energia_kwh,
       data_vencimento: fatura.data_vencimento,
       unidade_beneficiaria_id: fatura.unidade_beneficiaria_id,
-      status: fatura.status,
-      historico_status: fatura.historico_status
+      status: fatura.status
     };
 
     const { data, error } = await supabase
@@ -104,8 +98,7 @@ export const faturasService = {
       saldo_energia_kwh: fatura.saldo_energia_kwh,
       data_vencimento: fatura.data_vencimento,
       unidade_beneficiaria_id: fatura.unidade_beneficiaria_id,
-      status: fatura.status,
-      historico_status: fatura.historico_status
+      status: fatura.status
     }));
 
     const { error } = await supabase

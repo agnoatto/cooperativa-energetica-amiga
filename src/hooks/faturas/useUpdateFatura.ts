@@ -4,39 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { calculateValues } from "@/components/faturas/utils/calculateValues";
 import { UpdateFaturaInput } from "./types";
-import { StatusHistoryEntry, FaturaStatus } from "@/types/fatura";
+import { FaturaStatus } from "@/types/fatura";
 import { Json } from "@/integrations/supabase/types";
-
-const parseHistoricoStatus = (historico: unknown): StatusHistoryEntry[] => {
-  if (!Array.isArray(historico)) return [];
-  
-  return historico.map(entry => {
-    if (typeof entry === 'object' && entry !== null) {
-      return {
-        status: String(entry.status) as FaturaStatus,
-        data: String(entry.data),
-        observacao: entry.observacao ? String(entry.observacao) : undefined,
-        motivo_correcao: entry.motivo_correcao ? String(entry.motivo_correcao) : undefined,
-        campos_alterados: Array.isArray(entry.campos_alterados) ? entry.campos_alterados.map(String) : undefined
-      } as StatusHistoryEntry;
-    }
-    return {
-      status: 'gerada',
-      data: new Date().toISOString(),
-      observacao: 'Registro histórico inválido'
-    };
-  });
-};
-
-const convertToJson = (historico: StatusHistoryEntry[]): Json => {
-  return historico.map(entry => ({
-    status: entry.status,
-    data: entry.data,
-    observacao: entry.observacao,
-    motivo_correcao: entry.motivo_correcao,
-    campos_alterados: entry.campos_alterados
-  })) as Json;
-};
 
 export const useUpdateFatura = () => {
   const queryClient = useQueryClient();
@@ -89,19 +58,6 @@ export const useUpdateFatura = () => {
           data.fatura_concessionaria > 0 && 
           data.data_vencimento;
 
-        // Prepara o histórico de status
-        const historicoAtual = parseHistoricoStatus(currentFatura.historico_status);
-        let novoHistorico = [...historicoAtual];
-        
-        // Só adiciona novo status se a fatura estiver como 'gerada' e todos os campos estiverem preenchidos
-        if (currentFatura.status === 'gerada' && todosPreenchidos) {
-          novoHistorico.push({
-            status: 'pendente' as FaturaStatus,
-            data: new Date().toISOString(),
-            observacao: 'Fatura pronta para envio ao cliente'
-          });
-        }
-
         // Prepara os dados para atualização
         const faturaData = {
           consumo_kwh: Number(data.consumo_kwh),
@@ -115,7 +71,6 @@ export const useUpdateFatura = () => {
           observacao: data.observacao,
           data_vencimento: data.data_vencimento,
           data_atualizacao: new Date().toISOString(),
-          historico_status: convertToJson(novoHistorico),
           // Só atualiza o status se a fatura estiver como 'gerada' e todos os campos estiverem preenchidos
           ...(currentFatura.status === 'gerada' && todosPreenchidos && {
             status: 'pendente' as FaturaStatus

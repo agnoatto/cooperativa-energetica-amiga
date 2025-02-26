@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Fatura, StatusHistoryEntry } from "@/types/fatura";
+import { Fatura } from "@/types/fatura";
 
 export const useFetchFaturas = (currentDate: Date) => {
   const mes = currentDate.getMonth() + 1;
@@ -59,7 +59,6 @@ export const useFetchFaturas = (currentDate: Date) => {
           observacao,
           data_envio,
           data_confirmacao_pagamento,
-          historico_status,
           valor_adicional,
           observacao_pagamento,
           data_pagamento,
@@ -109,24 +108,15 @@ export const useFetchFaturas = (currentDate: Date) => {
           return total + Number(h.valor_desconto);
         }, 0) || 0;
 
-        // Transformar o historico_status de Json para StatusHistoryEntry[]
-        const historicoStatus = ((fatura.historico_status as any[]) || []).map(entry => ({
-          status: entry.status,
-          data: entry.data,
-          observacao: entry.observacao,
-          motivo_correcao: entry.motivo_correcao,
-          campos_alterados: entry.campos_alterados
-        })) as StatusHistoryEntry[];
-
         return {
           ...fatura,
-          historico_status: historicoStatus,
           historico_faturas: historicoUnidade?.map(h => ({
             mes: h.mes,
             ano: h.ano,
             consumo_kwh: Number(h.consumo_kwh),
             valor_desconto: Number(h.valor_desconto)
           })) || [],
+          economia_acumulada: economiaAcumulada,
           valor_adicional: fatura.valor_adicional || 0,
           observacao_pagamento: fatura.observacao_pagamento || null,
           data_pagamento: fatura.data_pagamento || null,
@@ -143,8 +133,7 @@ export const useFetchFaturas = (currentDate: Date) => {
           iluminacao_publica: Number(fatura.iluminacao_publica),
           outros_valores: Number(fatura.outros_valores),
           valor_desconto: Number(fatura.valor_desconto),
-          saldo_energia_kwh: Number(fatura.saldo_energia_kwh),
-          economia_acumulada: economiaAcumulada // Adicionando a economia acumulada calculada
+          saldo_energia_kwh: Number(fatura.saldo_energia_kwh)
         };
       });
 
