@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { calculateValues } from "@/components/faturas/utils/calculateValues";
 import { UpdateFaturaInput } from "./types";
+import { StatusHistoryEntry } from "@/types/fatura";
 
 export const useUpdateFatura = () => {
   const queryClient = useQueryClient();
@@ -26,6 +27,17 @@ export const useUpdateFatura = () => {
           throw new Error("A data de vencimento é obrigatória");
         }
 
+        // Primeiro, busca a fatura atual para verificar o status
+        const { data: currentFatura, error: fetchError } = await supabase
+          .from("faturas")
+          .select('*, historico_status')
+          .eq('id', data.id)
+          .single();
+
+        if (fetchError) {
+          throw new Error('Erro ao buscar fatura atual: ' + fetchError.message);
+        }
+
         // Calcula os valores usando as strings formatadas
         const calculatedValues = calculateValues(
           data.total_fatura.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
@@ -37,7 +49,7 @@ export const useUpdateFatura = () => {
 
         console.log('Valores calculados antes do envio:', calculatedValues);
 
-        // Prepara os dados para o banco garantindo valores numéricos corretos
+        // Prepara os dados base para atualização
         const faturaData = {
           consumo_kwh: Number(data.consumo_kwh),
           total_fatura: Number(data.total_fatura.toFixed(2)),
@@ -52,18 +64,45 @@ export const useUpdateFatura = () => {
           data_atualizacao: new Date().toISOString()
         };
 
+        // Verifica se todos os campos obrigatórios foram preenchidos
+        const todosPreenchidos = 
+          data.data_vencimento && 
+          data.consumo_kwh > 0 && 
+          data.total_fatura > 0 && 
+          data.fatura_concessionaria > 0;
+
+        // Se todos os campos estiverem preenchidos e o status atual for 'gerada',
+        // atualiza o status para 'pendente'
+        if (todosPreenchidos && currentFatura.status === 'gerada') {
+          const historicoAtual = currentFatura.historico_status || [];
+          const novoHistorico = [
+            ...historicoAtual,
+            {
+              status: 'pendente',
+              data: new Date().toISOString(),
+              observacao: 'Fatura pronta para envio ao cliente'
+            }
+          ];
+
+          // Adiciona o status e histórico aos dados de atualização
+          Object.assign(faturaData, {
+            status: 'pendente',
+            historico_status: novoHistorico
+          });
+        }
+
         console.log('Dados formatados para envio ao banco:', faturaData);
 
-        const { error, data: updatedFatura } = await supabase
+        const { error: updateError, data: updatedFatura } = await supabase
           .from("faturas")
           .update(faturaData)
           .eq("id", data.id)
           .select()
           .single();
 
-        if (error) {
-          console.error("Erro Supabase:", error);
-          throw new Error(error.message);
+        if (updateError) {
+          console.error("Erro Supabase:", updateError);
+          throw new Error(updateError.message);
         }
 
         console.log('Fatura atualizada com sucesso:', updatedFatura);
@@ -87,7 +126,7 @@ export const useUpdateFatura = () => {
       // Força uma nova busca dos dados
       await queryClient.refetchQueries({ 
         queryKey: ['faturas', mes, ano],
-        exact: true // Garante que apenas esta query específica seja recarregada
+        exact: true
       });
     }
   });
