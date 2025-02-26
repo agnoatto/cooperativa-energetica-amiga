@@ -6,8 +6,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { CurrencyInput } from "../CurrencyInput";
 import { FaturaFileUpload } from "../FaturaFileUpload";
-import { parseValue } from "../utils/calculateValues";
+import { parseValue, calculateValues } from "../utils/calculateValues";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { formatCurrency } from "@/utils/formatters";
 
 interface FaturaEditFormProps {
   faturaId: string;
@@ -63,6 +65,20 @@ export function FaturaEditForm({
   formErrors,
 }: FaturaEditFormProps) {
   const queryClient = useQueryClient();
+  const [valorAssinatura, setValorAssinatura] = useState("0");
+
+  // Calcula o valor da assinatura sempre que os valores relevantes mudarem
+  useEffect(() => {
+    const calculatedValues = calculateValues(
+      totalFatura || "0",
+      iluminacaoPublica || "0",
+      outrosValores || "0",
+      faturaConcessionaria || "0",
+      percentualDesconto
+    );
+    
+    setValorAssinatura(formatCurrency(calculatedValues.valor_assinatura));
+  }, [totalFatura, iluminacaoPublica, outrosValores, faturaConcessionaria, percentualDesconto]);
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -134,6 +150,18 @@ export function FaturaEditForm({
         {formErrors.faturaConcessionaria && (
           <span className="text-sm text-red-500">{formErrors.faturaConcessionaria}</span>
         )}
+      </div>
+
+      <div className="grid w-full items-center gap-2">
+        <Label htmlFor="valorAssinatura" className="font-semibold">
+          Valor da Assinatura (Calculado)
+        </Label>
+        <Input
+          id="valorAssinatura"
+          value={valorAssinatura}
+          readOnly
+          className="bg-gray-50"
+        />
       </div>
 
       <div className="grid w-full items-center gap-2">
