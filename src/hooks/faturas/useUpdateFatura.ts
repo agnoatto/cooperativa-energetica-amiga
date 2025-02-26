@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { calculateValues } from "@/components/faturas/utils/calculateValues";
 import { UpdateFaturaInput } from "./types";
+import { StatusHistoryEntry } from "@/types/fatura";
 
 export const useUpdateFatura = () => {
   const queryClient = useQueryClient();
@@ -12,6 +13,18 @@ export const useUpdateFatura = () => {
     mutationFn: async (data: UpdateFaturaInput) => {
       try {
         console.log('Dados recebidos para atualização:', data);
+
+        // Busca a fatura atual para preservar dados históricos
+        const { data: currentFatura, error: fetchError } = await supabase
+          .from("faturas")
+          .select("*")
+          .eq("id", data.id)
+          .single();
+
+        if (fetchError) {
+          console.error("Erro ao buscar fatura atual:", fetchError);
+          throw new Error(fetchError.message);
+        }
 
         // Validações básicas
         if (data.consumo_kwh <= 0) {
@@ -26,16 +39,16 @@ export const useUpdateFatura = () => {
           throw new Error("A data de vencimento é obrigatória");
         }
 
-        // Calcula os valores usando as strings formatadas
+        // Calcula os valores usando números diretamente
         const calculatedValues = calculateValues(
-          data.total_fatura.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-          data.iluminacao_publica.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-          data.outros_valores.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-          data.fatura_concessionaria.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+          data.total_fatura.toString(),
+          data.iluminacao_publica.toString(),
+          data.outros_valores.toString(),
+          data.fatura_concessionaria.toString(),
           data.percentual_desconto
         );
 
-        console.log('Valores calculados antes do envio:', calculatedValues);
+        console.log('Valores calculados:', calculatedValues);
 
         // Verifica se todos os campos obrigatórios estão preenchidos
         const todosPreenchidos = 
@@ -44,49 +57,58 @@ export const useUpdateFatura = () => {
           data.fatura_concessionaria > 0 && 
           data.data_vencimento;
 
-        // Prepara os dados para o banco garantindo valores numéricos corretos
+        // Prepara o histórico de status
+        let novoHistorico: StatusHistoryEntry[] = currentFatura.historico_status || [];
+        
+        // Só adiciona novo status se a fatura estiver como 'gerada' e todos os campos estiverem preenchidos
+        if (currentFatura.status === 'gerada' && todosPreenchidos) {
+          novoHistorico = [
+            ...novoHistorico,
+            {
+              status: 'pendente',
+              data: new Date().toISOString(),
+              observacao: 'Fatura pronta para envio ao cliente'
+            }
+          ];
+        }
+
+        // Prepara os dados para atualização
         const faturaData = {
           consumo_kwh: Number(data.consumo_kwh),
-          total_fatura: Number(data.total_fatura.toFixed(2)),
-          fatura_concessionaria: Number(data.fatura_concessionaria.toFixed(2)),
-          iluminacao_publica: Number(data.iluminacao_publica.toFixed(2)),
-          outros_valores: Number(data.outros_valores.toFixed(2)),
-          valor_desconto: Number(calculatedValues.valor_desconto.toFixed(2)),
-          valor_assinatura: Number(calculatedValues.valor_assinatura.toFixed(2)),
+          total_fatura: Number(data.total_fatura),
+          fatura_concessionaria: Number(data.fatura_concessionaria),
+          iluminacao_publica: Number(data.iluminacao_publica),
+          outros_valores: Number(data.outros_valores),
+          valor_desconto: Number(calculatedValues.valor_desconto),
+          valor_assinatura: Number(calculatedValues.valor_assinatura),
           saldo_energia_kwh: Number(data.saldo_energia_kwh),
           observacao: data.observacao,
           data_vencimento: data.data_vencimento,
           data_atualizacao: new Date().toISOString(),
-          // Atualiza o status se todos os campos obrigatórios estiverem preenchidos
-          ...(todosPreenchidos && { 
-            status: 'pendente' as const,
-            historico_status: [
-              {
-                status: 'pendente',
-                data: new Date().toISOString(),
-                observacao: 'Fatura pronta para envio ao cliente'
-              }
-            ]
+          historico_status: novoHistorico,
+          // Só atualiza o status se a fatura estiver como 'gerada' e todos os campos estiverem preenchidos
+          ...(currentFatura.status === 'gerada' && todosPreenchidos && {
+            status: 'pendente'
           })
         };
 
-        console.log('Dados formatados para envio ao banco:', faturaData);
+        console.log('Dados formatados para atualização:', faturaData);
 
-        const { error, data: updatedFatura } = await supabase
+        const { error: updateError, data: updatedFatura } = await supabase
           .from("faturas")
           .update(faturaData)
           .eq("id", data.id)
           .select()
           .single();
 
-        if (error) {
-          console.error("Erro Supabase:", error);
-          throw new Error(error.message);
+        if (updateError) {
+          console.error("Erro ao atualizar fatura:", updateError);
+          throw new Error(updateError.message);
         }
 
         console.log('Fatura atualizada com sucesso:', updatedFatura);
-        
-        if (todosPreenchidos) {
+
+        if (currentFatura.status === 'gerada' && todosPreenchidos) {
           toast.success('Fatura atualizada e marcada como pendente');
         } else {
           toast.success('Fatura atualizada com sucesso');
@@ -99,7 +121,7 @@ export const useUpdateFatura = () => {
       }
     },
     onSuccess: async (_, variables) => {
-      // Obtém o mês e ano da fatura atualizada a partir da data de vencimento
+      // Obtém o mês e ano da fatura atualizada
       const faturaDate = new Date(variables.data_vencimento);
       const mes = faturaDate.getMonth() + 1;
       const ano = faturaDate.getFullYear();
