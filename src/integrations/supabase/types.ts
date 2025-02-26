@@ -9,6 +9,132 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      backup_faturas: {
+        Row: {
+          ano: number | null
+          arquivo_concessionaria_nome: string | null
+          arquivo_concessionaria_path: string | null
+          arquivo_concessionaria_tamanho: number | null
+          arquivo_concessionaria_tipo: string | null
+          boleto_codigo_barras: string | null
+          boleto_id: string | null
+          boleto_linha_digitavel: string | null
+          boleto_pdf_path: string | null
+          boleto_url: string | null
+          consumo_kwh: number | null
+          created_at: string | null
+          data_atualizacao: string | null
+          data_confirmacao_pagamento: string | null
+          data_criacao: string | null
+          data_envio: string | null
+          data_pagamento: string | null
+          data_vencimento: string | null
+          economia_acumulada: number | null
+          economia_mes: number | null
+          fatura_concessionaria: number | null
+          historico_status: Json | null
+          id: string | null
+          iluminacao_publica: number | null
+          mes: number | null
+          observacao: string | null
+          observacao_pagamento: string | null
+          outros_valores: number | null
+          saldo_energia_kwh: number | null
+          send_method:
+            | Database["public"]["Enums"]["communication_method"][]
+            | null
+          status: Database["public"]["Enums"]["fatura_status"] | null
+          total_fatura: number | null
+          unidade_beneficiaria_id: string | null
+          updated_at: string | null
+          valor_adicional: number | null
+          valor_assinatura: number | null
+          valor_desconto: number | null
+        }
+        Insert: {
+          ano?: number | null
+          arquivo_concessionaria_nome?: string | null
+          arquivo_concessionaria_path?: string | null
+          arquivo_concessionaria_tamanho?: number | null
+          arquivo_concessionaria_tipo?: string | null
+          boleto_codigo_barras?: string | null
+          boleto_id?: string | null
+          boleto_linha_digitavel?: string | null
+          boleto_pdf_path?: string | null
+          boleto_url?: string | null
+          consumo_kwh?: number | null
+          created_at?: string | null
+          data_atualizacao?: string | null
+          data_confirmacao_pagamento?: string | null
+          data_criacao?: string | null
+          data_envio?: string | null
+          data_pagamento?: string | null
+          data_vencimento?: string | null
+          economia_acumulada?: number | null
+          economia_mes?: number | null
+          fatura_concessionaria?: number | null
+          historico_status?: Json | null
+          id?: string | null
+          iluminacao_publica?: number | null
+          mes?: number | null
+          observacao?: string | null
+          observacao_pagamento?: string | null
+          outros_valores?: number | null
+          saldo_energia_kwh?: number | null
+          send_method?:
+            | Database["public"]["Enums"]["communication_method"][]
+            | null
+          status?: Database["public"]["Enums"]["fatura_status"] | null
+          total_fatura?: number | null
+          unidade_beneficiaria_id?: string | null
+          updated_at?: string | null
+          valor_adicional?: number | null
+          valor_assinatura?: number | null
+          valor_desconto?: number | null
+        }
+        Update: {
+          ano?: number | null
+          arquivo_concessionaria_nome?: string | null
+          arquivo_concessionaria_path?: string | null
+          arquivo_concessionaria_tamanho?: number | null
+          arquivo_concessionaria_tipo?: string | null
+          boleto_codigo_barras?: string | null
+          boleto_id?: string | null
+          boleto_linha_digitavel?: string | null
+          boleto_pdf_path?: string | null
+          boleto_url?: string | null
+          consumo_kwh?: number | null
+          created_at?: string | null
+          data_atualizacao?: string | null
+          data_confirmacao_pagamento?: string | null
+          data_criacao?: string | null
+          data_envio?: string | null
+          data_pagamento?: string | null
+          data_vencimento?: string | null
+          economia_acumulada?: number | null
+          economia_mes?: number | null
+          fatura_concessionaria?: number | null
+          historico_status?: Json | null
+          id?: string | null
+          iluminacao_publica?: number | null
+          mes?: number | null
+          observacao?: string | null
+          observacao_pagamento?: string | null
+          outros_valores?: number | null
+          saldo_energia_kwh?: number | null
+          send_method?:
+            | Database["public"]["Enums"]["communication_method"][]
+            | null
+          status?: Database["public"]["Enums"]["fatura_status"] | null
+          total_fatura?: number | null
+          unidade_beneficiaria_id?: string | null
+          updated_at?: string | null
+          valor_adicional?: number | null
+          valor_assinatura?: number | null
+          valor_desconto?: number | null
+        }
+        Relationships: []
+      }
       cooperados: {
         Row: {
           created_at: string
@@ -1507,6 +1633,8 @@ export type Database = {
         | "atrasada"
         | "paga"
         | "finalizada"
+        | "corrigida"
+        | "reenviada"
       integracao_ambiente: "sandbox" | "production"
       pagamento_status:
         | "pendente"

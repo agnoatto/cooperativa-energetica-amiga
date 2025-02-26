@@ -42,6 +42,21 @@ const convertHistoryToJson = (history: StatusHistoryEntry[]): Json => {
   })) as Json;
 };
 
+const validateStatusTransition = (currentStatus: FaturaStatus, newStatus: FaturaStatus): boolean => {
+  const allowedTransitions: Record<FaturaStatus, FaturaStatus[]> = {
+    'gerada': ['pendente'],
+    'pendente': ['enviada'],
+    'enviada': ['corrigida', 'atrasada', 'paga'],
+    'corrigida': ['reenviada'],
+    'reenviada': ['corrigida', 'atrasada', 'paga'],
+    'atrasada': ['paga'],
+    'paga': ['finalizada'],
+    'finalizada': []
+  };
+
+  return allowedTransitions[currentStatus]?.includes(newStatus) || false;
+};
+
 type FaturaUpdateData = {
   status: DbFaturaStatus;
   historico_status: Json;
@@ -55,77 +70,113 @@ export const useUpdateFaturaStatus = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, status, observacao }: UpdateFaturaStatusInput) => {
-      const now = new Date().toISOString();
-      
-      const { data: currentFatura, error: fetchError } = await supabase
-        .from("faturas")
-        .select('*, unidade_beneficiaria (*)')
-        .eq('id', id)
-        .single();
+    mutationFn: async ({ id, status, observacao, motivo_correcao }: UpdateFaturaStatusInput) => {
+      try {
+        console.log('Iniciando atualização de status:', { id, status, observacao });
+        
+        const now = new Date().toISOString();
+        
+        const { data: currentFatura, error: fetchError } = await supabase
+          .from("faturas")
+          .select('*, unidade_beneficiaria (*)')
+          .eq('id', id)
+          .single();
 
-      if (fetchError) throw new Error('Erro ao buscar fatura: ' + fetchError.message);
-      if (!currentFatura) throw new Error('Fatura não encontrada');
-
-      const historicoAtual = convertToStatusHistory(currentFatura.historico_status);
-      const novoHistorico = [
-        ...historicoAtual,
-        { 
-          status: status,
-          data: now, 
-          observacao 
+        if (fetchError) {
+          console.error('Erro ao buscar fatura:', fetchError);
+          throw new Error('Erro ao buscar fatura: ' + fetchError.message);
         }
-      ];
+        
+        if (!currentFatura) {
+          console.error('Fatura não encontrada');
+          throw new Error('Fatura não encontrada');
+        }
 
-      const updateData: FaturaUpdateData = {
-        status: status as DbFaturaStatus,
-        historico_status: convertHistoryToJson(novoHistorico),
-        data_atualizacao: now
-      };
+        // Validar transição de status
+        if (!validateStatusTransition(currentFatura.status, status)) {
+          console.error('Transição de status inválida:', { de: currentFatura.status, para: status });
+          throw new Error(`Transição de status inválida: ${currentFatura.status} -> ${status}`);
+        }
 
-      if (status === 'enviada') {
-        updateData.data_envio = now;
-      } else if (status === 'paga') {
-        updateData.data_confirmacao_pagamento = now;
-        updateData.data_pagamento = now;
+        const historicoAtual = convertToStatusHistory(currentFatura.historico_status);
+        const novoHistorico = [
+          ...historicoAtual,
+          { 
+            status,
+            data: now,
+            observacao,
+            ...(motivo_correcao && { motivo_correcao })
+          }
+        ];
+
+        const updateData: FaturaUpdateData = {
+          status: status as DbFaturaStatus,
+          historico_status: convertHistoryToJson(novoHistorico),
+          data_atualizacao: now
+        };
+
+        // Atualizar campos específicos baseado no status
+        if (status === 'enviada' || status === 'reenviada') {
+          updateData.data_envio = now;
+        } else if (status === 'paga') {
+          updateData.data_confirmacao_pagamento = now;
+          updateData.data_pagamento = now;
+        }
+
+        console.log('Dados preparados para atualização:', updateData);
+
+        const { data: updatedFatura, error: updateError } = await supabase
+          .from("faturas")
+          .update(updateData)
+          .eq('id', id)
+          .select('*, unidade_beneficiaria (*)')
+          .single();
+
+        if (updateError) {
+          console.error('Erro ao atualizar fatura:', updateError);
+          throw new Error('Erro ao atualizar fatura: ' + updateError.message);
+        }
+
+        if (!updatedFatura) {
+          console.error('Fatura não foi atualizada');
+          throw new Error('Fatura não foi atualizada');
+        }
+
+        console.log('Fatura atualizada com sucesso:', updatedFatura);
+        return updatedFatura as unknown as Fatura;
+      } catch (error: any) {
+        console.error('Erro na mutação:', error);
+        throw error;
       }
-
-      const { data: updatedFatura, error: updateError } = await supabase
-        .from("faturas")
-        .update(updateData)
-        .eq('id', id)
-        .select('*, unidade_beneficiaria (*)')
-        .single();
-
-      if (updateError) throw new Error('Erro ao atualizar fatura: ' + updateError.message);
-      if (!updatedFatura) throw new Error('Fatura não foi atualizada');
-
-      return updatedFatura as unknown as Fatura;
     },
-    onMutate: async (data) => {
+    onMutate: async (variables) => {
+      // Cancelar consultas em andamento
       await queryClient.cancelQueries({ queryKey: ['faturas'] });
 
+      // Snapshot do estado anterior
       const date = new Date();
       const queryKey = ['faturas', date.getMonth() + 1, date.getFullYear()];
       const previousFaturas = queryClient.getQueryData<Fatura[]>(queryKey);
 
-      queryClient.setQueryData<Fatura[]>(queryKey, (old): Fatura[] => {
+      // Otimisticamente atualizar o cache
+      queryClient.setQueryData<Fatura[]>(queryKey, (old) => {
         if (!old) return [];
         return old.map(fatura => {
-          if (fatura.id === data.id) {
+          if (fatura.id === variables.id) {
             const currentHistorico = convertToStatusHistory(fatura.historico_status);
             const novoHistorico = [
               ...currentHistorico,
               {
-                status: data.status,
+                status: variables.status,
                 data: new Date().toISOString(),
-                observacao: data.observacao
+                observacao: variables.observacao,
+                motivo_correcao: variables.motivo_correcao
               }
             ] as StatusHistoryEntry[];
             
             return {
               ...fatura,
-              status: data.status,
+              status: variables.status,
               historico_status: novoHistorico
             };
           }
@@ -157,7 +208,8 @@ export const useUpdateFaturaStatus = () => {
         reenviada: "Fatura reenviada com sucesso!",
         paga: "Pagamento confirmado com sucesso!",
         finalizada: "Fatura finalizada com sucesso!",
-        atrasada: "Fatura marcada como atrasada!"
+        atrasada: "Fatura marcada como atrasada!",
+        pendente: "Fatura marcada como pendente!"
       };
       
       toast.success(statusMessages[variables.status] || "Status da fatura atualizado com sucesso!");
