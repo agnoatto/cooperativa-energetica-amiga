@@ -9,6 +9,7 @@ import { FilterBar } from "@/components/shared/FilterBar";
 import { useMonthSelection } from "@/hooks/useMonthSelection";
 import { MonthSelector } from "./MonthSelector";
 import { FaturaEditModal } from "./FaturaEditModal";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -52,22 +53,32 @@ export function FaturasContainer() {
   };
 
   const handleEditSuccess = async (updateData: any) => {
-    const { data_vencimento, consumo_kwh, total_fatura, fatura_concessionaria } = updateData;
-    const todosPreenchidos = data_vencimento && 
-                            consumo_kwh > 0 && 
-                            total_fatura > 0 && 
-                            fatura_concessionaria > 0;
-
-    if (todosPreenchidos && editingFatura?.status === 'gerada') {
-      await updateFaturaStatus({
-        id: editingFatura.id,
-        status: 'pendente',
-        observacao: 'Fatura pronta para envio ao cliente'
-      });
-    }
+    console.log('Iniciando atualização da fatura:', updateData);
     
-    updateFatura(updateData);
-    setIsEditModalOpen(false);
+    try {
+      const { data_vencimento, consumo_kwh, total_fatura, fatura_concessionaria } = updateData;
+      const todosPreenchidos = data_vencimento && 
+                              consumo_kwh > 0 && 
+                              total_fatura > 0 && 
+                              fatura_concessionaria > 0;
+
+      await updateFatura(updateData);
+      
+      if (todosPreenchidos && editingFatura?.status === 'gerada') {
+        await updateFaturaStatus({
+          id: editingFatura.id,
+          status: 'pendente',
+          observacao: 'Fatura pronta para envio ao cliente'
+        });
+      }
+
+      toast.success('Fatura atualizada com sucesso!');
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error('Erro ao atualizar fatura:', error);
+      toast.error('Erro ao salvar as alterações da fatura');
+      throw error; // Propaga o erro para o modal continuar aberto
+    }
   };
 
   const filteredFaturas = faturas?.filter(fatura => {

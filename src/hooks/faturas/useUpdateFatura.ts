@@ -11,6 +11,8 @@ export const useUpdateFatura = () => {
   return useMutation({
     mutationFn: async (data: UpdateFaturaInput) => {
       try {
+        console.log('Iniciando atualização da fatura no banco:', data);
+
         // Validações básicas
         if (data.consumo_kwh <= 0) {
           throw new Error("O consumo deve ser maior que zero");
@@ -33,12 +35,9 @@ export const useUpdateFatura = () => {
           data.percentual_desconto
         );
 
-        console.log('Atualizando fatura:', {
-          id: data.id,
-          valores: calculatedValues
-        });
+        console.log('Valores calculados:', calculatedValues);
 
-        const { error } = await supabase
+        const { error, data: updatedFatura } = await supabase
           .from("faturas")
           .update({
             consumo_kwh: Number(data.consumo_kwh),
@@ -53,26 +52,24 @@ export const useUpdateFatura = () => {
             data_vencimento: data.data_vencimento,
             data_atualizacao: new Date().toISOString()
           })
-          .eq("id", data.id);
+          .eq("id", data.id)
+          .select()
+          .single();
 
         if (error) {
           console.error("Erro Supabase:", error);
-          throw error;
+          throw new Error(error.message);
         }
 
-        return true;
+        console.log('Fatura atualizada com sucesso:', updatedFatura);
+        return updatedFatura;
       } catch (error: any) {
-        console.error("Erro ao atualizar fatura:", error);
+        console.error("Erro detalhado ao atualizar fatura:", error);
         throw new Error(error.message || "Erro ao atualizar fatura");
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["faturas"] });
-      toast.success("Fatura atualizada com sucesso!");
-    },
-    onError: (error: Error) => {
-      console.error("Erro detalhado:", error);
-      toast.error(`Erro: ${error.message}`);
     },
   });
 };

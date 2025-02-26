@@ -19,7 +19,7 @@ export const useFaturas = (currentDate: Date): UseFaturasResult => {
   return {
     faturas,
     isLoading,
-    updateFatura: updateFaturaMutation.mutate,
+    updateFatura: updateFaturaMutation.mutateAsync, // Mudado para mutateAsync
     isUpdating: updateFaturaMutation.isPending,
     gerarFaturas: () => gerarFaturasMutation.mutate(),
     isGenerating: gerarFaturasMutation.isPending,
