@@ -7,18 +7,31 @@ import { UpdateFaturaInput } from "./types";
 import { StatusHistoryEntry, FaturaStatus } from "@/types/fatura";
 import { Json } from "@/integrations/supabase/types";
 
+// Type guard para verificar se um objeto é um StatusHistoryEntry válido
+const isStatusHistoryEntry = (entry: unknown): entry is StatusHistoryEntry => {
+  if (!entry || typeof entry !== 'object') return false;
+  const e = entry as any;
+  return (
+    typeof e.status === 'string' &&
+    typeof e.data === 'string' &&
+    (!e.observacao || typeof e.observacao === 'string')
+  );
+};
+
 // Função auxiliar para validar e converter o histórico do banco para StatusHistoryEntry[]
 const parseHistoryFromDb = (history: Json | null): StatusHistoryEntry[] => {
   if (!history || !Array.isArray(history)) return [];
   
-  return history.filter((entry): entry is StatusHistoryEntry => {
-    if (!entry || typeof entry !== 'object') return false;
-    return 'status' in entry && 'data' in entry;
-  });
+  return history.reduce<StatusHistoryEntry[]>((acc, entry) => {
+    if (isStatusHistoryEntry(entry)) {
+      acc.push(entry);
+    }
+    return acc;
+  }, []);
 };
 
 // Função auxiliar para converter StatusHistoryEntry[] para o formato do banco
-const prepareHistoryForDb = (entries: StatusHistoryEntry[]): Json => {
+const prepareHistoryForDb = (entries: StatusHistoryEntry[]): Json[] => {
   return entries.map(entry => ({
     status: entry.status,
     data: entry.data,
