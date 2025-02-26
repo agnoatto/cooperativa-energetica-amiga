@@ -53,8 +53,6 @@ export function FaturasContainer() {
   };
 
   const handleEditSuccess = async (updateData: any) => {
-    console.log('Iniciando atualização da fatura:', updateData);
-    
     try {
       const { data_vencimento, consumo_kwh, total_fatura, fatura_concessionaria } = updateData;
       const todosPreenchidos = data_vencimento && 
@@ -62,10 +60,10 @@ export function FaturasContainer() {
                               total_fatura > 0 && 
                               fatura_concessionaria > 0;
 
-      // Primeiro atualizamos a fatura e aguardamos a conclusão
+      // Atualiza a fatura
       await updateFatura(updateData);
       
-      // Se necessário, atualizamos o status
+      // Se necessário, atualiza o status
       if (todosPreenchidos && editingFatura?.status === 'gerada') {
         await updateFaturaStatus({
           id: editingFatura.id,
@@ -74,16 +72,13 @@ export function FaturasContainer() {
         });
       }
 
-      // Aguardamos um pequeno intervalo para garantir que os dados foram atualizados
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Fechamos o modal e mostramos a mensagem de sucesso
-      handleCloseEditModal();
+      // Mostra mensagem de sucesso e fecha o modal
       toast.success('Fatura atualizada com sucesso!');
+      setIsEditModalOpen(false); // Força o fechamento do modal
+      setEditingFatura(null); // Limpa a fatura em edição
     } catch (error) {
       console.error('Erro ao atualizar fatura:', error);
       toast.error('Erro ao salvar as alterações da fatura');
-      throw error;
     }
   };
 
