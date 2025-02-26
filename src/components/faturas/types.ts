@@ -37,5 +37,5 @@ export interface FaturaEditModalProps {
     observacao: string | null;
     data_vencimento: string;
     percentual_desconto: number;
-  }) => void | Promise<void>;
+  }) => Promise<void>;
 }

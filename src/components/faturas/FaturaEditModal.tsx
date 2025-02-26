@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -40,7 +39,6 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
   const [isLoading, setIsLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  // Atualiza os estados quando a fatura muda
   useEffect(() => {
     setConsumo(fatura.consumo_kwh?.toFixed(2) || "0.00");
     setTotalFatura(fatura.total_fatura.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
@@ -88,7 +86,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     setIsLoading(true);
 
     try {
-      const result = await onSuccess({
+      await onSuccess({
         id: fatura.id,
         consumo_kwh: Number(consumo),
         total_fatura: parseValue(totalFatura),
@@ -100,11 +98,6 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
         data_vencimento: convertLocalToUTC(dataVencimento),
         percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
       });
-
-      // Verifica se o resultado é uma Promise através do método then
-      if (result && typeof result.then === 'function') {
-        await result;
-      }
       
       onClose();
     } catch (error) {
