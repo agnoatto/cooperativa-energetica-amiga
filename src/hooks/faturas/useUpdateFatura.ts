@@ -69,7 +69,10 @@ export const useUpdateFatura = () => {
       }
     },
     onSuccess: () => {
+      // Força a atualização dos dados na lista de faturas
       queryClient.invalidateQueries({ queryKey: ["faturas"] });
-    },
+      // Atualiza imediatamente o cache com os novos dados
+      queryClient.refetchQueries({ queryKey: ["faturas"] });
+    }
   });
 };

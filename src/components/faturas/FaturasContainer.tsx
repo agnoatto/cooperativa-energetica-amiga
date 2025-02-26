@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useFaturas } from "@/hooks/useFaturas";
 import { FaturasHeader } from "./FaturasHeader";
@@ -73,11 +72,11 @@ export function FaturasContainer() {
       }
 
       toast.success('Fatura atualizada com sucesso!');
-      setIsEditModalOpen(false);
+      handleCloseEditModal();
     } catch (error) {
       console.error('Erro ao atualizar fatura:', error);
       toast.error('Erro ao salvar as alterações da fatura');
-      throw error; // Propaga o erro para o modal continuar aberto
+      throw error;
     }
   };
 
