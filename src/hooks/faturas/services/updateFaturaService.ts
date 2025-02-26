@@ -2,13 +2,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { Database } from "@/integrations/supabase/types";
-import { Json } from "@/integrations/supabase/types";
 import { validateStatusTransition } from "../utils/statusTransitions";
 
 type FaturaTable = Database['public']['Tables']['faturas'];
 type DbFaturaStatus = FaturaTable['Row']['status'];
 
-interface UpdateFaturaStatusParams {
+export interface UpdateFaturaStatusInput {
   id: string;
   status: FaturaStatus;
   observacao?: string;
@@ -18,9 +17,8 @@ interface UpdateFaturaStatusParams {
 export const updateFaturaStatus = async ({
   id,
   status,
-  observacao,
-  motivo_correcao
-}: UpdateFaturaStatusParams): Promise<Fatura> => {
+  observacao
+}: UpdateFaturaStatusInput): Promise<Fatura> => {
   console.log('Iniciando atualização de status:', { id, status, observacao });
 
   // 1. Buscar fatura atual
@@ -51,15 +49,6 @@ export const updateFaturaStatus = async ({
   const now = new Date().toISOString();
   const updateData = {
     status: status as DbFaturaStatus,
-    historico_status: [
-      ...(Array.isArray(currentFatura.historico_status) ? currentFatura.historico_status : []),
-      {
-        status,
-        data: now,
-        observacao,
-        ...(motivo_correcao && { motivo_correcao })
-      }
-    ] as Json,
     data_atualizacao: now,
     ...(status === 'enviada' && { data_envio: now }),
     ...(status === 'paga' && {
