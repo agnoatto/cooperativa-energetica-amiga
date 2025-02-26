@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { calculateValues } from "@/components/faturas/utils/calculateValues";
 import { UpdateFaturaInput } from "./types";
-import { StatusHistoryEntry } from "@/types/fatura";
+import { StatusHistoryEntry, FaturaStatus } from "@/types/fatura";
 import { Json } from "@/integrations/supabase/types";
 
 const parseHistoricoStatus = (historico: unknown): StatusHistoryEntry[] => {
@@ -13,7 +13,7 @@ const parseHistoricoStatus = (historico: unknown): StatusHistoryEntry[] => {
   return historico.map(entry => {
     if (typeof entry === 'object' && entry !== null) {
       return {
-        status: String(entry.status),
+        status: String(entry.status) as FaturaStatus,
         data: String(entry.data),
         observacao: entry.observacao ? String(entry.observacao) : undefined,
         motivo_correcao: entry.motivo_correcao ? String(entry.motivo_correcao) : undefined,
@@ -96,7 +96,7 @@ export const useUpdateFatura = () => {
         // Só adiciona novo status se a fatura estiver como 'gerada' e todos os campos estiverem preenchidos
         if (currentFatura.status === 'gerada' && todosPreenchidos) {
           novoHistorico.push({
-            status: 'pendente',
+            status: 'pendente' as FaturaStatus,
             data: new Date().toISOString(),
             observacao: 'Fatura pronta para envio ao cliente'
           });
@@ -118,7 +118,7 @@ export const useUpdateFatura = () => {
           historico_status: convertToJson(novoHistorico),
           // Só atualiza o status se a fatura estiver como 'gerada' e todos os campos estiverem preenchidos
           ...(currentFatura.status === 'gerada' && todosPreenchidos && {
-            status: 'pendente'
+            status: 'pendente' as FaturaStatus
           })
         };
 
