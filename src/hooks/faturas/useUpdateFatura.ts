@@ -11,7 +11,7 @@ export const useUpdateFatura = () => {
   return useMutation({
     mutationFn: async (data: UpdateFaturaInput) => {
       try {
-        console.log('Iniciando atualização da fatura no banco:', data);
+        console.log('Dados recebidos para atualização:', data);
 
         // Validações básicas
         if (data.consumo_kwh <= 0) {
@@ -26,32 +26,37 @@ export const useUpdateFatura = () => {
           throw new Error("A data de vencimento é obrigatória");
         }
 
-        // Calcula os valores com precisão de 2 casas decimais
+        // Calcula os valores usando as strings formatadas
         const calculatedValues = calculateValues(
-          data.total_fatura.toFixed(2),
-          data.iluminacao_publica.toFixed(2),
-          data.outros_valores.toFixed(2),
-          data.fatura_concessionaria.toFixed(2),
+          data.total_fatura.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+          data.iluminacao_publica.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+          data.outros_valores.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+          data.fatura_concessionaria.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
           data.percentual_desconto
         );
 
-        console.log('Valores calculados:', calculatedValues);
+        console.log('Valores calculados antes do envio:', calculatedValues);
+
+        // Prepara os dados para o banco garantindo valores numéricos corretos
+        const faturaData = {
+          consumo_kwh: Number(data.consumo_kwh),
+          total_fatura: Number(data.total_fatura.toFixed(2)),
+          fatura_concessionaria: Number(data.fatura_concessionaria.toFixed(2)),
+          iluminacao_publica: Number(data.iluminacao_publica.toFixed(2)),
+          outros_valores: Number(data.outros_valores.toFixed(2)),
+          valor_desconto: Number(calculatedValues.valor_desconto.toFixed(2)),
+          valor_assinatura: Number(calculatedValues.valor_assinatura.toFixed(2)),
+          saldo_energia_kwh: Number(data.saldo_energia_kwh),
+          observacao: data.observacao,
+          data_vencimento: data.data_vencimento,
+          data_atualizacao: new Date().toISOString()
+        };
+
+        console.log('Dados formatados para envio ao banco:', faturaData);
 
         const { error, data: updatedFatura } = await supabase
           .from("faturas")
-          .update({
-            consumo_kwh: Number(data.consumo_kwh),
-            total_fatura: Number(data.total_fatura.toFixed(2)),
-            fatura_concessionaria: Number(data.fatura_concessionaria.toFixed(2)),
-            iluminacao_publica: Number(data.iluminacao_publica.toFixed(2)),
-            outros_valores: Number(data.outros_valores.toFixed(2)),
-            valor_desconto: Number(calculatedValues.valor_desconto.toFixed(2)),
-            valor_assinatura: Number(calculatedValues.valor_assinatura.toFixed(2)),
-            saldo_energia_kwh: Number(data.saldo_energia_kwh),
-            observacao: data.observacao,
-            data_vencimento: data.data_vencimento,
-            data_atualizacao: new Date().toISOString()
-          })
+          .update(faturaData)
           .eq("id", data.id)
           .select()
           .single();
