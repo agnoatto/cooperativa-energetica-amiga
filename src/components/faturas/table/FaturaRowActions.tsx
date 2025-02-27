@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import { Edit, Eye, Trash2, CheckCircle2, PenTool, RotateCw } from "lucide-react";
+import { Edit, Eye, Trash2, CheckCircle2, PenTool, RotateCw, Send } from "lucide-react";
 import { FaturaPdfButton } from "../FaturaPdfButton";
 import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { useState } from "react";
@@ -57,6 +57,22 @@ export function FaturaRowActions({
     }
   };
 
+  const handleSendFatura = async () => {
+    setErrorMessage(null);
+    try {
+      setIsProcessingAction(true);
+      await onUpdateStatus(fatura, 'enviada', 'Fatura enviada ao cliente');
+      toast.success('Fatura enviada com sucesso');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro desconhecido ao enviar fatura';
+      setErrorMessage(message);
+      toast.error(message);
+      console.error('Erro detalhado no envio:', error);
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
   const handleReenviarFatura = async () => {
     setErrorMessage(null);
     try {
@@ -98,6 +114,21 @@ export function FaturaRowActions({
         disabled={isProcessingAction}
       >
         <Edit className="h-4 w-4" />
+      </Button>
+    );
+  }
+
+  if (fatura.status === 'pendente') {
+    actions.push(
+      <Button
+        key="send"
+        variant="outline"
+        size="icon"
+        onClick={handleSendFatura}
+        title="Enviar Fatura"
+        disabled={isProcessingAction}
+      >
+        <Send className="h-4 w-4" />
       </Button>
     );
   }
