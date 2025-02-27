@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import { Edit, Eye, Trash2, CheckCircle2, PenTool, RotateCw, Send } from "lucide-react";
+import { Edit, Eye, Trash2, CheckCircle2, PenTool, RotateCw } from "lucide-react";
 import { FaturaPdfButton } from "../FaturaPdfButton";
 import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { useState } from "react";
@@ -9,16 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 interface FaturaRowActionsProps {
   fatura: Fatura;
@@ -38,7 +28,6 @@ export function FaturaRowActions({
   onShowPaymentModal,
 }: FaturaRowActionsProps) {
   const [showCorrectionDialog, setShowCorrectionDialog] = useState(false);
-  const [showSendDialog, setShowSendDialog] = useState(false);
   const [motivo, setMotivo] = useState("");
   const [isProcessingCorrection, setIsProcessingCorrection] = useState(false);
   const [isProcessingAction, setIsProcessingAction] = useState(false);
@@ -65,23 +54,6 @@ export function FaturaRowActions({
       console.error('Erro detalhado na correção:', error);
     } finally {
       setIsProcessingCorrection(false);
-    }
-  };
-
-  const handleSendFatura = async () => {
-    setErrorMessage(null);
-    try {
-      setIsProcessingAction(true);
-      await onUpdateStatus(fatura, 'enviada', 'Fatura enviada ao cliente');
-      toast.success('Fatura enviada com sucesso');
-      setShowSendDialog(false);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro desconhecido ao enviar fatura';
-      setErrorMessage(message);
-      toast.error(message);
-      console.error('Erro detalhado no envio:', error);
-    } finally {
-      setIsProcessingAction(false);
     }
   };
 
@@ -126,21 +98,6 @@ export function FaturaRowActions({
         disabled={isProcessingAction}
       >
         <Edit className="h-4 w-4" />
-      </Button>
-    );
-  }
-
-  if (fatura.status === 'pendente') {
-    actions.push(
-      <Button
-        key="send"
-        variant="outline"
-        size="icon"
-        onClick={() => setShowSendDialog(true)}
-        title="Enviar Fatura"
-        disabled={isProcessingAction}
-      >
-        <Send className="h-4 w-4" />
       </Button>
     );
   }
@@ -220,23 +177,6 @@ export function FaturaRowActions({
           <AlertDescription>{errorMessage}</AlertDescription>
         </Alert>
       )}
-
-      <AlertDialog open={showSendDialog} onOpenChange={setShowSendDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Enviar Fatura</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja enviar esta fatura? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isProcessingAction}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSendFatura} disabled={isProcessingAction}>
-              {isProcessingAction ? "Enviando..." : "Confirmar Envio"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       <Dialog open={showCorrectionDialog} onOpenChange={setShowCorrectionDialog}>
         <DialogContent className="sm:max-w-[425px]">
