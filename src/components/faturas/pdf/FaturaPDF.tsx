@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
 import { styles, COLORS, FONTS } from '@/components/pdf/theme';
@@ -5,6 +6,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PdfFaturaData } from '@/types/pdf';
 import { formatarDocumento, formatarMoeda } from '@/utils/formatters';
+import { formatDateToPtBR } from '@/utils/dateFormatters';
 
 interface FaturaPDFProps {
   fatura: PdfFaturaData;
@@ -62,7 +64,7 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
           <View style={styles.highlightItem}>
             <Text style={styles.highlightLabel}>Data de Vencimento:</Text>
             <Text style={styles.highlightValue}>
-              {format(new Date(fatura.data_vencimento), 'dd/MM/yyyy')}
+              {formatDateToPtBR(fatura.data_vencimento)}
             </Text>
           </View>
           <View style={styles.highlightItem}>
