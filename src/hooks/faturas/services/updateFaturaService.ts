@@ -18,19 +18,7 @@ export const updateFaturaStatus = async ({
   // 1. Verificar se a fatura existe e seu status atual
   const { data: currentFatura, error: fetchError } = await supabase
     .from("faturas")
-    .select(`
-      *,
-      unidades_beneficiarias (
-        id,
-        numero_uc,
-        apelido,
-        cooperado:cooperados (
-          id,
-          nome,
-          documento
-        )
-      )
-    `)
+    .select('id, status')
     .eq('id', id)
     .single();
 
@@ -64,19 +52,7 @@ export const updateFaturaStatus = async ({
       .from("faturas")
       .update(updateData)
       .eq('id', id)
-      .select(`
-        *,
-        unidades_beneficiarias (
-          id,
-          numero_uc,
-          apelido,
-          cooperado:cooperados (
-            id,
-            nome,
-            documento
-          )
-        )
-      `)
+      .select()
       .single();
 
     if (updateError) {
