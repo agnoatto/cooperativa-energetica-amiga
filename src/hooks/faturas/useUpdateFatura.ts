@@ -79,7 +79,10 @@ export const useUpdateFatura = () => {
 
         console.log('[useUpdateFatura] Fatura atualizada com sucesso:', updatedFatura);
 
-        if (await verificarAtualizacaoStatus(data.id, todosPreenchidos)) {
+        // Verifica se o status foi atualizado para dar feedback apropriado ao usuário
+        const statusAtualizado = await verificarAtualizacaoStatus(data.id, todosPreenchidos);
+        
+        if (statusAtualizado && statusAtualizado.status === 'pendente') {
           toast.success('Fatura atualizada e marcada como pendente');
         } else {
           toast.success('Fatura atualizada com sucesso');
