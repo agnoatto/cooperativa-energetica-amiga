@@ -161,13 +161,13 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
             dataVencimento={dataVencimento}
             setDataVencimento={setDataVencimento}
             arquivoConcessionariaNome={arquivoConcessionariaNome}
-            setArquivoConcessionariaNome={nome => handleFileChange(nome, arquivoConcessionariaPath, arquivoConcessionariaTipo, arquivoConcessionariaTamanho)}
+            setArquivoConcessionariaNome={setArquivoConcessionariaNome}
             arquivoConcessionariaPath={arquivoConcessionariaPath}
-            setArquivoConcessionariaPath={path => handleFileChange(arquivoConcessionariaNome, path, arquivoConcessionariaTipo, arquivoConcessionariaTamanho)}
+            setArquivoConcessionariaPath={setArquivoConcessionariaPath}
             arquivoConcessionariaTipo={arquivoConcessionariaTipo}
-            setArquivoConcessionariaTipo={tipo => handleFileChange(arquivoConcessionariaNome, arquivoConcessionariaPath, tipo, arquivoConcessionariaTamanho)}
+            setArquivoConcessionariaTipo={setArquivoConcessionariaTipo}
             arquivoConcessionariaTamanho={arquivoConcessionariaTamanho}
-            setArquivoConcessionariaTamanho={tamanho => handleFileChange(arquivoConcessionariaNome, arquivoConcessionariaPath, arquivoConcessionariaTipo, tamanho)}
+            setArquivoConcessionariaTamanho={setArquivoConcessionariaTamanho}
             percentualDesconto={fatura.unidade_beneficiaria.percentual_desconto}
             onSuccess={onSuccess}
             onSubmit={handleSubmit}

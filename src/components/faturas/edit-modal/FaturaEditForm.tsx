@@ -1,15 +1,19 @@
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { CurrencyInput } from "../CurrencyInput";
-import { FaturaFileUpload } from "../FaturaFileUpload";
-import { parseValue, calculateValues } from "../utils/calculateValues";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { formatCurrency } from "@/utils/formatters";
+import { calculateValues } from "../utils/calculateValues";
+
+// Seções do formulário
+import { DateSection } from "./sections/DateSection";
+import { ConsumoSection } from "./sections/ConsumoSection";
+import { ValoresBasicosSection } from "./sections/ValoresBasicosSection";
+import { ValoresAdicionaisSection } from "./sections/ValoresAdicionaisSection";
+import { ObservacaoSection } from "./sections/ObservacaoSection";
+import { ArquivoSection } from "./sections/ArquivoSection";
+import { FormErrorsSection } from "./sections/FormErrorsSection";
 
 interface FaturaEditFormProps {
   faturaId: string;
@@ -93,8 +97,14 @@ export function FaturaEditForm({
   }, [totalFatura, iluminacaoPublica, outrosValores, faturaConcessionaria, percentualDesconto]);
 
   // Handler para atualização de arquivo
-  const handleFileUpdateSuccess = (data: any) => {
-    onSuccess(data);
+  const handleFileUpdateSuccess = () => {
+    onSuccess({
+      id: faturaId,
+      arquivo_concessionaria_nome: arquivoConcessionariaNome,
+      arquivo_concessionaria_path: arquivoConcessionariaPath,
+      arquivo_concessionaria_tipo: arquivoConcessionariaTipo,
+      arquivo_concessionaria_tamanho: arquivoConcessionariaTamanho
+    });
     
     // Recarregar dados das faturas para atualizar a interface
     queryClient.invalidateQueries({
@@ -115,164 +125,53 @@ export function FaturaEditForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <div className="grid w-full items-center gap-2">
-        <Label htmlFor="dataVencimento" className="font-semibold">
-          Data de Vencimento *
-        </Label>
-        <Input
-          type="date"
-          id="dataVencimento"
-          value={dataVencimento}
-          onChange={(e) => setDataVencimento(e.target.value)}
-          required
-          className={formErrors.dataVencimento ? 'border-red-500' : ''}
-        />
-        {formErrors.dataVencimento && (
-          <span className="text-sm text-red-500">{formErrors.dataVencimento}</span>
-        )}
-      </div>
+      <DateSection 
+        dataVencimento={dataVencimento}
+        setDataVencimento={setDataVencimento}
+        error={formErrors.dataVencimento}
+      />
 
-      <div className="grid w-full items-center gap-2">
-        <Label htmlFor="consumo" className="font-semibold">
-          Consumo (kWh) *
-        </Label>
-        <Input
-          type="number"
-          id="consumo"
-          value={consumo}
-          onChange={(e) => setConsumo(e.target.value)}
-          step="0.01"
-          min="0"
-          required
-          className={formErrors.consumo ? 'border-red-500' : ''}
-        />
-        {formErrors.consumo && (
-          <span className="text-sm text-red-500">{formErrors.consumo}</span>
-        )}
-      </div>
+      <ConsumoSection 
+        consumo={consumo}
+        setConsumo={setConsumo}
+        error={formErrors.consumo}
+      />
 
-      <div className="grid w-full items-center gap-2">
-        <Label htmlFor="totalFatura" className="font-semibold">
-          Valor Total Sem Assinatura *
-        </Label>
-        <CurrencyInput
-          id="totalFatura"
-          value={totalFatura}
-          onChange={setTotalFatura}
-          required
-          decimalScale={2}
-          className={formErrors.totalFatura ? 'border-red-500' : ''}
-        />
-        {formErrors.totalFatura && (
-          <span className="text-sm text-red-500">{formErrors.totalFatura}</span>
-        )}
-      </div>
+      <ValoresBasicosSection 
+        totalFatura={totalFatura}
+        setTotalFatura={setTotalFatura}
+        faturaConcessionaria={faturaConcessionaria}
+        setFaturaConcessionaria={setFaturaConcessionaria}
+        valorAssinatura={valorAssinatura}
+        errorTotal={formErrors.totalFatura}
+        errorFatura={formErrors.faturaConcessionaria}
+      />
 
-      <div className="grid w-full items-center gap-2">
-        <Label htmlFor="faturaConcessionaria" className="font-semibold">
-          Valor Conta de Energia *
-        </Label>
-        <CurrencyInput
-          id="faturaConcessionaria"
-          value={faturaConcessionaria}
-          onChange={setFaturaConcessionaria}
-          required
-          decimalScale={2}
-          className={formErrors.faturaConcessionaria ? 'border-red-500' : ''}
-        />
-        {formErrors.faturaConcessionaria && (
-          <span className="text-sm text-red-500">{formErrors.faturaConcessionaria}</span>
-        )}
-      </div>
+      <ValoresAdicionaisSection 
+        iluminacaoPublica={iluminacaoPublica}
+        setIluminacaoPublica={setIluminacaoPublica}
+        outrosValores={outrosValores}
+        setOutrosValores={setOutrosValores}
+        saldoEnergiaKwh={saldoEnergiaKwh}
+        setSaldoEnergiaKwh={setSaldoEnergiaKwh}
+      />
 
-      <div className="grid w-full items-center gap-2">
-        <Label htmlFor="valorAssinatura" className="font-semibold">
-          Valor da Assinatura (Calculado)
-        </Label>
-        <Input
-          id="valorAssinatura"
-          value={valorAssinatura}
-          readOnly
-          className="bg-gray-50"
-        />
-      </div>
-
-      <div className="grid w-full items-center gap-2">
-        <Label htmlFor="iluminacaoPublica" className="font-semibold">
-          Iluminação Pública *
-        </Label>
-        <CurrencyInput
-          id="iluminacaoPublica"
-          value={iluminacaoPublica}
-          onChange={setIluminacaoPublica}
-          required
-          decimalScale={2}
-        />
-      </div>
-
-      <div className="grid w-full items-center gap-2">
-        <Label htmlFor="outrosValores" className="font-semibold">
-          Outros Valores *
-        </Label>
-        <CurrencyInput
-          id="outrosValores"
-          value={outrosValores}
-          onChange={setOutrosValores}
-          required
-          decimalScale={2}
-        />
-      </div>
-
-      <div className="grid w-full items-center gap-2">
-        <Label htmlFor="saldoEnergiaKwh" className="font-semibold">
-          Saldo de Energia (kWh) *
-        </Label>
-        <Input
-          type="number"
-          id="saldoEnergiaKwh"
-          value={saldoEnergiaKwh}
-          onChange={(e) => setSaldoEnergiaKwh(e.target.value)}
-          step="0.01"
-          min="0"
-          required
-        />
-      </div>
-
-      <div className="grid w-full items-center gap-2">
-        <Label htmlFor="observacao">Observações</Label>
-        <Textarea
-          id="observacao"
-          value={observacao}
-          onChange={(e) => setObservacao(e.target.value)}
-          placeholder="Adicione observações relevantes sobre a fatura..."
-          className="resize-none"
-          rows={3}
-        />
-      </div>
+      <ObservacaoSection 
+        observacao={observacao}
+        setObservacao={setObservacao}
+      />
       
-      <div className="grid w-full items-center gap-2">
-        <Label className="font-semibold">Conta de Energia (PDF)</Label>
-        <FaturaFileUpload
-          faturaId={faturaId}
-          arquivoNome={arquivoConcessionariaNome}
-          arquivoPath={arquivoConcessionariaPath}
-          arquivoTipo={arquivoConcessionariaTipo}
-          arquivoTamanho={arquivoConcessionariaTamanho}
-          onSuccess={handleFileUpdateSuccess}
-          onFileChange={(nome, path, tipo, tamanho) => {
-            handleFileChangeInternal(nome, path, tipo, tamanho);
-          }}
-        />
-      </div>
+      <ArquivoSection 
+        faturaId={faturaId}
+        arquivoConcessionariaNome={arquivoConcessionariaNome}
+        arquivoConcessionariaPath={arquivoConcessionariaPath}
+        arquivoConcessionariaTipo={arquivoConcessionariaTipo}
+        arquivoConcessionariaTamanho={arquivoConcessionariaTamanho}
+        onSuccess={handleFileUpdateSuccess}
+        onFileChange={handleFileChangeInternal}
+      />
 
-      {Object.keys(formErrors).length > 0 && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Por favor, corrija os erros no formulário antes de salvar.
-          </AlertDescription>
-        </Alert>
-      )}
+      <FormErrorsSection errors={formErrors} />
     </form>
   );
 }
