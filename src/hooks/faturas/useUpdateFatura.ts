@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { calculateValues } from "@/components/faturas/utils/calculateValues";
 import { UpdateFaturaInput } from "./types";
-import { FaturaStatus } from "@/types/fatura";
 
 export const useUpdateFatura = () => {
   const queryClient = useQueryClient();
@@ -33,13 +32,6 @@ export const useUpdateFatura = () => {
 
         console.log('[useUpdateFatura] Valores calculados:', calculatedValues);
 
-        // Verificar se todos os campos obrigatórios estão preenchidos
-        const todosPreenchidos = 
-          data.consumo_kwh > 0 && 
-          data.total_fatura > 0 && 
-          data.fatura_concessionaria > 0 && 
-          data.data_vencimento;
-
         // Preparar os dados para atualização
         const faturaData = {
           consumo_kwh: Number(data.consumo_kwh),
@@ -60,13 +52,6 @@ export const useUpdateFatura = () => {
           arquivo_concessionaria_tamanho: data.arquivo_concessionaria_tamanho
         };
 
-        // Verificar se deve atualizar o status
-        const statusInfo = await verificarAtualizacaoStatus(data.id, todosPreenchidos);
-        if (statusInfo.status) {
-          // Adicionamos o status ao objeto faturaData apenas se ele existir no retorno
-          faturaData['status'] = statusInfo.status;
-        }
-
         console.log('[useUpdateFatura] Dados formatados para atualização:', faturaData);
         console.log('[useUpdateFatura] Enviando atualização para o Supabase para fatura ID:', data.id);
 
@@ -83,15 +68,7 @@ export const useUpdateFatura = () => {
         }
 
         console.log('[useUpdateFatura] Fatura atualizada com sucesso:', updatedFatura);
-
-        // Verificar se o status foi atualizado para dar feedback apropriado ao usuário
-        const statusAtualizado = await verificarAtualizacaoStatus(data.id, todosPreenchidos);
-        
-        if (statusAtualizado.status && statusAtualizado.status === 'pendente') {
-          toast.success('Fatura atualizada e marcada como pendente');
-        } else {
-          toast.success('Fatura atualizada com sucesso');
-        }
+        toast.success('Fatura atualizada com sucesso');
 
         return updatedFatura;
       } catch (error: any) {
@@ -140,31 +117,3 @@ export const useUpdateFatura = () => {
     }
   });
 };
-
-// Função auxiliar para verificar se deve atualizar o status
-async function verificarAtualizacaoStatus(faturaId: string, todosPreenchidos: boolean): Promise<{status?: FaturaStatus}> {
-  try {
-    // Busca status atual da fatura
-    const { data, error } = await supabase
-      .from("faturas")
-      .select("status")
-      .eq("id", faturaId)
-      .single();
-    
-    if (error) {
-      console.error("[verificarAtualizacaoStatus] Erro ao buscar status:", error);
-      return {};
-    }
-    
-    // Se fatura está como 'gerada' e todos os campos estão preenchidos, atualiza para 'pendente'
-    if (data?.status === 'gerada' && todosPreenchidos) {
-      console.log("[verificarAtualizacaoStatus] Atualizando status para 'pendente'");
-      return { status: 'pendente' };
-    }
-    
-    return {};
-  } catch (error) {
-    console.error("[verificarAtualizacaoStatus] Erro:", error);
-    return {};
-  }
-}
