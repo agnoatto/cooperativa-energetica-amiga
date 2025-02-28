@@ -59,7 +59,7 @@ export const useUpdateFatura = () => {
           arquivo_concessionaria_tipo: data.arquivo_concessionaria_tipo,
           arquivo_concessionaria_tamanho: data.arquivo_concessionaria_tamanho,
           // Só atualiza o status se a fatura estiver como 'gerada' e todos os campos estiverem preenchidos
-          ...await verificarAtualizacaoStatus(data.id, todosPreenchidos)
+          ...(await verificarAtualizacaoStatus(data.id, todosPreenchidos))
         };
 
         console.log('[useUpdateFatura] Dados formatados para atualização:', faturaData);
