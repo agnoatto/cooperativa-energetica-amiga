@@ -58,32 +58,15 @@ export function FaturasContainer() {
     try {
       console.log('[FaturasContainer] handleEditSuccess - Iniciando com dados:', updateData);
       
-      const { data_vencimento, consumo_kwh, total_fatura, fatura_concessionaria } = updateData;
-      const todosPreenchidos = data_vencimento && 
-                              consumo_kwh > 0 && 
-                              total_fatura > 0 && 
-                              fatura_concessionaria > 0;
-      
-      // Atualiza a fatura
+      // Simplificado: Atualizar a fatura é suficiente, a lógica de status foi movida
+      // para dentro do useUpdateFatura
       console.log('[FaturasContainer] Chamando updateFatura com dados:', updateData);
       await updateFatura(updateData);
       console.log('[FaturasContainer] updateFatura concluído com sucesso');
       
-      // Se necessário, atualiza o status
-      if (todosPreenchidos && editingFatura?.status === 'gerada') {
-        console.log('[FaturasContainer] Atualizando status para pendente');
-        await updateFaturaStatus({
-          id: editingFatura.id,
-          status: 'pendente',
-          observacao: 'Fatura pronta para envio ao cliente'
-        });
-        console.log('[FaturasContainer] Status atualizado com sucesso');
-      }
-
-      // Mostra mensagem de sucesso e fecha o modal
-      toast.success('Fatura atualizada com sucesso!');
-      setIsEditModalOpen(false); // Força o fechamento do modal
-      setEditingFatura(null); // Limpa a fatura em edição
+      // Fechar o modal após sucesso
+      setIsEditModalOpen(false);
+      setEditingFatura(null);
     } catch (error: any) {
       console.error('[FaturasContainer] Erro ao atualizar fatura:', error);
       toast.error(`Erro ao salvar as alterações da fatura: ${error.message || 'Erro desconhecido'}`);

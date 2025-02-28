@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { calculateValues } from "@/components/faturas/utils/calculateValues";
 import { UpdateFaturaInput } from "./types";
 import { FaturaStatus } from "@/types/fatura";
-import { Json } from "@/integrations/supabase/types";
 
 export const useUpdateFatura = () => {
   const queryClient = useQueryClient();
@@ -15,44 +14,7 @@ export const useUpdateFatura = () => {
       try {
         console.log('[useUpdateFatura] Dados recebidos para atualização:', data);
 
-        // Busca a fatura atual para preservar dados históricos
-        console.log('[useUpdateFatura] Buscando fatura atual com ID:', data.id);
-        const { data: currentFatura, error: fetchError } = await supabase
-          .from("faturas")
-          .select("*")
-          .eq("id", data.id)
-          .single();
-
-        if (fetchError) {
-          console.error("[useUpdateFatura] Erro ao buscar fatura atual:", fetchError);
-          throw new Error(fetchError.message);
-        }
-
-        console.log('[useUpdateFatura] Fatura atual encontrada:', currentFatura);
-
-        // Validações básicas
-        if (!data.consumo_kwh || data.consumo_kwh <= 0) {
-          throw new Error("O consumo deve ser maior que zero");
-        }
-
-        if (!data.total_fatura || data.total_fatura <= 0) {
-          throw new Error("O valor total da fatura deve ser maior que zero");
-        }
-
-        if (!data.fatura_concessionaria || data.fatura_concessionaria <= 0) {
-          throw new Error("O valor da conta de energia deve ser maior que zero");
-        }
-
-        if (!data.data_vencimento) {
-          throw new Error("A data de vencimento é obrigatória");
-        }
-
-        // Verificar se o formato da data está correto
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(data.data_vencimento)) {
-          throw new Error("Formato de data inválido. Use YYYY-MM-DD");
-        }
-
-        // Calcula os valores usando números diretamente
+        // Calcular valores usando os dados recebidos
         console.log('[useUpdateFatura] Calculando valores com: ', {
           total_fatura: data.total_fatura.toString(),
           iluminacao_publica: data.iluminacao_publica.toString(),
@@ -71,14 +33,14 @@ export const useUpdateFatura = () => {
 
         console.log('[useUpdateFatura] Valores calculados:', calculatedValues);
 
-        // Verifica se todos os campos obrigatórios estão preenchidos
+        // Verificar se todos os campos obrigatórios estão preenchidos
         const todosPreenchidos = 
           data.consumo_kwh > 0 && 
           data.total_fatura > 0 && 
           data.fatura_concessionaria > 0 && 
           data.data_vencimento;
 
-        // Prepara os dados para atualização
+        // Preparar os dados para atualização
         const faturaData = {
           consumo_kwh: Number(data.consumo_kwh),
           total_fatura: Number(data.total_fatura),
@@ -97,9 +59,7 @@ export const useUpdateFatura = () => {
           arquivo_concessionaria_tipo: data.arquivo_concessionaria_tipo,
           arquivo_concessionaria_tamanho: data.arquivo_concessionaria_tamanho,
           // Só atualiza o status se a fatura estiver como 'gerada' e todos os campos estiverem preenchidos
-          ...(currentFatura.status === 'gerada' && todosPreenchidos && {
-            status: 'pendente' as FaturaStatus
-          })
+          ...await verificarAtualizacaoStatus(data.id, todosPreenchidos)
         };
 
         console.log('[useUpdateFatura] Dados formatados para atualização:', faturaData);
@@ -119,7 +79,7 @@ export const useUpdateFatura = () => {
 
         console.log('[useUpdateFatura] Fatura atualizada com sucesso:', updatedFatura);
 
-        if (currentFatura.status === 'gerada' && todosPreenchidos) {
+        if (await verificarAtualizacaoStatus(data.id, todosPreenchidos)) {
           toast.success('Fatura atualizada e marcada como pendente');
         } else {
           toast.success('Fatura atualizada com sucesso');
@@ -135,6 +95,7 @@ export const useUpdateFatura = () => {
     onSuccess: async (_, variables) => {
       try {
         console.log('[useUpdateFatura] Sucesso! Invalidando queries de cache...');
+        
         // Obtém o mês e ano da fatura atualizada
         const faturaDate = new Date(variables.data_vencimento);
         const mes = faturaDate.getMonth() + 1;
@@ -171,3 +132,31 @@ export const useUpdateFatura = () => {
     }
   });
 };
+
+// Função auxiliar para verificar se deve atualizar o status
+async function verificarAtualizacaoStatus(faturaId: string, todosPreenchidos: boolean): Promise<{status?: FaturaStatus}> {
+  try {
+    // Busca status atual da fatura
+    const { data, error } = await supabase
+      .from("faturas")
+      .select("status")
+      .eq("id", faturaId)
+      .single();
+    
+    if (error) {
+      console.error("[verificarAtualizacaoStatus] Erro ao buscar status:", error);
+      return {};
+    }
+    
+    // Se fatura está como 'gerada' e todos os campos estão preenchidos, atualiza para 'pendente'
+    if (data?.status === 'gerada' && todosPreenchidos) {
+      console.log("[verificarAtualizacaoStatus] Atualizando status para 'pendente'");
+      return { status: 'pendente' };
+    }
+    
+    return {};
+  } catch (error) {
+    console.error("[verificarAtualizacaoStatus] Erro:", error);
+    return {};
+  }
+}

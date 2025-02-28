@@ -22,8 +22,8 @@ export const useFaturas = (currentDate: Date): UseFaturasResult => {
     updateFatura: async (data) => {
       console.log("[useFaturas] Chamando updateFatura com dados:", data);
       try {
-        const result = await updateFaturaMutation.mutateAsync(data);
-        console.log("[useFaturas] updateFatura concluído com sucesso:", result);
+        await updateFaturaMutation.mutateAsync(data);
+        console.log("[useFaturas] updateFatura concluído com sucesso");
         // Não retornamos o resultado, apenas completamos a promise
         // para atender ao tipo Promise<void> definido na interface
       } catch (error) {
@@ -38,8 +38,8 @@ export const useFaturas = (currentDate: Date): UseFaturasResult => {
     updateFaturaStatus: async (data: UpdateFaturaStatusInput) => {
       try {
         console.log('[useFaturas] Iniciando atualização de status:', data);
-        const result = await updateFaturaStatusMutation.mutateAsync(data);
-        console.log('[useFaturas] Resultado da atualização de status:', result);
+        await updateFaturaStatusMutation.mutateAsync(data);
+        console.log('[useFaturas] Atualização de status concluída');
       } catch (error) {
         console.error('[useFaturas] Erro ao atualizar status:', error);
         throw error;
