@@ -13,14 +13,22 @@ export const useFaturas = (currentDate: Date): UseFaturasResult => {
   const gerarFaturasMutation = useGerarFaturas(currentDate);
   const updateFaturaStatusMutation = useUpdateFaturaStatus();
 
-  console.log("useFaturas hook - faturas:", faturas);
-  console.log("useFaturas hook - isLoading:", isLoading);
+  console.log("[useFaturas] hook - faturas:", faturas?.length || 0, "itens");
+  console.log("[useFaturas] hook - isLoading:", isLoading);
 
   return {
     faturas,
     isLoading,
     updateFatura: async (data) => {
-      await updateFaturaMutation.mutateAsync(data);
+      console.log("[useFaturas] Chamando updateFatura com dados:", data);
+      try {
+        const result = await updateFaturaMutation.mutateAsync(data);
+        console.log("[useFaturas] updateFatura concluído com sucesso:", result);
+        return result;
+      } catch (error) {
+        console.error("[useFaturas] Erro em updateFatura:", error);
+        throw error;
+      }
     },
     isUpdating: updateFaturaMutation.isPending,
     gerarFaturas: () => gerarFaturasMutation.mutate(),
@@ -28,11 +36,11 @@ export const useFaturas = (currentDate: Date): UseFaturasResult => {
     deleteFatura: (id: string) => deleteFaturaMutation.mutate(id),
     updateFaturaStatus: async (data: UpdateFaturaStatusInput) => {
       try {
-        console.log('Iniciando atualização de status em useFaturas:', data);
+        console.log('[useFaturas] Iniciando atualização de status:', data);
         const result = await updateFaturaStatusMutation.mutateAsync(data);
-        console.log('Resultado da atualização em useFaturas:', result);
+        console.log('[useFaturas] Resultado da atualização de status:', result);
       } catch (error) {
-        console.error('Erro ao atualizar status em useFaturas:', error);
+        console.error('[useFaturas] Erro ao atualizar status:', error);
         throw error;
       }
     }

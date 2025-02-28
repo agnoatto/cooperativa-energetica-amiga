@@ -43,35 +43,41 @@ export function FaturasContainer() {
   };
 
   const handleEditFatura = (fatura: Fatura) => {
+    console.log('[FaturasContainer] Iniciando edição da fatura:', fatura.id);
     setEditingFatura(fatura);
     setIsEditModalOpen(true);
   };
 
   const handleCloseEditModal = () => {
+    console.log('[FaturasContainer] Fechando modal de edição');
     setIsEditModalOpen(false);
     setEditingFatura(null);
   };
 
   const handleEditSuccess = async (updateData: any) => {
     try {
+      console.log('[FaturasContainer] handleEditSuccess - Iniciando com dados:', updateData);
+      
       const { data_vencimento, consumo_kwh, total_fatura, fatura_concessionaria } = updateData;
       const todosPreenchidos = data_vencimento && 
                               consumo_kwh > 0 && 
                               total_fatura > 0 && 
                               fatura_concessionaria > 0;
-
-      console.log('Dados para atualização:', updateData);
       
       // Atualiza a fatura
+      console.log('[FaturasContainer] Chamando updateFatura com dados:', updateData);
       await updateFatura(updateData);
+      console.log('[FaturasContainer] updateFatura concluído com sucesso');
       
       // Se necessário, atualiza o status
       if (todosPreenchidos && editingFatura?.status === 'gerada') {
+        console.log('[FaturasContainer] Atualizando status para pendente');
         await updateFaturaStatus({
           id: editingFatura.id,
           status: 'pendente',
           observacao: 'Fatura pronta para envio ao cliente'
         });
+        console.log('[FaturasContainer] Status atualizado com sucesso');
       }
 
       // Mostra mensagem de sucesso e fecha o modal
@@ -79,7 +85,7 @@ export function FaturasContainer() {
       setIsEditModalOpen(false); // Força o fechamento do modal
       setEditingFatura(null); // Limpa a fatura em edição
     } catch (error: any) {
-      console.error('Erro ao atualizar fatura:', error);
+      console.error('[FaturasContainer] Erro ao atualizar fatura:', error);
       toast.error(`Erro ao salvar as alterações da fatura: ${error.message || 'Erro desconhecido'}`);
     }
   };

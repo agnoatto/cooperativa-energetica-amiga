@@ -91,7 +91,25 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     setIsLoading(true);
 
     try {
-      await onSuccess({
+      console.log('[FaturaEditModal] Iniciando salvamento com dados:', {
+        id: fatura.id,
+        consumo_kwh: Number(consumo),
+        total_fatura: parseValue(totalFatura),
+        fatura_concessionaria: parseValue(faturaConcessionaria),
+        iluminacao_publica: parseValue(iluminacaoPublica),
+        outros_valores: parseValue(outrosValores),
+        saldo_energia_kwh: Number(saldoEnergiaKwh),
+        observacao,
+        data_vencimento: dataVencimento,
+        arquivo_info: {
+          nome: arquivoConcessionariaNome,
+          path: arquivoConcessionariaPath,
+          tipo: arquivoConcessionariaTipo,
+          tamanho: arquivoConcessionariaTamanho
+        }
+      });
+
+      const updateData = {
         id: fatura.id,
         consumo_kwh: Number(consumo),
         total_fatura: parseValue(totalFatura),
@@ -106,11 +124,13 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
         arquivo_concessionaria_path: arquivoConcessionariaPath,
         arquivo_concessionaria_tipo: arquivoConcessionariaTipo,
         arquivo_concessionaria_tamanho: arquivoConcessionariaTamanho,
-      });
+      };
       
+      await onSuccess(updateData);
+      console.log('[FaturaEditModal] Salvamento concluído com sucesso');
       onClose();
     } catch (error) {
-      console.error('Erro ao salvar:', error);
+      console.error('[FaturaEditModal] Erro ao salvar:', error);
       toast.error('Erro ao salvar as alterações');
     } finally {
       setIsLoading(false);
@@ -118,6 +138,7 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
   };
 
   const handleFileChange = (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => {
+    console.log('[FaturaEditModal] Arquivo alterado:', { nome, path, tipo, tamanho });
     // Atualizar os estados locais para arquivo
     setArquivoConcessionariaNome(nome);
     setArquivoConcessionariaPath(path);

@@ -13,7 +13,21 @@ export const updateFaturaStatus = async ({
   status,
   observacao
 }: UpdateFaturaStatusInput): Promise<Fatura> => {
-  console.log('Atualizando status da fatura:', { id, status });
+  console.log('[updateFaturaService] Atualizando status da fatura:', { id, status, observacao });
+
+  // Verificando se a fatura existe antes de tentar atualizar
+  const { data: existingFatura, error: checkError } = await supabase
+    .from("faturas")
+    .select('id, status')
+    .eq('id', id)
+    .single();
+
+  if (checkError) {
+    console.error('[updateFaturaService] Erro ao verificar fatura:', checkError);
+    throw new Error(`Erro ao verificar fatura: ${checkError.message}`);
+  }
+  
+  console.log('[updateFaturaService] Fatura existente:', existingFatura);
 
   const { data: updatedFatura, error } = await supabase
     .from("faturas")
@@ -27,14 +41,15 @@ export const updateFaturaStatus = async ({
     .single();
 
   if (error) {
-    console.error('Erro ao atualizar fatura:', error);
+    console.error('[updateFaturaService] Erro ao atualizar fatura:', error);
     throw new Error(`Erro ao atualizar fatura: ${error.message}`);
   }
 
   if (!updatedFatura) {
+    console.error('[updateFaturaService] Fatura não encontrada após atualização');
     throw new Error('Fatura não encontrada');
   }
 
-  console.log('Status atualizado com sucesso:', updatedFatura);
+  console.log('[updateFaturaService] Status atualizado com sucesso:', updatedFatura);
   return updatedFatura as Fatura;
 };

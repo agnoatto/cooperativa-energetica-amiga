@@ -13,9 +13,10 @@ export const useUpdateFatura = () => {
   return useMutation({
     mutationFn: async (data: UpdateFaturaInput) => {
       try {
-        console.log('Dados recebidos para atualização:', data);
+        console.log('[useUpdateFatura] Dados recebidos para atualização:', data);
 
         // Busca a fatura atual para preservar dados históricos
+        console.log('[useUpdateFatura] Buscando fatura atual com ID:', data.id);
         const { data: currentFatura, error: fetchError } = await supabase
           .from("faturas")
           .select("*")
@@ -23,9 +24,11 @@ export const useUpdateFatura = () => {
           .single();
 
         if (fetchError) {
-          console.error("Erro ao buscar fatura atual:", fetchError);
+          console.error("[useUpdateFatura] Erro ao buscar fatura atual:", fetchError);
           throw new Error(fetchError.message);
         }
+
+        console.log('[useUpdateFatura] Fatura atual encontrada:', currentFatura);
 
         // Validações básicas
         if (!data.consumo_kwh || data.consumo_kwh <= 0) {
@@ -50,6 +53,14 @@ export const useUpdateFatura = () => {
         }
 
         // Calcula os valores usando números diretamente
+        console.log('[useUpdateFatura] Calculando valores com: ', {
+          total_fatura: data.total_fatura.toString(),
+          iluminacao_publica: data.iluminacao_publica.toString(),
+          outros_valores: data.outros_valores.toString(),
+          fatura_concessionaria: data.fatura_concessionaria.toString(),
+          percentual_desconto: data.percentual_desconto
+        });
+        
         const calculatedValues = calculateValues(
           data.total_fatura.toString(),
           data.iluminacao_publica.toString(),
@@ -58,7 +69,7 @@ export const useUpdateFatura = () => {
           data.percentual_desconto
         );
 
-        console.log('Valores calculados:', calculatedValues);
+        console.log('[useUpdateFatura] Valores calculados:', calculatedValues);
 
         // Verifica se todos os campos obrigatórios estão preenchidos
         const todosPreenchidos = 
@@ -91,7 +102,8 @@ export const useUpdateFatura = () => {
           })
         };
 
-        console.log('Dados formatados para atualização:', faturaData);
+        console.log('[useUpdateFatura] Dados formatados para atualização:', faturaData);
+        console.log('[useUpdateFatura] Enviando atualização para o Supabase para fatura ID:', data.id);
 
         const { error: updateError, data: updatedFatura } = await supabase
           .from("faturas")
@@ -101,11 +113,11 @@ export const useUpdateFatura = () => {
           .single();
 
         if (updateError) {
-          console.error("Erro ao atualizar fatura:", updateError);
+          console.error("[useUpdateFatura] Erro ao atualizar fatura:", updateError);
           throw new Error(updateError.message);
         }
 
-        console.log('Fatura atualizada com sucesso:', updatedFatura);
+        console.log('[useUpdateFatura] Fatura atualizada com sucesso:', updatedFatura);
 
         if (currentFatura.status === 'gerada' && todosPreenchidos) {
           toast.success('Fatura atualizada e marcada como pendente');
@@ -115,17 +127,20 @@ export const useUpdateFatura = () => {
 
         return updatedFatura;
       } catch (error: any) {
-        console.error("Erro detalhado ao atualizar fatura:", error);
+        console.error("[useUpdateFatura] Erro detalhado ao atualizar fatura:", error);
         toast.error(`Erro ao atualizar fatura: ${error.message || "Erro desconhecido"}`);
         throw new Error(error.message || "Erro ao atualizar fatura");
       }
     },
     onSuccess: async (_, variables) => {
       try {
+        console.log('[useUpdateFatura] Sucesso! Invalidando queries de cache...');
         // Obtém o mês e ano da fatura atualizada
         const faturaDate = new Date(variables.data_vencimento);
         const mes = faturaDate.getMonth() + 1;
         const ano = faturaDate.getFullYear();
+
+        console.log(`[useUpdateFatura] Invalidando cache para faturas de ${mes}/${ano}`);
 
         // Invalida o cache específico para este mês/ano
         await queryClient.invalidateQueries({ 
@@ -133,21 +148,25 @@ export const useUpdateFatura = () => {
         });
 
         // Força uma nova busca dos dados
+        console.log(`[useUpdateFatura] Forçando nova busca para faturas de ${mes}/${ano}`);
         await queryClient.refetchQueries({ 
           queryKey: ['faturas', mes, ano],
           exact: true
         });
 
         // Invalidar todas as consultas de faturas para garantir atualização
+        console.log('[useUpdateFatura] Invalidando todas as consultas de faturas');
         await queryClient.invalidateQueries({
           queryKey: ['faturas']
         });
+        
+        console.log('[useUpdateFatura] Cache atualizado com sucesso');
       } catch (error) {
-        console.error("Erro ao atualizar cache:", error);
+        console.error("[useUpdateFatura] Erro ao atualizar cache:", error);
       }
     },
     onError: (error) => {
-      console.error("Erro na mutação:", error);
+      console.error("[useUpdateFatura] Erro na mutação:", error);
       toast.error(`Falha ao atualizar fatura: ${error.message || "Erro desconhecido"}`);
     }
   });
