@@ -63,7 +63,8 @@ export const useUpdateFatura = () => {
         // Verificar se deve atualizar o status
         const statusInfo = await verificarAtualizacaoStatus(data.id, todosPreenchidos);
         if (statusInfo.status) {
-          faturaData.status = statusInfo.status;
+          // Adicionamos o status ao objeto faturaData apenas se ele existir no retorno
+          faturaData['status'] = statusInfo.status;
         }
 
         console.log('[useUpdateFatura] Dados formatados para atualização:', faturaData);
