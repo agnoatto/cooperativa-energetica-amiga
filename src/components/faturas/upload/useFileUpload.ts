@@ -36,7 +36,11 @@ const verifyFileExists = async (path: string): Promise<boolean> => {
   }
 };
 
-export function useFileUpload(faturaId: string, onSuccess: () => void, onFileChange?: () => void) {
+export function useFileUpload(
+  faturaId: string, 
+  onSuccess: () => void, 
+  onFileChange?: (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => void
+) {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
@@ -110,7 +114,11 @@ export function useFileUpload(faturaId: string, onSuccess: () => void, onFileCha
 
       toast.success('Arquivo enviado com sucesso!', { id: toastId });
       onSuccess();
-      onFileChange?.();
+      
+      // Atualiza os estados no componente pai
+      if (onFileChange) {
+        onFileChange(sanitizedName, filePath, file.type, file.size);
+      }
     } catch (error: any) {
       console.error('Erro no upload:', error);
       toast.error(`Erro ao enviar arquivo: ${error.message}`, { id: toastId });
@@ -203,8 +211,12 @@ export function useFileUpload(faturaId: string, onSuccess: () => void, onFileCha
       setPdfUrl(null);
       setShowPdfPreview(false); // Fechar o preview se estiver aberto
       
-      // Chamar as callbacks para atualização da UI
-      onFileChange?.();
+      // Atualiza os estados no componente pai
+      if (onFileChange) {
+        onFileChange(null, null, null, null);
+      }
+      
+      // Chamar callback de sucesso
       onSuccess();
     } catch (error: any) {
       console.error('Erro ao remover arquivo:', error);

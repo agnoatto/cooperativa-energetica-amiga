@@ -60,6 +60,8 @@ export function FaturasContainer() {
                               total_fatura > 0 && 
                               fatura_concessionaria > 0;
 
+      console.log('Dados para atualização:', updateData);
+      
       // Atualiza a fatura
       await updateFatura(updateData);
       
@@ -76,9 +78,9 @@ export function FaturasContainer() {
       toast.success('Fatura atualizada com sucesso!');
       setIsEditModalOpen(false); // Força o fechamento do modal
       setEditingFatura(null); // Limpa a fatura em edição
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao atualizar fatura:', error);
-      toast.error('Erro ao salvar as alterações da fatura');
+      toast.error(`Erro ao salvar as alterações da fatura: ${error.message || 'Erro desconhecido'}`);
     }
   };
 

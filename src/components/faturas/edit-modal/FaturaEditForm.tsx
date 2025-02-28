@@ -33,10 +33,14 @@ interface FaturaEditFormProps {
   setArquivoConcessionariaNome: (value: string | null) => void;
   arquivoConcessionariaPath: string | null | undefined;
   setArquivoConcessionariaPath: (value: string | null) => void;
+  arquivoConcessionariaTipo?: string | null | undefined;
+  setArquivoConcessionariaTipo?: (value: string | null) => void;
+  arquivoConcessionariaTamanho?: number | null | undefined;
+  setArquivoConcessionariaTamanho?: (value: number | null) => void;
   percentualDesconto: number;
   onSuccess: (data: any) => void;
   onSubmit: (e: React.FormEvent) => void;
-  onFileChange: () => void;
+  onFileChange: (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => void;
   formErrors: Record<string, string>;
 }
 
@@ -62,6 +66,10 @@ export function FaturaEditForm({
   setArquivoConcessionariaNome,
   arquivoConcessionariaPath,
   setArquivoConcessionariaPath,
+  arquivoConcessionariaTipo,
+  setArquivoConcessionariaTipo,
+  arquivoConcessionariaTamanho,
+  setArquivoConcessionariaTamanho,
   percentualDesconto,
   onSuccess,
   onSubmit,
@@ -95,12 +103,14 @@ export function FaturaEditForm({
   };
 
   // Handler para mudança de arquivo
-  const handleFileChangeInternal = () => {
+  const handleFileChangeInternal = (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => {
     // Função para atualizar o estado local quando o arquivo é adicionado ou removido
+    onFileChange(nome, path, tipo, tamanho);
+    
+    // Invalidar cache para forçar atualização
     queryClient.invalidateQueries({
       queryKey: ['faturas']
     });
-    onFileChange();
   };
 
   return (
@@ -246,21 +256,12 @@ export function FaturaEditForm({
           faturaId={faturaId}
           arquivoNome={arquivoConcessionariaNome}
           arquivoPath={arquivoConcessionariaPath}
-          onSuccess={() => {
-            handleFileUpdateSuccess({
-              id: faturaId,
-              consumo_kwh: Number(consumo),
-              total_fatura: parseValue(totalFatura),
-              fatura_concessionaria: parseValue(faturaConcessionaria),
-              iluminacao_publica: parseValue(iluminacaoPublica),
-              outros_valores: parseValue(outrosValores),
-              saldo_energia_kwh: Number(saldoEnergiaKwh),
-              observacao: observacao || null,
-              data_vencimento: dataVencimento,
-              percentual_desconto: percentualDesconto,
-            });
+          arquivoTipo={arquivoConcessionariaTipo}
+          arquivoTamanho={arquivoConcessionariaTamanho}
+          onSuccess={handleFileUpdateSuccess}
+          onFileChange={(nome, path, tipo, tamanho) => {
+            handleFileChangeInternal(nome, path, tipo, tamanho);
           }}
-          onFileChange={handleFileChangeInternal}
         />
       </div>
 

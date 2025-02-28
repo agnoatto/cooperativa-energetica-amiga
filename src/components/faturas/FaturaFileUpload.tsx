@@ -8,14 +8,18 @@ interface FaturaFileUploadProps {
   faturaId: string;
   arquivoNome?: string | null;
   arquivoPath?: string | null;
+  arquivoTipo?: string | null;
+  arquivoTamanho?: number | null;
   onSuccess: () => void;
-  onFileChange?: () => void;
+  onFileChange?: (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => void;
 }
 
 export function FaturaFileUpload({ 
   faturaId, 
   arquivoNome, 
   arquivoPath,
+  arquivoTipo,
+  arquivoTamanho,
   onSuccess,
   onFileChange
 }: FaturaFileUploadProps) {

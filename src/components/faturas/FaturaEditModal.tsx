@@ -37,6 +37,8 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
   const [dataVencimento, setDataVencimento] = useState(convertUTCToLocal(fatura.data_vencimento));
   const [arquivoConcessionariaNome, setArquivoConcessionariaNome] = useState(fatura.arquivo_concessionaria_nome);
   const [arquivoConcessionariaPath, setArquivoConcessionariaPath] = useState(fatura.arquivo_concessionaria_path);
+  const [arquivoConcessionariaTipo, setArquivoConcessionariaTipo] = useState(fatura.arquivo_concessionaria_tipo);
+  const [arquivoConcessionariaTamanho, setArquivoConcessionariaTamanho] = useState(fatura.arquivo_concessionaria_tamanho);
   const [isLoading, setIsLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
@@ -51,6 +53,8 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     setDataVencimento(convertUTCToLocal(fatura.data_vencimento));
     setArquivoConcessionariaNome(fatura.arquivo_concessionaria_nome);
     setArquivoConcessionariaPath(fatura.arquivo_concessionaria_path);
+    setArquivoConcessionariaTipo(fatura.arquivo_concessionaria_tipo);
+    setArquivoConcessionariaTamanho(fatura.arquivo_concessionaria_tamanho);
   }, [fatura]);
 
   const validateForm = (): boolean => {
@@ -100,6 +104,8 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
         percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
         arquivo_concessionaria_nome: arquivoConcessionariaNome,
         arquivo_concessionaria_path: arquivoConcessionariaPath,
+        arquivo_concessionaria_tipo: arquivoConcessionariaTipo,
+        arquivo_concessionaria_tamanho: arquivoConcessionariaTamanho,
       });
       
       onClose();
@@ -111,10 +117,12 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
     }
   };
 
-  const handleFileChange = () => {
+  const handleFileChange = (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => {
     // Atualizar os estados locais para arquivo
-    setArquivoConcessionariaNome(null);
-    setArquivoConcessionariaPath(null);
+    setArquivoConcessionariaNome(nome);
+    setArquivoConcessionariaPath(path);
+    setArquivoConcessionariaTipo(tipo);
+    setArquivoConcessionariaTamanho(tamanho);
   };
 
   return (
@@ -153,9 +161,13 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
             dataVencimento={dataVencimento}
             setDataVencimento={setDataVencimento}
             arquivoConcessionariaNome={arquivoConcessionariaNome}
-            setArquivoConcessionariaNome={setArquivoConcessionariaNome}
+            setArquivoConcessionariaNome={nome => handleFileChange(nome, arquivoConcessionariaPath, arquivoConcessionariaTipo, arquivoConcessionariaTamanho)}
             arquivoConcessionariaPath={arquivoConcessionariaPath}
-            setArquivoConcessionariaPath={setArquivoConcessionariaPath}
+            setArquivoConcessionariaPath={path => handleFileChange(arquivoConcessionariaNome, path, arquivoConcessionariaTipo, arquivoConcessionariaTamanho)}
+            arquivoConcessionariaTipo={arquivoConcessionariaTipo}
+            setArquivoConcessionariaTipo={tipo => handleFileChange(arquivoConcessionariaNome, arquivoConcessionariaPath, tipo, arquivoConcessionariaTamanho)}
+            arquivoConcessionariaTamanho={arquivoConcessionariaTamanho}
+            setArquivoConcessionariaTamanho={tamanho => handleFileChange(arquivoConcessionariaNome, arquivoConcessionariaPath, arquivoConcessionariaTipo, tamanho)}
             percentualDesconto={fatura.unidade_beneficiaria.percentual_desconto}
             onSuccess={onSuccess}
             onSubmit={handleSubmit}

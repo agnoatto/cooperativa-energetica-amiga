@@ -28,16 +28,25 @@ export const useUpdateFatura = () => {
         }
 
         // Validações básicas
-        if (data.consumo_kwh <= 0) {
+        if (!data.consumo_kwh || data.consumo_kwh <= 0) {
           throw new Error("O consumo deve ser maior que zero");
         }
 
-        if (data.total_fatura <= 0) {
+        if (!data.total_fatura || data.total_fatura <= 0) {
           throw new Error("O valor total da fatura deve ser maior que zero");
+        }
+
+        if (!data.fatura_concessionaria || data.fatura_concessionaria <= 0) {
+          throw new Error("O valor da conta de energia deve ser maior que zero");
         }
 
         if (!data.data_vencimento) {
           throw new Error("A data de vencimento é obrigatória");
+        }
+
+        // Verificar se o formato da data está correto
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(data.data_vencimento)) {
+          throw new Error("Formato de data inválido. Use YYYY-MM-DD");
         }
 
         // Calcula os valores usando números diretamente
@@ -71,6 +80,11 @@ export const useUpdateFatura = () => {
           observacao: data.observacao,
           data_vencimento: data.data_vencimento,
           data_atualizacao: new Date().toISOString(),
+          // Campos de arquivo
+          arquivo_concessionaria_nome: data.arquivo_concessionaria_nome,
+          arquivo_concessionaria_path: data.arquivo_concessionaria_path,
+          arquivo_concessionaria_tipo: data.arquivo_concessionaria_tipo,
+          arquivo_concessionaria_tamanho: data.arquivo_concessionaria_tamanho,
           // Só atualiza o status se a fatura estiver como 'gerada' e todos os campos estiverem preenchidos
           ...(currentFatura.status === 'gerada' && todosPreenchidos && {
             status: 'pendente' as FaturaStatus
@@ -102,25 +116,39 @@ export const useUpdateFatura = () => {
         return updatedFatura;
       } catch (error: any) {
         console.error("Erro detalhado ao atualizar fatura:", error);
+        toast.error(`Erro ao atualizar fatura: ${error.message || "Erro desconhecido"}`);
         throw new Error(error.message || "Erro ao atualizar fatura");
       }
     },
     onSuccess: async (_, variables) => {
-      // Obtém o mês e ano da fatura atualizada
-      const faturaDate = new Date(variables.data_vencimento);
-      const mes = faturaDate.getMonth() + 1;
-      const ano = faturaDate.getFullYear();
+      try {
+        // Obtém o mês e ano da fatura atualizada
+        const faturaDate = new Date(variables.data_vencimento);
+        const mes = faturaDate.getMonth() + 1;
+        const ano = faturaDate.getFullYear();
 
-      // Invalida o cache específico para este mês/ano
-      await queryClient.invalidateQueries({ 
-        queryKey: ['faturas', mes, ano]
-      });
+        // Invalida o cache específico para este mês/ano
+        await queryClient.invalidateQueries({ 
+          queryKey: ['faturas', mes, ano]
+        });
 
-      // Força uma nova busca dos dados
-      await queryClient.refetchQueries({ 
-        queryKey: ['faturas', mes, ano],
-        exact: true
-      });
+        // Força uma nova busca dos dados
+        await queryClient.refetchQueries({ 
+          queryKey: ['faturas', mes, ano],
+          exact: true
+        });
+
+        // Invalidar todas as consultas de faturas para garantir atualização
+        await queryClient.invalidateQueries({
+          queryKey: ['faturas']
+        });
+      } catch (error) {
+        console.error("Erro ao atualizar cache:", error);
+      }
+    },
+    onError: (error) => {
+      console.error("Erro na mutação:", error);
+      toast.error(`Falha ao atualizar fatura: ${error.message || "Erro desconhecido"}`);
     }
   });
 };
