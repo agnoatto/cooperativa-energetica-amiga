@@ -24,7 +24,8 @@ export const useFaturas = (currentDate: Date): UseFaturasResult => {
       try {
         const result = await updateFaturaMutation.mutateAsync(data);
         console.log("[useFaturas] updateFatura concluído com sucesso:", result);
-        return result;
+        // Não retornamos o resultado, apenas completamos a promise
+        // para atender ao tipo Promise<void> definido na interface
       } catch (error) {
         console.error("[useFaturas] Erro em updateFatura:", error);
         throw error;
