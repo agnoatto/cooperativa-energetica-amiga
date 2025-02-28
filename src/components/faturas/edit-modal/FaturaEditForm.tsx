@@ -30,7 +30,9 @@ interface FaturaEditFormProps {
   dataVencimento: string;
   setDataVencimento: (value: string) => void;
   arquivoConcessionariaNome: string | null | undefined;
+  setArquivoConcessionariaNome: (value: string | null) => void;
   arquivoConcessionariaPath: string | null | undefined;
+  setArquivoConcessionariaPath: (value: string | null) => void;
   percentualDesconto: number;
   onSuccess: (data: any) => void;
   onSubmit: (e: React.FormEvent) => void;
@@ -57,7 +59,9 @@ export function FaturaEditForm({
   dataVencimento,
   setDataVencimento,
   arquivoConcessionariaNome,
+  setArquivoConcessionariaNome,
   arquivoConcessionariaPath,
+  setArquivoConcessionariaPath,
   percentualDesconto,
   onSuccess,
   onSubmit,
@@ -79,6 +83,25 @@ export function FaturaEditForm({
     
     setValorAssinatura(formatCurrency(calculatedValues.valor_assinatura));
   }, [totalFatura, iluminacaoPublica, outrosValores, faturaConcessionaria, percentualDesconto]);
+
+  // Handler para atualização de arquivo
+  const handleFileUpdateSuccess = (data: any) => {
+    onSuccess(data);
+    
+    // Recarregar dados das faturas para atualizar a interface
+    queryClient.invalidateQueries({
+      queryKey: ['faturas']
+    });
+  };
+
+  // Handler para mudança de arquivo
+  const handleFileChangeInternal = () => {
+    // Função para atualizar o estado local quando o arquivo é adicionado ou removido
+    queryClient.invalidateQueries({
+      queryKey: ['faturas']
+    });
+    onFileChange();
+  };
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -224,7 +247,7 @@ export function FaturaEditForm({
           arquivoNome={arquivoConcessionariaNome}
           arquivoPath={arquivoConcessionariaPath}
           onSuccess={() => {
-            onSuccess({
+            handleFileUpdateSuccess({
               id: faturaId,
               consumo_kwh: Number(consumo),
               total_fatura: parseValue(totalFatura),
@@ -237,12 +260,7 @@ export function FaturaEditForm({
               percentual_desconto: percentualDesconto,
             });
           }}
-          onFileChange={() => {
-            queryClient.invalidateQueries({
-              queryKey: ['faturas']
-            });
-            onFileChange();
-          }}
+          onFileChange={handleFileChangeInternal}
         />
       </div>
 

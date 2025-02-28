@@ -201,6 +201,9 @@ export function useFileUpload(faturaId: string, onSuccess: () => void, onFileCha
 
       toast.success('Arquivo removido com sucesso!', { id: toastId });
       setPdfUrl(null);
+      setShowPdfPreview(false); // Fechar o preview se estiver aberto
+      
+      // Chamar as callbacks para atualização da UI
       onFileChange?.();
       onSuccess();
     } catch (error: any) {

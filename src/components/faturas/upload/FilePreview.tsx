@@ -30,10 +30,18 @@ export function FilePreview({
   className 
 }: FilePreviewProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleDelete = () => {
-    setShowDeleteDialog(false);
-    onRemove();
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await onRemove();
+    } catch (error) {
+      console.error("Erro ao remover arquivo:", error);
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
   };
 
   return (
@@ -68,6 +76,7 @@ export function FilePreview({
           onClick={() => setShowDeleteDialog(true)}
           className="h-8 w-8"
           title="Remover arquivo"
+          disabled={isDeleting}
         >
           <Trash2 className="h-4 w-4" />
         </Button>
@@ -82,9 +91,9 @@ export function FilePreview({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
-              Remover
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? "Removendo..." : "Remover"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

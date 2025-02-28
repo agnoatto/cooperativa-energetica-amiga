@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -97,6 +98,8 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
         observacao: observacao || null,
         data_vencimento: convertLocalToUTC(dataVencimento),
         percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
+        arquivo_concessionaria_nome: arquivoConcessionariaNome,
+        arquivo_concessionaria_path: arquivoConcessionariaPath,
       });
       
       onClose();
@@ -109,13 +112,9 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
   };
 
   const handleFileChange = () => {
-    const updatedFatura = {
-      ...fatura,
-      arquivo_concessionaria_nome: arquivoConcessionariaNome,
-      arquivo_concessionaria_path: arquivoConcessionariaPath,
-    };
-    setArquivoConcessionariaNome(updatedFatura.arquivo_concessionaria_nome);
-    setArquivoConcessionariaPath(updatedFatura.arquivo_concessionaria_path);
+    // Atualizar os estados locais para arquivo
+    setArquivoConcessionariaNome(null);
+    setArquivoConcessionariaPath(null);
   };
 
   return (
@@ -154,7 +153,9 @@ export function FaturaEditModal({ isOpen, onClose, fatura, onSuccess }: FaturaEd
             dataVencimento={dataVencimento}
             setDataVencimento={setDataVencimento}
             arquivoConcessionariaNome={arquivoConcessionariaNome}
+            setArquivoConcessionariaNome={setArquivoConcessionariaNome}
             arquivoConcessionariaPath={arquivoConcessionariaPath}
+            setArquivoConcessionariaPath={setArquivoConcessionariaPath}
             percentualDesconto={fatura.unidade_beneficiaria.percentual_desconto}
             onSuccess={onSuccess}
             onSubmit={handleSubmit}
