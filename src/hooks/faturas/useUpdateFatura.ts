@@ -57,10 +57,14 @@ export const useUpdateFatura = () => {
           arquivo_concessionaria_nome: data.arquivo_concessionaria_nome,
           arquivo_concessionaria_path: data.arquivo_concessionaria_path,
           arquivo_concessionaria_tipo: data.arquivo_concessionaria_tipo,
-          arquivo_concessionaria_tamanho: data.arquivo_concessionaria_tamanho,
-          // Só atualiza o status se a fatura estiver como 'gerada' e todos os campos estiverem preenchidos
-          ...(await verificarAtualizacaoStatus(data.id, todosPreenchidos))
+          arquivo_concessionaria_tamanho: data.arquivo_concessionaria_tamanho
         };
+
+        // Verificar se deve atualizar o status
+        const statusInfo = await verificarAtualizacaoStatus(data.id, todosPreenchidos);
+        if (statusInfo.status) {
+          faturaData.status = statusInfo.status;
+        }
 
         console.log('[useUpdateFatura] Dados formatados para atualização:', faturaData);
         console.log('[useUpdateFatura] Enviando atualização para o Supabase para fatura ID:', data.id);
@@ -79,10 +83,10 @@ export const useUpdateFatura = () => {
 
         console.log('[useUpdateFatura] Fatura atualizada com sucesso:', updatedFatura);
 
-        // Verifica se o status foi atualizado para dar feedback apropriado ao usuário
+        // Verificar se o status foi atualizado para dar feedback apropriado ao usuário
         const statusAtualizado = await verificarAtualizacaoStatus(data.id, todosPreenchidos);
         
-        if (statusAtualizado && statusAtualizado.status === 'pendente') {
+        if (statusAtualizado.status && statusAtualizado.status === 'pendente') {
           toast.success('Fatura atualizada e marcada como pendente');
         } else {
           toast.success('Fatura atualizada com sucesso');
