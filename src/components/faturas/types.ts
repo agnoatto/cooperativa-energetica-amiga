@@ -37,5 +37,9 @@ export interface FaturaEditModalProps {
     observacao: string | null;
     data_vencimento: string;
     percentual_desconto: number;
+    arquivo_concessionaria_nome?: string | null;
+    arquivo_concessionaria_path?: string | null;
+    arquivo_concessionaria_tipo?: string | null;
+    arquivo_concessionaria_tamanho?: number | null;
   }) => Promise<void>;
 }
