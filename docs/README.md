@@ -3,6 +3,8 @@
 
 Bem-vindo à documentação completa do sistema Solar Energy. Esta documentação fornece uma visão abrangente do sistema, incluindo aspectos técnicos, processos de negócio e guias operacionais.
 
+> **Nota Importante**: Todo o sistema e documentação do Solar Energy estão em português. Todas as comunicações, interfaces e desenvolvimento devem ser mantidos em português brasileiro.
+
 ## Índice
 
 1. [Visão Geral do Sistema](./overview/README.md)
@@ -74,6 +76,7 @@ Para contribuir com melhorias na documentação:
 - Use diagramas para explicar conceitos complexos
 - Documente todas as funções e parâmetros importantes
 - Mantenha a documentação atualizada com o código
+- **Mantenha todo o conteúdo em português brasileiro**
 
 ## Atualizações Recentes
 
@@ -81,6 +84,7 @@ Para contribuir com melhorias na documentação:
 - **18/03/2024**: Atualização da documentação do módulo de faturas
 - **05/07/2024**: Revisão completa da documentação técnica
 - **10/10/2024**: Atualização da documentação de banco de dados e APIs
+- **15/10/2024**: Padronização do idioma português em toda documentação
 
 ## Suporte
 

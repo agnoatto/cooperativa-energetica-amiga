@@ -1,58 +1,61 @@
-# Welcome to your Lovable project
 
-## Project info
+# Sistema Solar Energy
+
+## Informações do Projeto
 
 **URL**: https://lovable.dev/projects/7729707c-fa2b-4f02-ae8b-6ff63784d1e1
 
-## How can I edit this code?
+> **Importante**: Este projeto é desenvolvido inteiramente em português brasileiro. Todas as comunicações, código, comentários e documentação devem ser mantidos em português.
 
-There are several ways of editing your application.
+## Como editar este código?
 
-**Use Lovable**
+Existem várias maneiras de editar sua aplicação.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/7729707c-fa2b-4f02-ae8b-6ff63784d1e1) and start prompting.
+**Usar o Lovable**
 
-Changes made via Lovable will be committed automatically to this repo.
+Simplesmente visite o [Projeto Lovable](https://lovable.dev/projects/7729707c-fa2b-4f02-ae8b-6ff63784d1e1) e comece a fazer solicitações.
 
-**Use your preferred IDE**
+As alterações feitas via Lovable serão automaticamente commitadas neste repositório.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+**Usar seu IDE preferido**
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Se você quiser trabalhar localmente usando seu próprio IDE, você pode clonar este repositório e enviar alterações. As alterações enviadas também serão refletidas no Lovable.
 
-Follow these steps:
+O único requisito é ter Node.js e npm instalados - [instale com nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+
+Siga estes passos:
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Passo 1: Clone o repositório usando a URL Git do projeto.
+git clone <SUA_URL_GIT>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Passo 2: Navegue até o diretório do projeto.
+cd <NOME_DO_SEU_PROJETO>
 
-# Step 3: Install the necessary dependencies.
+# Passo 3: Instale as dependências necessárias.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Passo 4: Inicie o servidor de desenvolvimento com recarregamento automático e visualização instantânea.
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+**Editar um arquivo diretamente no GitHub**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- Navegue até o(s) arquivo(s) desejado(s).
+- Clique no botão "Editar" (ícone de lápis) no canto superior direito da visualização do arquivo.
+- Faça suas alterações e confirme as alterações.
 
-**Use GitHub Codespaces**
+**Usar GitHub Codespaces**
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Navegue até a página principal do seu repositório.
+- Clique no botão "Code" (botão verde) próximo ao canto superior direito.
+- Selecione a aba "Codespaces".
+- Clique em "New codespace" para iniciar um novo ambiente Codespace.
+- Edite os arquivos diretamente dentro do Codespace e confirme e envie suas alterações quando terminar.
 
-## What technologies are used for this project?
+## Quais tecnologias são usadas neste projeto?
 
-This project is built with .
+Este projeto é construído com:
 
 - Vite
 - TypeScript
@@ -60,10 +63,10 @@ This project is built with .
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+## Como posso implantar este projeto?
 
-Simply open [Lovable](https://lovable.dev/projects/7729707c-fa2b-4f02-ae8b-6ff63784d1e1) and click on Share -> Publish.
+Simplesmente abra o [Lovable](https://lovable.dev/projects/7729707c-fa2b-4f02-ae8b-6ff63784d1e1) e clique em Compartilhar -> Publicar.
 
-## I want to use a custom domain - is that possible?
+## Quero usar um domínio personalizado - isso é possível?
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+Não oferecemos suporte a domínios personalizados (ainda). Se você quiser implantar seu projeto sob seu próprio domínio, recomendamos usar o Netlify. Visite nossa documentação para mais detalhes: [Domínios personalizados](https://docs.lovable.dev/tips-tricks/custom-domain/)

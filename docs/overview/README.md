@@ -5,6 +5,8 @@
 
 O Solar Energy é um sistema completo para gestão de usinas fotovoltaicas e seus assinantes. Ele permite o gerenciamento eficiente de todo o ciclo de vida de uma usina solar, desde sua instalação até a distribuição de créditos de energia para os assinantes.
 
+> **Importante**: O sistema Solar Energy é inteiramente desenvolvido em português brasileiro. Toda a interface, documentação, código e comunicações devem ser mantidos em português.
+
 ## Principais Funcionalidades
 
 1. **Gestão de Usinas**
@@ -88,6 +90,16 @@ O sistema é construído em uma arquitetura moderna e escalável:
 - Logs de auditoria
 - Backup automático
 - Criptografia de dados sensíveis
+
+## Padronização de Idioma
+
+Para manter a consistência, o sistema Solar Energy adota as seguintes diretrizes:
+
+- Interface de usuário completamente em português brasileiro
+- Código e comentários em português
+- Documentação técnica e de usuário em português
+- Mensagens de erro e notificações em português
+- Formatos de data, número e moeda seguindo o padrão brasileiro (dd/mm/aaaa, R$, etc.)
 
 ## Próximos Passos
 
