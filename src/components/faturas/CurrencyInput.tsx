@@ -19,7 +19,8 @@ export function CurrencyInput({
   decimalScale = 2, 
   ...props 
 }: CurrencyInputProps) {
-  const handleValueChange = (values: { formattedValue: string }) => {
+  const handleValueChange = (values: { formattedValue: string; value: string }) => {
+    // Passamos o valor formatado para manter a consistência na interface
     onChange(values.formattedValue);
   };
 
@@ -32,7 +33,6 @@ export function CurrencyInput({
       decimalSeparator=","
       decimalScale={decimalScale}
       fixedDecimalScale
-      prefix="R$ "
       className={cn(className)}
       allowNegative={false}
       type="text"

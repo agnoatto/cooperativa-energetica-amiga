@@ -5,12 +5,9 @@ export const parseValue = (value: string): number => {
   if (!value) return 0;
 
   try {
-    // Remove o símbolo da moeda, espaços e pontos de milhares
-    const cleanValue = value
-      .replace('R$', '')
-      .replace(/\./g, '')
-      .trim();
-
+    // Remove espaços e substitui pontos (de milhares) por nada
+    const cleanValue = value.replace(/\./g, '').trim();
+    
     // Substitui a vírgula por ponto para conversão em número
     const numeroFinal = cleanValue.replace(',', '.');
     
