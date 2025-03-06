@@ -13,6 +13,7 @@ interface FaturasExcelTableProps {
   onViewDetails: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
+  onCriarCobranca?: (fatura: Fatura) => void; // Adicionando essa propriedade
 }
 
 const defaultColumns: Column[] = [
@@ -76,7 +77,8 @@ export function FaturasExcelTable({
   faturas,
   onViewDetails,
   onDelete,
-  onUpdateStatus
+  onUpdateStatus,
+  onCriarCobranca // Adicionando esse parâmetro
 }: FaturasExcelTableProps) {
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
     const saved = localStorage.getItem('faturas-columns-visibility');
@@ -154,6 +156,7 @@ export function FaturasExcelTable({
                     onViewDetails={onViewDetails}
                     onDelete={onDelete}
                     onUpdateStatus={onUpdateStatus}
+                    onCriarCobranca={onCriarCobranca} // Passando para o FaturaRowActions
                   />
                 )}
               </td>
