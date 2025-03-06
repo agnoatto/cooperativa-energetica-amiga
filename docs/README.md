@@ -56,17 +56,39 @@ Esta documentação está organizada de forma hierárquica, começando com uma v
 3. Consulte os [Aspectos Técnicos](./technical/README.md) para detalhes de implementação
 4. Use os [Guias Operacionais](./operations/README.md) para tarefas de manutenção
 
-## Contribuindo
+## Contribuindo com a Documentação
 
-Para contribuir com a documentação:
+Para contribuir com melhorias na documentação:
 
-1. Faça um fork do repositório
-2. Crie uma branch para suas alterações
-3. Envie um pull request com uma descrição clara das mudanças
+1. Identifique a seção que precisa ser atualizada
+2. Faça as alterações seguindo o padrão existente
+3. Mantenha a documentação técnica alinhada com o código fonte
+4. Inclua exemplos práticos sempre que possível
+5. Atualize diagramas e ilustrações quando necessário
+
+### Diretrizes de Documentação
+
+- Use linguagem clara e objetiva
+- Mantenha frases e parágrafos curtos
+- Inclua exemplos de código quando relevante
+- Use diagramas para explicar conceitos complexos
+- Documente todas as funções e parâmetros importantes
+- Mantenha a documentação atualizada com o código
+
+## Atualizações Recentes
+
+- **25/09/2023**: Documentação inicial do sistema
+- **18/03/2024**: Atualização da documentação do módulo de faturas
+- **05/07/2024**: Revisão completa da documentação técnica
+- **10/10/2024**: Atualização da documentação de banco de dados e APIs
 
 ## Suporte
 
 Em caso de dúvidas ou problemas:
-- Abra uma issue no repositório
-- Entre em contato com a equipe de desenvolvimento
 - Consulte a seção de [Tratamento de Erros](./technical/error-handling.md)
+- Verifique as [FAQs](./faq.md)
+- Entre em contato com a equipe de desenvolvimento
+
+## Glossário
+
+Um glossário completo de termos técnicos e de negócio está disponível [aqui](./glossary.md).
