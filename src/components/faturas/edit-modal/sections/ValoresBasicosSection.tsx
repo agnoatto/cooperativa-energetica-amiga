@@ -2,6 +2,8 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "../../CurrencyInput";
+import { useState, useEffect } from "react";
+import { formatCurrency } from "@/utils/formatters";
 
 interface ValoresBasicosSectionProps {
   totalFatura: string;
@@ -22,6 +24,31 @@ export function ValoresBasicosSection({
   errorTotal,
   errorFatura
 }: ValoresBasicosSectionProps) {
+  // Formatação para exibição
+  const [totalFaturaFormatado, setTotalFaturaFormatado] = useState("");
+  const [faturaConcessionariaFormatada, setFaturaConcessionariaFormatada] = useState("");
+
+  // Atualizar as versões formatadas quando os valores mudarem
+  useEffect(() => {
+    // Para exibição no CurrencyInput, formatamos o valor para o padrão brasileiro
+    const formatarParaExibicao = (valor: string) => {
+      // Se for uma string vazia ou 0, retorna string vazia
+      if (!valor || valor === "0") return "";
+      
+      // Converte para número e formata
+      const numero = Number(valor);
+      if (isNaN(numero)) return "";
+      
+      return numero.toLocaleString('pt-BR', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+      });
+    };
+
+    setTotalFaturaFormatado(formatarParaExibicao(totalFatura));
+    setFaturaConcessionariaFormatada(formatarParaExibicao(faturaConcessionaria));
+  }, [totalFatura, faturaConcessionaria]);
+
   return (
     <>
       <div className="grid w-full items-center gap-2">
@@ -30,7 +57,7 @@ export function ValoresBasicosSection({
         </Label>
         <CurrencyInput
           id="totalFatura"
-          value={totalFatura}
+          value={totalFaturaFormatado}
           onChange={setTotalFatura}
           required
           decimalScale={2}
@@ -47,7 +74,7 @@ export function ValoresBasicosSection({
         </Label>
         <CurrencyInput
           id="faturaConcessionaria"
-          value={faturaConcessionaria}
+          value={faturaConcessionariaFormatada}
           onChange={setFaturaConcessionaria}
           required
           decimalScale={2}

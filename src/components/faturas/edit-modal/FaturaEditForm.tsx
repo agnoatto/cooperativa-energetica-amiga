@@ -85,15 +85,26 @@ export function FaturaEditForm({
 
   // Calcula o valor da assinatura sempre que os valores relevantes mudarem
   useEffect(() => {
-    const calculatedValues = calculateValues(
-      totalFatura || "0",
-      iluminacaoPublica || "0",
-      outrosValores || "0",
-      faturaConcessionaria || "0",
-      percentualDesconto
-    );
-    
-    setValorAssinatura(formatCurrency(calculatedValues.valor_assinatura));
+    console.log('[FaturaEditForm] Recalculando valores com:', {
+      totalFatura, iluminacaoPublica, outrosValores, faturaConcessionaria
+    });
+
+    try {
+      const calculatedValues = calculateValues(
+        totalFatura || "0",
+        iluminacaoPublica || "0",
+        outrosValores || "0",
+        faturaConcessionaria || "0",
+        percentualDesconto
+      );
+      
+      // Formata o valor calculado para exibição
+      setValorAssinatura(formatCurrency(calculatedValues.valor_assinatura));
+      console.log('[FaturaEditForm] Valor da assinatura calculado:', calculatedValues.valor_assinatura);
+    } catch (error) {
+      console.error('[FaturaEditForm] Erro ao calcular valor da assinatura:', error);
+      setValorAssinatura("Erro no cálculo");
+    }
   }, [totalFatura, iluminacaoPublica, outrosValores, faturaConcessionaria, percentualDesconto]);
 
   // Handler para atualização de arquivo

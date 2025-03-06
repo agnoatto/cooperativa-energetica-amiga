@@ -11,23 +11,53 @@ export const useUpdateFatura = () => {
     mutationFn: async (data: UpdateFaturaInput) => {
       console.log('[useUpdateFatura] Iniciando atualização com dados:', data);
       
+      // Garantir que todos os valores são números
+      // Converter explicitamente para número usando Number()
+      const consumo_kwh = Number(data.consumo_kwh);
+      const total_fatura = Number(data.total_fatura);
+      const fatura_concessionaria = Number(data.fatura_concessionaria);
+      const iluminacao_publica = Number(data.iluminacao_publica);
+      const outros_valores = Number(data.outros_valores);
+      const saldo_energia_kwh = Number(data.saldo_energia_kwh);
+      
+      // Verificar se todos os valores são números válidos
+      if (
+        isNaN(consumo_kwh) || 
+        isNaN(total_fatura) || 
+        isNaN(fatura_concessionaria) || 
+        isNaN(iluminacao_publica) || 
+        isNaN(outros_valores) || 
+        isNaN(saldo_energia_kwh)
+      ) {
+        console.error('[useUpdateFatura] Erro: valores inválidos', {
+          consumo_kwh, total_fatura, fatura_concessionaria, 
+          iluminacao_publica, outros_valores, saldo_energia_kwh
+        });
+        throw new Error('Valores inválidos na fatura');
+      }
+      
       // Calcular os valores finais baseados nos dados recebidos
-      // O cálculo é simplificado para economizar processamento
-      const percentualDesconto = data.percentual_desconto / 100;
-      const baseDesconto = Number(data.total_fatura) - Number(data.iluminacao_publica) - Number(data.outros_valores);
+      const percentualDesconto = Number(data.percentual_desconto) / 100;
+      const baseDesconto = total_fatura - iluminacao_publica - outros_valores;
       const valorDesconto = parseFloat((baseDesconto * percentualDesconto).toFixed(2));
-      const valorAssinatura = parseFloat((Number(data.total_fatura) - valorDesconto - Number(data.fatura_concessionaria)).toFixed(2));
+      const valorAssinatura = parseFloat((total_fatura - valorDesconto - fatura_concessionaria).toFixed(2));
+      
+      console.log('[useUpdateFatura] Valores calculados:', {
+        baseDesconto,
+        valorDesconto,
+        valorAssinatura
+      });
       
       // Dados para atualização - garantindo que todos são números
       const faturaData = {
-        consumo_kwh: Number(data.consumo_kwh),
-        total_fatura: Number(data.total_fatura),
-        fatura_concessionaria: Number(data.fatura_concessionaria),
-        iluminacao_publica: Number(data.iluminacao_publica),
-        outros_valores: Number(data.outros_valores),
+        consumo_kwh,
+        total_fatura,
+        fatura_concessionaria,
+        iluminacao_publica,
+        outros_valores,
         valor_desconto: valorDesconto,
         valor_assinatura: valorAssinatura,
-        saldo_energia_kwh: Number(data.saldo_energia_kwh),
+        saldo_energia_kwh,
         observacao: data.observacao,
         data_vencimento: data.data_vencimento,
         data_atualizacao: new Date().toISOString(),

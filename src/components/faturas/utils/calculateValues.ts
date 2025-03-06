@@ -5,6 +5,12 @@ export const parseValue = (value: string): number => {
   if (!value) return 0;
 
   try {
+    // Se o valor já for um número, simplesmente converte para número
+    // Isso evita processamento desnecessário
+    if (!isNaN(Number(value)) && !value.includes(',') && !value.includes('.')) {
+      return Number(value);
+    }
+
     // Remove espaços e substitui pontos (de milhares) por nada
     const cleanValue = value.replace(/\./g, '').trim();
     
@@ -12,10 +18,13 @@ export const parseValue = (value: string): number => {
     const numeroFinal = cleanValue.replace(',', '.');
     
     // Converte para número garantindo 2 casas decimais
-    return parseFloat(parseFloat(numeroFinal).toFixed(2));
+    const resultado = parseFloat(parseFloat(numeroFinal).toFixed(2));
+    
+    // Se o resultado for NaN, retorna 0
+    return isNaN(resultado) ? 0 : resultado;
 
   } catch (error) {
-    console.error('Erro ao converter valor:', value, error);
+    console.error('[parseValue] Erro ao converter valor:', value, error);
     return 0;
   }
 };
@@ -27,12 +36,18 @@ export const calculateValues = (
   faturaConcessionaria: string,
   percentualDesconto: number
 ) => {
-  console.log('Valores recebidos para cálculo:', {
+  console.log('[calculateValues] Valores recebidos para cálculo:', {
     totalFatura,
     iluminacaoPublica,
     outrosValores,
     faturaConcessionaria,
-    percentualDesconto
+    percentualDesconto,
+    tipos: {
+      totalFatura: typeof totalFatura,
+      iluminacaoPublica: typeof iluminacaoPublica,
+      outrosValores: typeof outrosValores,
+      faturaConcessionaria: typeof faturaConcessionaria
+    }
   });
 
   // Converte todos os valores usando a função parseValue
@@ -41,7 +56,7 @@ export const calculateValues = (
   const outros = parseValue(outrosValores);
   const concessionaria = parseValue(faturaConcessionaria);
   
-  console.log('Valores após parseValue:', {
+  console.log('[calculateValues] Valores após parseValue:', {
     total,
     iluminacao,
     outros,
@@ -60,7 +75,7 @@ export const calculateValues = (
   // Valor da assinatura = Total - Desconto - Valor da Concessionária
   const valorAssinatura = parseFloat((total - valorDesconto - concessionaria).toFixed(2));
 
-  console.log('Valores calculados:', {
+  console.log('[calculateValues] Valores calculados:', {
     baseDesconto,
     valorDesconto,
     valorAssinatura
