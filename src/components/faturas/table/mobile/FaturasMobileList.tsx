@@ -7,17 +7,18 @@ import { useState } from "react";
 interface FaturasMobileListProps {
   faturas: Fatura[];
   onViewDetails: (fatura: Fatura) => void;
-  onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
+  onEdit?: (fatura: Fatura) => void; // Make onEdit optional
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
+  onCriarCobranca?: (fatura: Fatura) => void; // Add this to be consistent with desktop
 }
 
 export function FaturasMobileList({
   faturas,
   onViewDetails,
-  onEdit,
   onDelete,
-  onUpdateStatus
+  onUpdateStatus,
+  onCriarCobranca // Add this parameter
 }: FaturasMobileListProps) {
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);

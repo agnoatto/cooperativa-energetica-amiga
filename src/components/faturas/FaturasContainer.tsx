@@ -124,6 +124,7 @@ export function FaturasContainer() {
         onViewDetails={(fatura) => setSelectedFatura(fatura)}
         onDeleteFatura={async (id) => await deleteFatura(id)}
         onUpdateStatus={updateFaturaStatus}
+        onCriarCobranca={handleCriarCobranca}
       />
 
       {selectedFatura && (

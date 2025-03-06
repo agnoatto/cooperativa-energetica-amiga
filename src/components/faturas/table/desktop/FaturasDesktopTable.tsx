@@ -9,13 +9,15 @@ interface FaturasDesktopTableProps {
   onViewDetails: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
+  onCriarCobranca?: (fatura: Fatura) => void; // Add this to be consistent
 }
 
 export function FaturasDesktopTable({
   faturas,
   onViewDetails,
   onDelete,
-  onUpdateStatus
+  onUpdateStatus,
+  onCriarCobranca // Add parameter here
 }: FaturasDesktopTableProps) {
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -28,6 +30,7 @@ export function FaturasDesktopTable({
           onViewDetails={onViewDetails}
           onDelete={onDelete}
           onUpdateStatus={onUpdateStatus}
+          onCriarCobranca={onCriarCobranca} // Pass this to ExcelTable
         />
       </div>
 
