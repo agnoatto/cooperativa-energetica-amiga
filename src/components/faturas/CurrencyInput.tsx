@@ -1,16 +1,24 @@
 
 import React from 'react';
-import { NumericFormat } from 'react-number-format';
+import { NumericFormat, NumericFormatProps } from 'react-number-format';
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'type'> {
+// Definindo um tipo específico para as props do CurrencyInput
+type CurrencyInputProps = {
   value: string;
   onChange: (value: string) => void;
   decimalScale?: number;
-}
+  className?: string;
+} & Omit<NumericFormatProps, 'value' | 'onChange' | 'customInput'>;
 
-export function CurrencyInput({ value, onChange, className, decimalScale = 2, ...props }: CurrencyInputProps) {
+export function CurrencyInput({ 
+  value, 
+  onChange, 
+  className, 
+  decimalScale = 2, 
+  ...props 
+}: CurrencyInputProps) {
   const handleValueChange = (values: { formattedValue: string }) => {
     onChange(values.formattedValue);
   };
