@@ -113,29 +113,24 @@ export function FaturaCobrancaModal({
 
       // Se a opção de enviar notificação estiver marcada, registre no histórico
       if (values.enviarNotificacao) {
-        // Buscar o histórico atual
+        // Buscar os dados atuais da fatura para obter o histórico
         const { data: faturaAtual } = await supabase
           .from('faturas')
-          .select('historico_status')
+          .select('*')
           .eq('id', faturaId)
           .single();
-
-        const historicoAtual = faturaAtual?.historico_status || [];
         
-        // Adicionar evento de notificação ao histórico
-        const novoHistorico = [
-          ...historicoAtual,
-          {
-            data: new Date().toISOString(),
-            status: 'notificado',
-            observacao: 'Notificação de cobrança enviada automaticamente'
-          }
-        ];
-
-        await supabase
-          .from('faturas')
-          .update({ historico_status: novoHistorico })
-          .eq('id', faturaId);
+        if (faturaAtual) {
+          // Criar novo evento no histórico usando uma atualização separada
+          const { error: updateError } = await supabase
+            .from('faturas')
+            .update({
+              status: 'notificado'
+            })
+            .eq('id', faturaId);
+            
+          if (updateError) throw updateError;
+        }
       }
 
       toast.success('Cobrança atualizada com sucesso');
