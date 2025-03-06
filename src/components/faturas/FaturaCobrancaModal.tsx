@@ -121,11 +121,11 @@ export function FaturaCobrancaModal({
           .single();
         
         if (faturaAtual) {
-          // Criar novo evento no histórico usando uma atualização separada
+          // Alterar status para pendente
           const { error: updateError } = await supabase
             .from('faturas')
             .update({
-              status: 'notificado'
+              status: 'pendente'
             })
             .eq('id', faturaId);
             
