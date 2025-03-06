@@ -4,7 +4,7 @@ import { NumericFormat } from 'react-number-format';
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
+interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'type'> {
   value: string;
   onChange: (value: string) => void;
   decimalScale?: number;
@@ -27,6 +27,7 @@ export function CurrencyInput({ value, onChange, className, decimalScale = 2, ..
       prefix="R$ "
       className={cn(className)}
       allowNegative={false}
+      type="text"
       {...props}
     />
   );
