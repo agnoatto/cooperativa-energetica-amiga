@@ -10,7 +10,7 @@ interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
   decimalScale?: number;
 }
 
-export function CurrencyInput({ value, onChange, className, decimalScale = 4, ...props }: CurrencyInputProps) {
+export function CurrencyInput({ value, onChange, className, decimalScale = 2, ...props }: CurrencyInputProps) {
   const handleValueChange = (values: { formattedValue: string }) => {
     onChange(values.formattedValue);
   };
@@ -27,6 +27,7 @@ export function CurrencyInput({ value, onChange, className, decimalScale = 4, ..
       prefix="R$ "
       className={cn(className)}
       allowNegative={false}
+      {...props}
     />
   );
 }

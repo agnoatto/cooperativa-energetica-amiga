@@ -11,16 +11,8 @@ export const parseValue = (value: string): number => {
       .replace(/\./g, '')
       .trim();
 
-    // Separa a parte inteira da decimal
-    const [inteiro, decimal] = cleanValue.split(',');
-    
-    // Se não houver parte decimal, retorna apenas a parte inteira
-    if (!decimal) {
-      return parseInt(inteiro);
-    }
-
-    // Combina a parte inteira com a decimal
-    const numeroFinal = `${inteiro}.${decimal}`;
+    // Substitui a vírgula por ponto para conversão em número
+    const numeroFinal = cleanValue.replace(',', '.');
     
     // Converte para número garantindo 2 casas decimais
     return parseFloat(parseFloat(numeroFinal).toFixed(2));

@@ -97,10 +97,13 @@ export function useFaturaEditForm({ fatura, onSuccess }: UseFaturaEditFormProps)
       errors.dataVencimento = 'Data de vencimento é obrigatória';
     }
 
-    if (Number(formState.consumo) <= 0) {
+    // Para consumo, validamos apenas se é um número positivo
+    const consumoValue = Number(formState.consumo);
+    if (isNaN(consumoValue) || consumoValue <= 0) {
       errors.consumo = 'Consumo deve ser maior que zero';
     }
 
+    // Para valores monetários, usamos parseValue para validar
     if (parseValue(formState.totalFatura) <= 0) {
       errors.totalFatura = 'Valor total deve ser maior que zero';
     }
@@ -134,14 +137,17 @@ export function useFaturaEditForm({ fatura, onSuccess }: UseFaturaEditFormProps)
     try {
       console.log('[useFaturaEditForm] Iniciando salvamento com dados:', formState);
 
+      // Convertendo todos os valores monetários para número usando parseValue
       const updateData = {
         id: fatura.id,
+        // Para consumo e saldo, usamos Number diretamente pois já são números
         consumo_kwh: Number(formState.consumo),
+        saldo_energia_kwh: Number(formState.saldoEnergiaKwh),
+        // Para valores monetários, usamos parseValue para converter do formato brasileiro
         total_fatura: parseValue(formState.totalFatura),
         fatura_concessionaria: parseValue(formState.faturaConcessionaria),
         iluminacao_publica: parseValue(formState.iluminacaoPublica),
         outros_valores: parseValue(formState.outrosValores),
-        saldo_energia_kwh: Number(formState.saldoEnergiaKwh),
         observacao: formState.observacao || null,
         data_vencimento: convertLocalToUTC(formState.dataVencimento),
         percentual_desconto: fatura.unidade_beneficiaria.percentual_desconto,
@@ -150,6 +156,8 @@ export function useFaturaEditForm({ fatura, onSuccess }: UseFaturaEditFormProps)
         arquivo_concessionaria_tipo: formState.arquivoConcessionariaTipo,
         arquivo_concessionaria_tamanho: formState.arquivoConcessionariaTamanho,
       };
+      
+      console.log('[useFaturaEditForm] Dados prontos para enviar:', updateData);
       
       await onSuccess(updateData);
       console.log('[useFaturaEditForm] Salvamento concluído com sucesso');

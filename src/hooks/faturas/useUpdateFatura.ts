@@ -11,19 +11,20 @@ export const useUpdateFatura = () => {
     mutationFn: async (data: UpdateFaturaInput) => {
       console.log('[useUpdateFatura] Iniciando atualização com dados:', data);
       
-      // Cálculo direto dos valores derivados
-      const valorDesconto = Number(data.total_fatura) * (data.percentual_desconto / 100);
+      // Garantindo que todos os valores numéricos sejam do tipo number
+      const valorDesconto = Number(data.total_fatura) * (Number(data.percentual_desconto) / 100);
       const valorAssinatura = Number(data.total_fatura) - valorDesconto;
       
       // Dados para atualização - apenas os campos necessários
+      // Garantindo que todos sejam números com parseFloat
       const faturaData = {
         consumo_kwh: Number(data.consumo_kwh),
         total_fatura: Number(data.total_fatura),
         fatura_concessionaria: Number(data.fatura_concessionaria),
         iluminacao_publica: Number(data.iluminacao_publica),
         outros_valores: Number(data.outros_valores),
-        valor_desconto: valorDesconto,
-        valor_assinatura: valorAssinatura,
+        valor_desconto: parseFloat(valorDesconto.toFixed(2)),
+        valor_assinatura: parseFloat(valorAssinatura.toFixed(2)),
         saldo_energia_kwh: Number(data.saldo_energia_kwh),
         observacao: data.observacao,
         data_vencimento: data.data_vencimento,
@@ -36,21 +37,26 @@ export const useUpdateFatura = () => {
       
       console.log('[useUpdateFatura] Enviando dados simplificados ao Supabase:', faturaData);
       
-      // Atualização direta e simplificada no banco de dados
-      const { data: updatedData, error } = await supabase
-        .from("faturas")
-        .update(faturaData)
-        .eq("id", data.id)
-        .select("id")
-        .single();
-      
-      if (error) {
-        console.error('[useUpdateFatura] Erro do Supabase:', error);
+      try {
+        // Atualização direta e simplificada no banco de dados
+        const { data: updatedData, error } = await supabase
+          .from("faturas")
+          .update(faturaData)
+          .eq("id", data.id)
+          .select("id")
+          .single();
+        
+        if (error) {
+          console.error('[useUpdateFatura] Erro do Supabase:', error);
+          throw new Error(`Erro ao atualizar fatura: ${error.message}`);
+        }
+        
+        console.log('[useUpdateFatura] Atualização concluída com sucesso, ID:', updatedData?.id);
+        return { id: data.id, ...faturaData };
+      } catch (error: any) {
+        console.error('[useUpdateFatura] Erro durante a atualização:', error);
         throw new Error(`Erro ao atualizar fatura: ${error.message}`);
       }
-      
-      console.log('[useUpdateFatura] Atualização concluída com sucesso, ID:', updatedData?.id);
-      return { id: data.id, ...faturaData };
     },
     
     onSuccess: () => {
