@@ -15,7 +15,7 @@ export const useUpdateFatura = () => {
       const valorDesconto = Number(data.total_fatura) * (data.percentual_desconto / 100);
       const valorAssinatura = Number(data.total_fatura) - valorDesconto;
       
-      // Dados simples e diretos para atualização
+      // Dados para atualização - apenas os campos necessários
       const faturaData = {
         consumo_kwh: Number(data.consumo_kwh),
         total_fatura: Number(data.total_fatura),
@@ -28,32 +28,34 @@ export const useUpdateFatura = () => {
         observacao: data.observacao,
         data_vencimento: data.data_vencimento,
         data_atualizacao: new Date().toISOString(),
-        arquivo_concessionaria_nome: data.arquivo_concessionaria_nome,
-        arquivo_concessionaria_path: data.arquivo_concessionaria_path,
-        arquivo_concessionaria_tipo: data.arquivo_concessionaria_tipo,
-        arquivo_concessionaria_tamanho: data.arquivo_concessionaria_tamanho
+        arquivo_concessionaria_nome: data.arquivo_concessionaria_nome || null,
+        arquivo_concessionaria_path: data.arquivo_concessionaria_path || null,
+        arquivo_concessionaria_tipo: data.arquivo_concessionaria_tipo || null,
+        arquivo_concessionaria_tamanho: data.arquivo_concessionaria_tamanho || null
       };
       
-      console.log('[useUpdateFatura] Enviando dados ao Supabase:', faturaData);
+      console.log('[useUpdateFatura] Enviando dados simplificados ao Supabase:', faturaData);
       
-      // Atualização direta no banco de dados
-      const { error } = await supabase
+      // Atualização direta e simplificada no banco de dados
+      const { data: updatedData, error } = await supabase
         .from("faturas")
         .update(faturaData)
-        .eq("id", data.id);
+        .eq("id", data.id)
+        .select("id")
+        .single();
       
       if (error) {
         console.error('[useUpdateFatura] Erro do Supabase:', error);
-        throw new Error(`Erro ao atualizar: ${error.message}`);
+        throw new Error(`Erro ao atualizar fatura: ${error.message}`);
       }
       
-      console.log('[useUpdateFatura] Atualização concluída com sucesso');
+      console.log('[useUpdateFatura] Atualização concluída com sucesso, ID:', updatedData?.id);
       return { id: data.id, ...faturaData };
     },
     
     onSuccess: () => {
       toast.success('Fatura atualizada com sucesso');
-      // Atualização simples de cache
+      // Invalidar cache de faturas para atualizar a interface
       queryClient.invalidateQueries({ queryKey: ['faturas'] });
     },
     
