@@ -1,13 +1,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import { Eye, CreditCard, Trash2, CheckCircle2, RotateCw } from "lucide-react";
+import { Eye, CreditCard, Trash2 } from "lucide-react";
 import { FaturaPdfButton } from "../FaturaPdfButton";
 
 interface FaturaRowActionsProps {
   fatura: Fatura;
   onViewDetails: (fatura: Fatura) => void;
-  onCriarCobranca: (fatura: Fatura) => void;
+  onCriarCobranca?: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
 }
@@ -33,7 +33,7 @@ export function FaturaRowActions({
     </Button>
   );
 
-  if (['gerada', 'pendente', 'corrigida'].includes(fatura.status)) {
+  if (['gerada', 'pendente', 'corrigida'].includes(fatura.status) && onCriarCobranca) {
     actions.push(
       <Button
         key="cobranca"

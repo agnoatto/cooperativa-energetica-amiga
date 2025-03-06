@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useFaturas } from "@/hooks/useFaturas";
 import { FaturasHeader } from "./FaturasHeader";
@@ -17,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function FaturasContainer() {
   const [status, setStatus] = useState<FaturaStatus | "todos">("todos");
@@ -24,6 +26,7 @@ export function FaturasContainer() {
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
   const [isCobrancaModalOpen, setIsCobrancaModalOpen] = useState(false);
   const { currentDate, handlePreviousMonth, handleNextMonth } = useMonthSelection();
+  const queryClient = useQueryClient();
 
   const { 
     faturas, 
@@ -118,9 +121,9 @@ export function FaturasContainer() {
       <FaturasTable
         faturas={filteredFaturas}
         isLoading={isLoading}
-        onCriarCobranca={handleCriarCobranca}
-        onUpdateStatus={updateFaturaStatus}
+        onViewDetails={(fatura) => setSelectedFatura(fatura)}
         onDeleteFatura={async (id) => await deleteFatura(id)}
+        onUpdateStatus={updateFaturaStatus}
       />
 
       {selectedFatura && (

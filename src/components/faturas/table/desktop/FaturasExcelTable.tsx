@@ -1,8 +1,7 @@
+
 import { ExcelTable } from "@/components/ui/excel-table/ExcelTable";
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import { Button } from "@/components/ui/button";
 import { formatDateToPtBR } from "@/utils/dateFormatters";
-import { FileText } from "lucide-react";
 import { FaturaStatusBadge } from "../FaturaStatusBadge";
 import { FaturaRowActions } from "../FaturaRowActions";
 import { formatarDocumento } from "@/utils/formatters";
@@ -12,11 +11,8 @@ import { Column } from "@/components/ui/excel-table/types";
 interface FaturasExcelTableProps {
   faturas: Fatura[];
   onViewDetails: (fatura: Fatura) => void;
-  onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
-  onShowPaymentModal: () => void;
-  onViewPdf: () => void;
 }
 
 const defaultColumns: Column[] = [
@@ -79,11 +75,8 @@ const defaultColumns: Column[] = [
 export function FaturasExcelTable({
   faturas,
   onViewDetails,
-  onEdit,
   onDelete,
-  onUpdateStatus,
-  onShowPaymentModal,
-  onViewPdf
+  onUpdateStatus
 }: FaturasExcelTableProps) {
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
     const saved = localStorage.getItem('faturas-columns-visibility');
@@ -159,10 +152,8 @@ export function FaturasExcelTable({
                   <FaturaRowActions
                     fatura={fatura}
                     onViewDetails={onViewDetails}
-                    onEdit={onEdit}
                     onDelete={onDelete}
                     onUpdateStatus={onUpdateStatus}
-                    onShowPaymentModal={onShowPaymentModal}
                   />
                 )}
               </td>
