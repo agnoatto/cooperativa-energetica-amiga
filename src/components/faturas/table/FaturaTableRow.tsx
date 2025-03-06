@@ -11,9 +11,10 @@ import { FaturaDesktopRow } from "./desktop/FaturaDesktopRow";
 interface FaturaTableRowProps {
   fatura: Fatura;
   onViewDetails: (fatura: Fatura) => void;
-  onEdit: (fatura: Fatura) => void;
+  onEdit?: (fatura: Fatura) => void; // Tornando opcional
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
+  onCriarCobranca?: (fatura: Fatura) => void; // Adicionando propriedade de criar cobrança
 }
 
 interface PaymentData {
@@ -29,6 +30,7 @@ export function FaturaTableRow({
   onEdit,
   onDelete,
   onUpdateStatus,
+  onCriarCobranca, // Adicionando novo parâmetro
 }: FaturaTableRowProps) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
@@ -89,11 +91,11 @@ export function FaturaTableRow({
       <FaturaDesktopRow
         fatura={fatura}
         onViewDetails={onViewDetails}
-        onEdit={onEdit}
         onDelete={onDelete}
         onUpdateStatus={onUpdateStatus}
         onShowPaymentModal={() => setShowPaymentModal(true)}
         onViewPdf={handleViewPdf}
+        onCriarCobranca={onCriarCobranca} // Passando a propriedade correta
       />
 
       <PaymentConfirmationModal
