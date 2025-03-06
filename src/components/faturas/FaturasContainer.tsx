@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useFaturas } from "@/hooks/useFaturas";
 import { FaturasHeader } from "./FaturasHeader";
@@ -8,8 +7,7 @@ import { Fatura, FaturaStatus } from "@/types/fatura";
 import { FilterBar } from "@/components/shared/FilterBar";
 import { useMonthSelection } from "@/hooks/useMonthSelection";
 import { MonthSelector } from "./MonthSelector";
-import { FaturaEditModal } from "./FaturaEditModal";
-import { toast } from "sonner";
+import { FaturaCobrancaModal } from "./FaturaCobrancaModal";
 import {
   Select,
   SelectContent,
@@ -23,8 +21,8 @@ import { Label } from "@/components/ui/label";
 export function FaturasContainer() {
   const [status, setStatus] = useState<FaturaStatus | "todos">("todos");
   const [busca, setBusca] = useState("");
-  const [editingFatura, setEditingFatura] = useState<Fatura | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
+  const [isCobrancaModalOpen, setIsCobrancaModalOpen] = useState(false);
   const { currentDate, handlePreviousMonth, handleNextMonth } = useMonthSelection();
 
   const { 
@@ -32,7 +30,6 @@ export function FaturasContainer() {
     isLoading, 
     gerarFaturas, 
     isGenerating,
-    updateFatura,
     updateFaturaStatus,
     deleteFatura,
   } = useFaturas(currentDate);
@@ -42,35 +39,16 @@ export function FaturasContainer() {
     setBusca("");
   };
 
-  const handleEditFatura = (fatura: Fatura) => {
-    console.log('[FaturasContainer] Iniciando edição da fatura:', fatura.id);
-    setEditingFatura(fatura);
-    setIsEditModalOpen(true);
+  const handleCriarCobranca = (fatura: Fatura) => {
+    setSelectedFatura(fatura);
+    setIsCobrancaModalOpen(true);
   };
 
-  const handleCloseEditModal = () => {
-    console.log('[FaturasContainer] Fechando modal de edição');
-    setIsEditModalOpen(false);
-    setEditingFatura(null);
-  };
-
-  const handleEditSuccess = async (updateData: any) => {
-    try {
-      console.log('[FaturasContainer] handleEditSuccess - Iniciando com dados:', updateData);
-      
-      // Simplificado: Atualizar a fatura é suficiente, a lógica de status foi movida
-      // para dentro do useUpdateFatura
-      console.log('[FaturasContainer] Chamando updateFatura com dados:', updateData);
-      await updateFatura(updateData);
-      console.log('[FaturasContainer] updateFatura concluído com sucesso');
-      
-      // Fechar o modal após sucesso
-      setIsEditModalOpen(false);
-      setEditingFatura(null);
-    } catch (error: any) {
-      console.error('[FaturasContainer] Erro ao atualizar fatura:', error);
-      toast.error(`Erro ao salvar as alterações da fatura: ${error.message || 'Erro desconhecido'}`);
-    }
+  const handleCobrancaSuccess = () => {
+    const date = new Date();
+    queryClient.invalidateQueries({ 
+      queryKey: ['faturas', date.getMonth() + 1, date.getFullYear()]
+    });
   };
 
   const filteredFaturas = faturas?.filter(fatura => {
@@ -140,17 +118,20 @@ export function FaturasContainer() {
       <FaturasTable
         faturas={filteredFaturas}
         isLoading={isLoading}
-        onEditFatura={handleEditFatura}
+        onCriarCobranca={handleCriarCobranca}
         onUpdateStatus={updateFaturaStatus}
         onDeleteFatura={async (id) => await deleteFatura(id)}
       />
 
-      {editingFatura && (
-        <FaturaEditModal
-          isOpen={isEditModalOpen}
-          onClose={handleCloseEditModal}
-          fatura={editingFatura}
-          onSuccess={handleEditSuccess}
+      {selectedFatura && (
+        <FaturaCobrancaModal
+          isOpen={isCobrancaModalOpen}
+          onClose={() => {
+            setIsCobrancaModalOpen(false);
+            setSelectedFatura(null);
+          }}
+          faturaId={selectedFatura.id}
+          onSuccess={handleCobrancaSuccess}
         />
       )}
     </div>
