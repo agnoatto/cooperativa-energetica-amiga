@@ -80,7 +80,7 @@ export function FaturaEditModalContent({
           onSuccess={onSuccess}
           onSubmit={handleSubmit}
           onFileChange={handleFileChange}
-          formErrors={formErrors}
+          formErrors={formErrors as Record<string, string>}
         />
       </div>
 

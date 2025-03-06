@@ -19,7 +19,9 @@ export interface FaturaFormState {
   arquivoConcessionariaTamanho: number | null;
 }
 
+// Modificando a interface para ser atribuível a Record<string, string>
 export interface FaturaFormErrors {
+  [key: string]: string; // Adicionando index signature
   dataVencimento?: string;
   consumo?: string;
   totalFatura?: string;
