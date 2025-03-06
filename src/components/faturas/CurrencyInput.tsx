@@ -19,6 +19,7 @@ export function CurrencyInput({
   decimalScale = 2, 
   ...props 
 }: CurrencyInputProps) {
+  // Modificamos para receber o valor não-formatado
   const handleValueChange = (values: { formattedValue: string; value: string }) => {
     // Passamos o valor formatado para manter a consistência na interface
     onChange(values.formattedValue);

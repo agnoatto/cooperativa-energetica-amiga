@@ -52,12 +52,12 @@ interface UseFaturaEditFormProps {
 
 export function useFaturaEditForm({ fatura, onSuccess }: UseFaturaEditFormProps) {
   const [formState, setFormState] = useState<FaturaFormState>({
-    consumo: fatura.consumo_kwh?.toFixed(2) || "0.00",
+    consumo: fatura.consumo_kwh?.toString() || "0",
     totalFatura: fatura.total_fatura.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     faturaConcessionaria: fatura.fatura_concessionaria.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     iluminacaoPublica: fatura.iluminacao_publica.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     outrosValores: fatura.outros_valores.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-    saldoEnergiaKwh: fatura.saldo_energia_kwh?.toFixed(2) || "0.00",
+    saldoEnergiaKwh: fatura.saldo_energia_kwh?.toString() || "0",
     observacao: fatura.observacao || '',
     dataVencimento: convertUTCToLocal(fatura.data_vencimento),
     arquivoConcessionariaNome: fatura.arquivo_concessionaria_nome || null,
@@ -71,12 +71,12 @@ export function useFaturaEditForm({ fatura, onSuccess }: UseFaturaEditFormProps)
   // Atualizar o estado quando a fatura mudar
   useEffect(() => {
     setFormState({
-      consumo: fatura.consumo_kwh?.toFixed(2) || "0.00",
+      consumo: fatura.consumo_kwh?.toString() || "0",
       totalFatura: fatura.total_fatura.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       faturaConcessionaria: fatura.fatura_concessionaria.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       iluminacaoPublica: fatura.iluminacao_publica.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       outrosValores: fatura.outros_valores.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-      saldoEnergiaKwh: fatura.saldo_energia_kwh?.toFixed(2) || "0.00",
+      saldoEnergiaKwh: fatura.saldo_energia_kwh?.toString() || "0",
       observacao: fatura.observacao || '',
       dataVencimento: convertUTCToLocal(fatura.data_vencimento),
       arquivoConcessionariaNome: fatura.arquivo_concessionaria_nome || null,
@@ -137,7 +137,7 @@ export function useFaturaEditForm({ fatura, onSuccess }: UseFaturaEditFormProps)
     try {
       console.log('[useFaturaEditForm] Iniciando salvamento com dados:', formState);
 
-      // Convertendo todos os valores monetários para número usando parseValue
+      // Convertendo diretamente para número usando parseValue para valores monetários
       const updateData = {
         id: fatura.id,
         // Para consumo e saldo, usamos Number diretamente pois já são números

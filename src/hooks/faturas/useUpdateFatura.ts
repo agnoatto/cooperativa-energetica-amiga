@@ -11,20 +11,22 @@ export const useUpdateFatura = () => {
     mutationFn: async (data: UpdateFaturaInput) => {
       console.log('[useUpdateFatura] Iniciando atualização com dados:', data);
       
-      // Garantindo que todos os valores numéricos sejam do tipo number
-      const valorDesconto = Number(data.total_fatura) * (Number(data.percentual_desconto) / 100);
-      const valorAssinatura = Number(data.total_fatura) - valorDesconto;
+      // Calcular os valores finais baseados nos dados recebidos
+      // O cálculo é simplificado para economizar processamento
+      const percentualDesconto = data.percentual_desconto / 100;
+      const baseDesconto = Number(data.total_fatura) - Number(data.iluminacao_publica) - Number(data.outros_valores);
+      const valorDesconto = parseFloat((baseDesconto * percentualDesconto).toFixed(2));
+      const valorAssinatura = parseFloat((Number(data.total_fatura) - valorDesconto - Number(data.fatura_concessionaria)).toFixed(2));
       
-      // Dados para atualização - apenas os campos necessários
-      // Garantindo que todos sejam números com parseFloat
+      // Dados para atualização - garantindo que todos são números
       const faturaData = {
         consumo_kwh: Number(data.consumo_kwh),
         total_fatura: Number(data.total_fatura),
         fatura_concessionaria: Number(data.fatura_concessionaria),
         iluminacao_publica: Number(data.iluminacao_publica),
         outros_valores: Number(data.outros_valores),
-        valor_desconto: parseFloat(valorDesconto.toFixed(2)),
-        valor_assinatura: parseFloat(valorAssinatura.toFixed(2)),
+        valor_desconto: valorDesconto,
+        valor_assinatura: valorAssinatura,
         saldo_energia_kwh: Number(data.saldo_energia_kwh),
         observacao: data.observacao,
         data_vencimento: data.data_vencimento,
@@ -35,15 +37,14 @@ export const useUpdateFatura = () => {
         arquivo_concessionaria_tamanho: data.arquivo_concessionaria_tamanho || null
       };
       
-      console.log('[useUpdateFatura] Enviando dados simplificados ao Supabase:', faturaData);
+      console.log('[useUpdateFatura] Enviando dados para o Supabase:', faturaData);
       
       try {
-        // Atualização direta e simplificada no banco de dados
         const { data: updatedData, error } = await supabase
           .from("faturas")
           .update(faturaData)
           .eq("id", data.id)
-          .select("id")
+          .select("*")
           .single();
         
         if (error) {
@@ -51,8 +52,8 @@ export const useUpdateFatura = () => {
           throw new Error(`Erro ao atualizar fatura: ${error.message}`);
         }
         
-        console.log('[useUpdateFatura] Atualização concluída com sucesso, ID:', updatedData?.id);
-        return { id: data.id, ...faturaData };
+        console.log('[useUpdateFatura] Fatura atualizada com sucesso:', updatedData);
+        return updatedData;
       } catch (error: any) {
         console.error('[useUpdateFatura] Erro durante a atualização:', error);
         throw new Error(`Erro ao atualizar fatura: ${error.message}`);
