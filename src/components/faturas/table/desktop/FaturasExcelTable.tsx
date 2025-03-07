@@ -1,3 +1,4 @@
+
 import { ExcelTable } from "@/components/ui/excel-table/ExcelTable";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,6 @@ import { Column } from "@/components/ui/excel-table/types";
 interface FaturasExcelTableProps {
   faturas: Fatura[];
   onViewDetails: (fatura: Fatura) => void;
-  onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
   onShowPaymentModal: () => void;
@@ -79,7 +79,6 @@ const defaultColumns: Column[] = [
 export function FaturasExcelTable({
   faturas,
   onViewDetails,
-  onEdit,
   onDelete,
   onUpdateStatus,
   onShowPaymentModal,
@@ -159,7 +158,6 @@ export function FaturasExcelTable({
                   <FaturaRowActions
                     fatura={fatura}
                     onViewDetails={onViewDetails}
-                    onEdit={onEdit}
                     onDelete={onDelete}
                     onUpdateStatus={onUpdateStatus}
                     onShowPaymentModal={onShowPaymentModal}

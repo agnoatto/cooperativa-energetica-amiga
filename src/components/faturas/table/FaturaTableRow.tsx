@@ -11,7 +11,6 @@ import { FaturaDesktopRow } from "./desktop/FaturaDesktopRow";
 interface FaturaTableRowProps {
   fatura: Fatura;
   onViewDetails: (fatura: Fatura) => void;
-  onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
 }
@@ -26,7 +25,6 @@ interface PaymentData {
 export function FaturaTableRow({
   fatura,
   onViewDetails,
-  onEdit,
   onDelete,
   onUpdateStatus,
 }: FaturaTableRowProps) {
@@ -89,10 +87,8 @@ export function FaturaTableRow({
       <FaturaDesktopRow
         fatura={fatura}
         onViewDetails={onViewDetails}
-        onEdit={onEdit}
         onDelete={onDelete}
         onUpdateStatus={onUpdateStatus}
-        onShowPaymentModal={() => setShowPaymentModal(true)}
         onViewPdf={handleViewPdf}
       />
 
