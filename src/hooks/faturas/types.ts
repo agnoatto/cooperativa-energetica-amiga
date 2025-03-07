@@ -30,5 +30,5 @@ export interface UseFaturasResult {
   gerarFaturas: () => void;
   deleteFatura: (id: string) => void;
   updateFaturaStatus: (data: UpdateFaturaStatusInput) => Promise<void>;
-  updateFatura: (data: UpdateFaturaInput) => Promise<void>;
+  updateFatura: (data: UpdateFaturaInput) => Promise<Fatura>; // Alterado para retornar a fatura
 }

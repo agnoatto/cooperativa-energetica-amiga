@@ -42,7 +42,7 @@ export const useFaturas = (currentDate: Date): UseFaturasResult => {
         console.log('[useFaturas] Atualização de fatura concluída:', updatedFatura);
         // Forçar atualização após edição
         refetch();
-        return updatedFatura;
+        return updatedFatura; // Retornando a fatura atualizada
       } catch (error) {
         console.error('[useFaturas] Erro ao atualizar fatura:', error);
         throw error;

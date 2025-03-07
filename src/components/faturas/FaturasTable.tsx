@@ -16,7 +16,7 @@ interface FaturasTableProps {
   isLoading: boolean;
   onDeleteFatura: (id: string) => Promise<void>;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
-  onUpdateFatura: (data: UpdateFaturaInput) => Promise<void>;
+  onUpdateFatura: (data: UpdateFaturaInput) => Promise<Fatura>;
 }
 
 export function FaturasTable({
