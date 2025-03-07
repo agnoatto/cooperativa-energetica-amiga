@@ -26,33 +26,42 @@ export const useUpdateFatura = () => {
     mutationFn: async (data: UpdateFaturaInput) => {
       console.log("[useUpdateFatura] Atualizando fatura:", data);
 
-      const { data: updatedFatura, error } = await supabase
-        .from("faturas")
-        .update({
-          consumo_kwh: data.consumo_kwh,
-          valor_assinatura: data.valor_assinatura,
-          data_vencimento: data.data_vencimento,
-          fatura_concessionaria: data.fatura_concessionaria,
-          total_fatura: data.total_fatura,
-          iluminacao_publica: data.iluminacao_publica,
-          outros_valores: data.outros_valores,
-          valor_desconto: data.valor_desconto,
-          economia_acumulada: data.economia_acumulada,
-          saldo_energia_kwh: data.saldo_energia_kwh,
-          observacao: data.observacao
-        })
-        .eq("id", data.id)
-        .select("*")
-        .single();
+      try {
+        // Usando a função rpc que criamos no banco de dados
+        const { data: updatedFatura, error } = await supabase
+          .rpc('update_fatura', {
+            p_id: data.id,
+            p_consumo_kwh: data.consumo_kwh,
+            p_valor_assinatura: data.valor_assinatura,
+            p_data_vencimento: data.data_vencimento,
+            p_fatura_concessionaria: data.fatura_concessionaria,
+            p_total_fatura: data.total_fatura,
+            p_iluminacao_publica: data.iluminacao_publica,
+            p_outros_valores: data.outros_valores,
+            p_valor_desconto: data.valor_desconto,
+            p_economia_acumulada: data.economia_acumulada,
+            p_saldo_energia_kwh: data.saldo_energia_kwh,
+            p_observacao: data.observacao
+          });
 
-      if (error) {
-        console.error("[useUpdateFatura] Erro ao atualizar fatura:", error);
-        throw new Error(`Erro ao atualizar fatura: ${error.message}`);
+        if (error) {
+          console.error("[useUpdateFatura] Erro na função RPC ao atualizar fatura:", error);
+          throw new Error(`Erro ao atualizar fatura: ${error.message}`);
+        }
+
+        if (!updatedFatura) {
+          console.error("[useUpdateFatura] Fatura não encontrada após atualização");
+          throw new Error("Fatura não encontrada após atualização");
+        }
+
+        console.log("[useUpdateFatura] Fatura atualizada com sucesso:", updatedFatura);
+        return updatedFatura as unknown as Fatura;
+      } catch (error) {
+        console.error("[useUpdateFatura] Erro ao processar atualização:", error);
+        throw error;
       }
-
-      return updatedFatura as unknown as Fatura;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       const date = new Date();
       queryClient.invalidateQueries({ 
         queryKey: ['faturas', date.getMonth() + 1, date.getFullYear()]

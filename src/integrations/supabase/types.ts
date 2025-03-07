@@ -1595,6 +1595,62 @@ export type Database = {
         }
         Returns: string[]
       }
+      update_fatura: {
+        Args: {
+          p_id: string
+          p_consumo_kwh?: number
+          p_valor_assinatura?: number
+          p_data_vencimento?: string
+          p_fatura_concessionaria?: number
+          p_total_fatura?: number
+          p_iluminacao_publica?: number
+          p_outros_valores?: number
+          p_valor_desconto?: number
+          p_economia_acumulada?: number
+          p_saldo_energia_kwh?: number
+          p_observacao?: string
+        }
+        Returns: {
+          ano: number
+          arquivo_concessionaria_nome: string | null
+          arquivo_concessionaria_path: string | null
+          arquivo_concessionaria_tamanho: number | null
+          arquivo_concessionaria_tipo: string | null
+          boleto_codigo_barras: string | null
+          boleto_id: string | null
+          boleto_linha_digitavel: string | null
+          boleto_pdf_path: string | null
+          boleto_url: string | null
+          consumo_kwh: number
+          created_at: string
+          data_atualizacao: string | null
+          data_confirmacao_pagamento: string | null
+          data_criacao: string | null
+          data_envio: string | null
+          data_pagamento: string | null
+          data_vencimento: string
+          economia_acumulada: number | null
+          economia_mes: number | null
+          fatura_concessionaria: number
+          id: string
+          iluminacao_publica: number
+          mes: number
+          observacao: string | null
+          observacao_pagamento: string | null
+          outros_valores: number
+          saldo_energia_kwh: number
+          send_method:
+            | Database["public"]["Enums"]["communication_method"][]
+            | null
+          status: Database["public"]["Enums"]["fatura_status"]
+          total_fatura: number
+          unidade_beneficiaria_id: string
+          updated_at: string
+          valor_adicional: number | null
+          valor_assinatura: number | null
+          valor_desconto: number
+        }
+      }
       update_pagamento_status: {
         Args: {
           p_pagamento_id: string
