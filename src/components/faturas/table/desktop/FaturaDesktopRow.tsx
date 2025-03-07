@@ -1,102 +1,70 @@
 
+import { Fatura, FaturaStatus } from "@/types/fatura";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Fatura } from "@/types/fatura";
-import { formatDateToPtBR } from "@/utils/dateFormatters";
-import { formatarDocumento } from "@/utils/formatters";
-import { FileText } from "lucide-react";
 import { FaturaStatusBadge } from "../FaturaStatusBadge";
+import { format } from "date-fns";
 import { FaturaRowActions } from "../FaturaRowActions";
+import { useState } from "react";
 
 interface FaturaDesktopRowProps {
   fatura: Fatura;
   onViewDetails: (fatura: Fatura) => void;
-  onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
-  onUpdateStatus: (fatura: Fatura, newStatus: string, observacao?: string) => Promise<void>;
-  onShowPaymentModal: () => void;
+  onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
   onViewPdf: () => void;
 }
 
 export function FaturaDesktopRow({
   fatura,
   onViewDetails,
-  onEdit,
   onDelete,
   onUpdateStatus,
-  onShowPaymentModal,
   onViewPdf
 }: FaturaDesktopRowProps) {
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  // Formatação de valores
   const formatCurrency = (value: number) => {
-    return value.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    });
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(value);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return format(date, "dd/MM/yyyy");
   };
 
   return (
-    <TableRow className="border-b hover:bg-gray-50 transition-colors">
-      <TableCell>
-        <div className="flex flex-col">
-          <span className="font-medium text-gray-900">
-            {fatura.unidade_beneficiaria.cooperado.nome}
-          </span>
-          <div className="text-sm text-gray-500 space-x-2">
-            <span>{formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)}</span>
-            <span>•</span>
-            <span>
-              UC: {fatura.unidade_beneficiaria.numero_uc}
-              {fatura.unidade_beneficiaria.apelido && (
-                <span className="text-gray-400 ml-1">
-                  ({fatura.unidade_beneficiaria.apelido})
-                </span>
-              )}
-            </span>
-          </div>
-        </div>
-      </TableCell>
-      <TableCell className="whitespace-nowrap">{formatDateToPtBR(fatura.data_vencimento)}</TableCell>
-      <TableCell className="text-right font-mono whitespace-nowrap">{fatura.consumo_kwh} kWh</TableCell>
-      <TableCell className="text-right font-mono whitespace-nowrap">{formatCurrency(fatura.total_fatura)}</TableCell>
-      <TableCell className="text-right font-mono whitespace-nowrap">{formatCurrency(fatura.fatura_concessionaria)}</TableCell>
-      <TableCell className="text-right font-mono whitespace-nowrap">{fatura.unidade_beneficiaria.percentual_desconto}%</TableCell>
-      <TableCell className="text-right font-mono whitespace-nowrap">{formatCurrency(fatura.valor_desconto)}</TableCell>
-      <TableCell className="text-right font-mono whitespace-nowrap">
-        {formatCurrency(fatura.valor_assinatura)}
-        {fatura.valor_adicional > 0 && (
-          <span className="text-yellow-600 text-sm block">
-            +{formatCurrency(fatura.valor_adicional)}
-          </span>
-        )}
-      </TableCell>
-      <TableCell className="whitespace-nowrap">
-        <FaturaStatusBadge fatura={fatura} />
-      </TableCell>
-      <TableCell className="whitespace-nowrap text-center">
-        {fatura.arquivo_concessionaria_path ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onViewPdf}
-            title="Visualizar conta de energia"
-            className="h-8 w-8"
-          >
-            <FileText className="h-4 w-4" />
-          </Button>
-        ) : (
-          <span className="text-gray-400 text-sm">-</span>
-        )}
-      </TableCell>
-      <TableCell className="text-right whitespace-nowrap">
-        <FaturaRowActions
-          fatura={fatura}
-          onViewDetails={onViewDetails}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onUpdateStatus={onUpdateStatus}
-          onShowPaymentModal={onShowPaymentModal}
-        />
-      </TableCell>
-    </TableRow>
+    <>
+      <TableRow key={fatura.id}>
+        <TableCell>{fatura.unidade_beneficiaria.numero_uc}</TableCell>
+        <TableCell className="font-medium">
+          {fatura.unidade_beneficiaria.cooperado.nome}
+        </TableCell>
+        <TableCell className="text-right">
+          {fatura.consumo_kwh || 0} kWh
+        </TableCell>
+        <TableCell className="text-right">
+          {formatCurrency(fatura.valor_assinatura || 0)}
+        </TableCell>
+        <TableCell className="text-right">
+          {formatDate(fatura.data_vencimento)}
+        </TableCell>
+        <TableCell className="text-right">
+          <FaturaStatusBadge fatura={fatura} />
+        </TableCell>
+        <TableCell>
+          <FaturaRowActions
+            fatura={fatura}
+            onViewDetails={onViewDetails}
+            onDelete={onDelete}
+            onUpdateStatus={onUpdateStatus}
+            onShowPaymentModal={() => setShowPaymentModal(true)}
+          />
+        </TableCell>
+      </TableRow>
+    </>
   );
 }

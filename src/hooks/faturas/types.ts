@@ -11,23 +11,6 @@ export interface UnidadeBeneficiaria {
   };
 }
 
-export interface UpdateFaturaInput {
-  id: string;
-  consumo_kwh: number;
-  total_fatura: number;
-  fatura_concessionaria: number;
-  iluminacao_publica: number;
-  outros_valores: number;
-  saldo_energia_kwh: number;
-  observacao: string | null;
-  data_vencimento: string;
-  percentual_desconto: number;
-  arquivo_concessionaria_nome?: string | null;
-  arquivo_concessionaria_path?: string | null;
-  arquivo_concessionaria_tipo?: string | null;
-  arquivo_concessionaria_tamanho?: number | null;
-}
-
 export interface UpdateFaturaStatusInput {
   id: string;
   status: FaturaStatus;
@@ -42,10 +25,8 @@ export interface UpdateFaturaStatusInput {
 export interface UseFaturasResult {
   faturas: Fatura[] | undefined;
   isLoading: boolean;
-  updateFatura: (data: UpdateFaturaInput) => Promise<void>;
-  isUpdating: boolean;
-  gerarFaturas: () => void;
   isGenerating: boolean;
+  gerarFaturas: () => void;
   deleteFatura: (id: string) => void;
   updateFaturaStatus: (data: UpdateFaturaStatusInput) => Promise<void>;
 }

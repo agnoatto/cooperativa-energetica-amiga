@@ -1,13 +1,14 @@
 
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import { FaturaMobileCard } from "./FaturaMobileCard";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useState } from "react";
+import { FaturaMobileCard } from "./FaturaMobileCard";
+import { PdfPreview } from "../../upload/PdfPreview";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface FaturasMobileListProps {
   faturas: Fatura[];
   onViewDetails: (fatura: Fatura) => void;
-  onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
 }
@@ -15,38 +16,61 @@ interface FaturasMobileListProps {
 export function FaturasMobileList({
   faturas,
   onViewDetails,
-  onEdit,
   onDelete,
   onUpdateStatus
 }: FaturasMobileListProps) {
-  const [showPdfModal, setShowPdfModal] = useState(false);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
+
+  const handleViewPdf = async (fatura: Fatura) => {
+    if (!fatura.arquivo_concessionaria_path) {
+      toast.error("Nenhum arquivo de fatura disponível");
+      return;
+    }
+
+    try {
+      setSelectedFatura(fatura);
+      const { data: storageUrl } = await supabase.storage
+        .from("faturas")
+        .createSignedUrl(fatura.arquivo_concessionaria_path, 3600);
+
+      if (storageUrl?.signedUrl) {
+        setPdfUrl(storageUrl.signedUrl);
+        setShowPdfPreview(true);
+      } else {
+        toast.error("Não foi possível acessar o arquivo");
+      }
+    } catch (error) {
+      console.error("Erro ao obter URL do PDF:", error);
+      toast.error("Erro ao carregar o PDF");
+    }
+  };
+
+  const handleClosePdfPreview = () => {
+    setShowPdfPreview(false);
+    setPdfUrl(null);
+    setSelectedFatura(null);
+  };
 
   return (
-    <div className="space-y-4">
-      {faturas.map((fatura) => (
-        <FaturaMobileCard
-          key={fatura.id}
-          fatura={fatura}
-          onViewDetails={onViewDetails}
-          onViewPdf={() => {
-            setPdfUrl(fatura.arquivo_concessionaria_path);
-            setShowPdfModal(true);
-          }}
-        />
-      ))}
+    <>
+      <div className="mt-4">
+        {faturas.map((fatura) => (
+          <FaturaMobileCard
+            key={fatura.id}
+            fatura={fatura}
+            onViewDetails={onViewDetails}
+            onViewPdf={() => handleViewPdf(fatura)}
+          />
+        ))}
+      </div>
 
-      <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          {pdfUrl && (
-            <iframe
-              src={`${pdfUrl}#toolbar=0`}
-              className="w-full h-[80vh]"
-              title="Conta de Energia"
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+      <PdfPreview
+        isOpen={showPdfPreview}
+        onClose={handleClosePdfPreview}
+        pdfUrl={pdfUrl}
+      />
+    </>
   );
 }

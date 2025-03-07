@@ -12,7 +12,6 @@ import { FaturasDesktopTable } from "./table/desktop/FaturasDesktopTable";
 interface FaturasTableProps {
   faturas: Fatura[] | undefined;
   isLoading: boolean;
-  onEditFatura: (fatura: Fatura) => void;
   onDeleteFatura: (id: string) => Promise<void>;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
 }
@@ -20,7 +19,6 @@ interface FaturasTableProps {
 export function FaturasTable({
   faturas,
   isLoading,
-  onEditFatura,
   onDeleteFatura,
   onUpdateStatus
 }: FaturasTableProps) {
@@ -56,7 +54,6 @@ export function FaturasTable({
       <TableComponent
         faturas={faturas}
         onViewDetails={setSelectedFatura}
-        onEdit={onEditFatura}
         onDelete={setFaturaToDelete}
         onUpdateStatus={onUpdateStatus}
       />
