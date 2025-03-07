@@ -2,27 +2,27 @@
 import { useState } from "react";
 
 export const useMonthSelection = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const handlePreviousMonth = () => {
-    setCurrentDate(prev => {
+  const handleMonthChange = (month: number) => {
+    setSelectedDate(prev => {
       const newDate = new Date(prev);
-      newDate.setMonth(prev.getMonth() - 1);
+      newDate.setMonth(month);
       return newDate;
     });
   };
 
-  const handleNextMonth = () => {
-    setCurrentDate(prev => {
+  const handleYearChange = (year: number) => {
+    setSelectedDate(prev => {
       const newDate = new Date(prev);
-      newDate.setMonth(prev.getMonth() + 1);
+      newDate.setFullYear(year);
       return newDate;
     });
   };
 
   return {
-    currentDate,
-    handlePreviousMonth,
-    handleNextMonth
+    selectedDate,
+    handleMonthChange,
+    handleYearChange
   };
 };

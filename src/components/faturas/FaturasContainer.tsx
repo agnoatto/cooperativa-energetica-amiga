@@ -22,6 +22,18 @@ export function FaturasContainer() {
   } = useFaturas(selectedDate);
   const [faturaToConfirmPayment, setFaturaToConfirmPayment] = useState<Fatura | null>(null);
 
+  const handlePreviousMonth = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setMonth(newDate.getMonth() - 1);
+    handleMonthChange(newDate.getMonth());
+  };
+
+  const handleNextMonth = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setMonth(newDate.getMonth() + 1);
+    handleMonthChange(newDate.getMonth());
+  };
+
   const handleDeleteFatura = async (id: string) => {
     await deleteFatura(id);
   };
@@ -38,16 +50,18 @@ export function FaturasContainer() {
     await updateFatura(data);
   };
 
-  const handleShowPaymentModal = (fatura: Fatura) => {
-    setFaturaToConfirmPayment(fatura);
-  };
-
-  const handleConfirmPayment = async (faturaId: string, observacao?: string, dataPagamento?: string) => {
+  const handleConfirmPayment = async (data: { 
+    id: string; 
+    data_pagamento: string; 
+    valor_adicional: number; 
+    observacao_pagamento: string | null; 
+  }) => {
     await updateFaturaStatus({
-      id: faturaId,
+      id: data.id,
       status: 'paga',
-      observacao_pagamento: observacao,
-      data_pagamento: dataPagamento
+      observacao_pagamento: data.observacao_pagamento,
+      data_pagamento: data.data_pagamento,
+      valor_adicional: data.valor_adicional
     });
     setFaturaToConfirmPayment(null);
   };
@@ -60,9 +74,9 @@ export function FaturasContainer() {
       />
       
       <MonthSelector
-        selectedDate={selectedDate}
-        onMonthChange={handleMonthChange}
-        onYearChange={handleYearChange}
+        currentDate={selectedDate}
+        onPreviousMonth={handlePreviousMonth}
+        onNextMonth={handleNextMonth}
       />
       
       <FaturasTable
@@ -78,7 +92,7 @@ export function FaturasContainer() {
           fatura={faturaToConfirmPayment}
           isOpen={!!faturaToConfirmPayment}
           onConfirm={handleConfirmPayment}
-          onCancel={() => setFaturaToConfirmPayment(null)}
+          onClose={() => setFaturaToConfirmPayment(null)}
         />
       )}
     </div>

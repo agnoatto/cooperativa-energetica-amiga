@@ -23,7 +23,7 @@ export const useUpdateFatura = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: UpdateFaturaInput): Promise<Fatura> => {
+    mutationFn: async (data: UpdateFaturaInput) => {
       console.log("[useUpdateFatura] Atualizando fatura:", data);
 
       const { data: updatedFatura, error } = await supabase
@@ -50,7 +50,7 @@ export const useUpdateFatura = () => {
         throw new Error(`Erro ao atualizar fatura: ${error.message}`);
       }
 
-      return updatedFatura as Fatura;
+      return updatedFatura as unknown as Fatura;
     },
     onSuccess: () => {
       const date = new Date();
