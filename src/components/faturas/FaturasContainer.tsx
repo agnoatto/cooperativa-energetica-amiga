@@ -47,7 +47,8 @@ export function FaturasContainer() {
   };
 
   const handleUpdateFatura = async (data: UpdateFaturaInput) => {
-    await updateFatura(data);
+    // Agora estamos retornando o resultado da função updateFatura
+    return await updateFatura(data);
   };
 
   const handleConfirmPayment = async (data: { 
