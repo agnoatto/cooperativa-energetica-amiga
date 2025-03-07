@@ -48,8 +48,11 @@ export function FaturasTable({
   const handleUpdateFatura = async (data: UpdateFaturaInput) => {
     setIsUpdating(true);
     try {
+      // Aguardamos o resultado da atualização antes de fechar o modal
       await onUpdateFatura(data);
-      setFaturaToEdit(null);
+      // O modal será fechado pelo próprio componente EditFaturaModal após sucesso
+    } catch (error) {
+      console.error("Erro ao atualizar fatura:", error);
     } finally {
       setIsUpdating(false);
     }

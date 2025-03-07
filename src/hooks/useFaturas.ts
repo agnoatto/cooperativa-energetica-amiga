@@ -8,7 +8,7 @@ import type { UseFaturasResult, UpdateFaturaStatusInput } from "./faturas/types"
 import type { UpdateFaturaInput } from "./faturas/useUpdateFatura";
 
 export const useFaturas = (currentDate: Date): UseFaturasResult => {
-  const { data: faturas, isLoading } = useFetchFaturas(currentDate);
+  const { data: faturas, isLoading, refetch } = useFetchFaturas(currentDate);
   const deleteFaturaMutation = useDeleteFatura();
   const gerarFaturasMutation = useGerarFaturas(currentDate);
   const updateFaturaStatusMutation = useUpdateFaturaStatus();
@@ -28,6 +28,8 @@ export const useFaturas = (currentDate: Date): UseFaturasResult => {
         console.log('[useFaturas] Iniciando atualização de status:', data);
         await updateFaturaStatusMutation.mutateAsync(data);
         console.log('[useFaturas] Atualização de status concluída');
+        // Forçar atualização após mudança de status
+        refetch();
       } catch (error) {
         console.error('[useFaturas] Erro ao atualizar status:', error);
         throw error;
@@ -36,8 +38,11 @@ export const useFaturas = (currentDate: Date): UseFaturasResult => {
     updateFatura: async (data: UpdateFaturaInput) => {
       try {
         console.log('[useFaturas] Iniciando atualização de fatura:', data);
-        await updateFaturaMutation.mutateAsync(data);
-        console.log('[useFaturas] Atualização de fatura concluída');
+        const updatedFatura = await updateFaturaMutation.mutateAsync(data);
+        console.log('[useFaturas] Atualização de fatura concluída:', updatedFatura);
+        // Forçar atualização após edição
+        refetch();
+        return updatedFatura;
       } catch (error) {
         console.error('[useFaturas] Erro ao atualizar fatura:', error);
         throw error;

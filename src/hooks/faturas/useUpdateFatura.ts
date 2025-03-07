@@ -61,11 +61,24 @@ export const useUpdateFatura = () => {
         throw error;
       }
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (updatedFatura, variables) => {
       const date = new Date();
+      // Invalidar a consulta para forçar uma atualização dos dados
       queryClient.invalidateQueries({ 
         queryKey: ['faturas', date.getMonth() + 1, date.getFullYear()]
       });
+      
+      // Atualizar a fatura no cache diretamente para exibição imediata
+      queryClient.setQueryData(
+        ['faturas', date.getMonth() + 1, date.getFullYear()],
+        (oldData: Fatura[] | undefined) => {
+          if (!oldData) return undefined;
+          return oldData.map(fatura => 
+            fatura.id === updatedFatura.id ? { ...fatura, ...updatedFatura } : fatura
+          );
+        }
+      );
+      
       toast.success("Fatura atualizada com sucesso!");
     },
     onError: (error) => {

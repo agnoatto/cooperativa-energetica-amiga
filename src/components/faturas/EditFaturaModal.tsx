@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "./CurrencyInput";
 import { Textarea } from "@/components/ui/textarea";
-import { format, parse } from "date-fns";
+import { format } from "date-fns";
 import { UpdateFaturaInput } from "@/hooks/faturas/useUpdateFatura";
 
 interface EditFaturaModalProps {
@@ -26,6 +26,7 @@ export function EditFaturaModal({
   isProcessing
 }: EditFaturaModalProps) {
   const [formData, setFormData] = useState<Partial<Fatura>>({});
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (fatura) {
@@ -65,13 +66,17 @@ export function EditFaturaModal({
     e.preventDefault();
     if (!fatura) return;
 
+    setIsSaving(true);
     try {
       await onSave({
         id: fatura.id,
         ...formData
       });
+      onClose(); // Fechamos o modal apenas após o salvamento bem-sucedido
     } catch (error) {
       console.error("Erro ao salvar fatura:", error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -86,8 +91,11 @@ export function EditFaturaModal({
 
   if (!fatura) return null;
 
+  // Desabilitamos o botão durante o processamento para evitar múltiplos envios
+  const isSubmitDisabled = isProcessing || isSaving;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !isSubmitDisabled && !open && onClose()}>
       <DialogContent className="max-w-md sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Editar Fatura</DialogTitle>
@@ -218,11 +226,11 @@ export function EditFaturaModal({
           </div>
 
           <DialogFooter>
-            <Button variant="outline" type="button" onClick={onClose} disabled={isProcessing}>
+            <Button variant="outline" type="button" onClick={onClose} disabled={isSubmitDisabled}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isProcessing}>
-              {isProcessing ? "Salvando..." : "Salvar"}
+            <Button type="submit" disabled={isSubmitDisabled}>
+              {isSubmitDisabled ? "Salvando..." : "Salvar"}
             </Button>
           </DialogFooter>
         </form>
