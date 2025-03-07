@@ -9,6 +9,7 @@ import { useState } from "react";
 interface FaturaDesktopRowProps {
   fatura: Fatura;
   onViewDetails: (fatura: Fatura) => void;
+  onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
   onViewPdf: () => void;
@@ -17,6 +18,7 @@ interface FaturaDesktopRowProps {
 export function FaturaDesktopRow({
   fatura,
   onViewDetails,
+  onEdit,
   onDelete,
   onUpdateStatus,
   onViewPdf
@@ -59,6 +61,7 @@ export function FaturaDesktopRow({
           <FaturaRowActions
             fatura={fatura}
             onViewDetails={onViewDetails}
+            onEdit={onEdit}
             onDelete={onDelete}
             onUpdateStatus={onUpdateStatus}
             onShowPaymentModal={() => setShowPaymentModal(true)}

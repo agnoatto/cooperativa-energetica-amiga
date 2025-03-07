@@ -17,6 +17,7 @@ import { toast } from "sonner";
 interface FaturasDesktopTableProps {
   faturas: Fatura[];
   onViewDetails: (fatura: Fatura) => void;
+  onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
 }
@@ -24,6 +25,7 @@ interface FaturasDesktopTableProps {
 export function FaturasDesktopTable({
   faturas,
   onViewDetails,
+  onEdit,
   onDelete,
   onUpdateStatus
 }: FaturasDesktopTableProps) {
@@ -82,6 +84,7 @@ export function FaturasDesktopTable({
                 key={fatura.id}
                 fatura={fatura}
                 onViewDetails={onViewDetails}
+                onEdit={onEdit}
                 onDelete={onDelete}
                 onUpdateStatus={onUpdateStatus}
                 onViewPdf={() => handleViewPdf(fatura)}

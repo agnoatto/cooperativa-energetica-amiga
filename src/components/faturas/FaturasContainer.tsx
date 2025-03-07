@@ -1,112 +1,86 @@
 
 import { useState } from "react";
-import { useFaturas } from "@/hooks/useFaturas";
-import { FaturasHeader } from "./FaturasHeader";
-import { FaturasDashboard } from "./FaturasDashboard";
-import { FaturasTable } from "./FaturasTable";
-import { FaturaStatus } from "@/types/fatura";
-import { FilterBar } from "@/components/shared/FilterBar";
-import { useMonthSelection } from "@/hooks/useMonthSelection";
 import { MonthSelector } from "./MonthSelector";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { FaturasTable } from "./FaturasTable";
+import { FaturasHeader } from "./FaturasHeader";
+import { useFaturas } from "@/hooks/useFaturas";
+import { useMonthSelection } from "@/hooks/useMonthSelection";
+import { Fatura, FaturaStatus } from "@/types/fatura";
+import { PaymentConfirmationModal } from "./PaymentConfirmationModal";
+import { UpdateFaturaInput } from "@/hooks/faturas/useUpdateFatura";
 
 export function FaturasContainer() {
-  const [status, setStatus] = useState<FaturaStatus | "todos">("todos");
-  const [busca, setBusca] = useState("");
-  const { currentDate, handlePreviousMonth, handleNextMonth } = useMonthSelection();
-
+  const { selectedDate, handleMonthChange, handleYearChange } = useMonthSelection();
   const { 
     faturas, 
     isLoading, 
     gerarFaturas, 
     isGenerating,
-    updateFaturaStatus,
     deleteFatura,
-  } = useFaturas(currentDate);
+    updateFaturaStatus,
+    updateFatura 
+  } = useFaturas(selectedDate);
+  const [faturaToConfirmPayment, setFaturaToConfirmPayment] = useState<Fatura | null>(null);
 
-  const handleLimparFiltros = () => {
-    setStatus("todos");
-    setBusca("");
+  const handleDeleteFatura = async (id: string) => {
+    await deleteFatura(id);
   };
 
-  const filteredFaturas = faturas?.filter(fatura => {
-    if (status !== "todos" && fatura.status !== status) return false;
-    
-    if (busca) {
-      const searchTerm = busca.toLowerCase();
-      const ucMatch = fatura.unidade_beneficiaria.numero_uc.toLowerCase().includes(searchTerm);
-      const cooperadoMatch = fatura.unidade_beneficiaria.cooperado.nome.toLowerCase().includes(searchTerm);
-      if (!ucMatch && !cooperadoMatch) return false;
-    }
-    
-    return true;
-  });
+  const handleUpdateFaturaStatus = async (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => {
+    await updateFaturaStatus({
+      id: fatura.id,
+      status: newStatus,
+      observacao
+    });
+  };
+
+  const handleUpdateFatura = async (data: UpdateFaturaInput) => {
+    await updateFatura(data);
+  };
+
+  const handleShowPaymentModal = (fatura: Fatura) => {
+    setFaturaToConfirmPayment(fatura);
+  };
+
+  const handleConfirmPayment = async (faturaId: string, observacao?: string, dataPagamento?: string) => {
+    await updateFaturaStatus({
+      id: faturaId,
+      status: 'paga',
+      observacao_pagamento: observacao,
+      data_pagamento: dataPagamento
+    });
+    setFaturaToConfirmPayment(null);
+  };
 
   return (
-    <div className="space-y-6">
-      <FaturasHeader
+    <div className="flex flex-col gap-4">
+      <FaturasHeader 
         onGerarFaturas={gerarFaturas}
         isGenerating={isGenerating}
       />
-
-      <FaturasDashboard 
-        faturas={filteredFaturas}
-        isLoading={isLoading}
+      
+      <MonthSelector
+        selectedDate={selectedDate}
+        onMonthChange={handleMonthChange}
+        onYearChange={handleYearChange}
       />
-
-      <MonthSelector 
-        currentDate={currentDate}
-        onPreviousMonth={handlePreviousMonth}
-        onNextMonth={handleNextMonth}
-      />
-
-      <FilterBar
-        busca={busca}
-        onBuscaChange={setBusca}
-        onLimparFiltros={handleLimparFiltros}
-        placeholder="Buscar por UC ou nome do cooperado..."
-        showColumnsButton
-      >
-        <div className="w-full sm:w-48">
-          <Label htmlFor="status">Status</Label>
-          <Select
-            value={status}
-            onValueChange={(value) => setStatus(value as FaturaStatus | "todos")}
-          >
-            <SelectTrigger id="status">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="todos">Todos</SelectItem>
-                <SelectItem value="gerada">Gerada</SelectItem>
-                <SelectItem value="pendente">Pendente</SelectItem>
-                <SelectItem value="enviada">Enviada</SelectItem>
-                <SelectItem value="corrigida">Corrigida</SelectItem>
-                <SelectItem value="reenviada">Reenviada</SelectItem>
-                <SelectItem value="atrasada">Atrasada</SelectItem>
-                <SelectItem value="paga">Paga</SelectItem>
-                <SelectItem value="finalizada">Finalizada</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-      </FilterBar>
-
+      
       <FaturasTable
-        faturas={filteredFaturas}
+        faturas={faturas}
         isLoading={isLoading}
-        onUpdateStatus={updateFaturaStatus}
-        onDeleteFatura={async (id) => await deleteFatura(id)}
+        onDeleteFatura={handleDeleteFatura}
+        onUpdateStatus={handleUpdateFaturaStatus}
+        onUpdateFatura={handleUpdateFatura}
       />
+
+      {faturaToConfirmPayment && (
+        <PaymentConfirmationModal
+          fatura={faturaToConfirmPayment}
+          isOpen={!!faturaToConfirmPayment}
+          onConfirm={handleConfirmPayment}
+          onCancel={() => setFaturaToConfirmPayment(null)}
+        />
+      )}
     </div>
   );
 }

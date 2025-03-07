@@ -9,6 +9,7 @@ import { toast } from "sonner";
 interface FaturasMobileListProps {
   faturas: Fatura[];
   onViewDetails: (fatura: Fatura) => void;
+  onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
 }
@@ -16,6 +17,7 @@ interface FaturasMobileListProps {
 export function FaturasMobileList({
   faturas,
   onViewDetails,
+  onEdit,
   onDelete,
   onUpdateStatus
 }: FaturasMobileListProps) {
@@ -61,6 +63,9 @@ export function FaturasMobileList({
             key={fatura.id}
             fatura={fatura}
             onViewDetails={onViewDetails}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onUpdateStatus={onUpdateStatus}
             onViewPdf={() => handleViewPdf(fatura)}
           />
         ))}

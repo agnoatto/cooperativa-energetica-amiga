@@ -8,23 +8,29 @@ import { DeleteFaturaDialog } from "./DeleteFaturaDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FaturasMobileList } from "./table/mobile/FaturasMobileList";
 import { FaturasDesktopTable } from "./table/desktop/FaturasDesktopTable";
+import { EditFaturaModal } from "./EditFaturaModal";
+import { UpdateFaturaInput } from "@/hooks/faturas/useUpdateFatura";
 
 interface FaturasTableProps {
   faturas: Fatura[] | undefined;
   isLoading: boolean;
   onDeleteFatura: (id: string) => Promise<void>;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
+  onUpdateFatura: (data: UpdateFaturaInput) => Promise<void>;
 }
 
 export function FaturasTable({
   faturas,
   isLoading,
   onDeleteFatura,
-  onUpdateStatus
+  onUpdateStatus,
+  onUpdateFatura
 }: FaturasTableProps) {
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
   const [faturaToDelete, setFaturaToDelete] = useState<Fatura | null>(null);
+  const [faturaToEdit, setFaturaToEdit] = useState<Fatura | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const isMobile = useIsMobile();
 
   const handleDeleteConfirm = async () => {
@@ -36,6 +42,16 @@ export function FaturasTable({
     } finally {
       setIsDeleting(false);
       setFaturaToDelete(null);
+    }
+  };
+
+  const handleUpdateFatura = async (data: UpdateFaturaInput) => {
+    setIsUpdating(true);
+    try {
+      await onUpdateFatura(data);
+      setFaturaToEdit(null);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -54,6 +70,7 @@ export function FaturasTable({
       <TableComponent
         faturas={faturas}
         onViewDetails={setSelectedFatura}
+        onEdit={setFaturaToEdit}
         onDelete={setFaturaToDelete}
         onUpdateStatus={onUpdateStatus}
       />
@@ -73,6 +90,16 @@ export function FaturasTable({
           isDeleting={isDeleting}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setFaturaToDelete(null)}
+        />
+      )}
+
+      {faturaToEdit && (
+        <EditFaturaModal
+          fatura={faturaToEdit}
+          isOpen={!!faturaToEdit}
+          onClose={() => setFaturaToEdit(null)}
+          onSave={handleUpdateFatura}
+          isProcessing={isUpdating}
         />
       )}
     </>

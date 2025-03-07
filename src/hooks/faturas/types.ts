@@ -1,5 +1,6 @@
 
 import { Fatura, FaturaStatus } from "@/types/fatura";
+import { UpdateFaturaInput } from "./useUpdateFatura";
 
 export interface UnidadeBeneficiaria {
   id: string;
@@ -29,4 +30,5 @@ export interface UseFaturasResult {
   gerarFaturas: () => void;
   deleteFatura: (id: string) => void;
   updateFaturaStatus: (data: UpdateFaturaStatusInput) => Promise<void>;
+  updateFatura: (data: UpdateFaturaInput) => Promise<void>;
 }

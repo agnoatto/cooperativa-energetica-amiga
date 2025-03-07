@@ -1,71 +1,101 @@
 
-import { Button } from "@/components/ui/button";
-import { Fatura } from "@/types/fatura";
-import { formatDateToPtBR } from "@/utils/dateFormatters";
-import { formatarDocumento } from "@/utils/formatters";
-import { FileText, ChevronRight } from "lucide-react";
+import { Fatura, FaturaStatus } from "@/types/fatura";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { FaturaStatusBadge } from "../FaturaStatusBadge";
+import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Edit, Eye, FileText } from "lucide-react";
 
 interface FaturaMobileCardProps {
   fatura: Fatura;
   onViewDetails: (fatura: Fatura) => void;
+  onEdit: (fatura: Fatura) => void;
+  onDelete: (fatura: Fatura) => void;
+  onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
   onViewPdf: () => void;
 }
 
-export function FaturaMobileCard({ fatura, onViewDetails, onViewPdf }: FaturaMobileCardProps) {
+export function FaturaMobileCard({
+  fatura,
+  onViewDetails,
+  onEdit,
+  onDelete,
+  onUpdateStatus,
+  onViewPdf
+}: FaturaMobileCardProps) {
   const formatCurrency = (value: number) => {
-    return value.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    });
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(value);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return format(date, "dd/MM/yyyy");
   };
 
   return (
-    <div 
-      className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4 touch-manipulation"
-      onClick={() => onViewDetails(fatura)}
-    >
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex-1">
-          <h3 className="font-medium text-gray-900 truncate">
-            {fatura.unidade_beneficiaria.cooperado.nome}
-          </h3>
-          <p className="text-sm text-gray-500">
-            {formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)}
-          </p>
+    <Card className="mb-4">
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className="font-medium">UC: {fatura.unidade_beneficiaria.numero_uc}</h3>
+            <p className="text-sm text-gray-500">{fatura.unidade_beneficiaria.cooperado.nome}</p>
+          </div>
+          <FaturaStatusBadge fatura={fatura} />
         </div>
-        <FaturaStatusBadge fatura={fatura} />
-      </div>
-
-      <div className="grid grid-cols-2 gap-y-2 text-sm mb-4">
-        <div className="text-gray-500">UC:</div>
-        <div className="text-right">{fatura.unidade_beneficiaria.numero_uc}</div>
         
-        <div className="text-gray-500">Vencimento:</div>
-        <div className="text-right">{formatDateToPtBR(fatura.data_vencimento)}</div>
-        
-        <div className="text-gray-500">Valor:</div>
-        <div className="text-right font-medium">{formatCurrency(fatura.valor_assinatura)}</div>
-      </div>
-
-      <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-        <div className="flex gap-2">
-          {fatura.arquivo_concessionaria_path && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewPdf();
-              }}
-              className="p-2"
-            >
-              <FileText className="h-4 w-4" />
-            </Button>
-          )}
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div>
+            <p className="text-sm text-gray-500">Consumo:</p>
+            <p className="font-medium">{fatura.consumo_kwh || 0} kWh</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Valor:</p>
+            <p className="font-medium">{formatCurrency(fatura.valor_assinatura || 0)}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Vencimento:</p>
+            <p className="font-medium">{formatDate(fatura.data_vencimento)}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Fatura:</p>
+            <p className="font-medium">{formatCurrency(fatura.total_fatura || 0)}</p>
+          </div>
         </div>
-        <ChevronRight className="h-5 w-5 text-gray-400" />
-      </div>
-    </div>
+      </CardContent>
+      
+      <CardFooter className="px-4 py-3 border-t flex justify-end space-x-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => onViewDetails(fatura)}
+        >
+          <Eye className="mr-1 h-4 w-4" />
+          Detalhes
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => onEdit(fatura)}
+        >
+          <Edit className="mr-1 h-4 w-4" />
+          Editar
+        </Button>
+        
+        {fatura.arquivo_concessionaria_path && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={onViewPdf}
+          >
+            <FileText className="mr-1 h-4 w-4" />
+            Ver PDF
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
   );
 }

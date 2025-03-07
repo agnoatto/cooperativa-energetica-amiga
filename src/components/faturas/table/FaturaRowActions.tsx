@@ -1,19 +1,17 @@
 
 import { Button } from "@/components/ui/button";
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import { Eye, Trash2, CheckCircle2, RotateCw } from "lucide-react";
+import { Eye, Trash2, CheckCircle2, RotateCw, Edit } from "lucide-react";
 import { FaturaPdfButton } from "../FaturaPdfButton";
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { useState } from "react";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 interface FaturaRowActionsProps {
   fatura: Fatura;
   onViewDetails: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
+  onEdit: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
   onShowPaymentModal: () => void;
 }
@@ -22,6 +20,7 @@ export function FaturaRowActions({
   fatura,
   onViewDetails,
   onDelete,
+  onEdit,
   onUpdateStatus,
   onShowPaymentModal,
 }: FaturaRowActionsProps) {
@@ -55,6 +54,19 @@ export function FaturaRowActions({
       title="Visualizar Detalhes"
     >
       <Eye className="h-4 w-4" />
+    </Button>
+  );
+
+  // Botão de editar para todas as faturas (sem restrição de status)
+  actions.push(
+    <Button
+      key="edit"
+      variant="outline"
+      size="icon"
+      onClick={() => onEdit(fatura)}
+      title="Editar Fatura"
+    >
+      <Edit className="h-4 w-4" />
     </Button>
   );
 
