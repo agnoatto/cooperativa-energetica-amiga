@@ -12,19 +12,17 @@ import { FaturasDesktopTable } from "./table/desktop/FaturasDesktopTable";
 interface FaturasTableProps {
   faturas: Fatura[] | undefined;
   isLoading: boolean;
-  onViewDetails: (fatura: Fatura) => void;
+  onEditFatura: (fatura: Fatura) => void;
   onDeleteFatura: (id: string) => Promise<void>;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
-  onCriarCobranca?: (fatura: Fatura) => void; // Add this parameter
 }
 
 export function FaturasTable({
   faturas,
   isLoading,
-  onViewDetails,
+  onEditFatura,
   onDeleteFatura,
-  onUpdateStatus,
-  onCriarCobranca // Add this parameter
+  onUpdateStatus
 }: FaturasTableProps) {
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
   const [faturaToDelete, setFaturaToDelete] = useState<Fatura | null>(null);
@@ -51,25 +49,17 @@ export function FaturasTable({
     return <FaturasEmptyState />;
   }
 
+  const TableComponent = isMobile ? FaturasMobileList : FaturasDesktopTable;
+
   return (
     <>
-      {isMobile ? (
-        <FaturasMobileList
-          faturas={faturas}
-          onViewDetails={setSelectedFatura}
-          onDelete={setFaturaToDelete}
-          onUpdateStatus={onUpdateStatus}
-          onCriarCobranca={onCriarCobranca} // Pass this to mobile list
-        />
-      ) : (
-        <FaturasDesktopTable
-          faturas={faturas}
-          onViewDetails={setSelectedFatura}
-          onDelete={setFaturaToDelete}
-          onUpdateStatus={onUpdateStatus}
-          onCriarCobranca={onCriarCobranca} // Pass this to desktop table
-        />
-      )}
+      <TableComponent
+        faturas={faturas}
+        onViewDetails={setSelectedFatura}
+        onEdit={onEditFatura}
+        onDelete={setFaturaToDelete}
+        onUpdateStatus={onUpdateStatus}
+      />
 
       {selectedFatura && (
         <FaturaDetailsDialog

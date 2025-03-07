@@ -2,25 +2,39 @@
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { PaymentConfirmationModal } from "../../PaymentConfirmationModal";
 import { FaturasExcelTable } from "./FaturasExcelTable";
 
 interface FaturasDesktopTableProps {
   faturas: Fatura[];
   onViewDetails: (fatura: Fatura) => void;
+  onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
-  onCriarCobranca?: (fatura: Fatura) => void; // Add this to be consistent
 }
 
 export function FaturasDesktopTable({
   faturas,
   onViewDetails,
+  onEdit,
   onDelete,
-  onUpdateStatus,
-  onCriarCobranca // Add parameter here
+  onUpdateStatus
 }: FaturasDesktopTableProps) {
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
+
+  const handlePaymentConfirm = async (paymentData: any) => {
+    if (selectedFatura) {
+      await onUpdateStatus(
+        selectedFatura,
+        'paga',
+        'Pagamento confirmado' + (paymentData.valor_adicional > 0 ? ' com valor adicional' : '')
+      );
+      setShowPaymentModal(false);
+    }
+  };
 
   return (
     <>
@@ -28,9 +42,17 @@ export function FaturasDesktopTable({
         <FaturasExcelTable
           faturas={faturas}
           onViewDetails={onViewDetails}
+          onEdit={onEdit}
           onDelete={onDelete}
           onUpdateStatus={onUpdateStatus}
-          onCriarCobranca={onCriarCobranca} // Pass this to ExcelTable
+          onShowPaymentModal={() => {
+            setSelectedFatura(selectedFatura);
+            setShowPaymentModal(true);
+          }}
+          onViewPdf={() => {
+            setPdfUrl(selectedFatura?.arquivo_concessionaria_path || null);
+            setShowPdfModal(true);
+          }}
         />
       </div>
 
@@ -45,6 +67,15 @@ export function FaturasDesktopTable({
           )}
         </DialogContent>
       </Dialog>
+
+      {selectedFatura && (
+        <PaymentConfirmationModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          fatura={selectedFatura}
+          onConfirm={handlePaymentConfirm}
+        />
+      )}
     </>
   );
 }

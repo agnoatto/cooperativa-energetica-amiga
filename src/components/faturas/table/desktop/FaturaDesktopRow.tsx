@@ -11,21 +11,21 @@ import { FaturaRowActions } from "../FaturaRowActions";
 interface FaturaDesktopRowProps {
   fatura: Fatura;
   onViewDetails: (fatura: Fatura) => void;
+  onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: string, observacao?: string) => Promise<void>;
   onShowPaymentModal: () => void;
   onViewPdf: () => void;
-  onCriarCobranca?: (fatura: Fatura) => void; // Adicionando essa propriedade opcional
 }
 
 export function FaturaDesktopRow({
   fatura,
   onViewDetails,
+  onEdit,
   onDelete,
   onUpdateStatus,
   onShowPaymentModal,
-  onViewPdf,
-  onCriarCobranca // Adicionando esse parâmetro
+  onViewPdf
 }: FaturaDesktopRowProps) {
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', {
@@ -91,9 +91,10 @@ export function FaturaDesktopRow({
         <FaturaRowActions
           fatura={fatura}
           onViewDetails={onViewDetails}
+          onEdit={onEdit}
           onDelete={onDelete}
           onUpdateStatus={onUpdateStatus}
-          onCriarCobranca={onCriarCobranca} // Passando para o FaturaRowActions em vez de onEdit
+          onShowPaymentModal={onShowPaymentModal}
         />
       </TableCell>
     </TableRow>
