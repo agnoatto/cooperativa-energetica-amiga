@@ -12,6 +12,7 @@ interface FaturaTableRowProps {
   fatura: Fatura;
   onViewDetails: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
+  onEdit: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
 }
 
@@ -26,6 +27,7 @@ export function FaturaTableRow({
   fatura,
   onViewDetails,
   onDelete,
+  onEdit,
   onUpdateStatus,
 }: FaturaTableRowProps) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -64,6 +66,9 @@ export function FaturaTableRow({
         <FaturaMobileCard 
           fatura={fatura}
           onViewDetails={onViewDetails}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onUpdateStatus={onUpdateStatus}
           onViewPdf={handleViewPdf}
         />
 
@@ -88,6 +93,7 @@ export function FaturaTableRow({
         fatura={fatura}
         onViewDetails={onViewDetails}
         onDelete={onDelete}
+        onEdit={onEdit}
         onUpdateStatus={onUpdateStatus}
         onViewPdf={handleViewPdf}
       />

@@ -20,9 +20,28 @@ export const useMonthSelection = () => {
     });
   };
 
+  const handlePreviousMonth = () => {
+    setSelectedDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(prev.getMonth() - 1);
+      return newDate;
+    });
+  };
+
+  const handleNextMonth = () => {
+    setSelectedDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(prev.getMonth() + 1);
+      return newDate;
+    });
+  };
+
   return {
     selectedDate,
+    currentDate: selectedDate, // Para compatibilidade
     handleMonthChange,
-    handleYearChange
+    handleYearChange,
+    handlePreviousMonth,
+    handleNextMonth
   };
 };
