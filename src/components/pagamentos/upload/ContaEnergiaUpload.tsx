@@ -26,7 +26,12 @@ export function ContaEnergiaUpload({
 }: ContaEnergiaUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
 
-  const handleDrop = useCallback((file: File) => {
+  // Adaptamos a função handleDrop para receber um array de arquivos
+  // mas continuamos a usar apenas o primeiro arquivo
+  const handleDrop = useCallback((files: File[]) => {
+    if (files.length === 0) return;
+    
+    const file = files[0]; // Pegamos apenas o primeiro arquivo
     console.log("[ContaEnergiaUpload] Arquivo recebido para upload:", file.name);
     onUpload(file);
   }, [onUpload]);
@@ -61,7 +66,7 @@ export function ContaEnergiaUpload({
       a.click();
       URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (error) {
+    } catch (error: any) {
       console.error('[ContaEnergiaUpload] Erro ao baixar arquivo:', error);
       toast.error('Erro ao baixar arquivo');
     }
