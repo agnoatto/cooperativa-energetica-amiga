@@ -39,7 +39,7 @@ export function DatasSection({ form, setForm }: DatasSectionProps) {
         <CurrencyInput
           id="valor_concessionaria"
           value={form.valor_concessionaria.toString()}
-          onChange={(value) => setForm({ ...form, valor_concessionaria: parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.')) || 0 })}
+          onValueChange={(value) => setForm({ ...form, valor_concessionaria: parseFloat(value) || 0 })}
           decimalScale={2}
         />
       </div>

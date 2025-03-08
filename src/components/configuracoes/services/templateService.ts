@@ -1,203 +1,130 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { CalculoFaturaTemplate } from "@/types/template";
+import { CalculoFaturaTemplate, CreateCalculoFaturaTemplateInput } from "@/types/template";
 
-// Função para buscar todos os templates
-export async function fetchTemplates(): Promise<CalculoFaturaTemplate[]> {
+// Função para buscar templates de cálculo
+export const fetchTemplates = async (): Promise<CalculoFaturaTemplate[]> => {
   try {
-    // Usando a API REST do Supabase para acessar a tabela
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yvripyhfwglzjbaxtowl.supabase.co"}/rest/v1/calculo_fatura_templates?select=*&order=is_padrao.desc,nome.asc`,
-      {
-        headers: {
-          "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2cmlweWhmd2dsempiYXh0b3dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg2NzI4NDEsImV4cCI6MjA1NDI0ODg0MX0.CD-GdAPYCoKLgrAIKYmtGhJrJqzH6AVtMnZv98jaKc0",
-          "Content-Type": "application/json",
-          "Prefer": "return=representation"
-        }
-      }
-    );
+    // Consulta direta com RPC para evitar problemas de tipagem
+    const { data, error } = await supabase.rpc('get_all_calculo_fatura_templates');
     
-    if (!response.ok) {
-      throw new Error(`Erro ao buscar templates: ${response.status}`);
+    if (error) {
+      console.error("Erro ao buscar templates:", error);
+      throw error;
     }
     
-    const data = await response.json();
     return data as CalculoFaturaTemplate[];
-  } catch (error: any) {
+  } catch (error) {
     console.error("Erro ao buscar templates:", error);
-    return [];
+    throw error;
   }
-}
+};
 
-// Função para buscar um template por ID
-export async function fetchTemplateById(id: string): Promise<CalculoFaturaTemplate | null> {
+// Função para verificar se um template está em uso
+export const checkTemplateInUse = async (templateId: string): Promise<boolean> => {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yvripyhfwglzjbaxtowl.supabase.co"}/rest/v1/calculo_fatura_templates?id=eq.${id}&select=*`,
-      {
-        headers: {
-          "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2cmlweWhmd2dsempiYXh0b3dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg2NzI4NDEsImV4cCI6MjA1NDI0ODg0MX0.CD-GdAPYCoKLgrAIKYmtGhJrJqzH6AVtMnZv98jaKc0",
-          "Content-Type": "application/json"
-        }
-      }
-    );
+    // Consulta direta com RPC para evitar problemas de tipagem
+    const { data, error } = await supabase.rpc('check_template_in_use', {
+      template_id: templateId
+    });
     
-    if (!response.ok) {
-      throw new Error(`Erro ao buscar template: ${response.status}`);
+    if (error) {
+      console.error("Erro ao verificar uso do template:", error);
+      throw error;
     }
     
-    const data = await response.json();
-    return data.length > 0 ? data[0] as CalculoFaturaTemplate : null;
-  } catch (error: any) {
-    console.error("Erro ao buscar template por ID:", error);
-    return null;
+    return data as boolean;
+  } catch (error) {
+    console.error("Erro ao verificar uso do template:", error);
+    throw error;
   }
-}
+};
 
 // Função para criar um novo template
-export async function createTemplate(template: Omit<CalculoFaturaTemplate, 'id' | 'created_at' | 'updated_at'>): Promise<CalculoFaturaTemplate | null> {
+export const createTemplate = async (template: CreateCalculoFaturaTemplateInput): Promise<CalculoFaturaTemplate | null> => {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yvripyhfwglzjbaxtowl.supabase.co"}/rest/v1/calculo_fatura_templates`,
-      {
-        method: 'POST',
-        headers: {
-          "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2cmlweWhmd2dsempiYXh0b3dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg2NzI4NDEsImV4cCI6MjA1NDI0ODg0MX0.CD-GdAPYCoKLgrAIKYmtGhJrJqzH6AVtMnZv98jaKc0",
-          "Content-Type": "application/json",
-          "Prefer": "return=representation"
-        },
-        body: JSON.stringify(template)
-      }
-    );
+    // Consulta direta com RPC para evitar problemas de tipagem
+    const { data, error } = await supabase.rpc('create_calculo_fatura_template', {
+      nome_template: template.nome,
+      descricao_template: template.descricao || null,
+      formula_desconto: template.formula_valor_desconto,
+      formula_assinatura: template.formula_valor_assinatura,
+      padrao: template.is_padrao
+    });
     
-    if (!response.ok) {
-      throw new Error(`Erro ao criar template: ${response.status}`);
+    if (error) {
+      console.error("Erro ao criar template:", error);
+      throw error;
     }
     
-    const data = await response.json();
-    return data[0] as CalculoFaturaTemplate;
-  } catch (error: any) {
+    return data as CalculoFaturaTemplate;
+  } catch (error) {
     console.error("Erro ao criar template:", error);
-    return null;
+    throw error;
   }
-}
+};
 
 // Função para atualizar um template existente
-export async function updateTemplate(id: string, template: Partial<CalculoFaturaTemplate>): Promise<CalculoFaturaTemplate | null> {
+export const updateTemplate = async (id: string, template: Partial<CreateCalculoFaturaTemplateInput>): Promise<CalculoFaturaTemplate | null> => {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yvripyhfwglzjbaxtowl.supabase.co"}/rest/v1/calculo_fatura_templates?id=eq.${id}`,
-      {
-        method: 'PATCH',
-        headers: {
-          "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2cmlweWhmd2dsempiYXh0b3dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg2NzI4NDEsImV4cCI6MjA1NDI0ODg0MX0.CD-GdAPYCoKLgrAIKYmtGhJrJqzH6AVtMnZv98jaKc0",
-          "Content-Type": "application/json",
-          "Prefer": "return=representation"
-        },
-        body: JSON.stringify(template)
-      }
-    );
+    // Consulta direta com RPC para evitar problemas de tipagem
+    const { data, error } = await supabase.rpc('update_calculo_fatura_template', {
+      template_id: id,
+      nome_template: template.nome,
+      descricao_template: template.descricao || null,
+      formula_desconto: template.formula_valor_desconto,
+      formula_assinatura: template.formula_valor_assinatura,
+      padrao: template.is_padrao
+    });
     
-    if (!response.ok) {
-      throw new Error(`Erro ao atualizar template: ${response.status}`);
+    if (error) {
+      console.error("Erro ao atualizar template:", error);
+      throw error;
     }
     
-    const data = await response.json();
-    return data.length > 0 ? data[0] as CalculoFaturaTemplate : null;
-  } catch (error: any) {
+    return data as CalculoFaturaTemplate;
+  } catch (error) {
     console.error("Erro ao atualizar template:", error);
-    return null;
+    throw error;
   }
-}
+};
 
-// Função para deletar um template
-export async function deleteTemplate(id: string): Promise<boolean> {
+// Função para excluir um template
+export const deleteTemplate = async (id: string): Promise<boolean> => {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yvripyhfwglzjbaxtowl.supabase.co"}/rest/v1/calculo_fatura_templates?id=eq.${id}`,
-      {
-        method: 'DELETE',
-        headers: {
-          "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2cmlweWhmd2dsempiYXh0b3dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg2NzI4NDEsImV4cCI6MjA1NDI0ODg0MX0.CD-GdAPYCoKLgrAIKYmtGhJrJqzH6AVtMnZv98jaKc0"
-        }
-      }
-    );
+    // Consulta direta com RPC para evitar problemas de tipagem
+    const { data, error } = await supabase.rpc('delete_calculo_fatura_template', {
+      template_id: id
+    });
     
-    return response.ok;
-  } catch (error: any) {
-    console.error("Erro ao deletar template:", error);
-    return false;
-  }
-}
-
-// Função para verificar se um template está sendo usado por unidades beneficiárias
-export async function checkTemplateInUse(templateId: string): Promise<boolean> {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yvripyhfwglzjbaxtowl.supabase.co"}/rest/v1/unidades_beneficiarias?calculo_fatura_template_id=eq.${templateId}&select=id&limit=1`,
-      {
-        headers: {
-          "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2cmlweWhmd2dsempiYXh0b3dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg2NzI4NDEsImV4cCI6MjA1NDI0ODg0MX0.CD-GdAPYCoKLgrAIKYmtGhJrJqzH6AVtMnZv98jaKc0",
-          "Content-Type": "application/json"
-        }
-      }
-    );
-    
-    if (!response.ok) {
-      throw new Error(`Erro ao verificar uso do template: ${response.status}`);
+    if (error) {
+      console.error("Erro ao excluir template:", error);
+      throw error;
     }
     
-    const data = await response.json();
-    return data.length > 0;
-  } catch (error: any) {
-    console.error("Erro ao verificar uso do template:", error);
-    return false;
+    return true;
+  } catch (error) {
+    console.error("Erro ao excluir template:", error);
+    throw error;
   }
-}
+};
 
-// Função para resetar templates padrão (exceto o selecionado)
-export async function resetDefaultTemplates(exceptId: string): Promise<boolean> {
+// Função para redefinir os templates padrão, mantendo apenas um como padrão
+export const resetDefaultTemplates = async (exceptId: string): Promise<boolean> => {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yvripyhfwglzjbaxtowl.supabase.co"}/rest/v1/calculo_fatura_templates?id=neq.${exceptId}&is_padrao=eq.true`,
-      {
-        method: 'PATCH',
-        headers: {
-          "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2cmlweWhmd2dsempiYXh0b3dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg2NzI4NDEsImV4cCI6MjA1NDI0ODg0MX0.CD-GdAPYCoKLgrAIKYmtGhJrJqzH6AVtMnZv98jaKc0",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ is_padrao: false })
-      }
-    );
+    // Consulta direta com RPC para evitar problemas de tipagem
+    const { data, error } = await supabase.rpc('reset_default_templates', {
+      except_id: exceptId
+    });
     
-    return response.ok;
-  } catch (error: any) {
-    console.error("Erro ao resetar templates padrão:", error);
-    return false;
-  }
-}
-
-// Função para buscar o template padrão
-export async function fetchDefaultTemplate(): Promise<CalculoFaturaTemplate | null> {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yvripyhfwglzjbaxtowl.supabase.co"}/rest/v1/calculo_fatura_templates?is_padrao=eq.true&select=*&limit=1`,
-      {
-        headers: {
-          "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2cmlweWhmd2dsempiYXh0b3dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg2NzI4NDEsImV4cCI6MjA1NDI0ODg0MX0.CD-GdAPYCoKLgrAIKYmtGhJrJqzH6AVtMnZv98jaKc0",
-          "Content-Type": "application/json"
-        }
-      }
-    );
-    
-    if (!response.ok) {
-      throw new Error(`Erro ao buscar template padrão: ${response.status}`);
+    if (error) {
+      console.error("Erro ao redefinir templates padrão:", error);
+      throw error;
     }
     
-    const data = await response.json();
-    return data.length > 0 ? data[0] as CalculoFaturaTemplate : null;
-  } catch (error: any) {
-    console.error("Erro ao buscar template padrão:", error);
-    return null;
+    return true;
+  } catch (error) {
+    console.error("Erro ao redefinir templates padrão:", error);
+    throw error;
   }
-}
+};

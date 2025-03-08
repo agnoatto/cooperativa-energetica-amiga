@@ -5,8 +5,14 @@ import { useEffect, useState } from "react";
 import { CalculoFaturaTemplate } from "@/types/template";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fetchTemplates } from "@/components/configuracoes/services/templateService";
+import { UseFormReturn } from "react-hook-form";
+import { UnidadeBeneficiariaFormValues } from "./schema";
 
-export function UnidadeBeneficiariaBasicInfo() {
+interface UnidadeBeneficiariaBasicInfoProps {
+  form: UseFormReturn<UnidadeBeneficiariaFormValues>;
+}
+
+export function UnidadeBeneficiariaBasicInfo({ form }: UnidadeBeneficiariaBasicInfoProps) {
   const [templates, setTemplates] = useState<CalculoFaturaTemplate[]>([]);
   const [defaultTemplateId, setDefaultTemplateId] = useState<string | undefined>();
 
@@ -33,6 +39,7 @@ export function UnidadeBeneficiariaBasicInfo() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <FormField
+        control={form.control}
         name="numero_uc"
         render={({ field }) => (
           <FormItem>
@@ -46,6 +53,7 @@ export function UnidadeBeneficiariaBasicInfo() {
       />
 
       <FormField
+        control={form.control}
         name="apelido"
         render={({ field }) => (
           <FormItem>
@@ -59,6 +67,7 @@ export function UnidadeBeneficiariaBasicInfo() {
       />
 
       <FormField
+        control={form.control}
         name="percentual_desconto"
         render={({ field }) => (
           <FormItem>
@@ -77,6 +86,7 @@ export function UnidadeBeneficiariaBasicInfo() {
       />
 
       <FormField
+        control={form.control}
         name="calculo_fatura_template_id"
         render={({ field }) => (
           <FormItem>

@@ -29,8 +29,8 @@ export function UsinaBasicInfoFields({ form, usinaId }: UsinaBasicInfoFieldsProp
               <FormControl>
                 <CurrencyInput
                   value={field.value?.toString() || "0"}
-                  onChange={(value) => {
-                    const numericValue = parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+                  onValueChange={(value) => {
+                    const numericValue = parseFloat(value) || 0;
                     field.onChange(numericValue);
                   }}
                 />

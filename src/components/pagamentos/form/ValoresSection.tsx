@@ -20,7 +20,7 @@ export function ValoresSection({ form, setForm, valorBruto, valorEfetivo, valorT
         <CurrencyInput
           id="tusd_fio_b"
           value={form.tusd_fio_b.toString()}
-          onChange={(value) => setForm({ ...form, tusd_fio_b: parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.')) || 0 })}
+          onValueChange={(value) => setForm({ ...form, tusd_fio_b: parseFloat(value) || 0 })}
         />
       </div>
 

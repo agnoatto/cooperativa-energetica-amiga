@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 
 const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
@@ -68,6 +69,7 @@ export const unidadeBeneficiariaFormSchema = z.object({
   uc_origem_creditos: z.string().optional().nullable(),
   data_inicio_creditos: z.string().optional().nullable(),
   observacao_creditos: z.string().optional().nullable(),
+  calculo_fatura_template_id: z.string().optional(),
 });
 
 export const UnidadeBeneficiariaSchema = z.object({

@@ -13,7 +13,7 @@ import { Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
-import { CalculoFaturaTemplate } from "@/types/template";
+import { CalculoFaturaTemplate, CreateCalculoFaturaTemplateInput } from "@/types/template";
 import { 
   createTemplate, 
   updateTemplate, 
@@ -73,8 +73,16 @@ export function CalculoFaturaTemplateForm({
 
         toast.success("Template atualizado com sucesso!");
       } else {
-        // Criar novo template
-        const newTemplate = await createTemplate(values);
+        // Criar novo template - aqui é crucial que nome não seja optional
+        const templateData: CreateCalculoFaturaTemplateInput = {
+          nome: values.nome,
+          descricao: values.descricao || null,
+          formula_valor_desconto: values.formula_valor_desconto,
+          formula_valor_assinatura: values.formula_valor_assinatura,
+          is_padrao: values.is_padrao
+        };
+        
+        const newTemplate = await createTemplate(templateData);
 
         if (!newTemplate) {
           throw new Error("Erro ao criar o template.");

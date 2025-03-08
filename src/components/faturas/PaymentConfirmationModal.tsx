@@ -83,7 +83,7 @@ export function PaymentConfirmationModal({
             <CurrencyInput
               id="valorAdicional"
               value={valorAdicional}
-              onChange={setValorAdicional}
+              onValueChange={setValorAdicional}
             />
           </div>
 

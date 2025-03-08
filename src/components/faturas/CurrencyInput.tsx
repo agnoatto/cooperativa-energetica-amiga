@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 // Definindo um tipo específico para as props do CurrencyInput
-type CurrencyInputProps = {
+export type CurrencyInputProps = {
   value: string;
   onValueChange: (value: string) => void;
   placeholder?: string;

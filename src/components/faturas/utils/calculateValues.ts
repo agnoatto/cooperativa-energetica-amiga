@@ -1,187 +1,226 @@
 
-import { fetchTemplateById, fetchDefaultTemplate } from "@/components/configuracoes/services/templateService";
 import { supabase } from "@/integrations/supabase/client";
+import { CalculoFaturaTemplate } from "@/types/template";
+import { toast } from "sonner";
 
-// Função auxiliar para remover formatação e converter para número
+// Função utilitária para converter valor formatado (ex: 1.234,56) para numérico (1234.56)
 export const parseValue = (value: string): number => {
-  // Se o valor for vazio ou undefined, retorna 0
   if (!value) return 0;
-
-  try {
-    // Se o valor já for um número, simplesmente converte para número
-    // Isso evita processamento desnecessário
-    if (!isNaN(Number(value)) && !value.includes(',') && !value.includes('.')) {
-      return Number(value);
-    }
-
-    // Remove espaços e substitui pontos (de milhares) por nada
-    const cleanValue = value.replace(/\./g, '').trim();
-    
-    // Substitui a vírgula por ponto para conversão em número
-    const numeroFinal = cleanValue.replace(',', '.');
-    
-    // Converte para número garantindo 2 casas decimais
-    const resultado = parseFloat(parseFloat(numeroFinal).toFixed(2));
-    
-    // Se o resultado for NaN, retorna 0
-    return isNaN(resultado) ? 0 : resultado;
-
-  } catch (error) {
-    console.error('[parseValue] Erro ao converter valor:', value, error);
-    return 0;
-  }
+  
+  // Remove todos os caracteres não numéricos exceto virgula e ponto
+  const sanitized = value.replace(/[^\d,.]/g, '');
+  
+  // Converte de formato BR para formato numérico
+  const numeric = sanitized.replace(/\./g, '').replace(',', '.');
+  
+  return parseFloat(numeric) || 0;
 };
 
-export const getCalculoTemplate = async (unidadeBeneficiariaId: string) => {
+// Função utilitária para formatar um valor numérico para formato de moeda BR
+export const formatCurrency = (value: number): string => {
+  return value.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+
+// Função principal para calcular valores da fatura
+export const calculateValues = async ({
+  totalFatura,
+  iluminacaoPublica,
+  outrosValores,
+  faturaConcessionaria,
+  percentualDesconto,
+  unidadeBeneficiariaId
+}: {
+  totalFatura: number;
+  iluminacaoPublica: number;
+  outrosValores: number;
+  faturaConcessionaria: number;
+  percentualDesconto: number;
+  unidadeBeneficiariaId: string;
+}) => {
   try {
-    // Buscar o template associado à unidade beneficiária
-    const { data: unidade, error: unidadeError } = await supabase
-      .from("unidades_beneficiarias")
-      .select("calculo_fatura_template_id")
-      .eq("id", unidadeBeneficiariaId)
-      .single();
+    // Buscar o template vinculado à unidade beneficiária
+    const { data: unidadeData, error: unidadeError } = await supabase.rpc('get_unidade_beneficiaria_template', {
+      unidade_id: unidadeBeneficiariaId
+    });
 
     if (unidadeError) {
-      console.error('[getCalculoTemplate] Erro ao buscar unidade:', unidadeError);
+      console.error("Erro ao buscar template da unidade:", unidadeError);
       throw unidadeError;
     }
 
-    let template = null;
-    const templateId = unidade?.calculo_fatura_template_id;
-    
-    // Se a unidade tem template específico, buscar ele
-    if (templateId) {
-      template = await fetchTemplateById(templateId);
-    }
-    
-    // Se a unidade não tem template específico, buscar o padrão
-    if (!template) {
-      template = await fetchDefaultTemplate();
+    // Template de cálculo a ser utilizado
+    let templateId = unidadeData?.calculo_fatura_template_id;
+
+    // Se a unidade não tiver um template associado, buscar o template padrão
+    if (!templateId) {
+      console.log("Unidade sem template, buscando padrão");
+      const { data: templatePadrao, error: erroPadrao } = await supabase.rpc('get_default_calculo_fatura_template');
+
+      if (erroPadrao) {
+        console.error("Erro ao buscar template padrão:", erroPadrao);
+        throw erroPadrao;
+      }
+
+      if (templatePadrao && templatePadrao.length > 0) {
+        templateId = templatePadrao[0].id;
+      } else {
+        // Se não houver template padrão, usar cálculo padrão
+        console.warn("Nenhum template padrão encontrado, usando cálculo padrão");
+        return calculoPadrao({
+          totalFatura,
+          iluminacaoPublica,
+          outrosValores,
+          faturaConcessionaria,
+          percentualDesconto
+        });
+      }
     }
 
-    // Caso nenhum template seja encontrado, retornar fórmulas padrão
-    if (!template) {
-      return {
-        formula_valor_desconto: "(total_fatura - iluminacao_publica - outros_valores) * (percentual_desconto / 100)",
-        formula_valor_assinatura: "total_fatura - valor_desconto - fatura_concessionaria"
-      };
+    // Buscar o template
+    const { data: template, error: templateError } = await supabase.rpc('get_calculo_fatura_template', {
+      template_id: templateId
+    });
+
+    if (templateError || !template || template.length === 0) {
+      console.error("Erro ao buscar template:", templateError);
+      // Se houver erro ou não encontrar o template, usar cálculo padrão
+      return calculoPadrao({
+        totalFatura,
+        iluminacaoPublica,
+        outrosValores,
+        faturaConcessionaria,
+        percentualDesconto
+      });
     }
 
-    return template;
-  } catch (error) {
-    console.error('[getCalculoTemplate] Erro ao buscar template:', error);
-    // Retornar fórmulas padrão em caso de erro
+    const templateCalculo = template[0] as CalculoFaturaTemplate;
+
+    // Calcular valor de desconto usando a fórmula do template
+    let valorDesconto = 0;
+    try {
+      valorDesconto = calcularComFormula(
+        templateCalculo.formula_valor_desconto,
+        {
+          total_fatura: totalFatura,
+          iluminacao_publica: iluminacaoPublica,
+          outros_valores: outrosValores,
+          fatura_concessionaria: faturaConcessionaria,
+          percentual_desconto: percentualDesconto
+        }
+      );
+    } catch (error) {
+      console.error("Erro ao calcular valor de desconto:", error);
+      toast.error("Erro no cálculo do desconto. Usando método padrão.");
+      
+      // Usar cálculo padrão para o desconto
+      valorDesconto = (totalFatura - iluminacaoPublica - outrosValores) * (percentualDesconto / 100);
+    }
+
+    // Calcular valor da assinatura usando a fórmula do template
+    let valorAssinatura = 0;
+    try {
+      valorAssinatura = calcularComFormula(
+        templateCalculo.formula_valor_assinatura,
+        {
+          total_fatura: totalFatura,
+          iluminacao_publica: iluminacaoPublica,
+          outros_valores: outrosValores,
+          fatura_concessionaria: faturaConcessionaria,
+          percentual_desconto: percentualDesconto,
+          valor_desconto: valorDesconto
+        }
+      );
+    } catch (error) {
+      console.error("Erro ao calcular valor de assinatura:", error);
+      toast.error("Erro no cálculo da assinatura. Usando método padrão.");
+      
+      // Usar cálculo padrão para a assinatura
+      valorAssinatura = totalFatura - valorDesconto - faturaConcessionaria;
+    }
+
+    // Calcular economia
+    const economia = valorDesconto;
+
     return {
-      formula_valor_desconto: "(total_fatura - iluminacao_publica - outros_valores) * (percentual_desconto / 100)",
-      formula_valor_assinatura: "total_fatura - valor_desconto - fatura_concessionaria"
+      valorDesconto,
+      valorAssinatura,
+      economia
     };
+  } catch (error) {
+    console.error("Erro ao calcular valores da fatura:", error);
+    // Em caso de falha, usar o cálculo padrão
+    return calculoPadrao({
+      totalFatura,
+      iluminacaoPublica,
+      outrosValores,
+      faturaConcessionaria,
+      percentualDesconto
+    });
   }
 };
 
-export const calculateValues = async (
-  totalFatura: string,
-  iluminacaoPublica: string,
-  outrosValores: string,
-  faturaConcessionaria: string,
-  percentualDesconto: number,
-  unidadeBeneficiariaId: string
-) => {
-  console.log('[calculateValues] Valores recebidos para cálculo:', {
-    totalFatura,
-    iluminacaoPublica,
-    outrosValores,
-    faturaConcessionaria,
-    percentualDesconto,
-    unidadeBeneficiariaId,
-    tipos: {
-      totalFatura: typeof totalFatura,
-      iluminacaoPublica: typeof iluminacaoPublica,
-      outrosValores: typeof outrosValores,
-      faturaConcessionaria: typeof faturaConcessionaria
-    }
-  });
+// Função para calcular usando uma fórmula
+const calcularComFormula = (
+  formula: string,
+  valores: {
+    total_fatura: number;
+    iluminacao_publica: number;
+    outros_valores: number;
+    fatura_concessionaria: number;
+    percentual_desconto: number;
+    valor_desconto?: number;
+  }
+): number => {
+  let formulaProcessada = formula;
 
-  // Converte todos os valores usando a função parseValue
-  const total = parseValue(totalFatura);
-  const iluminacao = parseValue(iluminacaoPublica);
-  const outros = parseValue(outrosValores);
-  const concessionaria = parseValue(faturaConcessionaria);
-  
-  console.log('[calculateValues] Valores após parseValue:', {
-    total,
-    iluminacao,
-    outros,
-    concessionaria
+  // Substituir variáveis da fórmula pelos valores
+  Object.entries(valores).forEach(([chave, valor]) => {
+    if (valor !== undefined) {
+      formulaProcessada = formulaProcessada.replace(
+        new RegExp(chave, 'g'),
+        valor.toString()
+      );
+    }
   });
 
   try {
-    // Buscar o template de cálculo
-    const template = await getCalculoTemplate(unidadeBeneficiariaId);
-    console.log('[calculateValues] Template encontrado:', template);
-
-    // Preparar os parâmetros para a avaliação da fórmula
-    const params = {
-      total_fatura: total,
-      iluminacao_publica: iluminacao,
-      outros_valores: outros,
-      fatura_concessionaria: concessionaria,
-      percentual_desconto: percentualDesconto
-    };
-
-    // Calcular o valor do desconto
-    let valorDesconto = 0;
-    try {
-      // Avaliar a fórmula de desconto substituindo as variáveis
-      let formula = template.formula_valor_desconto;
-      Object.entries(params).forEach(([key, value]) => {
-        formula = formula.replace(new RegExp(key, 'g'), value.toString());
-      });
-      valorDesconto = eval(formula);
-      valorDesconto = parseFloat(valorDesconto.toFixed(2));
-    } catch (error) {
-      console.error('[calculateValues] Erro ao calcular desconto:', error);
-      // Usar o cálculo padrão em caso de erro
-      const baseDesconto = total - iluminacao - outros;
-      valorDesconto = parseFloat((baseDesconto * (percentualDesconto / 100)).toFixed(2));
-    }
-
-    // Calcular o valor da assinatura
-    let valorAssinatura = 0;
-    try {
-      // Avaliar a fórmula de assinatura substituindo as variáveis (incluindo o valor_desconto)
-      let formula = template.formula_valor_assinatura;
-      Object.entries({...params, valor_desconto: valorDesconto}).forEach(([key, value]) => {
-        formula = formula.replace(new RegExp(key, 'g'), value.toString());
-      });
-      valorAssinatura = eval(formula);
-      valorAssinatura = parseFloat(valorAssinatura.toFixed(2));
-    } catch (error) {
-      console.error('[calculateValues] Erro ao calcular assinatura:', error);
-      // Usar o cálculo padrão em caso de erro
-      valorAssinatura = parseFloat((total - valorDesconto - concessionaria).toFixed(2));
-    }
-
-    console.log('[calculateValues] Valores calculados:', {
-      valorDesconto,
-      valorAssinatura
-    });
-
-    return {
-      valor_desconto: valorDesconto,
-      valor_assinatura: valorAssinatura
-    };
+    // Avaliar a fórmula
+    // eslint-disable-next-line no-eval
+    const resultado = eval(formulaProcessada);
+    return isNaN(resultado) ? 0 : resultado;
   } catch (error) {
-    console.error('[calculateValues] Erro ao calcular valores:', error);
-    
-    // Cálculo padrão em caso de erro
-    const percentual = percentualDesconto / 100;
-    const baseDesconto = total - iluminacao - outros;
-    const valorDesconto = parseFloat((baseDesconto * percentual).toFixed(2));
-    const valorAssinatura = parseFloat((total - valorDesconto - concessionaria).toFixed(2));
-
-    return {
-      valor_desconto: valorDesconto,
-      valor_assinatura: valorAssinatura
-    };
+    console.error("Erro ao avaliar fórmula:", error);
+    throw new Error("Erro ao avaliar fórmula de cálculo");
   }
+};
+
+// Função para o cálculo padrão (usado como fallback)
+const calculoPadrao = ({
+  totalFatura,
+  iluminacaoPublica,
+  outrosValores,
+  faturaConcessionaria,
+  percentualDesconto
+}: {
+  totalFatura: number;
+  iluminacaoPublica: number;
+  outrosValores: number;
+  faturaConcessionaria: number;
+  percentualDesconto: number;
+}) => {
+  const baseCalculo = totalFatura - iluminacaoPublica - outrosValores;
+  const valorDesconto = baseCalculo * (percentualDesconto / 100);
+  const valorAssinatura = totalFatura - valorDesconto - faturaConcessionaria;
+  const economia = valorDesconto;
+
+  return {
+    valorDesconto,
+    valorAssinatura,
+    economia
+  };
 };
