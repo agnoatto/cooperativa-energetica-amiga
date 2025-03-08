@@ -13,6 +13,9 @@ interface MonthSelectorProps {
 
 export function MonthSelector({ currentDate, onPreviousMonth, onNextMonth }: MonthSelectorProps) {
   const isMobile = useIsMobile();
+  
+  // Formatar a data no formato "Mês de Ano"
+  const formattedDate = format(currentDate, "MMMM 'de' yyyy", { locale: ptBR });
 
   return (
     <div className="flex items-center justify-center py-4 sm:py-6">
@@ -22,13 +25,14 @@ export function MonthSelector({ currentDate, onPreviousMonth, onNextMonth }: Mon
           size={isMobile ? "icon" : "default"}
           onClick={onPreviousMonth}
           className="h-10 w-10 sm:h-9 sm:w-9"
+          aria-label="Mês anterior"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
         
         <div className="min-w-[140px] text-center">
           <span className="text-base sm:text-lg font-medium">
-            {format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })}
+            {formattedDate}
           </span>
         </div>
         
@@ -37,6 +41,7 @@ export function MonthSelector({ currentDate, onPreviousMonth, onNextMonth }: Mon
           size={isMobile ? "icon" : "default"}
           onClick={onNextMonth}
           className="h-10 w-10 sm:h-9 sm:w-9"
+          aria-label="Próximo mês"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
