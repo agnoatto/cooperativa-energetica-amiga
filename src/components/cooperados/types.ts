@@ -34,6 +34,7 @@ export interface UnidadeBeneficiariaFormValues {
   uc_origem_creditos?: string | null;
   data_inicio_creditos?: string | null;
   observacao_creditos?: string | null;
+  calculo_fatura_template_id?: string;
 }
 
 export interface AddressFieldsProps {

@@ -48,6 +48,7 @@ export function useUnidadeBeneficiariaForm({
       uc_origem_creditos: null,
       data_inicio_creditos: null,
       observacao_creditos: null,
+      calculo_fatura_template_id: "", // Adicionando campo de template aqui
     },
   });
 
@@ -87,6 +88,27 @@ export function useUnidadeBeneficiariaForm({
       isMounted = false;
     };
   }, []); // Executar apenas uma vez na montagem
+
+  // Carregar o template padrão para novas unidades
+  useEffect(() => {
+    if (!unidadeId) {
+      const fetchDefaultTemplate = async () => {
+        try {
+          const { data, error } = await supabase.rpc('get_default_calculo_fatura_template');
+          
+          if (error) throw error;
+          
+          if (data && data.length > 0) {
+            form.setValue('calculo_fatura_template_id', data[0].id);
+          }
+        } catch (error: any) {
+          console.error("Erro ao buscar template padrão:", error);
+        }
+      };
+      
+      fetchDefaultTemplate();
+    }
+  }, [unidadeId]);
 
   // Carregar dados da unidade quando unidadeId mudar
   useEffect(() => {
@@ -128,6 +150,7 @@ export function useUnidadeBeneficiariaForm({
             uc_origem_creditos: data.uc_origem_creditos,
             data_inicio_creditos: data.data_inicio_creditos ? new Date(data.data_inicio_creditos).toISOString().split('T')[0] : null,
             observacao_creditos: data.observacao_creditos,
+            calculo_fatura_template_id: data.calculo_fatura_template_id || "", // Adicionando o template_id aqui
           });
         }
       } catch (error: any) {
@@ -200,7 +223,10 @@ export function useUnidadeBeneficiariaForm({
         uc_origem_creditos: data.uc_origem_creditos,
         data_inicio_creditos: data.data_inicio_creditos ? new Date(data.data_inicio_creditos).toISOString() : null,
         observacao_creditos: data.observacao_creditos,
+        calculo_fatura_template_id: data.calculo_fatura_template_id || null, // Adicionando o template_id no objeto para salvar
       };
+
+      console.log("Dados da unidade para salvar:", unidadeData);
 
       if (unidadeId) {
         const { error } = await supabase
