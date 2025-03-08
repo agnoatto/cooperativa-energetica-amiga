@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -21,6 +20,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ExcelTable } from "@/components/ui/excel-table/ExcelTable";
+import { unidadesTableColumns, UNIDADES_TABLE_STORAGE_KEY } from "./table/unidadesTableConfig";
 
 // Define tipo para a ordenação
 type SortDirection = 'asc' | 'desc' | null;
@@ -31,6 +32,7 @@ interface UnidadesTableProps {
   onEdit: (cooperadoId: string, unidadeId: string) => void;
   onDelete: (unidadeId: string, motivo?: string) => Promise<void>;
   onReativar?: (unidadeId: string) => Promise<void>;
+  visibleColumns?: string[]; // Adiciona prop para controlar colunas visíveis
 }
 
 export function UnidadesTable({
@@ -38,6 +40,7 @@ export function UnidadesTable({
   onEdit,
   onDelete,
   onReativar,
+  visibleColumns = unidadesTableColumns.map(col => col.id), // Padrão: todas as colunas
 }: UnidadesTableProps) {
   const isMobile = useIsMobile();
   const [selectedUnidade, setSelectedUnidade] = useState<any>(null);
@@ -148,7 +151,13 @@ export function UnidadesTable({
     return `flex items-center ${sortField === field ? 'text-primary' : ''} cursor-pointer hover:text-primary transition-colors`;
   };
 
+  // Filtrar colunas com base nas colunas visíveis
+  const filteredColumns = unidadesTableColumns.filter(col => 
+    visibleColumns.includes(col.id)
+  );
+
   if (isMobile) {
+    // Na versão mobile, sempre mantemos as informações essenciais
     return (
       <>
         <div className="space-y-4">
@@ -173,31 +182,47 @@ export function UnidadesTable({
               </div>
 
               <div className="space-y-2 text-sm">
-                <div className="grid grid-cols-2 gap-1">
-                  <span className="text-gray-500">Desconto:</span>
-                  <span>{unidade.percentual_desconto}%</span>
-                </div>
+                {/* Mostrar cooperado se estiver nas colunas visíveis */}
+                {visibleColumns.includes('cooperado') && (
+                  <div className="grid grid-cols-2 gap-1">
+                    <span className="text-gray-500">Cooperado:</span>
+                    <span>{unidade.cooperado?.nome}</span>
+                  </div>
+                )}
 
-                <div className="grid grid-cols-2 gap-1">
-                  <span className="text-gray-500">Consumo:</span>
-                  <span>{formatarKwh(unidade.consumo_kwh)} kWh</span>
-                </div>
+                {visibleColumns.includes('percentual_desconto') && (
+                  <div className="grid grid-cols-2 gap-1">
+                    <span className="text-gray-500">Desconto:</span>
+                    <span>{unidade.percentual_desconto}%</span>
+                  </div>
+                )}
 
-                <div className="grid grid-cols-2 gap-1">
-                  <span className="text-gray-500">Data Entrada:</span>
-                  <span>{formatDate(unidade.data_entrada)}</span>
-                </div>
+                {visibleColumns.includes('consumo_kwh') && (
+                  <div className="grid grid-cols-2 gap-1">
+                    <span className="text-gray-500">Consumo:</span>
+                    <span>{formatarKwh(unidade.consumo_kwh)} kWh</span>
+                  </div>
+                )}
 
-                {unidade.data_saida && (
+                {visibleColumns.includes('data_entrada') && (
+                  <div className="grid grid-cols-2 gap-1">
+                    <span className="text-gray-500">Data Entrada:</span>
+                    <span>{formatDate(unidade.data_entrada)}</span>
+                  </div>
+                )}
+
+                {unidade.data_saida && visibleColumns.includes('data_saida') && (
                   <div className="grid grid-cols-2 gap-1">
                     <span className="text-gray-500">Data Saída:</span>
                     <span>{formatDate(unidade.data_saida)}</span>
                   </div>
                 )}
 
-                <div className="mt-2 pt-2 border-t border-gray-100">
-                  <p className="text-gray-600 text-sm line-clamp-2">{unidade.endereco}</p>
-                </div>
+                {visibleColumns.includes('endereco') && (
+                  <div className="mt-2 pt-2 border-t border-gray-100">
+                    <p className="text-gray-600 text-sm line-clamp-2">{unidade.endereco}</p>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-2 mt-4">
@@ -292,79 +317,63 @@ export function UnidadesTable({
     );
   }
 
+  // Versão desktop - adaptada para usar o ExcelTable para algumas visualizações
   return (
     <>
       <div className="rounded-md border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead onClick={() => handleSort('numero_uc')}>
-                  <div className={getSortableHeaderStyle('numero_uc')}>
-                    Número UC
-                    <SortIndicator field="numero_uc" />
-                  </div>
-                </TableHead>
-                <TableHead onClick={() => handleSort('apelido')}>
-                  <div className={getSortableHeaderStyle('apelido')}>
-                    Apelido
-                    <SortIndicator field="apelido" />
-                  </div>
-                </TableHead>
-                <TableHead onClick={() => handleSort('endereco')}>
-                  <div className={getSortableHeaderStyle('endereco')}>
-                    Endereço
-                    <SortIndicator field="endereco" />
-                  </div>
-                </TableHead>
-                <TableHead onClick={() => handleSort('percentual_desconto')}>
-                  <div className={getSortableHeaderStyle('percentual_desconto')}>
-                    Desconto
-                    <SortIndicator field="percentual_desconto" />
-                  </div>
-                </TableHead>
-                <TableHead onClick={() => handleSort('consumo_kwh')}>
-                  <div className={getSortableHeaderStyle('consumo_kwh')}>
-                    Consumo
-                    <SortIndicator field="consumo_kwh" />
-                  </div>
-                </TableHead>
-                <TableHead onClick={() => handleSort('data_entrada')}>
-                  <div className={getSortableHeaderStyle('data_entrada')}>
-                    Data Entrada
-                    <SortIndicator field="data_entrada" />
-                  </div>
-                </TableHead>
-                <TableHead onClick={() => handleSort('status')}>
-                  <div className={getSortableHeaderStyle('status')}>
-                    Status
-                    <SortIndicator field="status" />
-                  </div>
-                </TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedUnidades.map((unidade) => (
-                <TableRow 
-                  key={unidade.id}
-                  className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => handleViewDetails(unidade)}
-                >
-                  <TableCell className="whitespace-nowrap">{unidade.numero_uc}</TableCell>
-                  <TableCell className="whitespace-nowrap">{unidade.apelido || '-'}</TableCell>
-                  <TableCell className="whitespace-nowrap">{unidade.endereco}</TableCell>
-                  <TableCell className="whitespace-nowrap">{unidade.percentual_desconto}%</TableCell>
-                  <TableCell className="whitespace-nowrap">{formatarKwh(unidade.consumo_kwh)} kWh</TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    {formatDate(unidade.data_entrada)}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    {getStatusBadge(unidade)}
-                  </TableCell>
-                  <TableCell className="text-right whitespace-nowrap space-x-2">
+        <ExcelTable
+          columns={filteredColumns}
+          storageKey={UNIDADES_TABLE_STORAGE_KEY}
+        >
+          <tbody>
+            {sortedUnidades.map((unidade) => (
+              <tr
+                key={unidade.id}
+                className="cursor-pointer hover:bg-gray-50"
+                onClick={() => handleViewDetails(unidade)}
+              >
+                {visibleColumns.includes('numero_uc') && (
+                  <td className="truncate">{unidade.numero_uc}</td>
+                )}
+                
+                {visibleColumns.includes('cooperado') && (
+                  <td className="truncate">{unidade.cooperado?.nome || '-'}</td>
+                )}
+                
+                {visibleColumns.includes('apelido') && (
+                  <td className="truncate">{unidade.apelido || '-'}</td>
+                )}
+                
+                {visibleColumns.includes('endereco') && (
+                  <td className="truncate max-w-[300px]">{unidade.endereco}</td>
+                )}
+                
+                {visibleColumns.includes('percentual_desconto') && (
+                  <td className="truncate">{unidade.percentual_desconto}%</td>
+                )}
+                
+                {visibleColumns.includes('consumo_kwh') && (
+                  <td className="truncate">{formatarKwh(unidade.consumo_kwh)} kWh</td>
+                )}
+                
+                {visibleColumns.includes('data_entrada') && (
+                  <td className="truncate">{formatDate(unidade.data_entrada)}</td>
+                )}
+                
+                {visibleColumns.includes('data_saida') && (
+                  <td className="truncate">
+                    {unidade.data_saida ? formatDate(unidade.data_saida) : '-'}
+                  </td>
+                )}
+                
+                {visibleColumns.includes('status') && (
+                  <td>{getStatusBadge(unidade)}</td>
+                )}
+                
+                {visibleColumns.includes('acoes') && (
+                  <td className="text-right whitespace-nowrap">
                     {!unidade.data_saida ? (
-                      <>
+                      <div className="flex justify-end space-x-2">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -406,7 +415,7 @@ export function UnidadesTable({
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-                      </>
+                      </div>
                     ) : (
                       <TooltipProvider>
                         <Tooltip>
@@ -429,12 +438,12 @@ export function UnidadesTable({
                         </Tooltip>
                       </TooltipProvider>
                     )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </ExcelTable>
       </div>
 
       <UnidadeDetailsDialog

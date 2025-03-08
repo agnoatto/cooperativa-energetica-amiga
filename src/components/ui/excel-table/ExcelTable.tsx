@@ -20,7 +20,11 @@ export function ExcelTable({
   const [settings, setSettings] = useState<TableSettings>(() => {
     const saved = localStorage.getItem(storageKey);
     if (saved) {
-      return JSON.parse(saved);
+      try {
+        return JSON.parse(saved);
+      } catch (error) {
+        console.error("Erro ao carregar configurações da tabela:", error);
+      }
     }
     return {
       columnWidths: {},
@@ -29,7 +33,11 @@ export function ExcelTable({
   });
 
   useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(settings));
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(settings));
+    } catch (error) {
+      console.error("Erro ao salvar configurações da tabela:", error);
+    }
   }, [settings, storageKey]);
 
   const handleResize = useCallback((columnId: string, width: number) => {
@@ -42,6 +50,11 @@ export function ExcelTable({
     }));
     onColumnResize?.(columnId, width);
   }, [onColumnResize]);
+
+  // Filtrar colunas visíveis se a prop for fornecida
+  const visibleColumnData = visibleColumns 
+    ? columns.filter(col => visibleColumns.includes(col.id))
+    : columns;
 
   return (
     <div className="relative w-full overflow-x-auto shadow-sm border border-gray-200 rounded-lg">
@@ -58,7 +71,7 @@ export function ExcelTable({
       >
         <thead className={cn(stickyHeader && "sticky top-0 z-10")}>
           <tr>
-            {columns.map((column) => (
+            {visibleColumnData.map((column) => (
               <th
                 key={column.id}
                 className="px-3 py-3 text-left font-medium border-b border-r border-gray-200 bg-[#F8FAFC] relative"
