@@ -11,9 +11,6 @@ import { CurrencyInput } from '@/components/faturas/CurrencyInput';
 import { Textarea } from '@/components/ui/textarea';
 import { FormDescription } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { convertLocalToUTC, convertUTCToLocal } from '@/utils/dateFormatters';
 
 export function UnidadeBeneficiariaBasicInfo({ form }) {
   const [templates, setTemplates] = useState<CalculoFaturaTemplate[]>([]);
@@ -91,53 +88,6 @@ export function UnidadeBeneficiariaBasicInfo({ form }) {
                 decimalScale={2}
               />
             </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="data_entrada"
-        render={({ field }) => (
-          <FormItem className="flex flex-col">
-            <FormLabel>Data de Entrada</FormLabel>
-            <FormControl>
-              <Input
-                type="date"
-                value={convertUTCToLocal(field.value)}
-                onChange={(e) => field.onChange(convertLocalToUTC(e.target.value))}
-                className={cn(
-                  "w-full",
-                  !field.value && "text-muted-foreground"
-                )}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="data_saida"
-        render={({ field }) => (
-          <FormItem className="flex flex-col">
-            <FormLabel>Data de Saída (opcional)</FormLabel>
-            <FormControl>
-              <Input
-                type="date"
-                value={convertUTCToLocal(field.value)}
-                onChange={(e) => field.onChange(convertLocalToUTC(e.target.value))}
-                className={cn(
-                  "w-full",
-                  !field.value && "text-muted-foreground"
-                )}
-              />
-            </FormControl>
-            <FormDescription>
-              Preencha apenas se a unidade já saiu ou tem data prevista para sair
-            </FormDescription>
             <FormMessage />
           </FormItem>
         )}
