@@ -10,7 +10,12 @@ import { PaymentConfirmationModal } from "./PaymentConfirmationModal";
 import { UpdateFaturaInput } from "@/hooks/faturas/useUpdateFatura";
 
 export function FaturasContainer() {
-  const { selectedDate, handleMonthChange, handleYearChange } = useMonthSelection();
+  const { 
+    selectedDate, 
+    handlePreviousMonth, 
+    handleNextMonth 
+  } = useMonthSelection();
+  
   const { 
     faturas, 
     isLoading, 
@@ -20,19 +25,8 @@ export function FaturasContainer() {
     updateFaturaStatus,
     updateFatura 
   } = useFaturas(selectedDate);
+  
   const [faturaToConfirmPayment, setFaturaToConfirmPayment] = useState<Fatura | null>(null);
-
-  const handlePreviousMonth = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setMonth(newDate.getMonth() - 1);
-    handleMonthChange(newDate.getMonth());
-  };
-
-  const handleNextMonth = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setMonth(newDate.getMonth() + 1);
-    handleMonthChange(newDate.getMonth());
-  };
 
   const handleDeleteFatura = async (id: string) => {
     await deleteFatura(id);
