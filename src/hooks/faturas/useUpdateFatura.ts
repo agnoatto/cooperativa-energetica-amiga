@@ -31,29 +31,31 @@ export const useUpdateFatura = () => {
       console.log("[useUpdateFatura] Atualizando fatura:", data);
 
       try {
-        // Usando a função rpc que criamos no banco de dados
+        // Extrair os campos de arquivo para tratá-los separadamente
+        const {
+          arquivo_concessionaria_nome,
+          arquivo_concessionaria_path,
+          arquivo_concessionaria_tipo,
+          arquivo_concessionaria_tamanho,
+          ...restData
+        } = data;
+
+        // Atualizar a tabela faturas com os dados principais
         const { data: updatedFatura, error } = await supabase
-          .rpc('update_fatura', {
-            p_id: data.id,
-            p_consumo_kwh: data.consumo_kwh,
-            p_valor_assinatura: data.valor_assinatura,
-            p_data_vencimento: data.data_vencimento,
-            p_fatura_concessionaria: data.fatura_concessionaria,
-            p_total_fatura: data.total_fatura,
-            p_iluminacao_publica: data.iluminacao_publica,
-            p_outros_valores: data.outros_valores,
-            p_valor_desconto: data.valor_desconto,
-            p_economia_acumulada: data.economia_acumulada,
-            p_saldo_energia_kwh: data.saldo_energia_kwh,
-            p_observacao: data.observacao,
-            p_arquivo_concessionaria_nome: data.arquivo_concessionaria_nome,
-            p_arquivo_concessionaria_path: data.arquivo_concessionaria_path,
-            p_arquivo_concessionaria_tipo: data.arquivo_concessionaria_tipo,
-            p_arquivo_concessionaria_tamanho: data.arquivo_concessionaria_tamanho
-          });
+          .from('faturas')
+          .update({
+            ...restData,
+            arquivo_concessionaria_nome,
+            arquivo_concessionaria_path,
+            arquivo_concessionaria_tipo,
+            arquivo_concessionaria_tamanho
+          })
+          .eq('id', data.id)
+          .select('*')
+          .single();
 
         if (error) {
-          console.error("[useUpdateFatura] Erro na função RPC ao atualizar fatura:", error);
+          console.error("[useUpdateFatura] Erro ao atualizar fatura:", error);
           throw new Error(`Erro ao atualizar fatura: ${error.message}`);
         }
 
@@ -63,7 +65,52 @@ export const useUpdateFatura = () => {
         }
 
         console.log("[useUpdateFatura] Fatura atualizada com sucesso:", updatedFatura);
-        return updatedFatura as unknown as Fatura;
+        
+        // Buscar a fatura completa para retornar com todos os relacionamentos
+        const { data: completeFatura, error: completeError } = await supabase
+          .from("faturas")
+          .select(`
+            id,
+            consumo_kwh,
+            valor_assinatura,
+            status,
+            data_vencimento,
+            mes,
+            ano,
+            fatura_concessionaria,
+            total_fatura,
+            iluminacao_publica,
+            outros_valores,
+            valor_desconto,
+            economia_acumulada,
+            saldo_energia_kwh,
+            observacao,
+            arquivo_concessionaria_nome,
+            arquivo_concessionaria_path,
+            arquivo_concessionaria_tipo,
+            arquivo_concessionaria_tamanho,
+            unidade_beneficiaria:unidade_beneficiaria_id (
+              id,
+              numero_uc,
+              apelido,
+              endereco,
+              percentual_desconto,
+              cooperado:cooperado_id (
+                nome,
+                documento
+              )
+            )
+          `)
+          .eq("id", data.id)
+          .single();
+
+        if (completeError) {
+          console.error("[useUpdateFatura] Erro ao buscar fatura completa:", completeError);
+          // Ainda retorna a fatura atualizada mesmo sem os relacionamentos
+          return updatedFatura as unknown as Fatura;
+        }
+
+        return completeFatura as Fatura;
       } catch (error) {
         console.error("[useUpdateFatura] Erro ao processar atualização:", error);
         throw error;

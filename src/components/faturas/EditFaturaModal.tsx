@@ -6,26 +6,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CurrencyInput } from "@/components/faturas/CurrencyInput";
 import { useState } from "react";
 import { calculateValues } from "./utils/calculateValues";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { FaturaFileUpload } from "./FaturaFileUpload";
+import { BasicInfoSection } from "./edit/BasicInfoSection";
+import { FaturaValoresSection } from "./edit/FaturaValoresSection";
+import { DescontoAssinaturaSection } from "./edit/DescontoAssinaturaSection";
+import { ObservacaoSection } from "./edit/ObservacaoSection";
+import { ArquivoSection } from "./edit/ArquivoSection";
+import { ActionButtons } from "./edit/ActionButtons";
 
 interface EditFaturaModalProps {
   fatura: any;
@@ -179,197 +173,48 @@ export function EditFaturaModal({
 
         <Form {...formState}>
           <form onSubmit={formState.handleSubmit(handleSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={formState.control}
-                name="consumo_kwh"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Consumo (kWh)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Consumo em kWh" type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={formState.control}
-                name="data_vencimento"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data de Vencimento</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} defaultValue={formatDate(fatura?.data_vencimento)} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={formState.control}
-                name="total_fatura"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Total da Fatura</FormLabel>
-                    <FormControl>
-                      <CurrencyInput
-                        placeholder="Total da fatura"
-                        value={localTotalFatura}
-                        onValueChange={setLocalTotalFatura}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={formState.control}
-                name="fatura_concessionaria"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fatura da Concessionária</FormLabel>
-                    <FormControl>
-                      <CurrencyInput
-                        placeholder="Valor da fatura da concessionária"
-                        value={localFaturaConcessionaria}
-                        onValueChange={setLocalFaturaConcessionaria}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={formState.control}
-                name="iluminacao_publica"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Iluminação Pública</FormLabel>
-                    <FormControl>
-                      <CurrencyInput
-                        placeholder="Valor da iluminação pública"
-                        value={localIluminacaoPublica}
-                        onValueChange={setLocalIluminacaoPublica}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={formState.control}
-                name="outros_valores"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Outros Valores</FormLabel>
-                    <FormControl>
-                      <CurrencyInput
-                        placeholder="Outros valores"
-                        value={localOutrosValores}
-                        onValueChange={setLocalOutrosValores}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <FormField
-                  control={formState.control}
-                  name="valor_desconto"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Valor do Desconto</FormLabel>
-                      <FormControl>
-                        <CurrencyInput
-                          placeholder="Valor do desconto"
-                          value={localValorDesconto}
-                          onValueChange={setLocalValorDesconto}
-                          disabled
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div>
-                <FormField
-                  control={formState.control}
-                  name="valor_assinatura"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Valor da Assinatura</FormLabel>
-                      <FormControl>
-                        <CurrencyInput
-                          placeholder="Valor da assinatura"
-                          value={localValorAssinatura}
-                          onValueChange={setLocalValorAssinatura}
-                          disabled
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            <Button type="button" onClick={handleCalcularClick} disabled={isCalculating}>
-              {isCalculating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Calcular
-            </Button>
-
-            <FormField
-              control={formState.control}
-              name="observacao"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Observação</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Observação" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <BasicInfoSection 
+              formState={formState} 
+              formatDate={formatDate} 
             />
-
-            <div className="space-y-2">
-              <FormLabel>Fatura da Concessionária (PDF)</FormLabel>
-              <FaturaFileUpload 
-                faturaId={fatura.id}
-                arquivoNome={fatura.arquivo_concessionaria_nome}
-                arquivoPath={fatura.arquivo_concessionaria_path}
-                arquivoTipo={fatura.arquivo_concessionaria_tipo}
-                arquivoTamanho={fatura.arquivo_concessionaria_tamanho}
-                onSuccess={() => toast.success("Arquivo atualizado com sucesso")}
-                onFileChange={handleFileChange}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isProcessing}>
-                {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Salvar
-              </Button>
-            </div>
+            
+            <FaturaValoresSection 
+              formState={formState}
+              localTotalFatura={localTotalFatura}
+              setLocalTotalFatura={setLocalTotalFatura}
+              localFaturaConcessionaria={localFaturaConcessionaria}
+              setLocalFaturaConcessionaria={setLocalFaturaConcessionaria}
+              localIluminacaoPublica={localIluminacaoPublica}
+              setLocalIluminacaoPublica={setLocalIluminacaoPublica}
+              localOutrosValores={localOutrosValores}
+              setLocalOutrosValores={setLocalOutrosValores}
+            />
+            
+            <DescontoAssinaturaSection 
+              formState={formState}
+              localValorDesconto={localValorDesconto}
+              setLocalValorDesconto={setLocalValorDesconto}
+              localValorAssinatura={localValorAssinatura}
+              setLocalValorAssinatura={setLocalValorAssinatura}
+              isCalculating={isCalculating}
+              onCalcularClick={handleCalcularClick}
+            />
+            
+            <ObservacaoSection formState={formState} />
+            
+            <ArquivoSection 
+              faturaId={fatura.id}
+              arquivoNome={fatura.arquivo_concessionaria_nome}
+              arquivoPath={fatura.arquivo_concessionaria_path}
+              arquivoTipo={fatura.arquivo_concessionaria_tipo}
+              arquivoTamanho={fatura.arquivo_concessionaria_tamanho}
+              onFileChange={handleFileChange}
+            />
+            
+            <ActionButtons 
+              onClose={onClose} 
+              isProcessing={isProcessing} 
+            />
           </form>
         </Form>
       </DialogContent>
