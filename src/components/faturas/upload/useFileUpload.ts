@@ -26,10 +26,18 @@ const retry = async (fn: RetryFunction, attempts: number = RETRY_ATTEMPTS): Prom
 
 const verifyFileExists = async (path: string): Promise<boolean> => {
   try {
-    const { data } = await supabase.storage
+    const folder = path.split('/')[0];
+    const filename = path.split('/')[1];
+    
+    const { data, error } = await supabase.storage
       .from(STORAGE_BUCKET)
-      .download(path);
-    return !!data;
+      .list(folder, {
+        limit: 1,
+        search: filename
+      });
+    
+    if (error) throw error;
+    return data && data.length > 0;
   } catch (error) {
     console.error('Erro ao verificar arquivo:', error);
     return false;
@@ -55,7 +63,7 @@ export function useFileUpload(
       if (error) throw error;
       return data.signedUrl;
     } catch (error: any) {
-      console.error('Erro ao gerar URL assinada:', error);
+      console.error('Erro ao gerar URL assinada:', error.message);
       return null;
     }
   };
@@ -233,7 +241,7 @@ export function useFileUpload(
       // Verificar se arquivo existe
       const exists = await verifyFileExists(arquivoPath);
       if (!exists) {
-        throw new Error('Arquivo não encontrado');
+        throw new Error('Arquivo não encontrado no storage');
       }
 
       // Gerar URL assinada com retry

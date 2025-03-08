@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertCircle, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useEffect } from "react";
 
 interface PdfPreviewProps {
   isOpen: boolean;
@@ -11,6 +12,12 @@ interface PdfPreviewProps {
 }
 
 export function PdfPreview({ isOpen, onClose, pdfUrl }: PdfPreviewProps) {
+  useEffect(() => {
+    if (isOpen && !pdfUrl) {
+      console.error("PdfPreview aberto sem URL válida");
+    }
+  }, [isOpen, pdfUrl]);
+
   if (!isOpen) return null;
 
   return (
@@ -28,12 +35,13 @@ export function PdfPreview({ isOpen, onClose, pdfUrl }: PdfPreviewProps) {
             <X className="h-4 w-4" />
           </Button>
         </DialogHeader>
-        <div className="flex-1 w-full h-full">
+        <div className="flex-1 w-full h-[calc(100%-60px)]">
           {pdfUrl ? (
             <iframe
               src={pdfUrl}
               className="w-full h-full rounded-md"
               title="Visualização da Conta de Energia"
+              sandbox="allow-scripts allow-same-origin"
             />
           ) : (
             <Alert variant="destructive">

@@ -32,6 +32,7 @@ export function FaturasDesktopTable({
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
+  const [isLoadingPdf, setIsLoadingPdf] = useState(false);
 
   const handleViewPdf = async (fatura: Fatura) => {
     if (!fatura.arquivo_concessionaria_path) {
@@ -39,21 +40,48 @@ export function FaturasDesktopTable({
       return;
     }
 
+    setIsLoadingPdf(true);
+    const toastId = toast.loading("Carregando visualização...");
+
     try {
       setSelectedFatura(fatura);
-      const { data: storageUrl } = await supabase.storage
+      
+      // Verificar se o arquivo existe antes de tentar obter a URL assinada
+      const { data: fileExists } = await supabase
+        .storage
+        .from("faturas")
+        .list(fatura.arquivo_concessionaria_path.split('/')[0], {
+          limit: 1,
+          offset: 0,
+          search: fatura.arquivo_concessionaria_path.split('/')[1]
+        });
+      
+      if (!fileExists || fileExists.length === 0) {
+        throw new Error("Arquivo não encontrado no storage");
+      }
+
+      // Obter URL assinada
+      const { data: storageUrl, error } = await supabase.storage
         .from("faturas")
         .createSignedUrl(fatura.arquivo_concessionaria_path, 3600);
+
+      if (error) {
+        throw error;
+      }
 
       if (storageUrl?.signedUrl) {
         setPdfUrl(storageUrl.signedUrl);
         setShowPdfPreview(true);
+        toast.success("PDF carregado com sucesso!", { id: toastId });
       } else {
-        toast.error("Não foi possível acessar o arquivo");
+        throw new Error("Não foi possível gerar a URL assinada");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao obter URL do PDF:", error);
-      toast.error("Erro ao carregar o PDF");
+      toast.error(`Erro ao carregar o PDF: ${error.message}`, { id: toastId });
+      setPdfUrl(null);
+    } finally {
+      setIsLoadingPdf(false);
     }
   };
 
