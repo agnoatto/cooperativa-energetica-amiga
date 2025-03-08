@@ -6,7 +6,7 @@ import { Loader2, Upload } from "lucide-react";
 interface UploadDropZoneProps {
   isUploading: boolean;
   isDragging: boolean;
-  onDrop: (file: File) => void;
+  onDrop: (files: File[]) => void;  // Alterado de (file: File) => void para (files: File[]) => void
   onDragStateChange: (isDragging: boolean) => void;
 }
 
@@ -26,9 +26,9 @@ export function UploadDropZone({
     e.stopPropagation();
     onDragStateChange(false);
 
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      onDrop(file);
+    const files = Array.from(e.dataTransfer.files);  // Convertendo FileList para Array
+    if (files.length > 0) {
+      onDrop(files);
     }
   }, [onDrop, onDragStateChange]);
 
@@ -45,9 +45,10 @@ export function UploadDropZone({
   }, [onDragStateChange]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      onDrop(file);
+    const fileList = e.target.files;
+    if (fileList && fileList.length > 0) {
+      const files = Array.from(fileList);  // Convertendo FileList para Array
+      onDrop(files);
     }
   };
 
