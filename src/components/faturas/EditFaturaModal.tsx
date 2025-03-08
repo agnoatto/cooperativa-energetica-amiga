@@ -81,18 +81,18 @@ export function EditFaturaModal({
       
       const percentualDesconto = unidade?.percentual_desconto || 0;
       
-      // Chamar a função de cálculo com o ID da unidade
-      const valores = await calculateValues(
-        localTotalFatura,
-        localIluminacaoPublica,
-        localOutrosValores,
-        localFaturaConcessionaria,
-        percentualDesconto,
-        fatura.unidade_beneficiaria.id
-      );
+      // Chamar a função de cálculo com o parâmetro no formato de objeto
+      const valores = await calculateValues({
+        totalFatura: localTotalFatura,
+        iluminacaoPublica: localIluminacaoPublica,
+        outrosValores: localOutrosValores,
+        faturaConcessionaria: localFaturaConcessionaria,
+        percentualDesconto: percentualDesconto,
+        unidadeBeneficiariaId: fatura.unidade_beneficiaria.id
+      });
       
-      setLocalValorDesconto(valores.valor_desconto.toString());
-      setLocalValorAssinatura(valores.valor_assinatura.toString());
+      setLocalValorDesconto(valores.valorDesconto.toString());
+      setLocalValorAssinatura(valores.valorAssinatura.toString());
     } catch (error) {
       console.error('Erro ao calcular valores:', error);
       toast.error('Erro ao calcular valores. Verifique o console para mais detalhes.');

@@ -26,22 +26,34 @@ export const formatCurrency = (value: number): string => {
   });
 };
 
-// Função principal para calcular valores da fatura
-export const calculateValues = async ({
-  totalFatura,
-  iluminacaoPublica,
-  outrosValores,
-  faturaConcessionaria,
-  percentualDesconto,
-  unidadeBeneficiariaId
-}: {
-  totalFatura: number;
-  iluminacaoPublica: number;
-  outrosValores: number;
-  faturaConcessionaria: number;
-  percentualDesconto: number;
+// Interfaces para parâmetros
+interface CalculateValuesParams {
+  totalFatura: number | string;
+  iluminacaoPublica: number | string;
+  outrosValores: number | string;
+  faturaConcessionaria: number | string;
+  percentualDesconto: number | string;
   unidadeBeneficiariaId: string;
-}) => {
+}
+
+// Função principal para calcular valores da fatura
+export const calculateValues = async (params: CalculateValuesParams) => {
+  const { 
+    totalFatura: totalFaturaParam, 
+    iluminacaoPublica: iluminacaoPublicaParam, 
+    outrosValores: outrosValoresParam, 
+    faturaConcessionaria: faturaConcessionariaParam, 
+    percentualDesconto: percentualDescontoParam, 
+    unidadeBeneficiariaId 
+  } = params;
+  
+  // Converter valores para número
+  const totalFatura = typeof totalFaturaParam === 'string' ? parseValue(totalFaturaParam) : totalFaturaParam;
+  const iluminacaoPublica = typeof iluminacaoPublicaParam === 'string' ? parseValue(iluminacaoPublicaParam) : iluminacaoPublicaParam;
+  const outrosValores = typeof outrosValoresParam === 'string' ? parseValue(outrosValoresParam) : outrosValoresParam;
+  const faturaConcessionaria = typeof faturaConcessionariaParam === 'string' ? parseValue(faturaConcessionariaParam) : faturaConcessionariaParam;
+  const percentualDesconto = typeof percentualDescontoParam === 'string' ? parseValue(percentualDescontoParam) : percentualDescontoParam;
+
   try {
     // Buscar o template vinculado à unidade beneficiária
     const { data: unidadeData, error: unidadeError } = await supabase.rpc('get_unidade_beneficiaria_template', {
@@ -54,7 +66,7 @@ export const calculateValues = async ({
     }
 
     // Template de cálculo a ser utilizado
-    let templateId = unidadeData?.calculo_fatura_template_id;
+    let templateId = unidadeData?.length > 0 ? unidadeData[0].calculo_fatura_template_id : null;
 
     // Se a unidade não tiver um template associado, buscar o template padrão
     if (!templateId) {
@@ -199,20 +211,19 @@ const calcularComFormula = (
   }
 };
 
-// Função para o cálculo padrão (usado como fallback)
-const calculoPadrao = ({
-  totalFatura,
-  iluminacaoPublica,
-  outrosValores,
-  faturaConcessionaria,
-  percentualDesconto
-}: {
+// Interface para parâmetros de cálculo padrão
+interface CalculoPadraoParams {
   totalFatura: number;
   iluminacaoPublica: number;
   outrosValores: number;
   faturaConcessionaria: number;
   percentualDesconto: number;
-}) => {
+}
+
+// Função para o cálculo padrão (usado como fallback)
+const calculoPadrao = (params: CalculoPadraoParams) => {
+  const { totalFatura, iluminacaoPublica, outrosValores, faturaConcessionaria, percentualDesconto } = params;
+  
   const baseCalculo = totalFatura - iluminacaoPublica - outrosValores;
   const valorDesconto = baseCalculo * (percentualDesconto / 100);
   const valorAssinatura = totalFatura - valorDesconto - faturaConcessionaria;

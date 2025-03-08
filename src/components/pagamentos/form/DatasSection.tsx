@@ -40,6 +40,7 @@ export function DatasSection({ form, setForm }: DatasSectionProps) {
           id="valor_concessionaria"
           value={form.valor_concessionaria.toString()}
           onValueChange={(value) => setForm({ ...form, valor_concessionaria: parseFloat(value) || 0 })}
+          placeholder="0,00"
         />
       </div>
 
