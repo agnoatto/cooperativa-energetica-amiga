@@ -22,37 +22,37 @@ export function DesktopTable({
         {cooperados.map((cooperado) => (
           <tr
             key={cooperado.id}
-            className="cursor-pointer"
+            className="cursor-pointer h-9"
           >
-            <td>
+            <td className="py-1.5">
               <div className="flex flex-col">
                 <span className="font-medium text-gray-900">
                   {cooperado.nome}
                 </span>
-                <span className="text-sm text-gray-500">
+                <span className="text-xs text-gray-500">
                   {formatarDocumento(cooperado.documento)}
                 </span>
               </div>
             </td>
-            <td>{cooperado.numero_cadastro || '-'}</td>
-            <td>
+            <td className="py-1.5">{cooperado.numero_cadastro || '-'}</td>
+            <td className="py-1.5">
               {cooperado.tipo_pessoa === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física'}
             </td>
-            <td>
-              <div className="leading-tight">
+            <td className="py-1.5">
+              <div className="leading-tight text-sm">
                 {formatarTelefone(cooperado.telefone)}
                 <br />
                 {cooperado.email || '-'}
               </div>
             </td>
-            <td>
+            <td className="py-1.5">
               <div className="flex items-center space-x-2">
                 <span>
                   {unidades.filter(u => u.cooperado_id === cooperado.id).length}
                 </span>
               </div>
             </td>
-            <td className="text-right">
+            <td className="text-right py-1.5 w-10">
               <ActionMenu 
                 cooperado={cooperado}
                 onEdit={onEdit}

@@ -39,15 +39,15 @@ export function PagamentosTable({
     <div className="rounded-md border">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>UC</TableHead>
-            <TableHead>Investidor</TableHead>
-            <TableHead className="text-right">Geração (kWh)</TableHead>
-            <TableHead className="text-right">Valor Concess.</TableHead>
-            <TableHead className="text-right">Valor Total</TableHead>
-            <TableHead className="text-right">Status</TableHead>
-            <TableHead className="text-center">Conta</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
+          <TableRow className="h-9">
+            <TableHead className="py-2">UC</TableHead>
+            <TableHead className="py-2">Investidor</TableHead>
+            <TableHead className="text-right py-2">Geração (kWh)</TableHead>
+            <TableHead className="text-right py-2">Valor Concess.</TableHead>
+            <TableHead className="text-right py-2">Valor Total</TableHead>
+            <TableHead className="text-right py-2">Status</TableHead>
+            <TableHead className="text-center py-2">Conta</TableHead>
+            <TableHead className="text-right py-2 w-[60px]">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

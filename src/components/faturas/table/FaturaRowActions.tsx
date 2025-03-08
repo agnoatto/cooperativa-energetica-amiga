@@ -1,11 +1,9 @@
 
-import { Button } from "@/components/ui/button";
-import { Fatura, FaturaStatus } from "@/types/fatura";
-import { Eye, Trash2, CheckCircle2, RotateCw, Edit } from "lucide-react";
-import { FaturaPdfButton } from "../FaturaPdfButton";
 import { useState } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Fatura, FaturaStatus } from "@/types/fatura";
+import { Eye, Trash2, CheckCircle2, RotateCw, Edit, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { TableActionMenu, TableAction } from "@/components/ui/table-action-menu";
 
 interface FaturaRowActionsProps {
   fatura: Fatura;
@@ -14,6 +12,7 @@ interface FaturaRowActionsProps {
   onEdit: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
   onShowPaymentModal: () => void;
+  onViewPdf?: () => void;
 }
 
 export function FaturaRowActions({
@@ -23,19 +22,17 @@ export function FaturaRowActions({
   onEdit,
   onUpdateStatus,
   onShowPaymentModal,
+  onViewPdf
 }: FaturaRowActionsProps) {
   const [isProcessingAction, setIsProcessingAction] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleReenviarFatura = async () => {
-    setErrorMessage(null);
     try {
       setIsProcessingAction(true);
       await onUpdateStatus(fatura, 'reenviada', 'Fatura reenviada após correção');
       toast.success('Fatura reenviada com sucesso');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erro desconhecido ao reenviar fatura';
-      setErrorMessage(message);
       toast.error(message);
       console.error('Erro detalhado no reenvio:', error);
     } finally {
@@ -43,93 +40,63 @@ export function FaturaRowActions({
     }
   };
 
-  const actions = [];
+  // Definindo as ações disponíveis
+  const actions: TableAction[] = [
+    {
+      label: "Visualizar",
+      icon: Eye,
+      onClick: () => onViewDetails(fatura)
+    },
+    {
+      label: "Editar",
+      icon: Edit,
+      onClick: () => onEdit(fatura)
+    }
+  ];
 
-  actions.push(
-    <Button
-      key="view"
-      variant="outline"
-      size="icon"
-      onClick={() => onViewDetails(fatura)}
-      title="Visualizar Detalhes"
-    >
-      <Eye className="h-4 w-4" />
-    </Button>
-  );
-
-  // Botão de editar para todas as faturas (sem restrição de status)
-  actions.push(
-    <Button
-      key="edit"
-      variant="outline"
-      size="icon"
-      onClick={() => onEdit(fatura)}
-      title="Editar Fatura"
-    >
-      <Edit className="h-4 w-4" />
-    </Button>
-  );
-
+  // Adicionar ação de reenvio para faturas corrigidas
   if (fatura.status === 'corrigida') {
-    actions.push(
-      <Button
-        key="resend"
-        variant="outline"
-        size="icon"
-        onClick={handleReenviarFatura}
-        title="Reenviar Fatura"
-        disabled={isProcessingAction}
-      >
-        <RotateCw className="h-4 w-4" />
-      </Button>
-    );
+    actions.push({
+      label: "Reenviar",
+      icon: RotateCw,
+      onClick: handleReenviarFatura,
+      disabled: isProcessingAction
+    });
   }
 
+  // Adicionar ação de confirmar pagamento para faturas enviadas, reenviadas ou atrasadas
   if (['enviada', 'reenviada', 'atrasada'].includes(fatura.status)) {
-    actions.push(
-      <Button
-        key="confirm"
-        variant="outline"
-        size="icon"
-        onClick={onShowPaymentModal}
-        title="Confirmar Pagamento"
-        disabled={isProcessingAction}
-      >
-        <CheckCircle2 className="h-4 w-4" />
-      </Button>
-    );
+    actions.push({
+      label: "Confirmar Pagamento",
+      icon: CheckCircle2,
+      onClick: onShowPaymentModal,
+      disabled: isProcessingAction
+    });
   }
 
+  // Adicionar ação de excluir para faturas geradas
   if (fatura.status === 'gerada') {
-    actions.push(
-      <Button
-        key="delete"
-        variant="outline"
-        size="icon"
-        onClick={() => onDelete(fatura)}
-        title="Excluir Fatura"
-        disabled={isProcessingAction}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
-    );
+    actions.push({
+      label: "Excluir",
+      icon: Trash2,
+      onClick: () => onDelete(fatura),
+      disabled: isProcessingAction,
+      destructive: true
+    });
   }
 
-  actions.push(
-    <FaturaPdfButton key="pdf" fatura={fatura} />
-  );
+  // Adicionar ação de visualizar PDF se houver arquivo disponível
+  if (fatura.arquivo_concessionaria_path && onViewPdf) {
+    actions.push({
+      label: "Ver PDF",
+      icon: FileText,
+      onClick: onViewPdf
+    });
+  }
 
   return (
-    <>
-      <div className="text-right space-x-2">
-        {actions}
-      </div>
-
-      {errorMessage && (
-        <Alert variant="destructive" className="mt-2">
-          <AlertDescription>{errorMessage}</AlertDescription>
-        </Alert>
-      )}
-    </>
+    <div className="text-right">
+      <TableActionMenu actions={actions} />
+    </div>
   );
 }
