@@ -17,6 +17,10 @@ export interface UpdateFaturaInput {
   economia_acumulada?: number;
   saldo_energia_kwh?: number;
   observacao?: string;
+  arquivo_concessionaria_nome?: string | null;
+  arquivo_concessionaria_path?: string | null;
+  arquivo_concessionaria_tipo?: string | null;
+  arquivo_concessionaria_tamanho?: number | null;
 }
 
 export const useUpdateFatura = () => {
@@ -41,7 +45,11 @@ export const useUpdateFatura = () => {
             p_valor_desconto: data.valor_desconto,
             p_economia_acumulada: data.economia_acumulada,
             p_saldo_energia_kwh: data.saldo_energia_kwh,
-            p_observacao: data.observacao
+            p_observacao: data.observacao,
+            p_arquivo_concessionaria_nome: data.arquivo_concessionaria_nome,
+            p_arquivo_concessionaria_path: data.arquivo_concessionaria_path,
+            p_arquivo_concessionaria_tipo: data.arquivo_concessionaria_tipo,
+            p_arquivo_concessionaria_tamanho: data.arquivo_concessionaria_tamanho
           });
 
         if (error) {

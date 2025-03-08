@@ -75,6 +75,7 @@ export function FaturasDesktopTable({
               <TableHead className="py-1.5 px-3 text-sm text-right">Valor</TableHead>
               <TableHead className="py-1.5 px-3 text-sm text-right">Vencimento</TableHead>
               <TableHead className="py-1.5 px-3 text-sm text-right">Status</TableHead>
+              <TableHead className="py-1.5 px-3 text-sm text-center">Fatura Concessionária</TableHead>
               <TableHead className="py-1.5 px-3 text-sm w-10 text-center">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -87,7 +88,7 @@ export function FaturasDesktopTable({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onUpdateStatus={onUpdateStatus}
-                onViewPdf={() => handleViewPdf(fatura)}
+                onViewPdf={handleViewPdf}
               />
             ))}
           </TableBody>

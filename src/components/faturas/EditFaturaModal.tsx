@@ -25,6 +25,7 @@ import { calculateValues } from "./utils/calculateValues";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { FaturaFileUpload } from "./FaturaFileUpload";
 
 interface EditFaturaModalProps {
   fatura: any;
@@ -56,6 +57,12 @@ export function EditFaturaModal({
   isProcessing
 }: EditFaturaModalProps) {
   const [isCalculating, setIsCalculating] = useState(false);
+  const [arquivoInfo, setArquivoInfo] = useState({
+    nome: fatura?.arquivo_concessionaria_nome || null,
+    path: fatura?.arquivo_concessionaria_path || null,
+    tipo: fatura?.arquivo_concessionaria_tipo || null,
+    tamanho: fatura?.arquivo_concessionaria_tamanho || null
+  });
   
   // Estado para valores locais
   const [localTotalFatura, setLocalTotalFatura] = useState(fatura?.total_fatura.toString() || "0");
@@ -127,6 +134,15 @@ export function EditFaturaModal({
     return `${year}-${month}-${day}`;
   };
 
+  const handleFileChange = (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => {
+    setArquivoInfo({
+      nome,
+      path,
+      tipo,
+      tamanho
+    });
+  };
+
   const handleSubmit = async (values: any) => {
     const data = {
       id: fatura.id,
@@ -141,6 +157,10 @@ export function EditFaturaModal({
       economia_acumulada: Number(values.economia_acumulada),
       saldo_energia_kwh: Number(values.saldo_energia_kwh),
       observacao: values.observacao,
+      arquivo_concessionaria_nome: arquivoInfo.nome,
+      arquivo_concessionaria_path: arquivoInfo.path,
+      arquivo_concessionaria_tipo: arquivoInfo.tipo,
+      arquivo_concessionaria_tamanho: arquivoInfo.tamanho
     };
 
     await onSave(data);
@@ -328,7 +348,20 @@ export function EditFaturaModal({
               )}
             />
 
-            <div className="flex justify-end">
+            <div className="space-y-2">
+              <FormLabel>Fatura da Concessionária (PDF)</FormLabel>
+              <FaturaFileUpload 
+                faturaId={fatura.id}
+                arquivoNome={fatura.arquivo_concessionaria_nome}
+                arquivoPath={fatura.arquivo_concessionaria_path}
+                arquivoTipo={fatura.arquivo_concessionaria_tipo}
+                arquivoTamanho={fatura.arquivo_concessionaria_tamanho}
+                onSuccess={() => toast.success("Arquivo atualizado com sucesso")}
+                onFileChange={handleFileChange}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancelar
               </Button>
