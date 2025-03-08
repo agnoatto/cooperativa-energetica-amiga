@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { formatDateToPtBR } from "@/utils/dateFormatters";
 import { FileText } from "lucide-react";
 import { FaturaStatusBadge } from "../FaturaStatusBadge";
-import { FaturaRowActions } from "../FaturaRowActions";
+import { FaturaActionsMenu } from "../FaturaActionsMenu";
 import { formatarDocumento } from "@/utils/formatters";
 import { useEffect, useState } from "react";
 import { Column } from "@/components/ui/excel-table/types";
@@ -157,11 +157,11 @@ export function FaturasExcelTable({
                 )}
                 {column.id === 'status' && <FaturaStatusBadge fatura={fatura} />}
                 {column.id === 'acoes' && (
-                  <FaturaRowActions
+                  <FaturaActionsMenu
                     fatura={fatura}
                     onViewDetails={onViewDetails}
-                    onDelete={onDelete}
                     onEdit={onEdit}
+                    onDelete={onDelete}
                     onUpdateStatus={onUpdateStatus}
                     onShowPaymentModal={onShowPaymentModal}
                   />
