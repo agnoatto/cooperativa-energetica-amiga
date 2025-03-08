@@ -2,6 +2,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { Eye, Edit, FileText, Trash2, CheckCircle2, RotateCw, MoreVertical } from "lucide-react";
+import { createPortal } from "react-dom";
 
 interface FaturaActionsMenuProps {
   fatura: Fatura;
@@ -21,6 +22,7 @@ export function FaturaActionsMenu({
   onShowPaymentModal
 }: FaturaActionsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -36,13 +38,58 @@ export function FaturaActionsMenu({
       }
     }
 
+    function handleScroll() {
+      if (isOpen) {
+        setIsOpen(false);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    }
+
     document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("scroll", handleScroll, true);
+    document.addEventListener("keydown", handleEscape);
+    
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("scroll", handleScroll, true);
+      document.removeEventListener("keydown", handleEscape);
     };
-  }, []);
+  }, [isOpen]);
 
   const toggleMenu = () => {
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      
+      // Cálculo da posição ideal para o dropdown
+      const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
+      
+      // Tamanho aproximado do menu (ajuste conforme necessário)
+      const menuHeight = 200;
+      const menuWidth = 180;
+      
+      // Posicionamento padrão (abaixo do botão)
+      let top = rect.bottom + 5;
+      let left = rect.left;
+      
+      // Verificar se tem espaço embaixo ou se é melhor aparecer acima
+      if (top + menuHeight > viewportHeight) {
+        top = rect.top - menuHeight - 5;
+      }
+      
+      // Evitar que o menu fique fora da tela horizontalmente
+      if (left + menuWidth > viewportWidth) {
+        left = rect.right - menuWidth;
+      }
+      
+      setPosition({ top, left });
+    }
+    
     setIsOpen(!isOpen);
   };
 
@@ -63,17 +110,22 @@ export function FaturaActionsMenu({
         onClick={toggleMenu}
         className="inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100"
         aria-label="Abrir menu de ações"
+        aria-expanded={isOpen}
+        aria-haspopup="true"
       >
         <MoreVertical className="h-4 w-4" />
       </button>
 
-      {isOpen && (
+      {isOpen && createPortal(
         <div
           ref={menuRef}
-          className="absolute right-0 z-10 mt-1 w-44 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+          className="fixed z-50 min-w-44 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none animate-in fade-in-50 zoom-in-95"
+          style={{ 
+            top: `${position.top}px`, 
+            left: `${position.left}px`,
+          }}
           role="menu"
           aria-orientation="vertical"
-          aria-labelledby="menu-button"
           tabIndex={-1}
         >
           <div className="py-1" role="none">
@@ -83,6 +135,7 @@ export function FaturaActionsMenu({
                 onViewDetails(fatura);
                 setIsOpen(false);
               }}
+              role="menuitem"
             >
               <Eye className="mr-2 h-4 w-4" />
               Visualizar
@@ -94,6 +147,7 @@ export function FaturaActionsMenu({
                 onEdit(fatura);
                 setIsOpen(false);
               }}
+              role="menuitem"
             >
               <Edit className="mr-2 h-4 w-4" />
               Editar
@@ -106,6 +160,7 @@ export function FaturaActionsMenu({
                   handleReenviarFatura();
                   setIsOpen(false);
                 }}
+                role="menuitem"
               >
                 <RotateCw className="mr-2 h-4 w-4" />
                 Reenviar
@@ -119,6 +174,7 @@ export function FaturaActionsMenu({
                   onShowPaymentModal();
                   setIsOpen(false);
                 }}
+                role="menuitem"
               >
                 <CheckCircle2 className="mr-2 h-4 w-4" />
                 Confirmar Pagamento
@@ -132,6 +188,7 @@ export function FaturaActionsMenu({
                   onDelete(fatura);
                   setIsOpen(false);
                 }}
+                role="menuitem"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Excluir
@@ -144,12 +201,14 @@ export function FaturaActionsMenu({
                 window.open(`/faturas/pdf/${fatura.id}`, '_blank');
                 setIsOpen(false);
               }}
+              role="menuitem"
             >
               <FileText className="mr-2 h-4 w-4" />
               Ver PDF
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
