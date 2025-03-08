@@ -5,6 +5,7 @@ import { FaturaMobileCard } from "./FaturaMobileCard";
 import { PdfPreview } from "../../upload/PdfPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { STORAGE_BUCKET } from "../../upload/constants";
 
 interface FaturasMobileListProps {
   faturas: Fatura[];
@@ -41,7 +42,7 @@ export function FaturasMobileList({
       // Verificar se o arquivo existe antes de tentar obter a URL assinada
       const { data: fileExists } = await supabase
         .storage
-        .from("faturas")
+        .from(STORAGE_BUCKET)
         .list(fatura.arquivo_concessionaria_path.split('/')[0], {
           limit: 1,
           offset: 0,
@@ -54,7 +55,7 @@ export function FaturasMobileList({
 
       // Obter URL assinada
       const { data: storageUrl, error } = await supabase.storage
-        .from("faturas")
+        .from(STORAGE_BUCKET)
         .createSignedUrl(fatura.arquivo_concessionaria_path, 3600);
 
       if (error) {

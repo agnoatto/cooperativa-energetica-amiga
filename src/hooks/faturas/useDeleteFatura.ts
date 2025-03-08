@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { STORAGE_BUCKET } from "@/components/faturas/upload/constants";
 
 export const useDeleteFatura = () => {
   const queryClient = useQueryClient();
@@ -20,7 +21,7 @@ export const useDeleteFatura = () => {
       // Se existe arquivo, remover do storage primeiro
       if (fatura?.arquivo_concessionaria_path) {
         const { error: storageError } = await supabase.storage
-          .from('faturas_concessionaria')
+          .from(STORAGE_BUCKET)
           .remove([fatura.arquivo_concessionaria_path]);
 
         if (storageError) {
