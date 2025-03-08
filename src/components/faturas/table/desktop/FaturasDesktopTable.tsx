@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { FaturaDesktopRow } from "./FaturaDesktopRow";
 import { useState } from "react";
-import { PdfPreview } from "../../upload/PdfPreview";
+import { SimplePdfViewer } from "../../upload/SimplePdfViewer";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { STORAGE_BUCKET } from "../../upload/constants";
@@ -124,10 +124,11 @@ export function FaturasDesktopTable({
         </Table>
       </div>
 
-      <PdfPreview
+      <SimplePdfViewer
         isOpen={showPdfPreview}
         onClose={handleClosePdfPreview}
         pdfUrl={pdfUrl}
+        title="Visualização da Conta de Energia"
       />
     </>
   );

@@ -1,7 +1,7 @@
 
 import { UploadDropZone } from "./upload/UploadDropZone";
 import { FilePreview } from "./upload/FilePreview";
-import { PdfPreview } from "./upload/PdfPreview";
+import { SimplePdfViewer } from "./upload/SimplePdfViewer";
 import { useFileUpload } from "./upload/useFileUpload";
 
 interface FaturaFileUploadProps {
@@ -56,10 +56,11 @@ export function FaturaFileUpload({
         />
       )}
 
-      <PdfPreview
+      <SimplePdfViewer
         isOpen={showPdfPreview}
         onClose={() => setShowPdfPreview(false)}
         pdfUrl={pdfUrl}
+        title="Visualização da Fatura"
       />
     </div>
   );

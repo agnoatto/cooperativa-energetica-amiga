@@ -2,7 +2,7 @@
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { useState } from "react";
 import { FaturaMobileCard } from "./FaturaMobileCard";
-import { PdfPreview } from "../../upload/PdfPreview";
+import { SimplePdfViewer } from "../../upload/SimplePdfViewer";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { STORAGE_BUCKET } from "../../upload/constants";
@@ -100,10 +100,11 @@ export function FaturasMobileList({
         ))}
       </div>
 
-      <PdfPreview
+      <SimplePdfViewer
         isOpen={showPdfPreview}
         onClose={handleClosePdfPreview}
         pdfUrl={pdfUrl}
+        title="Visualização da Conta de Energia"
       />
     </>
   );

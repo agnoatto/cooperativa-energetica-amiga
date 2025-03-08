@@ -1,0 +1,158 @@
+
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { X, ZoomIn, ZoomOut, RotateCw } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useEffect, useState } from "react";
+
+interface SimplePdfViewerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  pdfUrl: string | null;
+  title?: string;
+}
+
+export function SimplePdfViewer({ 
+  isOpen, 
+  onClose, 
+  pdfUrl,
+  title = "Visualização do Documento" 
+}: SimplePdfViewerProps) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [zoom, setZoom] = useState(100);
+  const [rotation, setRotation] = useState(0);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsLoading(true);
+      setHasError(false);
+      setZoom(100);
+      setRotation(0);
+    }
+  }, [isOpen, pdfUrl]);
+
+  const handleIframeLoad = () => {
+    setIsLoading(false);
+  };
+
+  const handleIframeError = () => {
+    setIsLoading(false);
+    setHasError(true);
+  };
+
+  const zoomIn = () => {
+    setZoom(prev => Math.min(prev + 25, 200));
+  };
+
+  const zoomOut = () => {
+    setZoom(prev => Math.max(prev - 25, 50));
+  };
+
+  const rotate = () => {
+    setRotation(prev => (prev + 90) % 360);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl h-[90vh] p-0 overflow-hidden">
+        <div className="p-4 border-b flex flex-row items-center justify-between">
+          <DialogTitle>{title}</DialogTitle>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={zoomIn}
+              className="h-8 w-8"
+              title="Aumentar zoom"
+              disabled={zoom >= 200}
+            >
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={zoomOut}
+              className="h-8 w-8"
+              title="Diminuir zoom"
+              disabled={zoom <= 50}
+            >
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={rotate}
+              className="h-8 w-8"
+              title="Girar"
+            >
+              <RotateCw className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="h-8 w-8"
+              title="Fechar"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        <div className="flex-1 w-full h-[calc(100%-60px)] overflow-auto bg-gray-100 p-4">
+          {isLoading && (
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="text-sm text-muted-foreground">Carregando documento...</span>
+              </div>
+            </div>
+          )}
+          
+          {hasError && (
+            <div className="w-full h-full flex items-center justify-center">
+              <Alert variant="destructive" className="max-w-md">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Não foi possível carregar o documento. Verifique se o arquivo existe ou tente novamente mais tarde.
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
+          
+          {pdfUrl && (
+            <div 
+              className="w-full h-full flex items-center justify-center"
+              style={{
+                transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
+                transformOrigin: 'center',
+                transition: 'transform 0.2s ease-in-out'
+              }}
+            >
+              <iframe
+                src={pdfUrl}
+                className="w-full h-full border rounded shadow-lg"
+                title="Visualização do documento"
+                onLoad={handleIframeLoad}
+                onError={handleIframeError}
+                style={{
+                  visibility: isLoading ? 'hidden' : 'visible',
+                  backgroundColor: 'white'
+                }}
+                sandbox="allow-scripts allow-same-origin"
+              />
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
