@@ -1,6 +1,5 @@
-
 import { Button } from "@/components/ui/button";
-import { Plus, ArchiveRestore } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { UnidadeBeneficiariaForm } from "@/components/cooperados/UnidadeBeneficiariaForm";
 import { UnidadesTable } from "@/components/cooperados/UnidadesTable";
@@ -11,7 +10,6 @@ import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FilterBar } from "@/components/shared/FilterBar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const UnidadesBeneficiarias = () => {
   const [showUnidadeForm, setShowUnidadeForm] = useState(false);
@@ -28,7 +26,6 @@ const UnidadesBeneficiarias = () => {
 
   const fetchData = async () => {
     try {
-      // Consulta principal para buscar unidades com base no filtro
       let query = supabase
         .from('unidades_beneficiarias')
         .select(`
@@ -51,7 +48,6 @@ const UnidadesBeneficiarias = () => {
       if (unidadesError) throw unidadesError;
       setUnidades(unidadesData);
 
-      // Buscar contadores para os dois tipos de unidades
       const { count: ativasCount } = await supabase
         .from('unidades_beneficiarias')
         .select('id', { count: 'exact', head: true })
@@ -83,7 +79,6 @@ const UnidadesBeneficiarias = () => {
     try {
       const dataAtual = new Date().toISOString();
       
-      // Atualizar com data de saída em vez de excluir permanentemente
       const { error } = await supabase
         .from('unidades_beneficiarias')
         .update({ 
@@ -125,37 +120,6 @@ const UnidadesBeneficiarias = () => {
     setSelectedCooperadoId(cooperadoId);
     setSelectedUnidadeId(unidadeId);
     setShowUnidadeForm(true);
-  };
-
-  const renderUnidadesReativar = () => {
-    if (statusFiltro !== "arquivadas") return null;
-
-    const unidadesArquivadas = unidades.filter((u) => u.data_saida);
-    if (unidadesArquivadas.length === 0) return null;
-
-    return (
-      <div className="mt-4 space-y-4">
-        {unidadesArquivadas.map((unidade) => (
-          <div key={unidade.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
-            <div>
-              <div className="font-medium">UC: {unidade.numero_uc}</div>
-              <div className="text-sm text-gray-500">
-                {unidade.apelido ? `${unidade.apelido} - ` : ""}
-                Desativada em: {new Date(unidade.data_saida).toLocaleDateString()}
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setUnidadeParaReativar(unidade)}
-              className="gap-2"
-            >
-              <ArchiveRestore className="h-4 w-4" /> Reativar
-            </Button>
-          </div>
-        ))}
-      </div>
-    );
   };
 
   return (
@@ -225,6 +189,7 @@ const UnidadesBeneficiarias = () => {
                 unidades={unidades}
                 onEdit={handleEditUnidade}
                 onDelete={async () => {}}
+                onReativar={handleReativarUnidade}
               />
             ) : (
               <div className="text-center p-8 border rounded-lg">
@@ -251,30 +216,6 @@ const UnidadesBeneficiarias = () => {
           setShowUnidadeForm(false);
         }}
       />
-      
-      <AlertDialog
-        open={!!unidadeParaReativar}
-        onOpenChange={(open) => !open && setUnidadeParaReativar(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reativar Unidade Beneficiária</AlertDialogTitle>
-            <AlertDialogDescription>
-              Você está prestes a reativar a unidade beneficiária UC {unidadeParaReativar?.numero_uc}.
-              Esta ação tornará a unidade ativa novamente.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isReativando}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => unidadeParaReativar && handleReativarUnidade(unidadeParaReativar.id)}
-              disabled={isReativando}
-            >
-              {isReativando ? "Processando..." : "Reativar"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };

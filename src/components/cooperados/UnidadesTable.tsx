@@ -9,23 +9,31 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Eye, Archive } from "lucide-react";
+import { Edit, Eye, Archive, ArchiveRestore } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UnidadeDetailsDialog } from "./UnidadeDetailsDialog";
 import { DesativarUnidadeDialog } from "./dialogs/DesativarUnidadeDialog";
 import { useState } from "react";
 import { formatarKwh } from "@/utils/formatters";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface UnidadesTableProps {
   unidades: any[];
   onEdit: (cooperadoId: string, unidadeId: string) => void;
   onDelete: (unidadeId: string, motivo?: string) => Promise<void>;
+  onReativar?: (unidadeId: string) => Promise<void>;
 }
 
 export function UnidadesTable({
   unidades,
   onEdit,
   onDelete,
+  onReativar,
 }: UnidadesTableProps) {
   const isMobile = useIsMobile();
   const [selectedUnidade, setSelectedUnidade] = useState<any>(null);
@@ -112,30 +120,72 @@ export function UnidadesTable({
               </div>
 
               <div className="flex justify-end gap-2 mt-4">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(unidade.cooperado_id, unidade.id);
-                  }}
-                  className="h-10 w-10 p-0"
-                  disabled={!!unidade.data_saida}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setUnidadeToDesativar(unidade);
-                  }}
-                  className="h-10 w-10 p-0"
-                  disabled={!!unidade.data_saida}
-                >
-                  <Archive className="h-4 w-4" />
-                </Button>
+                {!unidade.data_saida ? (
+                  <>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEdit(unidade.cooperado_id, unidade.id);
+                            }}
+                            className="h-10 w-10 p-0"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Editar</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setUnidadeToDesativar(unidade);
+                            }}
+                            className="h-10 w-10 p-0"
+                          >
+                            <Archive className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Desativar</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </>
+                ) : (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onReativar && onReativar(unidade.id);
+                          }}
+                          className="h-10 w-10 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
+                        >
+                          <ArchiveRestore className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Reativar</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
               </div>
             </div>
           ))}
@@ -197,30 +247,72 @@ export function UnidadesTable({
                     {getStatusBadge(unidade)}
                   </TableCell>
                   <TableCell className="text-right whitespace-nowrap space-x-2">
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(unidade.cooperado_id, unidade.id);
-                      }}
-                      className="h-8 w-8"
-                      disabled={!!unidade.data_saida}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setUnidadeToDesativar(unidade);
-                      }}
-                      className="h-8 w-8"
-                      disabled={!!unidade.data_saida}
-                    >
-                      <Archive className="h-4 w-4" />
-                    </Button>
+                    {!unidade.data_saida ? (
+                      <>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="icon"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onEdit(unidade.cooperado_id, unidade.id);
+                                }}
+                                className="h-8 w-8"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Editar</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="icon"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setUnidadeToDesativar(unidade);
+                                }}
+                                className="h-8 w-8"
+                              >
+                                <Archive className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Desativar</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </>
+                    ) : (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onReativar && onReativar(unidade.id);
+                              }}
+                              className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
+                            >
+                              <ArchiveRestore className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Reativar</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
