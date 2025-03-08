@@ -9,11 +9,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Eye, Archive, ArchiveRestore } from "lucide-react";
+import { Edit, Eye, Archive, ArchiveRestore, ChevronUp, ChevronDown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UnidadeDetailsDialog } from "./UnidadeDetailsDialog";
 import { DesativarUnidadeDialog } from "./dialogs/DesativarUnidadeDialog";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { formatarKwh } from "@/utils/formatters";
 import {
   Tooltip,
@@ -21,6 +21,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
+// Define tipo para a ordenação
+type SortDirection = 'asc' | 'desc' | null;
+type SortField = 'numero_uc' | 'apelido' | 'endereco' | 'percentual_desconto' | 'consumo_kwh' | 'data_entrada' | 'status';
 
 interface UnidadesTableProps {
   unidades: any[];
@@ -40,6 +44,10 @@ export function UnidadesTable({
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [unidadeToDesativar, setUnidadeToDesativar] = useState<any>(null);
   const [isDesativando, setIsDesativando] = useState(false);
+  
+  // Estado para ordenação
+  const [sortField, setSortField] = useState<SortField>('numero_uc');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   const handleViewDetails = (unidade: any) => {
     setSelectedUnidade(unidade);
@@ -56,6 +64,59 @@ export function UnidadesTable({
     }
   };
 
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Se já estiver ordenando por este campo, alterne a direção ou remova a ordenação
+      setSortDirection(prev => {
+        if (prev === 'asc') return 'desc';
+        if (prev === 'desc') return null;
+        return 'asc';
+      });
+    } else {
+      // Se estiver mudando o campo, inicie com ordenação ascendente
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Função de ordenação para diferentes tipos de dados
+  const sortData = (a: any, b: any, field: SortField, direction: SortDirection) => {
+    if (direction === null) return 0;
+
+    const multiplier = direction === 'asc' ? 1 : -1;
+
+    // Se for o campo status, comparamos pelo atributo data_saida
+    if (field === 'status') {
+      const aIsActive = a.data_saida === null;
+      const bIsActive = b.data_saida === null;
+      return aIsActive === bIsActive ? 0 : aIsActive ? -multiplier : multiplier;
+    }
+
+    // Campos numéricos
+    if (field === 'percentual_desconto' || field === 'consumo_kwh') {
+      return (a[field] - b[field]) * multiplier;
+    }
+
+    // Campos de data
+    if (field === 'data_entrada') {
+      const dateA = new Date(a[field]);
+      const dateB = new Date(b[field]);
+      return (dateA.getTime() - dateB.getTime()) * multiplier;
+    }
+
+    // Campos de texto, por padrão
+    const valA = a[field]?.toString().toLowerCase() || '';
+    const valB = b[field]?.toString().toLowerCase() || '';
+    return valA.localeCompare(valB) * multiplier;
+  };
+
+  // Unidades ordenadas usando useMemo para evitar recálculos desnecessários
+  const sortedUnidades = useMemo(() => {
+    if (!sortDirection) return unidades;
+    
+    return [...unidades].sort((a, b) => sortData(a, b, sortField, sortDirection));
+  }, [unidades, sortField, sortDirection]);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
@@ -67,11 +128,31 @@ export function UnidadesTable({
     return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Ativa</Badge>;
   };
 
+  // Componente para o indicador de ordenação
+  const SortIndicator = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return null;
+    
+    if (sortDirection === 'asc') {
+      return <ChevronUp className="h-4 w-4 ml-1" />;
+    }
+    
+    if (sortDirection === 'desc') {
+      return <ChevronDown className="h-4 w-4 ml-1" />;
+    }
+    
+    return null;
+  };
+
+  // Estilo para cabeçalhos ordenáveis
+  const getSortableHeaderStyle = (field: SortField) => {
+    return `flex items-center ${sortField === field ? 'text-primary' : ''} cursor-pointer hover:text-primary transition-colors`;
+  };
+
   if (isMobile) {
     return (
       <>
         <div className="space-y-4">
-          {unidades.map((unidade) => (
+          {sortedUnidades.map((unidade) => (
             <div 
               key={unidade.id}
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
@@ -218,18 +299,53 @@ export function UnidadesTable({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Número UC</TableHead>
-                <TableHead>Apelido</TableHead>
-                <TableHead>Endereço</TableHead>
-                <TableHead>Desconto</TableHead>
-                <TableHead>Consumo</TableHead>
-                <TableHead>Data Entrada</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead onClick={() => handleSort('numero_uc')}>
+                  <div className={getSortableHeaderStyle('numero_uc')}>
+                    Número UC
+                    <SortIndicator field="numero_uc" />
+                  </div>
+                </TableHead>
+                <TableHead onClick={() => handleSort('apelido')}>
+                  <div className={getSortableHeaderStyle('apelido')}>
+                    Apelido
+                    <SortIndicator field="apelido" />
+                  </div>
+                </TableHead>
+                <TableHead onClick={() => handleSort('endereco')}>
+                  <div className={getSortableHeaderStyle('endereco')}>
+                    Endereço
+                    <SortIndicator field="endereco" />
+                  </div>
+                </TableHead>
+                <TableHead onClick={() => handleSort('percentual_desconto')}>
+                  <div className={getSortableHeaderStyle('percentual_desconto')}>
+                    Desconto
+                    <SortIndicator field="percentual_desconto" />
+                  </div>
+                </TableHead>
+                <TableHead onClick={() => handleSort('consumo_kwh')}>
+                  <div className={getSortableHeaderStyle('consumo_kwh')}>
+                    Consumo
+                    <SortIndicator field="consumo_kwh" />
+                  </div>
+                </TableHead>
+                <TableHead onClick={() => handleSort('data_entrada')}>
+                  <div className={getSortableHeaderStyle('data_entrada')}>
+                    Data Entrada
+                    <SortIndicator field="data_entrada" />
+                  </div>
+                </TableHead>
+                <TableHead onClick={() => handleSort('status')}>
+                  <div className={getSortableHeaderStyle('status')}>
+                    Status
+                    <SortIndicator field="status" />
+                  </div>
+                </TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {unidades.map((unidade) => (
+              {sortedUnidades.map((unidade) => (
                 <TableRow 
                   key={unidade.id}
                   className="cursor-pointer hover:bg-gray-50"
