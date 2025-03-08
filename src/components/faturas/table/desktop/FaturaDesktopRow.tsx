@@ -40,24 +40,24 @@ export function FaturaDesktopRow({
 
   return (
     <>
-      <TableRow key={fatura.id} className="h-9">
-        <TableCell className="py-1.5">{fatura.unidade_beneficiaria.numero_uc}</TableCell>
-        <TableCell className="font-medium py-1.5">
+      <TableRow key={fatura.id}>
+        <TableCell>{fatura.unidade_beneficiaria.numero_uc}</TableCell>
+        <TableCell className="font-medium">
           {fatura.unidade_beneficiaria.cooperado.nome}
         </TableCell>
-        <TableCell className="text-right py-1.5">
+        <TableCell className="text-right">
           {fatura.consumo_kwh || 0} kWh
         </TableCell>
-        <TableCell className="text-right py-1.5">
+        <TableCell className="text-right">
           {formatCurrency(fatura.valor_assinatura || 0)}
         </TableCell>
-        <TableCell className="text-right py-1.5">
+        <TableCell className="text-right">
           {formatDate(fatura.data_vencimento)}
         </TableCell>
-        <TableCell className="text-right py-1.5">
+        <TableCell className="text-right">
           <FaturaStatusBadge fatura={fatura} />
         </TableCell>
-        <TableCell className="py-1.5 w-10">
+        <TableCell>
           <FaturaRowActions
             fatura={fatura}
             onViewDetails={onViewDetails}
@@ -65,7 +65,6 @@ export function FaturaDesktopRow({
             onDelete={onDelete}
             onUpdateStatus={onUpdateStatus}
             onShowPaymentModal={() => setShowPaymentModal(true)}
-            onViewPdf={onViewPdf}
           />
         </TableCell>
       </TableRow>

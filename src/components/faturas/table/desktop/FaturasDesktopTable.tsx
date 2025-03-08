@@ -68,14 +68,14 @@ export function FaturasDesktopTable({
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            <TableRow className="h-9">
-              <TableHead className="w-[100px] py-2">UC</TableHead>
-              <TableHead className="py-2">Cooperado</TableHead>
-              <TableHead className="text-right py-2 w-[100px]">Consumo</TableHead>
-              <TableHead className="text-right py-2 w-[120px]">Valor Assinatura</TableHead>
-              <TableHead className="text-right py-2 w-[120px]">Vencimento</TableHead>
-              <TableHead className="text-right py-2 w-[100px]">Status</TableHead>
-              <TableHead className="text-right py-2 w-[60px]">Ações</TableHead>
+            <TableRow>
+              <TableHead className="w-[100px]">UC</TableHead>
+              <TableHead>Cooperado</TableHead>
+              <TableHead className="text-right">Consumo</TableHead>
+              <TableHead className="text-right">Valor Assinatura</TableHead>
+              <TableHead className="text-right">Vencimento</TableHead>
+              <TableHead className="text-right w-[120px]">Status</TableHead>
+              <TableHead className="text-right w-[200px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

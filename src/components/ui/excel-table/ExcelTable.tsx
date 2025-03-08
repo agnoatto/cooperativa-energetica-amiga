@@ -49,9 +49,9 @@ export function ExcelTable({
         className={cn(
           "w-full border-collapse bg-white",
           "text-sm [&_th]:bg-[#F8FAFC] [&_th]:font-medium [&_th]:text-gray-700",
-          "[&_td]:py-2 [&_td]:px-3 [&_td]:text-gray-700 [&_td]:border-0 [&_td]:border-r [&_td]:border-gray-100",
+          "[&_td]:p-3 [&_td]:text-gray-700 [&_td]:border-0 [&_td]:border-r [&_td]:border-gray-200",
           "[&_tr:hover]:bg-[#F1F5F9]",
-          "[&_tr]:border-b [&_tr]:border-gray-100 last:[&_tr]:border-0",
+          "[&_tr]:border-b [&_tr]:border-gray-200 last:[&_tr]:border-0",
           className
         )}
         {...props}
@@ -61,7 +61,7 @@ export function ExcelTable({
             {columns.map((column) => (
               <th
                 key={column.id}
-                className="px-3 py-2 text-left font-medium border-b border-r border-gray-100 bg-[#F8FAFC] relative"
+                className="px-3 py-3 text-left font-medium border-b border-r border-gray-200 bg-[#F8FAFC] relative"
                 style={{
                   width: settings.columnWidths[column.id] || column.width || defaultColumnWidth,
                   minWidth: column.minWidth,

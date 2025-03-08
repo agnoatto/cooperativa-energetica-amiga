@@ -1,6 +1,7 @@
 
 import { format } from "date-fns";
 import { Eye, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -12,7 +13,6 @@ import {
 import { LancamentoFinanceiro } from "@/types/financeiro";
 import { formatarMoeda } from "@/utils/formatters";
 import { getStatusColor } from "../utils/status";
-import { TableActionMenu, TableAction } from "@/components/ui/table-action-menu";
 
 interface LancamentosTableProps {
   lancamentos?: LancamentoFinanceiro[];
@@ -32,38 +32,17 @@ export function LancamentosTable({ lancamentos, isLoading, tipo }: LancamentosTa
     return tipo === 'receita' ? 'Cooperado' : 'Investidor';
   };
 
-  const getActions = (lancamento: LancamentoFinanceiro): TableAction[] => {
-    const actions: TableAction[] = [
-      {
-        label: "Visualizar",
-        icon: Eye,
-        onClick: () => console.log("Visualizar lançamento", lancamento.id)
-      }
-    ];
-    
-    // Adicionar ação de visualizar PDF se tiver fatura ou pagamento associado
-    if ((tipo === 'receita' ? lancamento.fatura : lancamento.pagamento_usina)) {
-      actions.push({
-        label: "Ver documento",
-        icon: FileText,
-        onClick: () => console.log("Ver documento", lancamento.id)
-      });
-    }
-    
-    return actions;
-  };
-
   return (
     <div className="bg-white rounded-lg border">
       <Table>
         <TableHeader>
-          <TableRow className="h-9">
-            <TableHead className="py-2">Descrição</TableHead>
-            <TableHead className="py-2">{getLabelEntidade()}</TableHead>
-            <TableHead className="py-2">Vencimento</TableHead>
-            <TableHead className="py-2">Valor</TableHead>
-            <TableHead className="py-2">Status</TableHead>
-            <TableHead className="text-right py-2 w-[60px]">Ações</TableHead>
+          <TableRow>
+            <TableHead>Descrição</TableHead>
+            <TableHead>{getLabelEntidade()}</TableHead>
+            <TableHead>Vencimento</TableHead>
+            <TableHead>Valor</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -81,20 +60,35 @@ export function LancamentosTable({ lancamentos, isLoading, tipo }: LancamentosTa
             </TableRow>
           ) : (
             lancamentos?.map((lancamento) => (
-              <TableRow key={lancamento.id} className="h-9">
-                <TableCell className="py-1.5">{lancamento.descricao}</TableCell>
-                <TableCell className="py-1.5">{getNomeEntidade(lancamento)}</TableCell>
-                <TableCell className="py-1.5">
+              <TableRow key={lancamento.id}>
+                <TableCell>{lancamento.descricao}</TableCell>
+                <TableCell>{getNomeEntidade(lancamento)}</TableCell>
+                <TableCell>
                   {format(new Date(lancamento.data_vencimento), "dd/MM/yyyy")}
                 </TableCell>
-                <TableCell className="py-1.5">{formatarMoeda(lancamento.valor)}</TableCell>
-                <TableCell className="py-1.5">
-                  <span className={`px-1.5 py-0.5 rounded-full text-xs ${getStatusColor(lancamento.status)}`}>
+                <TableCell>{formatarMoeda(lancamento.valor)}</TableCell>
+                <TableCell>
+                  <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(lancamento.status)}`}>
                     {lancamento.status.charAt(0).toUpperCase() + lancamento.status.slice(1)}
                   </span>
                 </TableCell>
-                <TableCell className="py-1.5 text-right">
-                  <TableActionMenu actions={getActions(lancamento)} />
+                <TableCell className="text-right">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  {(tipo === 'receita' ? lancamento.fatura : lancamento.pagamento_usina) && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 ml-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))
