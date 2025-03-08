@@ -7,6 +7,7 @@ import { EmpresaForm } from "@/components/configuracoes/EmpresaForm";
 import { UsersList } from "@/components/configuracoes/UsersList";
 import { CooperativaInfo } from "@/components/configuracoes/CooperativaInfo";
 import { useAuth } from "@/contexts/AuthContext";
+import { CalculoFaturaTemplates } from "@/components/configuracoes/CalculoFaturaTemplates";
 
 export default function Configuracoes() {
   const { profile } = useAuth();
@@ -30,6 +31,7 @@ export default function Configuracoes() {
           <TabsTrigger value="empresa">Empresa</TabsTrigger>
           <TabsTrigger value="system">Sistema</TabsTrigger>
           <TabsTrigger value="integracao">Integração</TabsTrigger>
+          <TabsTrigger value="templates">Templates de Cálculo</TabsTrigger>
         </TabsList>
         <TabsContent value="profile">
           <ProfileSettingsForm />
@@ -42,6 +44,9 @@ export default function Configuracoes() {
         </TabsContent>
         <TabsContent value="integracao">
           <IntegracaoCoraForm />
+        </TabsContent>
+        <TabsContent value="templates">
+          <CalculoFaturaTemplates />
         </TabsContent>
       </Tabs>
     </div>

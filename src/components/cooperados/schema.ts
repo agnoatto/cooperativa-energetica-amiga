@@ -1,5 +1,4 @@
-
-import * as z from "zod";
+import { z } from "zod";
 
 const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
 const cnpjRegex = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/;
@@ -71,8 +70,48 @@ export const unidadeBeneficiariaFormSchema = z.object({
   observacao_creditos: z.string().optional().nullable(),
 });
 
+export const UnidadeBeneficiariaSchema = z.object({
+  numero_uc: z.string().min(1, {
+    message: "Número da UC é obrigatório",
+  }),
+  apelido: z.string().optional(),
+  endereco: z.string().min(1, {
+    message: "Endereço é obrigatório",
+  }),
+  cep: z.string().optional(),
+  logradouro: z.string().optional(),
+  numero: z.string().optional(),
+  complemento: z.string().optional(),
+  bairro: z.string().optional(),
+  cidade: z.string().optional(),
+  uf: z.string().optional(),
+  percentual_desconto: z.number().min(0, {
+    message: "Percentual de desconto deve ser maior ou igual a 0",
+  }).max(100, {
+    message: "Percentual de desconto deve ser menor ou igual a 100",
+  }),
+  data_entrada: z.string().min(1, {
+    message: "Data de entrada é obrigatória",
+  }),
+  data_saida: z.string().optional(),
+  consumo_kwh: z.number().optional(),
+  possui_geracao_propria: z.boolean().optional(),
+  potencia_instalada: z.number().optional(),
+  data_inicio_geracao: z.string().optional(),
+  observacao_geracao: z.string().optional(),
+  recebe_creditos_proprios: z.boolean().optional(),
+  uc_origem_creditos: z.string().optional(),
+  data_inicio_creditos: z.string().optional(),
+  observacao_creditos: z.string().optional(),
+  cooperado_id: z.string().min(1, {
+    message: "Cooperado é obrigatório",
+  }),
+  calculo_fatura_template_id: z.string().optional(),
+});
+
 export type CooperadoFormValues = z.infer<typeof cooperadoFormSchema>;
 export type UnidadeBeneficiariaFormValues = z.infer<typeof unidadeBeneficiariaFormSchema>;
+export type UnidadeBeneficiariaFormData = z.infer<typeof UnidadeBeneficiariaSchema>;
 
 export interface SortField {
   id: string;

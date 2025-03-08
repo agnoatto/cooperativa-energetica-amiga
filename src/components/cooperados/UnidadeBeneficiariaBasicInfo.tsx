@@ -1,19 +1,52 @@
 
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { BasicInfoFieldsProps } from "./types";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { CalculoFaturaTemplate } from "@/types/template";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export function UnidadeBeneficiariaBasicInfo({ form }: BasicInfoFieldsProps) {
+export function UnidadeBeneficiariaBasicInfo() {
+  const [templates, setTemplates] = useState<CalculoFaturaTemplate[]>([]);
+  const [defaultTemplateId, setDefaultTemplateId] = useState<string | undefined>();
+
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("calculo_fatura_templates")
+          .select("*")
+          .order("is_padrao", { ascending: false })
+          .order("nome");
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          setTemplates(data);
+          
+          // Definir o template padrão (se houver)
+          const defaultTemplate = data.find(t => t.is_padrao);
+          if (defaultTemplate) {
+            setDefaultTemplateId(defaultTemplate.id);
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao carregar templates:", error);
+      }
+    };
+
+    fetchTemplates();
+  }, []);
+
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <FormField
-        control={form.control}
         name="numero_uc"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Número da UC *</FormLabel>
+            <FormLabel>Número da UC*</FormLabel>
             <FormControl>
-              <Input placeholder="Número da UC" {...field} />
+              <Input placeholder="Número da Unidade Consumidora" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -21,13 +54,12 @@ export function UnidadeBeneficiariaBasicInfo({ form }: BasicInfoFieldsProps) {
       />
 
       <FormField
-        control={form.control}
         name="apelido"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Apelido (opcional)</FormLabel>
+            <FormLabel>Apelido</FormLabel>
             <FormControl>
-              <Input placeholder="Apelido da unidade" {...field} />
+              <Input placeholder="Apelido para identificação" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -35,41 +67,49 @@ export function UnidadeBeneficiariaBasicInfo({ form }: BasicInfoFieldsProps) {
       />
 
       <FormField
-        control={form.control}
-        name="consumo_kwh"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Consumo (kWh) *</FormLabel>
-            <FormControl>
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                {...field}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
         name="percentual_desconto"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Percentual de Desconto *</FormLabel>
+            <FormLabel>Percentual de Desconto*</FormLabel>
             <FormControl>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                max="100"
-                placeholder="0.00"
-                {...field}
+              <Input 
+                type="number" 
+                placeholder="Ex: 15" 
+                {...field} 
+                onChange={(e) => field.onChange(Number(e.target.value))} 
               />
             </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        name="calculo_fatura_template_id"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Template de Cálculo</FormLabel>
+            <Select 
+              onValueChange={field.onChange} 
+              defaultValue={field.value || defaultTemplateId} 
+              value={field.value || defaultTemplateId}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um template de cálculo" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {templates.map((template) => (
+                  <SelectItem key={template.id} value={template.id}>
+                    {template.nome} {template.is_padrao ? "(Padrão)" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormDescription>
+              Define como os valores de desconto e assinatura serão calculados
+            </FormDescription>
             <FormMessage />
           </FormItem>
         )}

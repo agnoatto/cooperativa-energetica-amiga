@@ -1530,6 +1530,13 @@ export type Database = {
       }
     }
     Functions: {
+      avaliar_formula_calculo_fatura: {
+        Args: {
+          p_formula: string
+          p_fatura_id: string
+        }
+        Returns: number
+      }
       deletar_fatura: {
         Args: {
           p_fatura_id: string
