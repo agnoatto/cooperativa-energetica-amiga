@@ -65,17 +65,17 @@ export function FaturasDesktopTable({
 
   return (
     <>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">UC</TableHead>
-              <TableHead>Cooperado</TableHead>
-              <TableHead className="text-right">Consumo</TableHead>
-              <TableHead className="text-right">Valor Assinatura</TableHead>
-              <TableHead className="text-right">Vencimento</TableHead>
-              <TableHead className="text-right w-[120px]">Status</TableHead>
-              <TableHead className="text-right w-[200px]">Ações</TableHead>
+      <div className="rounded-md border border-gray-200 overflow-hidden">
+        <Table className="w-full [&_th]:bg-gray-50 [&_th]:font-medium [&_th]:text-gray-700 [&_th]:h-9 [&_tr]:border-b [&_tr]:border-gray-200">
+          <TableHeader className="[&_tr]:border-b [&_tr]:border-gray-200">
+            <TableRow className="h-9">
+              <TableHead className="py-1.5 px-3 text-sm">UC</TableHead>
+              <TableHead className="py-1.5 px-3 text-sm">Cooperado</TableHead>
+              <TableHead className="py-1.5 px-3 text-sm text-right">Consumo</TableHead>
+              <TableHead className="py-1.5 px-3 text-sm text-right">Valor</TableHead>
+              <TableHead className="py-1.5 px-3 text-sm text-right">Vencimento</TableHead>
+              <TableHead className="py-1.5 px-3 text-sm text-right">Status</TableHead>
+              <TableHead className="py-1.5 px-3 text-sm w-10 text-center">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

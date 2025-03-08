@@ -3,8 +3,8 @@ import { Fatura, FaturaStatus } from "@/types/fatura";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { FaturaStatusBadge } from "../FaturaStatusBadge";
 import { format } from "date-fns";
-import { FaturaRowActions } from "../FaturaRowActions";
 import { useState } from "react";
+import { FaturaActionsMenu } from "../FaturaActionsMenu";
 
 interface FaturaDesktopRowProps {
   fatura: Fatura;
@@ -40,25 +40,25 @@ export function FaturaDesktopRow({
 
   return (
     <>
-      <TableRow key={fatura.id}>
-        <TableCell>{fatura.unidade_beneficiaria.numero_uc}</TableCell>
-        <TableCell className="font-medium">
+      <TableRow key={fatura.id} className="h-9 hover:bg-gray-50">
+        <TableCell className="py-1.5 px-3 text-sm">{fatura.unidade_beneficiaria.numero_uc}</TableCell>
+        <TableCell className="py-1.5 px-3 text-sm font-medium truncate max-w-[180px]">
           {fatura.unidade_beneficiaria.cooperado.nome}
         </TableCell>
-        <TableCell className="text-right">
+        <TableCell className="py-1.5 px-3 text-sm text-right">
           {fatura.consumo_kwh || 0} kWh
         </TableCell>
-        <TableCell className="text-right">
+        <TableCell className="py-1.5 px-3 text-sm text-right">
           {formatCurrency(fatura.valor_assinatura || 0)}
         </TableCell>
-        <TableCell className="text-right">
+        <TableCell className="py-1.5 px-3 text-sm text-right">
           {formatDate(fatura.data_vencimento)}
         </TableCell>
-        <TableCell className="text-right">
+        <TableCell className="py-1.5 px-3 text-sm text-right">
           <FaturaStatusBadge fatura={fatura} />
         </TableCell>
-        <TableCell>
-          <FaturaRowActions
+        <TableCell className="py-1.5 px-3 text-sm w-10">
+          <FaturaActionsMenu
             fatura={fatura}
             onViewDetails={onViewDetails}
             onEdit={onEdit}
