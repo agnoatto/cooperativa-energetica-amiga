@@ -11,11 +11,6 @@ import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FilterBar } from "@/components/shared/FilterBar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { 
-  unidadesTableColumns, 
-  getStoredTableSettings,
-  saveTableSettings
-} from "@/components/cooperados/table/unidadesTableConfig";
 
 const UnidadesBeneficiarias = () => {
   const [showUnidadeForm, setShowUnidadeForm] = useState(false);
@@ -36,7 +31,7 @@ const UnidadesBeneficiarias = () => {
         .from('unidades_beneficiarias')
         .select(`
           *,
-          cooperado:cooperados(id, nome)
+          cooperado:cooperados(nome)
         `);
 
       if (statusFiltro === "ativas") {
