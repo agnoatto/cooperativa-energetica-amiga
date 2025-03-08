@@ -1,4 +1,5 @@
 
+import { fetchTemplateById, fetchDefaultTemplate } from "@/components/configuracoes/services/templateService";
 import { supabase } from "@/integrations/supabase/client";
 
 // Função auxiliar para remover formatação e converter para número
@@ -40,31 +41,31 @@ export const getCalculoTemplate = async (unidadeBeneficiariaId: string) => {
       .eq("id", unidadeBeneficiariaId)
       .single();
 
-    if (unidadeError) throw unidadeError;
-
-    let templateId = unidade?.calculo_fatura_template_id;
-    
-    // Se a unidade não tem template específico, buscar o padrão
-    if (!templateId) {
-      const { data: templatePadrao, error: templatePadraoError } = await supabase
-        .from("calculo_fatura_templates")
-        .select("id")
-        .eq("is_padrao", true)
-        .single();
-
-      if (templatePadraoError) throw templatePadraoError;
-      
-      templateId = templatePadrao?.id;
+    if (unidadeError) {
+      console.error('[getCalculoTemplate] Erro ao buscar unidade:', unidadeError);
+      throw unidadeError;
     }
 
-    // Buscar detalhes do template
-    const { data: template, error: templateError } = await supabase
-      .from("calculo_fatura_templates")
-      .select("*")
-      .eq("id", templateId)
-      .single();
+    let template = null;
+    const templateId = unidade?.calculo_fatura_template_id;
+    
+    // Se a unidade tem template específico, buscar ele
+    if (templateId) {
+      template = await fetchTemplateById(templateId);
+    }
+    
+    // Se a unidade não tem template específico, buscar o padrão
+    if (!template) {
+      template = await fetchDefaultTemplate();
+    }
 
-    if (templateError) throw templateError;
+    // Caso nenhum template seja encontrado, retornar fórmulas padrão
+    if (!template) {
+      return {
+        formula_valor_desconto: "(total_fatura - iluminacao_publica - outros_valores) * (percentual_desconto / 100)",
+        formula_valor_assinatura: "total_fatura - valor_desconto - fatura_concessionaria"
+      };
+    }
 
     return template;
   } catch (error) {

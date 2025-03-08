@@ -1,14 +1,18 @@
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Edit, Trash2 } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { CalculoFaturaTemplateForm } from "./CalculoFaturaTemplateForm";
 import { TemplateTable } from "./templates/TemplateTable";
 import { DeleteTemplateDialog } from "./templates/DeleteTemplateDialog";
 import { CalculoFaturaTemplate } from "@/types/template";
+import { 
+  fetchTemplates, 
+  deleteTemplate, 
+  checkTemplateInUse 
+} from "./services/templateService";
 
 export function CalculoFaturaTemplates() {
   const [templates, setTemplates] = useState<CalculoFaturaTemplate[]>([]);
@@ -18,20 +22,11 @@ export function CalculoFaturaTemplates() {
   const [templateToDelete, setTemplateToDelete] = useState<CalculoFaturaTemplate | null>(null);
   const [activeTab, setActiveTab] = useState("templates");
 
-  const fetchTemplates = async () => {
+  const fetchAllTemplates = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("calculo_fatura_templates")
-        .select("*")
-        .order("is_padrao", { ascending: false })
-        .order("nome");
-
-      if (error) {
-        throw error;
-      }
-
-      setTemplates(data || []);
+      const templatesData = await fetchTemplates();
+      setTemplates(templatesData);
     } catch (error: any) {
       toast.error(`Erro ao carregar templates: ${error.message}`);
     } finally {
@@ -40,7 +35,7 @@ export function CalculoFaturaTemplates() {
   };
 
   useEffect(() => {
-    fetchTemplates();
+    fetchAllTemplates();
   }, []);
 
   const handleEditTemplate = (template: CalculoFaturaTemplate) => {
@@ -58,37 +53,30 @@ export function CalculoFaturaTemplates() {
 
     try {
       // Verificar se o template está sendo usado por alguma unidade beneficiária
-      const { data: unidades, error: checkError } = await supabase
-        .from("unidades_beneficiarias")
-        .select("id")
-        .eq("calculo_fatura_template_id", templateToDelete.id)
-        .limit(1);
+      const isInUse = await checkTemplateInUse(templateToDelete.id);
 
-      if (checkError) throw checkError;
-
-      if (unidades && unidades.length > 0) {
+      if (isInUse) {
         toast.error("Não é possível excluir um template que está sendo usado por unidades beneficiárias.");
         return;
       }
 
       // Executar a exclusão
-      const { error } = await supabase
-        .from("calculo_fatura_templates")
-        .delete()
-        .eq("id", templateToDelete.id);
+      const success = await deleteTemplate(templateToDelete.id);
 
-      if (error) throw error;
+      if (!success) {
+        throw new Error("Falha ao excluir o template.");
+      }
 
       toast.success("Template excluído com sucesso!");
       setTemplateToDelete(null);
-      fetchTemplates();
+      fetchAllTemplates();
     } catch (error: any) {
       toast.error(`Erro ao excluir template: ${error.message}`);
     }
   };
 
   const handleFormSuccess = () => {
-    fetchTemplates();
+    fetchAllTemplates();
     setIsFormOpen(false);
     setSelectedTemplate(null);
     setActiveTab("templates");

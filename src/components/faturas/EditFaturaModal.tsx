@@ -1,3 +1,4 @@
+
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CurrencyInput } from "@/components/ui/currency-input";
+import { CurrencyInput } from "@/components/faturas/CurrencyInput";
 import { useState } from "react";
 import { calculateValues } from "./utils/calculateValues";
 import { toast } from "sonner";

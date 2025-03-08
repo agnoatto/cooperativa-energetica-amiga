@@ -2,40 +2,32 @@
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { CalculoFaturaTemplate } from "@/types/template";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { fetchTemplates } from "@/components/configuracoes/services/templateService";
 
 export function UnidadeBeneficiariaBasicInfo() {
   const [templates, setTemplates] = useState<CalculoFaturaTemplate[]>([]);
   const [defaultTemplateId, setDefaultTemplateId] = useState<string | undefined>();
 
   useEffect(() => {
-    const fetchTemplates = async () => {
+    const loadTemplates = async () => {
       try {
-        const { data, error } = await supabase
-          .from("calculo_fatura_templates")
-          .select("*")
-          .order("is_padrao", { ascending: false })
-          .order("nome");
-
-        if (error) throw error;
-
-        if (data && data.length > 0) {
-          setTemplates(data);
-          
-          // Definir o template padrão (se houver)
-          const defaultTemplate = data.find(t => t.is_padrao);
-          if (defaultTemplate) {
-            setDefaultTemplateId(defaultTemplate.id);
-          }
+        const templatesData = await fetchTemplates();
+        
+        setTemplates(templatesData);
+        
+        // Definir o template padrão (se houver)
+        const defaultTemplate = templatesData.find(t => t.is_padrao);
+        if (defaultTemplate) {
+          setDefaultTemplateId(defaultTemplate.id);
         }
       } catch (error) {
         console.error("Erro ao carregar templates:", error);
       }
     };
 
-    fetchTemplates();
+    loadTemplates();
   }, []);
 
   return (

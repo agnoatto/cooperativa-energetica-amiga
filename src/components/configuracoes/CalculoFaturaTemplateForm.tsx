@@ -1,9 +1,8 @@
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { CalculoFaturaTemplate } from "@/types/template";
+import { 
+  createTemplate, 
+  updateTemplate, 
+  resetDefaultTemplates 
+} from "./services/templateService";
 
 const formSchema = z.object({
   nome: z.string().min(3, { message: "Nome deve ter pelo menos 3 caracteres" }),
@@ -56,31 +60,25 @@ export function CalculoFaturaTemplateForm({
     try {
       if (values.is_padrao) {
         // Se o template está sendo marcado como padrão, remover o padrão dos outros
-        const { error: resetError } = await supabase
-          .from("calculo_fatura_templates")
-          .update({ is_padrao: false })
-          .not("id", "eq", template?.id || "");
-
-        if (resetError) throw resetError;
+        await resetDefaultTemplates(template?.id || "");
       }
 
       if (template) {
         // Atualizar template existente
-        const { error } = await supabase
-          .from("calculo_fatura_templates")
-          .update(values)
-          .eq("id", template.id);
+        const updatedTemplate = await updateTemplate(template.id, values);
 
-        if (error) throw error;
+        if (!updatedTemplate) {
+          throw new Error("Erro ao atualizar o template.");
+        }
 
         toast.success("Template atualizado com sucesso!");
       } else {
         // Criar novo template
-        const { error } = await supabase
-          .from("calculo_fatura_templates")
-          .insert(values);
+        const newTemplate = await createTemplate(values);
 
-        if (error) throw error;
+        if (!newTemplate) {
+          throw new Error("Erro ao criar o template.");
+        }
 
         toast.success("Template criado com sucesso!");
       }
