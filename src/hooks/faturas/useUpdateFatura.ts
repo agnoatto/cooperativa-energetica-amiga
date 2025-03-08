@@ -113,13 +113,46 @@ export const useUpdateFatura = () => {
 
         if (completeError) {
           console.error("[useUpdateFatura] Erro ao buscar fatura completa:", completeError);
-          // Ainda retorna a fatura atualizada mesmo sem os relacionamentos, mas com cast para o tipo esperado
+          
+          // Precisamos buscar dados da unidade beneficiária separadamente
+          const { data: unidadeData, error: unidadeError } = await supabase
+            .from("unidades_beneficiarias")
+            .select(`
+              id,
+              numero_uc,
+              apelido,
+              endereco,
+              percentual_desconto,
+              cooperado:cooperado_id (
+                nome,
+                documento
+              )
+            `)
+            .eq("id", updatedFatura.unidade_beneficiaria_id)
+            .single();
+          
+          if (unidadeError) {
+            console.error("[useUpdateFatura] Erro ao buscar unidade beneficiária:", unidadeError);
+            throw new Error(`Erro ao buscar unidade beneficiária: ${unidadeError.message}`);
+          }
+          
+          // Construir objeto com a estrutura completa
           return {
             ...updatedFatura,
             valor_adicional: updatedFatura.valor_adicional || 0,
             observacao_pagamento: updatedFatura.observacao_pagamento || null,
             data_pagamento: updatedFatura.data_pagamento || null,
-            historico_faturas: [] // Adicionando campo faltante
+            historico_faturas: [], // Campo obrigatório
+            consumo_kwh: Number(updatedFatura.consumo_kwh),
+            valor_assinatura: Number(updatedFatura.valor_assinatura),
+            fatura_concessionaria: Number(updatedFatura.fatura_concessionaria),
+            total_fatura: Number(updatedFatura.total_fatura),
+            iluminacao_publica: Number(updatedFatura.iluminacao_publica),
+            outros_valores: Number(updatedFatura.outros_valores),
+            valor_desconto: Number(updatedFatura.valor_desconto),
+            saldo_energia_kwh: Number(updatedFatura.saldo_energia_kwh),
+            economia_acumulada: updatedFatura.economia_acumulada || 0,
+            unidade_beneficiaria: unidadeData // Adicionando a unidade beneficiária
           } as Fatura;
         }
 
