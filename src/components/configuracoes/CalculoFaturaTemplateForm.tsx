@@ -73,7 +73,7 @@ export function CalculoFaturaTemplateForm({
 
         toast.success("Template atualizado com sucesso!");
       } else {
-        // Criar novo template - aqui é crucial que nome não seja optional
+        // Criar novo template
         const templateData: CreateCalculoFaturaTemplateInput = {
           nome: values.nome,
           descricao: values.descricao || null,
@@ -290,3 +290,12 @@ export function CalculoFaturaTemplateForm({
     </Form>
   );
 }
+
+const variaveisDisponiveis = [
+  { nome: "total_fatura", descricao: "Valor total da fatura" },
+  { nome: "iluminacao_publica", descricao: "Valor da iluminação pública" },
+  { nome: "outros_valores", descricao: "Outros valores" },
+  { nome: "fatura_concessionaria", descricao: "Valor da fatura da concessionária" },
+  { nome: "valor_desconto", descricao: "Valor do desconto (disponível apenas para cálculo da assinatura)" },
+  { nome: "percentual_desconto", descricao: "Percentual de desconto configurado na unidade" }
+];

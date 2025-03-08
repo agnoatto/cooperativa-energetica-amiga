@@ -11,6 +11,7 @@ export type CurrencyInputProps = {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  id?: string;
 };
 
 export function CurrencyInput({ 
@@ -19,6 +20,7 @@ export function CurrencyInput({
   className, 
   disabled,
   placeholder,
+  id,
   ...props 
 }: CurrencyInputProps & Omit<NumericFormatProps, 'value' | 'onValueChange' | 'customInput'>) {
   // Modificamos para passar o valor não-formatado (numérico) para o onChange
@@ -45,6 +47,7 @@ export function CurrencyInput({
       type="text"
       placeholder={placeholder}
       disabled={disabled}
+      id={id}
       {...props}
     />
   );

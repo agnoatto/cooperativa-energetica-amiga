@@ -1,3 +1,4 @@
+
 export interface CalculoFaturaTemplate {
   id: string;
   nome: string;
@@ -9,4 +10,10 @@ export interface CalculoFaturaTemplate {
   updated_at?: string;
 }
 
-export type CreateCalculoFaturaTemplateInput = Omit<CalculoFaturaTemplate, "id" | "created_at" | "updated_at">;
+export type CreateCalculoFaturaTemplateInput = {
+  nome: string;
+  descricao?: string | null;
+  formula_valor_desconto: string;
+  formula_valor_assinatura: string;
+  is_padrao: boolean;
+};

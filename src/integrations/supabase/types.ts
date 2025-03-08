@@ -153,6 +153,39 @@ export type Database = {
         }
         Relationships: []
       }
+      calculo_fatura_templates: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          formula_valor_assinatura: string
+          formula_valor_desconto: string
+          id: string
+          is_padrao: boolean
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          formula_valor_assinatura: string
+          formula_valor_desconto: string
+          id?: string
+          is_padrao?: boolean
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          formula_valor_assinatura?: string
+          formula_valor_desconto?: string
+          id?: string
+          is_padrao?: boolean
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cooperados: {
         Row: {
           created_at: string
@@ -1083,6 +1116,7 @@ export type Database = {
         Row: {
           apelido: string | null
           bairro: string | null
+          calculo_fatura_template_id: string | null
           cep: string | null
           cidade: string | null
           complemento: string | null
@@ -1111,6 +1145,7 @@ export type Database = {
         Insert: {
           apelido?: string | null
           bairro?: string | null
+          calculo_fatura_template_id?: string | null
           cep?: string | null
           cidade?: string | null
           complemento?: string | null
@@ -1139,6 +1174,7 @@ export type Database = {
         Update: {
           apelido?: string | null
           bairro?: string | null
+          calculo_fatura_template_id?: string | null
           cep?: string | null
           cidade?: string | null
           complemento?: string | null
@@ -1165,6 +1201,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "unidades_beneficiarias_calculo_fatura_template_id_fkey"
+            columns: ["calculo_fatura_template_id"]
+            isOneToOne: false
+            referencedRelation: "calculo_fatura_templates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "unidades_beneficiarias_cooperado_id_fkey"
             columns: ["cooperado_id"]
@@ -1537,6 +1580,31 @@ export type Database = {
         }
         Returns: number
       }
+      check_template_in_use: {
+        Args: {
+          template_id: string
+        }
+        Returns: boolean
+      }
+      create_calculo_fatura_template: {
+        Args: {
+          nome_template: string
+          descricao_template: string
+          formula_desconto: string
+          formula_assinatura: string
+          padrao: boolean
+        }
+        Returns: {
+          created_at: string
+          descricao: string | null
+          formula_valor_assinatura: string
+          formula_valor_desconto: string
+          id: string
+          is_padrao: boolean
+          nome: string
+          updated_at: string
+        }
+      }
       deletar_fatura: {
         Args: {
           p_fatura_id: string
@@ -1548,6 +1616,61 @@ export type Database = {
           pagamento_id: string
         }
         Returns: undefined
+      }
+      delete_calculo_fatura_template: {
+        Args: {
+          template_id: string
+        }
+        Returns: boolean
+      }
+      get_all_calculo_fatura_templates: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          descricao: string | null
+          formula_valor_assinatura: string
+          formula_valor_desconto: string
+          id: string
+          is_padrao: boolean
+          nome: string
+          updated_at: string
+        }[]
+      }
+      get_calculo_fatura_template: {
+        Args: {
+          template_id: string
+        }
+        Returns: {
+          created_at: string
+          descricao: string | null
+          formula_valor_assinatura: string
+          formula_valor_desconto: string
+          id: string
+          is_padrao: boolean
+          nome: string
+          updated_at: string
+        }[]
+      }
+      get_default_calculo_fatura_template: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          descricao: string | null
+          formula_valor_assinatura: string
+          formula_valor_desconto: string
+          id: string
+          is_padrao: boolean
+          nome: string
+          updated_at: string
+        }[]
+      }
+      get_unidade_beneficiaria_template: {
+        Args: {
+          unidade_id: string
+        }
+        Returns: {
+          calculo_fatura_template_id: string
+        }[]
       }
       get_unidades_dashboard_data: {
         Args: Record<PropertyKey, never>
@@ -1586,6 +1709,12 @@ export type Database = {
         }
         Returns: unknown
       }
+      reset_default_templates: {
+        Args: {
+          except_id: string
+        }
+        Returns: undefined
+      }
       set_limit: {
         Args: {
           "": number
@@ -1601,6 +1730,26 @@ export type Database = {
           "": string
         }
         Returns: string[]
+      }
+      update_calculo_fatura_template: {
+        Args: {
+          template_id: string
+          nome_template: string
+          descricao_template: string
+          formula_desconto: string
+          formula_assinatura: string
+          padrao: boolean
+        }
+        Returns: {
+          created_at: string
+          descricao: string | null
+          formula_valor_assinatura: string
+          formula_valor_desconto: string
+          id: string
+          is_padrao: boolean
+          nome: string
+          updated_at: string
+        }
       }
       update_fatura: {
         Args: {
