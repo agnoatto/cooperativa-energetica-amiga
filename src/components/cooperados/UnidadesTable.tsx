@@ -8,16 +8,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Eye, Trash } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Edit, Eye, Archive } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UnidadeDetailsDialog } from "./UnidadeDetailsDialog";
+import { DesativarUnidadeDialog } from "./dialogs/DesativarUnidadeDialog";
 import { useState } from "react";
 import { formatarKwh } from "@/utils/formatters";
 
 interface UnidadesTableProps {
   unidades: any[];
   onEdit: (cooperadoId: string, unidadeId: string) => void;
-  onDelete: (unidadeId: string) => void;
+  onDelete: (unidadeId: string, motivo?: string) => Promise<void>;
 }
 
 export function UnidadesTable({
@@ -28,14 +30,33 @@ export function UnidadesTable({
   const isMobile = useIsMobile();
   const [selectedUnidade, setSelectedUnidade] = useState<any>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [unidadeToDesativar, setUnidadeToDesativar] = useState<any>(null);
+  const [isDesativando, setIsDesativando] = useState(false);
 
   const handleViewDetails = (unidade: any) => {
     setSelectedUnidade(unidade);
     setShowDetailsDialog(true);
   };
 
+  const handleDesativarConfirm = async (unidadeId: string, motivo: string) => {
+    setIsDesativando(true);
+    try {
+      await onDelete(unidadeId, motivo);
+    } finally {
+      setIsDesativando(false);
+      setUnidadeToDesativar(null);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
+  };
+
+  const getStatusBadge = (unidade: any) => {
+    if (unidade.data_saida) {
+      return <Badge variant="outline" className="bg-gray-100">Desativada</Badge>;
+    }
+    return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Ativa</Badge>;
   };
 
   if (isMobile) {
@@ -59,6 +80,7 @@ export function UnidadesTable({
                     </p>
                   )}
                 </div>
+                <div>{getStatusBadge(unidade)}</div>
               </div>
 
               <div className="space-y-2 text-sm">
@@ -98,6 +120,7 @@ export function UnidadesTable({
                     onEdit(unidade.cooperado_id, unidade.id);
                   }}
                   className="h-10 w-10 p-0"
+                  disabled={!!unidade.data_saida}
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
@@ -106,11 +129,12 @@ export function UnidadesTable({
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onDelete(unidade.id);
+                    setUnidadeToDesativar(unidade);
                   }}
                   className="h-10 w-10 p-0"
+                  disabled={!!unidade.data_saida}
                 >
-                  <Trash className="h-4 w-4" />
+                  <Archive className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -124,6 +148,14 @@ export function UnidadesTable({
             setShowDetailsDialog(false);
             setSelectedUnidade(null);
           }}
+        />
+
+        <DesativarUnidadeDialog
+          unidade={unidadeToDesativar}
+          isOpen={!!unidadeToDesativar}
+          isProcessing={isDesativando}
+          onConfirm={handleDesativarConfirm}
+          onCancel={() => setUnidadeToDesativar(null)}
         />
       </>
     );
@@ -142,7 +174,7 @@ export function UnidadesTable({
                 <TableHead>Desconto</TableHead>
                 <TableHead>Consumo</TableHead>
                 <TableHead>Data Entrada</TableHead>
-                <TableHead>Data Saída</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -162,7 +194,7 @@ export function UnidadesTable({
                     {formatDate(unidade.data_entrada)}
                   </TableCell>
                   <TableCell className="whitespace-nowrap">
-                    {unidade.data_saida ? formatDate(unidade.data_saida) : '-'}
+                    {getStatusBadge(unidade)}
                   </TableCell>
                   <TableCell className="text-right whitespace-nowrap space-x-2">
                     <Button 
@@ -173,6 +205,7 @@ export function UnidadesTable({
                         onEdit(unidade.cooperado_id, unidade.id);
                       }}
                       className="h-8 w-8"
+                      disabled={!!unidade.data_saida}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -181,11 +214,12 @@ export function UnidadesTable({
                       size="icon"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onDelete(unidade.id);
+                        setUnidadeToDesativar(unidade);
                       }}
                       className="h-8 w-8"
+                      disabled={!!unidade.data_saida}
                     >
-                      <Trash className="h-4 w-4" />
+                      <Archive className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -202,6 +236,14 @@ export function UnidadesTable({
           setShowDetailsDialog(false);
           setSelectedUnidade(null);
         }}
+      />
+
+      <DesativarUnidadeDialog
+        unidade={unidadeToDesativar}
+        isOpen={!!unidadeToDesativar}
+        isProcessing={isDesativando}
+        onConfirm={handleDesativarConfirm}
+        onCancel={() => setUnidadeToDesativar(null)}
       />
     </>
   );
