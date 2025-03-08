@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { X, ZoomIn, ZoomOut, RotateCw } from "lucide-react";
+import { X, ZoomIn, ZoomOut, RotateCw, Download } from "lucide-react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useEffect, useState } from "react";
@@ -11,13 +11,15 @@ interface SimplePdfViewerProps {
   onClose: () => void;
   pdfUrl: string | null;
   title?: string;
+  allowDownload?: boolean;
 }
 
 export function SimplePdfViewer({ 
   isOpen, 
   onClose, 
   pdfUrl,
-  title = "Visualização do Documento" 
+  title = "Visualização do Documento",
+  allowDownload = false
 }: SimplePdfViewerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -52,6 +54,13 @@ export function SimplePdfViewer({
 
   const rotate = () => {
     setRotation(prev => (prev + 90) % 360);
+  };
+
+  const handleDownload = () => {
+    if (pdfUrl) {
+      // Abrir o PDF em uma nova aba, o que permite o download
+      window.open(pdfUrl, '_blank');
+    }
   };
 
   if (!isOpen) return null;
@@ -94,6 +103,19 @@ export function SimplePdfViewer({
             >
               <RotateCw className="h-4 w-4" />
             </Button>
+            {allowDownload && (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleDownload}
+                className="h-8 w-8"
+                title="Baixar"
+                disabled={!pdfUrl}
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               type="button"
               variant="ghost"
@@ -139,15 +161,14 @@ export function SimplePdfViewer({
             >
               <iframe
                 src={pdfUrl}
-                className="w-full h-full border rounded shadow-lg"
+                className="w-full h-full border rounded shadow-lg bg-white"
                 title="Visualização do documento"
                 onLoad={handleIframeLoad}
                 onError={handleIframeError}
                 style={{
-                  visibility: isLoading ? 'hidden' : 'visible',
-                  backgroundColor: 'white'
+                  visibility: isLoading ? 'hidden' : 'visible'
                 }}
-                sandbox="allow-scripts allow-same-origin"
+                sandbox="allow-scripts allow-same-origin allow-forms"
               />
             </div>
           )}

@@ -61,6 +61,7 @@ export function FaturaFileUpload({
         onClose={() => setShowPdfPreview(false)}
         pdfUrl={pdfUrl}
         title="Visualização da Fatura"
+        allowDownload={true}
       />
     </div>
   );

@@ -47,21 +47,7 @@ export function FaturasDesktopTable({
     try {
       setSelectedFatura(fatura);
       
-      // Verificar se o arquivo existe antes de tentar obter a URL assinada
-      const { data: fileExists } = await supabase
-        .storage
-        .from(STORAGE_BUCKET)
-        .list(fatura.arquivo_concessionaria_path.split('/')[0], {
-          limit: 1,
-          offset: 0,
-          search: fatura.arquivo_concessionaria_path.split('/')[1]
-        });
-      
-      if (!fileExists || fileExists.length === 0) {
-        throw new Error("Arquivo não encontrado no storage");
-      }
-
-      // Obter URL assinada
+      // Obter URL assinada diretamente sem verificar a existência do arquivo primeiro
       const { data: storageUrl, error } = await supabase.storage
         .from(STORAGE_BUCKET)
         .createSignedUrl(fatura.arquivo_concessionaria_path, 3600);
@@ -129,6 +115,7 @@ export function FaturasDesktopTable({
         onClose={handleClosePdfPreview}
         pdfUrl={pdfUrl}
         title="Visualização da Conta de Energia"
+        allowDownload={true}
       />
     </>
   );

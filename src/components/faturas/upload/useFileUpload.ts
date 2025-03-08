@@ -2,51 +2,11 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  SIGNED_URL_EXPIRY, 
-  STORAGE_BUCKET, 
-  MAX_FILE_SIZE, 
-  FILE_TYPE,
-  RETRY_ATTEMPTS,
-  RETRY_DELAY,
-  VALID_FILE_CHARS
-} from "./constants";
-
-type RetryFunction = () => Promise<any>;
-
-const retry = async (fn: RetryFunction, attempts: number = RETRY_ATTEMPTS): Promise<any> => {
-  try {
-    return await fn();
-  } catch (error) {
-    if (attempts === 1) throw error;
-    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-    return retry(fn, attempts - 1);
-  }
-};
-
-const verifyFileExists = async (path: string): Promise<boolean> => {
-  try {
-    const folder = path.split('/')[0];
-    const filename = path.split('/')[1];
-    
-    const { data, error } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .list(folder, {
-        limit: 1,
-        search: filename
-      });
-    
-    if (error) throw error;
-    return data && data.length > 0;
-  } catch (error) {
-    console.error('Erro ao verificar arquivo:', error);
-    return false;
-  }
-};
+import { STORAGE_BUCKET } from "./constants";
 
 export function useFileUpload(
-  faturaId: string, 
-  onSuccess: () => void, 
+  faturaId: string,
+  onSuccess?: () => void,
   onFileChange?: (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => void
 ) {
   const [isUploading, setIsUploading] = useState(false);
@@ -54,214 +14,170 @@ export function useFileUpload(
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
-  const generateSignedUrl = async (filePath: string): Promise<string | null> => {
-    try {
-      const { data, error } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .createSignedUrl(filePath, SIGNED_URL_EXPIRY);
+  // Função para lidar com upload de arquivo
+  const handleFileUpload = async (files: File[]) => {
+    if (files.length === 0) return;
 
-      if (error) throw error;
-      return data.signedUrl;
-    } catch (error: any) {
-      console.error('Erro ao gerar URL assinada:', error.message);
-      return null;
-    }
-  };
-
-  const handleFileUpload = async (file: File) => {
-    if (!file) {
-      toast.error('Nenhum arquivo selecionado');
+    const file = files[0];
+    const fileExt = file.name.split(".").pop();
+    
+    // Verificar tipo de arquivo
+    if (fileExt !== "pdf") {
+      toast.error("Apenas arquivos PDF são permitidos");
       return;
     }
 
-    // Validações
-    if (file.type !== FILE_TYPE) {
-      toast.error('Por favor, selecione um arquivo PDF');
-      return;
-    }
-
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error('O arquivo deve ter no máximo 10MB');
+    // Verificar tamanho do arquivo (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("O tamanho máximo do arquivo é 5MB");
       return;
     }
 
     setIsUploading(true);
-    const toastId = toast.loading('Enviando arquivo...');
+    const toastId = toast.loading("Enviando arquivo...");
 
     try {
-      // Gerar nome único para o arquivo
-      const fileExt = file.name.split('.').pop();
-      const sanitizedName = file.name.replace(VALID_FILE_CHARS, '');
-      const fileName = `${faturaId}_${Date.now()}.${fileExt}`;
-      const filePath = `${faturaId}/${fileName}`;
+      // Criar path único para o arquivo
+      const filePath = `faturas/${faturaId}/${Date.now()}.${fileExt}`;
 
-      // Upload do arquivo com retry
-      await retry(async () => {
-        const { error: uploadError } = await supabase.storage
-          .from(STORAGE_BUCKET)
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false
-          });
+      // Upload para o storage
+      const { error: uploadError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(filePath, file, {
+          upsert: true,
+          contentType: file.type,
+        });
 
-        if (uploadError) throw uploadError;
-      });
+      if (uploadError) {
+        throw uploadError;
+      }
 
-      // Atualizar fatura com dados do novo arquivo
+      // Atualizar a fatura com informações do arquivo
       const { error: updateError } = await supabase
-        .from('faturas')
+        .from("faturas")
         .update({
-          arquivo_concessionaria_nome: sanitizedName,
+          arquivo_concessionaria_nome: file.name,
           arquivo_concessionaria_path: filePath,
           arquivo_concessionaria_tipo: file.type,
-          arquivo_concessionaria_tamanho: file.size
+          arquivo_concessionaria_tamanho: file.size,
         })
-        .eq('id', faturaId);
+        .eq("id", faturaId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        throw updateError;
+      }
 
-      toast.success('Arquivo enviado com sucesso!', { id: toastId });
-      onSuccess();
+      // Notificar sucesso
+      toast.success("Arquivo enviado com sucesso!", { id: toastId });
       
-      // Atualiza os estados no componente pai
+      // Chamar callback se disponível
+      onSuccess?.();
+      
+      // Atualizar o estado do arquivo no componente pai
       if (onFileChange) {
-        onFileChange(sanitizedName, filePath, file.type, file.size);
+        onFileChange(file.name, filePath, file.type, file.size);
       }
     } catch (error: any) {
-      console.error('Erro no upload:', error);
-      toast.error(`Erro ao enviar arquivo: ${error.message}`, { id: toastId });
-      
-      // Tentar limpar arquivo do storage em caso de erro
-      if (error.message.includes('database')) {
-        try {
-          await supabase.storage
-            .from(STORAGE_BUCKET)
-            .remove([`${faturaId}/${file.name}`]);
-        } catch (cleanupError) {
-          console.error('Erro ao limpar arquivo:', cleanupError);
-        }
-      }
+      console.error("Erro ao fazer upload:", error);
+      toast.error(`Erro ao fazer upload: ${error.message}`, { id: toastId });
     } finally {
       setIsUploading(false);
     }
   };
 
-  const handleDownload = async (arquivoPath: string, arquivoNome: string) => {
-    const toastId = toast.loading('Preparando download...');
-
+  // Função para baixar arquivo
+  const handleDownload = async (filePath: string, fileName: string) => {
+    const toastId = toast.loading("Preparando download...");
+    
     try {
-      // Verificar se arquivo existe
-      const exists = await verifyFileExists(arquivoPath);
-      if (!exists) {
-        throw new Error('Arquivo não encontrado');
+      const { data, error } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .download(filePath);
+
+      if (error) {
+        throw error;
       }
 
-      // Gerar URL assinada com retry
-      const signedUrl = await retry(async () => {
-        const url = await generateSignedUrl(arquivoPath);
-        if (!url) throw new Error('Erro ao gerar URL de download');
-        return url;
-      });
-
-      if (!signedUrl) {
-        throw new Error('Não foi possível gerar o link de download');
-      }
-
-      // Criar link de download
-      const link = document.createElement('a');
-      link.href = signedUrl;
-      link.download = arquivoNome || 'conta-energia.pdf';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast.success('Download iniciado!', { id: toastId });
+      // Criar URL para download e simular clique em link
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast.success("Download iniciado", { id: toastId });
     } catch (error: any) {
-      console.error('Erro ao baixar arquivo:', error);
-      toast.error(`Erro ao baixar arquivo: ${error.message}`, { id: toastId });
+      console.error("Erro ao baixar arquivo:", error);
+      toast.error(`Erro ao baixar: ${error.message}`, { id: toastId });
     }
   };
 
-  const handleRemoveFile = async (arquivoPath: string, faturaId: string) => {
-    const toastId = toast.loading('Removendo arquivo...');
-    setIsUploading(true);
-
+  // Função para remover arquivo
+  const handleRemoveFile = async (filePath: string, faturaId: string) => {
+    const toastId = toast.loading("Removendo arquivo...");
+    
     try {
-      // Verificar se arquivo existe
-      const exists = await verifyFileExists(arquivoPath);
-      if (!exists) {
-        throw new Error('Arquivo não encontrado');
+      // Remover do storage
+      const { error: storageError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .remove([filePath]);
+
+      if (storageError) {
+        throw storageError;
       }
 
-      // Remover arquivo do storage com retry
-      await retry(async () => {
-        const { error: removeError } = await supabase.storage
-          .from(STORAGE_BUCKET)
-          .remove([arquivoPath]);
-
-        if (removeError) throw removeError;
-      });
-
-      // Atualizar fatura
+      // Atualizar a fatura removendo informações do arquivo
       const { error: updateError } = await supabase
-        .from('faturas')
+        .from("faturas")
         .update({
           arquivo_concessionaria_nome: null,
           arquivo_concessionaria_path: null,
           arquivo_concessionaria_tipo: null,
-          arquivo_concessionaria_tamanho: null
+          arquivo_concessionaria_tamanho: null,
         })
-        .eq('id', faturaId);
+        .eq("id", faturaId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        throw updateError;
+      }
 
-      toast.success('Arquivo removido com sucesso!', { id: toastId });
-      setPdfUrl(null);
-      setShowPdfPreview(false); // Fechar o preview se estiver aberto
+      toast.success("Arquivo removido com sucesso", { id: toastId });
       
-      // Atualiza os estados no componente pai
+      // Chamar callback se disponível
+      onSuccess?.();
+      
+      // Atualizar o estado do arquivo no componente pai
       if (onFileChange) {
         onFileChange(null, null, null, null);
       }
-      
-      // Chamar callback de sucesso
-      onSuccess();
     } catch (error: any) {
-      console.error('Erro ao remover arquivo:', error);
-      toast.error(`Erro ao remover arquivo: ${error.message}`, { id: toastId });
-    } finally {
-      setIsUploading(false);
+      console.error("Erro ao remover arquivo:", error);
+      toast.error(`Erro ao remover: ${error.message}`, { id: toastId });
     }
   };
 
-  const handlePreview = async (arquivoPath: string) => {
-    const toastId = toast.loading('Carregando visualização...');
-
+  // Função para pré-visualizar PDF
+  const handlePreview = async (filePath: string) => {
+    const toastId = toast.loading("Carregando visualização...");
+    
     try {
-      // Verificar se arquivo existe
-      const exists = await verifyFileExists(arquivoPath);
-      if (!exists) {
-        throw new Error('Arquivo não encontrado no storage');
+      const { data, error } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .createSignedUrl(filePath, 3600); // URL válida por 1 hora
+
+      if (error) {
+        throw error;
       }
 
-      // Gerar URL assinada com retry
-      const signedUrl = await retry(async () => {
-        const url = await generateSignedUrl(arquivoPath);
-        if (!url) throw new Error('Erro ao gerar URL de visualização');
-        return url;
-      });
-
-      if (signedUrl) {
-        setPdfUrl(signedUrl);
-        setShowPdfPreview(true);
-        toast.success('PDF carregado com sucesso!', { id: toastId });
-      } else {
-        throw new Error('Não foi possível gerar a visualização');
-      }
+      setPdfUrl(data.signedUrl);
+      setShowPdfPreview(true);
+      toast.success("Documento carregado", { id: toastId });
     } catch (error: any) {
-      console.error('Erro ao gerar preview:', error);
-      toast.error(`Erro ao gerar preview: ${error.message}`, { id: toastId });
-      setPdfUrl(null);
+      console.error("Erro ao obter URL do PDF:", error);
+      toast.error(`Erro ao carregar visualização: ${error.message}`, { id: toastId });
     }
   };
 
