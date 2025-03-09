@@ -218,7 +218,6 @@ export function EditFaturaModal({
           <form onSubmit={formState.handleSubmit(handleSubmit)} className="space-y-4">
             <BasicInfoSection 
               formState={formState} 
-              formatDate={formatDate} 
             />
             
             <FaturaValoresSection 
