@@ -1,4 +1,10 @@
 
+/**
+ * Hook para atualização de status de faturas
+ * 
+ * Este hook gerencia a atualização do status das faturas, incluindo 
+ * a validação dos dados e o gerenciamento de cache após a atualização.
+ */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { UpdateFaturaStatusInput } from "./types";

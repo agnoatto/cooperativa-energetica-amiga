@@ -6,8 +6,9 @@
  * e recuperar a fatura atualizada com todos os seus relacionamentos.
  */
 import { supabase } from "@/integrations/supabase/client";
-import { Fatura } from "@/types/fatura";
+import { Fatura, FaturaStatus } from "@/types/fatura";
 import { UpdateFaturaInput } from "../types/updateFatura";
+import { UpdateFaturaStatusInput } from "../types";
 
 /**
  * Atualiza uma fatura e retorna a versão completa atualizada
@@ -57,6 +58,70 @@ export async function updateFatura(data: UpdateFaturaInput): Promise<Fatura> {
     return await getFaturaCompleta(data.id, updatedFatura);
   } catch (error) {
     console.error("[updateFaturaService] Erro ao processar atualização:", error);
+    throw error;
+  }
+}
+
+/**
+ * Atualiza o status de uma fatura
+ * 
+ * @param data Dados do status da fatura a serem atualizados
+ * @returns Fatura atualizada com o novo status
+ */
+export async function updateFaturaStatus(data: UpdateFaturaStatusInput): Promise<Fatura> {
+  console.log("[updateFaturaService] Atualizando status da fatura:", data);
+
+  try {
+    // Preparar os dados de atualização
+    const updateData: Record<string, any> = {
+      status: data.status,
+    };
+
+    // Adicionar campos opcionais se eles existirem
+    if (data.observacao !== undefined) {
+      updateData.observacao = data.observacao;
+    }
+    
+    if (data.observacao_pagamento !== undefined) {
+      updateData.observacao_pagamento = data.observacao_pagamento;
+    }
+    
+    if (data.data_pagamento !== undefined) {
+      updateData.data_pagamento = data.data_pagamento;
+    }
+    
+    if (data.valor_adicional !== undefined) {
+      updateData.valor_adicional = data.valor_adicional;
+    }
+
+    // Para faturas pagas, registrar a data de confirmação do pagamento
+    if (data.status === 'paga') {
+      updateData.data_confirmacao_pagamento = new Date().toISOString();
+    }
+
+    // Atualizar a fatura
+    const { data: updatedFatura, error } = await supabase
+      .from('faturas')
+      .update(updateData)
+      .eq('id', data.id)
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error("[updateFaturaService] Erro ao atualizar status da fatura:", error);
+      throw new Error(`Erro ao atualizar status da fatura: ${error.message}`);
+    }
+
+    if (!updatedFatura) {
+      console.error("[updateFaturaService] Fatura não encontrada após atualização de status");
+      throw new Error("Fatura não encontrada após atualização de status");
+    }
+
+    console.log("[updateFaturaService] Status da fatura atualizado com sucesso:", updatedFatura);
+    
+    return await getFaturaCompleta(data.id, updatedFatura);
+  } catch (error) {
+    console.error("[updateFaturaService] Erro ao processar atualização de status:", error);
     throw error;
   }
 }

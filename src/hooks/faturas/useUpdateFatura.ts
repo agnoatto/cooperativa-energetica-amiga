@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { updateFatura } from "./services/updateFaturaService";
 import { UpdateFaturaInput } from "./types/updateFatura";
 
-export { UpdateFaturaInput };
+export type { UpdateFaturaInput };
 
 export const useUpdateFatura = () => {
   const queryClient = useQueryClient();
