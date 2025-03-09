@@ -18,7 +18,7 @@ export const updateFaturaArquivo = async (
   }
 ): Promise<{ success: boolean; error?: any }> => {
   try {
-    console.log(`[faturaUtils] Atualizando dados do arquivo da fatura: ${faturaId}`);
+    console.log(`[faturaUtils] Atualizando dados do arquivo da fatura: ${faturaId}`, arquivoData);
     
     const { error } = await supabase
       .from("faturas")
@@ -27,6 +27,7 @@ export const updateFaturaArquivo = async (
         arquivo_concessionaria_path: arquivoData.path,
         arquivo_concessionaria_tipo: arquivoData.tipo,
         arquivo_concessionaria_tamanho: arquivoData.tamanho,
+        data_atualizacao: new Date().toISOString(), // Adicionar timestamp de atualização
       })
       .eq("id", faturaId);
 

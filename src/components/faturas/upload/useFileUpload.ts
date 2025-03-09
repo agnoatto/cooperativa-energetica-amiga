@@ -5,7 +5,7 @@
  * remoção de arquivos relacionados às faturas de concessionárias
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { STORAGE_BUCKET } from "./constants";
 import { validateFile } from "./utils/fileValidation";
@@ -15,7 +15,7 @@ import { updateFaturaArquivo } from "./utils/faturaUtils";
 interface UseFileUploadOptions {
   onSuccess?: () => void;
   onFileChange?: (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => void;
-  refetchFaturas?: () => void; // Nova opção para refetch
+  refetchFaturas?: () => void;
 }
 
 export function useFileUpload(
@@ -27,6 +27,35 @@ export function useFileUpload(
   const [isDragging, setIsDragging] = useState(false);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  
+  // Log para debug quando as props mudam
+  useEffect(() => {
+    console.log("[useFileUpload] Hook inicializado, faturaId:", faturaId);
+    console.log("[useFileUpload] refetchFaturas presente:", !!refetchFaturas);
+  }, [faturaId, refetchFaturas]);
+
+  // Função para atualizar o estado e notificar os componentes pai
+  const notifyChanges = (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => {
+    console.log("[useFileUpload] Notificando mudanças:", { nome, path, tipo, tamanho });
+    
+    // Notificar componente pai sobre alteração de arquivo
+    if (onFileChange) {
+      console.log("[useFileUpload] Chamando onFileChange");
+      onFileChange(nome, path, tipo, tamanho);
+    }
+    
+    // Callback de sucesso
+    if (onSuccess) {
+      console.log("[useFileUpload] Chamando onSuccess");
+      onSuccess();
+    }
+    
+    // Forçar atualização dos dados
+    if (refetchFaturas) {
+      console.log("[useFileUpload] Chamando refetchFaturas");
+      refetchFaturas();
+    }
+  };
 
   // Função para lidar com upload de arquivo
   const handleFileUpload = async (files: File[]) => {
@@ -69,15 +98,9 @@ export function useFileUpload(
       // Notificar sucesso
       toast.success("Arquivo enviado com sucesso!", { id: toastId });
       
-      // Chamar callbacks
-      onSuccess?.();
-      onFileChange?.(file.name, filePath, file.type, file.size);
+      // Notificar mudanças
+      notifyChanges(file.name, filePath, file.type, file.size);
       
-      // Forçar atualização dos dados
-      if (refetchFaturas) {
-        console.log("[useFileUpload] Atualizando dados após upload");
-        refetchFaturas();
-      }
     } catch (error: any) {
       console.error("[useFileUpload] Erro ao processar upload:", error);
       toast.error(`Erro ao fazer upload: ${error.message}`, { id: toastId });
@@ -141,15 +164,9 @@ export function useFileUpload(
 
       toast.success("Arquivo removido com sucesso", { id: toastId });
       
-      // Chamar callbacks
-      onSuccess?.();
-      onFileChange?.(null, null, null, null);
+      // Notificar mudanças
+      notifyChanges(null, null, null, null);
       
-      // Forçar atualização dos dados
-      if (refetchFaturas) {
-        console.log("[useFileUpload] Atualizando dados após remoção");
-        refetchFaturas();
-      }
     } catch (error: any) {
       console.error("[useFileUpload] Erro ao remover arquivo:", error);
       toast.error(`Erro ao remover: ${error.message}`, { id: toastId });

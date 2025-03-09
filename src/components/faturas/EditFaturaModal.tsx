@@ -1,3 +1,4 @@
+
 import {
   Dialog,
   DialogContent,
@@ -9,7 +10,7 @@ import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { calculateValues } from "./utils/calculateValues";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,6 +66,18 @@ export function EditFaturaModal({
   const [localFaturaConcessionaria, setLocalFaturaConcessionaria] = useState(fatura?.fatura_concessionaria.toString() || "0");
   const [localValorDesconto, setLocalValorDesconto] = useState(fatura?.valor_desconto.toString() || "0");
   const [localValorAssinatura, setLocalValorAssinatura] = useState(fatura?.valor_assinatura.toString() || "0");
+  
+  // Atualizar o estado local quando a fatura mudar
+  useEffect(() => {
+    if (fatura) {
+      setArquivoInfo({
+        nome: fatura.arquivo_concessionaria_nome || null,
+        path: fatura.arquivo_concessionaria_path || null,
+        tipo: fatura.arquivo_concessionaria_tipo || null,
+        tamanho: fatura.arquivo_concessionaria_tamanho || null
+      });
+    }
+  }, [fatura]);
   
   const handleCalcularClick = async () => {
     if (!fatura) return;
@@ -127,12 +140,19 @@ export function EditFaturaModal({
   };
 
   const handleFileChange = (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => {
+    console.log("[EditFaturaModal] Atualizando arquivo:", { nome, path, tipo, tamanho });
     setArquivoInfo({
       nome,
       path,
       tipo,
       tamanho
     });
+    
+    // Forçar atualização na próxima renderização
+    if (refetchFaturas) {
+      console.log("[EditFaturaModal] Chamando refetchFaturas após alteração de arquivo");
+      setTimeout(() => refetchFaturas(), 100);
+    }
   };
 
   const handleSubmit = async (values: any) => {
@@ -202,10 +222,10 @@ export function EditFaturaModal({
             
             <ArquivoSection 
               faturaId={fatura.id}
-              arquivoNome={fatura.arquivo_concessionaria_nome}
-              arquivoPath={fatura.arquivo_concessionaria_path}
-              arquivoTipo={fatura.arquivo_concessionaria_tipo}
-              arquivoTamanho={fatura.arquivo_concessionaria_tamanho}
+              arquivoNome={arquivoInfo.nome}
+              arquivoPath={arquivoInfo.path}
+              arquivoTipo={arquivoInfo.tipo}
+              arquivoTamanho={arquivoInfo.tamanho}
               onFileChange={handleFileChange}
               refetchFaturas={refetchFaturas}
             />

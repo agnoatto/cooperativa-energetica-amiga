@@ -1,8 +1,15 @@
 
+/**
+ * Componente para upload e visualização de arquivos de faturas
+ * Este componente fornece uma interface completa para gerenciamento de arquivos,
+ * incluindo upload, visualização, download e remoção
+ */
+
 import { UploadDropZone } from "./upload/UploadDropZone";
 import { FilePreview } from "./upload/FilePreview";
 import { SimplePdfViewer } from "./upload/SimplePdfViewer";
 import { useFileUpload } from "./upload/useFileUpload";
+import { useEffect } from "react";
 
 interface FaturaFileUploadProps {
   faturaId: string;
@@ -12,7 +19,7 @@ interface FaturaFileUploadProps {
   arquivoTamanho?: number | null;
   onSuccess: () => void;
   onFileChange?: (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => void;
-  refetchFaturas?: () => void; // Nova prop para refetch
+  refetchFaturas?: () => void;
 }
 
 export function FaturaFileUpload({ 
@@ -25,6 +32,11 @@ export function FaturaFileUpload({
   onFileChange,
   refetchFaturas
 }: FaturaFileUploadProps) {
+  // Log para debug
+  useEffect(() => {
+    console.log("[FaturaFileUpload] Renderizando com arquivo:", arquivoNome);
+  }, [arquivoNome]);
+
   const {
     isUploading,
     isDragging,
@@ -37,9 +49,9 @@ export function FaturaFileUpload({
     handleRemoveFile,
     handlePreview,
   } = useFileUpload(faturaId, { 
-    onSuccess, 
+    onSuccess,
     onFileChange,
-    refetchFaturas 
+    refetchFaturas
   });
 
   return (
