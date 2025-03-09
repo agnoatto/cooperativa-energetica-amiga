@@ -8,7 +8,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { FaturasMobileList } from "./table/mobile/FaturasMobileList";
 import { FaturasDesktopTable } from "./table/desktop/FaturasDesktopTable";
 import { EditFaturaModal } from "./EditFaturaModal";
-import { UpdateFaturaInput } from "@/hooks/faturas/useUpdateFatura";
+import { UpdateFaturaInput } from "@/hooks/faturas/types/updateFatura";
 
 interface FaturasTableProps {
   faturas: Fatura[] | undefined;

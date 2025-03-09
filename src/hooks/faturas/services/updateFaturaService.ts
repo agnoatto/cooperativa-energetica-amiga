@@ -1,55 +1,197 @@
 
+/**
+ * Serviço de atualização de faturas
+ * 
+ * Este serviço contém funções para atualizar faturas no banco de dados
+ * e recuperar a fatura atualizada com todos os seus relacionamentos.
+ */
 import { supabase } from "@/integrations/supabase/client";
-import { Fatura, FaturaStatus } from "@/types/fatura";
+import { Fatura } from "@/types/fatura";
+import { UpdateFaturaInput } from "../types/updateFatura";
 
-export interface UpdateFaturaStatusInput {
-  id: string;
-  status: FaturaStatus;
-  observacao?: string;
+/**
+ * Atualiza uma fatura e retorna a versão completa atualizada
+ * 
+ * @param data Dados da fatura a serem atualizados
+ * @returns Fatura completa atualizada com todos os relacionamentos
+ */
+export async function updateFatura(data: UpdateFaturaInput): Promise<Fatura> {
+  console.log("[updateFaturaService] Atualizando fatura:", data);
+
+  try {
+    // Extrair os campos de arquivo para tratá-los separadamente
+    const {
+      arquivo_concessionaria_nome,
+      arquivo_concessionaria_path,
+      arquivo_concessionaria_tipo,
+      arquivo_concessionaria_tamanho,
+      ...restData
+    } = data;
+
+    // Atualizar a tabela faturas com os dados principais
+    const { data: updatedFatura, error } = await supabase
+      .from('faturas')
+      .update({
+        ...restData,
+        arquivo_concessionaria_nome,
+        arquivo_concessionaria_path,
+        arquivo_concessionaria_tipo,
+        arquivo_concessionaria_tamanho
+      })
+      .eq('id', data.id)
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error("[updateFaturaService] Erro ao atualizar fatura:", error);
+      throw new Error(`Erro ao atualizar fatura: ${error.message}`);
+    }
+
+    if (!updatedFatura) {
+      console.error("[updateFaturaService] Fatura não encontrada após atualização");
+      throw new Error("Fatura não encontrada após atualização");
+    }
+
+    console.log("[updateFaturaService] Fatura atualizada com sucesso:", updatedFatura);
+    
+    return await getFaturaCompleta(data.id, updatedFatura);
+  } catch (error) {
+    console.error("[updateFaturaService] Erro ao processar atualização:", error);
+    throw error;
+  }
 }
 
-export const updateFaturaStatus = async ({
-  id,
-  status,
-  observacao
-}: UpdateFaturaStatusInput): Promise<Fatura> => {
-  console.log('[updateFaturaService] Atualizando status da fatura:', { id, status, observacao });
-
-  // Verificando se a fatura existe antes de tentar atualizar
-  const { data: existingFatura, error: checkError } = await supabase
+/**
+ * Busca a fatura completa com todos os relacionamentos
+ * 
+ * @param id ID da fatura
+ * @param updatedFatura Dados da fatura já atualizados (se disponíveis)
+ * @returns Fatura completa com todos os relacionamentos
+ */
+async function getFaturaCompleta(id: string, updatedFatura?: any): Promise<Fatura> {
+  // Buscar a fatura completa para retornar com todos os relacionamentos
+  const { data: completeFatura, error: completeError } = await supabase
     .from("faturas")
-    .select('id, status')
-    .eq('id', id)
+    .select(`
+      id,
+      consumo_kwh,
+      valor_assinatura,
+      status,
+      data_vencimento,
+      mes,
+      ano,
+      fatura_concessionaria,
+      total_fatura,
+      iluminacao_publica,
+      outros_valores,
+      valor_desconto,
+      economia_acumulada,
+      saldo_energia_kwh,
+      observacao,
+      valor_adicional,
+      observacao_pagamento,
+      data_pagamento,
+      arquivo_concessionaria_nome,
+      arquivo_concessionaria_path,
+      arquivo_concessionaria_tipo,
+      arquivo_concessionaria_tamanho,
+      data_criacao,
+      data_atualizacao,
+      data_envio,
+      data_confirmacao_pagamento,
+      unidade_beneficiaria:unidade_beneficiaria_id (
+        id,
+        numero_uc,
+        apelido,
+        endereco,
+        percentual_desconto,
+        cooperado:cooperado_id (
+          nome,
+          documento
+        )
+      )
+    `)
+    .eq("id", id)
     .single();
 
-  if (checkError) {
-    console.error('[updateFaturaService] Erro ao verificar fatura:', checkError);
-    throw new Error(`Erro ao verificar fatura: ${checkError.message}`);
+  if (completeError) {
+    console.error("[updateFaturaService] Erro ao buscar fatura completa:", completeError);
+    
+    // Se não conseguimos buscar a fatura completa, tentamos construir a partir da atualizada
+    // e buscando a unidade beneficiária separadamente
+    if (updatedFatura) {
+      return await construirFaturaComUnidade(updatedFatura);
+    }
+    
+    throw new Error(`Erro ao buscar fatura completa: ${completeError.message}`);
+  }
+
+  // Montar o objeto com todos os campos necessários para tipo Fatura
+  const result: Fatura = {
+    ...completeFatura,
+    historico_faturas: [], // Como não temos o histórico nessa consulta, inicializamos vazio
+    valor_adicional: completeFatura.valor_adicional || 0,
+    observacao_pagamento: completeFatura.observacao_pagamento || null,
+    data_pagamento: completeFatura.data_pagamento || null,
+    consumo_kwh: Number(completeFatura.consumo_kwh),
+    valor_assinatura: Number(completeFatura.valor_assinatura),
+    fatura_concessionaria: Number(completeFatura.fatura_concessionaria),
+    total_fatura: Number(completeFatura.total_fatura),
+    iluminacao_publica: Number(completeFatura.iluminacao_publica),
+    outros_valores: Number(completeFatura.outros_valores),
+    valor_desconto: Number(completeFatura.valor_desconto),
+    saldo_energia_kwh: Number(completeFatura.saldo_energia_kwh),
+    economia_acumulada: completeFatura.economia_acumulada || 0
+  };
+
+  return result;
+}
+
+/**
+ * Constrói uma fatura completa buscando a unidade beneficiária separadamente
+ * 
+ * @param updatedFatura Dados da fatura atualizada
+ * @returns Fatura completa com a unidade beneficiária
+ */
+async function construirFaturaComUnidade(updatedFatura: any): Promise<Fatura> {
+  // Precisamos buscar dados da unidade beneficiária separadamente
+  const { data: unidadeData, error: unidadeError } = await supabase
+    .from("unidades_beneficiarias")
+    .select(`
+      id,
+      numero_uc,
+      apelido,
+      endereco,
+      percentual_desconto,
+      cooperado:cooperado_id (
+        nome,
+        documento
+      )
+    `)
+    .eq("id", updatedFatura.unidade_beneficiaria_id)
+    .single();
+  
+  if (unidadeError) {
+    console.error("[updateFaturaService] Erro ao buscar unidade beneficiária:", unidadeError);
+    throw new Error(`Erro ao buscar unidade beneficiária: ${unidadeError.message}`);
   }
   
-  console.log('[updateFaturaService] Fatura existente:', existingFatura);
-
-  const { data: updatedFatura, error } = await supabase
-    .from("faturas")
-    .update({ 
-      status,
-      observacao,
-      data_atualizacao: new Date().toISOString()
-    })
-    .eq('id', id)
-    .select('id, status')
-    .single();
-
-  if (error) {
-    console.error('[updateFaturaService] Erro ao atualizar fatura:', error);
-    throw new Error(`Erro ao atualizar fatura: ${error.message}`);
-  }
-
-  if (!updatedFatura) {
-    console.error('[updateFaturaService] Fatura não encontrada após atualização');
-    throw new Error('Fatura não encontrada');
-  }
-
-  console.log('[updateFaturaService] Status atualizado com sucesso:', updatedFatura);
-  return updatedFatura as Fatura;
-};
+  // Construir objeto com a estrutura completa
+  return {
+    ...updatedFatura,
+    valor_adicional: updatedFatura.valor_adicional || 0,
+    observacao_pagamento: updatedFatura.observacao_pagamento || null,
+    data_pagamento: updatedFatura.data_pagamento || null,
+    historico_faturas: [], // Campo obrigatório
+    consumo_kwh: Number(updatedFatura.consumo_kwh),
+    valor_assinatura: Number(updatedFatura.valor_assinatura),
+    fatura_concessionaria: Number(updatedFatura.fatura_concessionaria),
+    total_fatura: Number(updatedFatura.total_fatura),
+    iluminacao_publica: Number(updatedFatura.iluminacao_publica),
+    outros_valores: Number(updatedFatura.outros_valores),
+    valor_desconto: Number(updatedFatura.valor_desconto),
+    saldo_energia_kwh: Number(updatedFatura.saldo_energia_kwh),
+    economia_acumulada: updatedFatura.economia_acumulada || 0,
+    unidade_beneficiaria: unidadeData // Adicionando a unidade beneficiária
+  } as Fatura;
+}

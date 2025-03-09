@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { MonthSelector } from "./MonthSelector";
 import { FaturasTable } from "./FaturasTable";
@@ -7,7 +6,7 @@ import { useFaturas } from "@/hooks/useFaturas";
 import { useMonthSelection } from "@/hooks/useMonthSelection";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { PaymentConfirmationModal } from "./PaymentConfirmationModal";
-import { UpdateFaturaInput } from "@/hooks/faturas/useUpdateFatura";
+import { UpdateFaturaInput } from "@/hooks/faturas/types/updateFatura";
 
 export function FaturasContainer() {
   const { 

@@ -1,4 +1,9 @@
 
+/**
+ * Tipos para o módulo de faturas
+ * 
+ * Define interfaces comuns utilizadas em múltiplos hooks de faturas.
+ */
 import { Fatura, FaturaStatus } from "@/types/fatura";
 
 export interface UpdateFaturaStatusInput {

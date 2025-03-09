@@ -5,7 +5,7 @@ import { useFetchFaturas } from "./faturas/useFetchFaturas";
 import { useUpdateFaturaStatus } from "./faturas/useUpdateFaturaStatus";
 import { useUpdateFatura } from "./faturas/useUpdateFatura";
 import type { UseFaturasResult, UpdateFaturaStatusInput } from "./faturas/types";
-import type { UpdateFaturaInput } from "./faturas/useUpdateFatura";
+import type { UpdateFaturaInput } from "./faturas/types/updateFatura";
 
 export const useFaturas = (currentDate: Date): UseFaturasResult => {
   const { data: faturas, isLoading, refetch } = useFetchFaturas(currentDate);
