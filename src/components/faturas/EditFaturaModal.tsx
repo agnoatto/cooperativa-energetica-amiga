@@ -1,3 +1,4 @@
+
 import {
   Dialog,
   DialogContent,
@@ -59,6 +60,7 @@ export function EditFaturaModal({
     tamanho: fatura?.arquivo_concessionaria_tamanho || null
   });
   
+  // Usando strings para todos os valores monetários para compatibilidade com CurrencyInput
   const [localTotalFatura, setLocalTotalFatura] = useState(fatura?.total_fatura.toString() || "0");
   const [localIluminacaoPublica, setLocalIluminacaoPublica] = useState(fatura?.iluminacao_publica.toString() || "0");
   const [localOutrosValores, setLocalOutrosValores] = useState(fatura?.outros_valores.toString() || "0");
@@ -89,6 +91,7 @@ export function EditFaturaModal({
         faturaConcessionaria: localFaturaConcessionaria
       });
       
+      // Buscar percentual de desconto da unidade - este já vem como número
       const { data: unidade, error } = await supabase
         .from('unidades_beneficiarias')
         .select('percentual_desconto')
@@ -97,9 +100,11 @@ export function EditFaturaModal({
       
       if (error) throw error;
       
+      // O percentual já vem como número da consulta SQL
       const percentualDesconto = unidade?.percentual_desconto || 0;
       console.log("[EditFaturaModal] Percentual de desconto da unidade:", percentualDesconto);
       
+      // Calcula os valores usando os valores em string (serão convertidos internamente)
       const valores = await calculateValues({
         totalFatura: localTotalFatura,
         iluminacaoPublica: localIluminacaoPublica,
@@ -111,6 +116,7 @@ export function EditFaturaModal({
       
       console.log("[EditFaturaModal] Valores calculados:", valores);
       
+      // Define os valores calculados como strings para o CurrencyInput
       setLocalValorDesconto(valores.valorDesconto.toString());
       setLocalValorAssinatura(valores.valorAssinatura.toString());
     } catch (error) {
@@ -169,16 +175,20 @@ export function EditFaturaModal({
       values
     });
     
+    // Usando a função parseValue para garantir que os valores estejam no formato correto
+    // Importamos de calculateValues.ts
+    const { parseValue } = await import('./utils/calculateValues');
+    
     const data = {
       id: fatura.id,
       consumo_kwh: Number(values.consumo_kwh),
-      valor_assinatura: Number(localValorAssinatura),
+      valor_assinatura: parseValue(localValorAssinatura),
       data_vencimento: formatDate(values.data_vencimento),
-      fatura_concessionaria: Number(localFaturaConcessionaria),
-      total_fatura: Number(localTotalFatura),
-      iluminacao_publica: Number(localIluminacaoPublica),
-      outros_valores: Number(localOutrosValores),
-      valor_desconto: Number(localValorDesconto),
+      fatura_concessionaria: parseValue(localFaturaConcessionaria),
+      total_fatura: parseValue(localTotalFatura),
+      iluminacao_publica: parseValue(localIluminacaoPublica),
+      outros_valores: parseValue(localOutrosValores),
+      valor_desconto: parseValue(localValorDesconto),
       economia_acumulada: Number(values.economia_acumulada),
       saldo_energia_kwh: Number(values.saldo_energia_kwh),
       observacao: values.observacao,
