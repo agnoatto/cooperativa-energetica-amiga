@@ -3,6 +3,10 @@ import React, { useRef, useState, useEffect } from "react";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { Eye, Edit, FileText, Trash2, CheckCircle2, RotateCw, MoreVertical } from "lucide-react";
 import { createPortal } from "react-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { SimplePdfViewer } from "../upload/SimplePdfViewer";
+import { STORAGE_BUCKET } from "../upload/constants";
 
 interface FaturaActionsMenuProps {
   fatura: Fatura;
@@ -25,6 +29,9 @@ export function FaturaActionsMenu({
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [isLoadingPdf, setIsLoadingPdf] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -99,6 +106,42 @@ export function FaturaActionsMenu({
       setIsOpen(false);
     } catch (error) {
       console.error('Erro ao reenviar fatura:', error);
+    }
+  };
+
+  const handleViewPdf = async () => {
+    setIsOpen(false);
+    setIsLoadingPdf(true);
+    const toastId = toast.loading("Carregando relatório mensal...");
+
+    try {
+      // Gerar URL assinada para o arquivo da fatura
+      if (fatura.arquivo_concessionaria_path) {
+        const { data: storageUrl, error } = await supabase.storage
+          .from(STORAGE_BUCKET)
+          .createSignedUrl(fatura.arquivo_concessionaria_path, 3600);
+
+        if (error) {
+          throw error;
+        }
+
+        if (storageUrl?.signedUrl) {
+          setPdfUrl(storageUrl.signedUrl);
+          setShowPdfPreview(true);
+          toast.success("Relatório carregado com sucesso!", { id: toastId });
+        } else {
+          throw new Error("Não foi possível gerar a URL assinada");
+        }
+      } else {
+        // Se não houver arquivo, tenta usar a rota de PDF gerada pelo sistema
+        toast.success("Abrindo relatório mensal", { id: toastId });
+        window.open(`/faturas/pdf/${fatura.id}`, '_blank');
+      }
+    } catch (error: any) {
+      console.error("Erro ao obter URL do PDF:", error);
+      toast.error(`Erro ao carregar o relatório: ${error.message}`, { id: toastId });
+    } finally {
+      setIsLoadingPdf(false);
     }
   };
 
@@ -197,19 +240,24 @@ export function FaturaActionsMenu({
             
             <button
               className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              onClick={() => {
-                window.open(`/faturas/pdf/${fatura.id}`, '_blank');
-                setIsOpen(false);
-              }}
+              onClick={handleViewPdf}
               role="menuitem"
             >
               <FileText className="mr-2 h-4 w-4" />
-              Ver PDF
+              Ver Relatório Mensal
             </button>
           </div>
         </div>,
         document.body
       )}
+
+      <SimplePdfViewer
+        isOpen={showPdfPreview}
+        onClose={() => setShowPdfPreview(false)}
+        pdfUrl={pdfUrl}
+        title="Relatório Mensal"
+        allowDownload={true}
+      />
     </div>
   );
 }
