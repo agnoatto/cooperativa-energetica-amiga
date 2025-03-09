@@ -1,4 +1,3 @@
-
 import {
   Dialog,
   DialogContent,
@@ -67,7 +66,6 @@ export function EditFaturaModal({
   const [localValorDesconto, setLocalValorDesconto] = useState(fatura?.valor_desconto.toString() || "0");
   const [localValorAssinatura, setLocalValorAssinatura] = useState(fatura?.valor_assinatura.toString() || "0");
   
-  // Atualizar o estado local quando a fatura mudar
   useEffect(() => {
     if (fatura) {
       setArquivoInfo({
@@ -84,6 +82,13 @@ export function EditFaturaModal({
     
     setIsCalculating(true);
     try {
+      console.log("[EditFaturaModal] Valores antes do cálculo:", {
+        totalFatura: localTotalFatura,
+        iluminacaoPublica: localIluminacaoPublica,
+        outrosValores: localOutrosValores,
+        faturaConcessionaria: localFaturaConcessionaria
+      });
+      
       const { data: unidade, error } = await supabase
         .from('unidades_beneficiarias')
         .select('percentual_desconto')
@@ -93,6 +98,7 @@ export function EditFaturaModal({
       if (error) throw error;
       
       const percentualDesconto = unidade?.percentual_desconto || 0;
+      console.log("[EditFaturaModal] Percentual de desconto da unidade:", percentualDesconto);
       
       const valores = await calculateValues({
         totalFatura: localTotalFatura,
@@ -102,6 +108,8 @@ export function EditFaturaModal({
         percentualDesconto: percentualDesconto,
         unidadeBeneficiariaId: fatura.unidade_beneficiaria.id
       });
+      
+      console.log("[EditFaturaModal] Valores calculados:", valores);
       
       setLocalValorDesconto(valores.valorDesconto.toString());
       setLocalValorAssinatura(valores.valorAssinatura.toString());
@@ -148,7 +156,6 @@ export function EditFaturaModal({
       tamanho
     });
     
-    // Forçar atualização na próxima renderização
     if (refetchFaturas) {
       console.log("[EditFaturaModal] Chamando refetchFaturas após alteração de arquivo");
       setTimeout(() => refetchFaturas(), 100);
@@ -156,15 +163,21 @@ export function EditFaturaModal({
   };
 
   const handleSubmit = async (values: any) => {
+    console.log("[EditFaturaModal] Submetendo formulário com valores:", {
+      localValorAssinatura,
+      localValorDesconto,
+      values
+    });
+    
     const data = {
       id: fatura.id,
       consumo_kwh: Number(values.consumo_kwh),
       valor_assinatura: Number(localValorAssinatura),
       data_vencimento: formatDate(values.data_vencimento),
-      fatura_concessionaria: Number(values.fatura_concessionaria),
-      total_fatura: Number(values.total_fatura),
-      iluminacao_publica: Number(values.iluminacao_publica),
-      outros_valores: Number(values.outros_valores),
+      fatura_concessionaria: Number(localFaturaConcessionaria),
+      total_fatura: Number(localTotalFatura),
+      iluminacao_publica: Number(localIluminacaoPublica),
+      outros_valores: Number(localOutrosValores),
       valor_desconto: Number(localValorDesconto),
       economia_acumulada: Number(values.economia_acumulada),
       saldo_energia_kwh: Number(values.saldo_energia_kwh),
@@ -175,6 +188,7 @@ export function EditFaturaModal({
       arquivo_concessionaria_tamanho: arquivoInfo.tamanho
     };
 
+    console.log("[EditFaturaModal] Dados finais para salvar:", data);
     await onSave(data);
     onClose();
   };

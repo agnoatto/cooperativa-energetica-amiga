@@ -1,4 +1,10 @@
 
+/**
+ * Utilitários para cálculo de valores das faturas
+ * Este módulo contém funções específicas para calcular valores derivados
+ * a partir dos dados de faturas, aplicando as regras de negócio da cooperativa
+ */
+
 import { supabase } from "@/integrations/supabase/client";
 import { CalculoFaturaTemplate } from "@/types/template";
 import { toast } from "sonner";
@@ -47,12 +53,22 @@ export const calculateValues = async (params: CalculateValuesParams) => {
     unidadeBeneficiariaId 
   } = params;
   
-  // Converter valores para número
+  // Converter valores para número - usando parseValue apenas se for string
+  // IMPORTANTE: Os valores já vêm como números do CurrencyInput, então não precisamos
+  // aplicar parseValue duas vezes
   const totalFatura = typeof totalFaturaParam === 'string' ? parseValue(totalFaturaParam) : totalFaturaParam;
   const iluminacaoPublica = typeof iluminacaoPublicaParam === 'string' ? parseValue(iluminacaoPublicaParam) : iluminacaoPublicaParam;
   const outrosValores = typeof outrosValoresParam === 'string' ? parseValue(outrosValoresParam) : outrosValoresParam;
   const faturaConcessionaria = typeof faturaConcessionariaParam === 'string' ? parseValue(faturaConcessionariaParam) : faturaConcessionariaParam;
   const percentualDesconto = typeof percentualDescontoParam === 'string' ? parseValue(percentualDescontoParam) : percentualDescontoParam;
+
+  console.log("[calculateValues] Iniciando cálculo com valores:", {
+    totalFatura,
+    iluminacaoPublica,
+    outrosValores,
+    faturaConcessionaria,
+    percentualDesconto
+  });
 
   try {
     // Buscar o template vinculado à unidade beneficiária
@@ -111,6 +127,7 @@ export const calculateValues = async (params: CalculateValuesParams) => {
     }
 
     const templateCalculo = template[0] as CalculoFaturaTemplate;
+    console.log("[calculateValues] Template de cálculo encontrado:", templateCalculo);
 
     // Calcular valor de desconto usando a fórmula do template
     let valorDesconto = 0;
@@ -125,12 +142,14 @@ export const calculateValues = async (params: CalculateValuesParams) => {
           percentual_desconto: percentualDesconto
         }
       );
+      console.log("[calculateValues] Valor de desconto calculado:", valorDesconto);
     } catch (error) {
       console.error("Erro ao calcular valor de desconto:", error);
       toast.error("Erro no cálculo do desconto. Usando método padrão.");
       
       // Usar cálculo padrão para o desconto
       valorDesconto = (totalFatura - iluminacaoPublica - outrosValores) * (percentualDesconto / 100);
+      console.log("[calculateValues] Valor de desconto pelo cálculo padrão:", valorDesconto);
     }
 
     // Calcular valor da assinatura usando a fórmula do template
@@ -147,16 +166,23 @@ export const calculateValues = async (params: CalculateValuesParams) => {
           valor_desconto: valorDesconto
         }
       );
+      console.log("[calculateValues] Valor de assinatura calculado:", valorAssinatura);
     } catch (error) {
       console.error("Erro ao calcular valor de assinatura:", error);
       toast.error("Erro no cálculo da assinatura. Usando método padrão.");
       
       // Usar cálculo padrão para a assinatura
       valorAssinatura = totalFatura - valorDesconto - faturaConcessionaria;
+      console.log("[calculateValues] Valor de assinatura pelo cálculo padrão:", valorAssinatura);
     }
 
     // Calcular economia
     const economia = valorDesconto;
+    console.log("[calculateValues] Resultado final:", {
+      valorDesconto,
+      valorAssinatura,
+      economia
+    });
 
     return {
       valorDesconto,
@@ -189,21 +215,29 @@ const calcularComFormula = (
   }
 ): number => {
   let formulaProcessada = formula;
+  
+  console.log("[calcularComFormula] Processando fórmula:", formula);
+  console.log("[calcularComFormula] Valores para substituição:", valores);
 
   // Substituir variáveis da fórmula pelos valores
   Object.entries(valores).forEach(([chave, valor]) => {
     if (valor !== undefined) {
+      // IMPORTANTE: Aqui não estamos modificando os valores, apenas substituindo
+      // na string da fórmula
       formulaProcessada = formulaProcessada.replace(
         new RegExp(chave, 'g'),
         valor.toString()
       );
     }
   });
+  
+  console.log("[calcularComFormula] Fórmula processada:", formulaProcessada);
 
   try {
     // Avaliar a fórmula
     // eslint-disable-next-line no-eval
     const resultado = eval(formulaProcessada);
+    console.log("[calcularComFormula] Resultado da avaliação:", resultado);
     return isNaN(resultado) ? 0 : resultado;
   } catch (error) {
     console.error("Erro ao avaliar fórmula:", error);
@@ -224,9 +258,18 @@ interface CalculoPadraoParams {
 const calculoPadrao = (params: CalculoPadraoParams) => {
   const { totalFatura, iluminacaoPublica, outrosValores, faturaConcessionaria, percentualDesconto } = params;
   
+  console.log("[calculoPadrao] Calculando com valores:", params);
   const baseCalculo = totalFatura - iluminacaoPublica - outrosValores;
+  console.log("[calculoPadrao] Base de cálculo:", baseCalculo);
+  
+  // CORREÇÃO: percentual_desconto já está em porcentagem (ex: 15 para 15%)
+  // Não é necessário dividir por 100 novamente
   const valorDesconto = baseCalculo * (percentualDesconto / 100);
+  console.log("[calculoPadrao] Valor do desconto:", valorDesconto);
+  
   const valorAssinatura = totalFatura - valorDesconto - faturaConcessionaria;
+  console.log("[calculoPadrao] Valor da assinatura:", valorAssinatura);
+  
   const economia = valorDesconto;
 
   return {

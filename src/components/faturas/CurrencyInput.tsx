@@ -23,14 +23,16 @@ export function CurrencyInput({
   id,
   ...props 
 }: CurrencyInputProps & Omit<NumericFormatProps, 'value' | 'onValueChange' | 'customInput'>) {
-  // Modificamos para passar o valor não-formatado (numérico) para o onChange
-  const handleValueChange = (values: { formattedValue: string; value: string }) => {
+  // Adicionamos mais logs detalhados para diagnóstico
+  const handleValueChange = (values: { formattedValue: string; value: string; floatValue: number }) => {
     // Passamos o valor não-formatado para ser usado em cálculos
     // Este é o valor numérico puro como string (sem formatação)
     onValueChange(values.value);
     
+    console.log('[CurrencyInput] Input original:', value);
     console.log('[CurrencyInput] Valor formatado:', values.formattedValue);
-    console.log('[CurrencyInput] Valor numérico:', values.value);
+    console.log('[CurrencyInput] Valor numérico (string):', values.value);
+    console.log('[CurrencyInput] Valor float:', values.floatValue);
   };
 
   return (

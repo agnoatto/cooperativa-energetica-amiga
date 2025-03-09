@@ -20,6 +20,15 @@ export const updateFaturaArquivo = async (
   try {
     console.log(`[faturaUtils] Atualizando dados do arquivo da fatura: ${faturaId}`, arquivoData);
     
+    // Verifica se todos os valores são nulos (arquivo sendo removido)
+    const isRemovingFile = 
+      arquivoData.nome === null && 
+      arquivoData.path === null && 
+      arquivoData.tipo === null && 
+      arquivoData.tamanho === null;
+    
+    console.log(`[faturaUtils] Operação: ${isRemovingFile ? 'Removendo arquivo' : 'Atualizando arquivo'}`);
+    
     const { error } = await supabase
       .from("faturas")
       .update({
