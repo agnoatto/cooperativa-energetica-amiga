@@ -1,4 +1,3 @@
-
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { useState } from "react";
 import { FaturasLoadingState } from "./table/FaturasLoadingState";
@@ -17,6 +16,7 @@ interface FaturasTableProps {
   onDeleteFatura: (id: string) => Promise<void>;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
   onUpdateFatura: (data: UpdateFaturaInput) => Promise<Fatura>;
+  refetchFaturas?: () => void;
 }
 
 export function FaturasTable({
@@ -24,7 +24,8 @@ export function FaturasTable({
   isLoading,
   onDeleteFatura,
   onUpdateStatus,
-  onUpdateFatura
+  onUpdateFatura,
+  refetchFaturas
 }: FaturasTableProps) {
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
   const [faturaToDelete, setFaturaToDelete] = useState<Fatura | null>(null);
@@ -48,9 +49,7 @@ export function FaturasTable({
   const handleUpdateFatura = async (data: UpdateFaturaInput) => {
     setIsUpdating(true);
     try {
-      // Aguardamos o resultado da atualização antes de fechar o modal
       await onUpdateFatura(data);
-      // O modal será fechado pelo próprio componente EditFaturaModal após sucesso
     } catch (error) {
       console.error("Erro ao atualizar fatura:", error);
     } finally {
@@ -103,6 +102,7 @@ export function FaturasTable({
           onClose={() => setFaturaToEdit(null)}
           onSave={handleUpdateFatura}
           isProcessing={isUpdating}
+          refetchFaturas={refetchFaturas}
         />
       )}
     </>

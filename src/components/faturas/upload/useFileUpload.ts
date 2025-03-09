@@ -12,11 +12,17 @@ import { validateFile } from "./utils/fileValidation";
 import { uploadFile, getSignedUrl, downloadFile, removeFile } from "./utils/storageUtils";
 import { updateFaturaArquivo } from "./utils/faturaUtils";
 
+interface UseFileUploadOptions {
+  onSuccess?: () => void;
+  onFileChange?: (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => void;
+  refetchFaturas?: () => void; // Nova opção para refetch
+}
+
 export function useFileUpload(
   faturaId: string,
-  onSuccess?: () => void,
-  onFileChange?: (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => void
+  options?: UseFileUploadOptions
 ) {
+  const { onSuccess, onFileChange, refetchFaturas } = options || {};
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
@@ -66,6 +72,12 @@ export function useFileUpload(
       // Chamar callbacks
       onSuccess?.();
       onFileChange?.(file.name, filePath, file.type, file.size);
+      
+      // Forçar atualização dos dados
+      if (refetchFaturas) {
+        console.log("[useFileUpload] Atualizando dados após upload");
+        refetchFaturas();
+      }
     } catch (error: any) {
       console.error("[useFileUpload] Erro ao processar upload:", error);
       toast.error(`Erro ao fazer upload: ${error.message}`, { id: toastId });
@@ -132,6 +144,12 @@ export function useFileUpload(
       // Chamar callbacks
       onSuccess?.();
       onFileChange?.(null, null, null, null);
+      
+      // Forçar atualização dos dados
+      if (refetchFaturas) {
+        console.log("[useFileUpload] Atualizando dados após remoção");
+        refetchFaturas();
+      }
     } catch (error: any) {
       console.error("[useFileUpload] Erro ao remover arquivo:", error);
       toast.error(`Erro ao remover: ${error.message}`, { id: toastId });

@@ -10,6 +10,7 @@ interface ArquivoSectionProps {
   arquivoTipo: string | null;
   arquivoTamanho: number | null;
   onFileChange: (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => void;
+  refetchFaturas?: () => void; // Nova prop para refetch
 }
 
 export function ArquivoSection({
@@ -19,6 +20,7 @@ export function ArquivoSection({
   arquivoTipo,
   arquivoTamanho,
   onFileChange,
+  refetchFaturas,
 }: ArquivoSectionProps) {
   return (
     <div className="space-y-2">
@@ -31,6 +33,7 @@ export function ArquivoSection({
         arquivoTamanho={arquivoTamanho}
         onSuccess={() => toast.success("Arquivo atualizado com sucesso")}
         onFileChange={onFileChange}
+        refetchFaturas={refetchFaturas}
       />
     </div>
   );

@@ -23,7 +23,8 @@ export function FaturasContainer() {
     isGenerating,
     deleteFatura,
     updateFaturaStatus,
-    updateFatura 
+    updateFatura,
+    refetch // Extrair a função de refetch do hook useFaturas
   } = useFaturas(selectedDate);
   
   const [faturaToConfirmPayment, setFaturaToConfirmPayment] = useState<Fatura | null>(null);
@@ -80,6 +81,7 @@ export function FaturasContainer() {
         onDeleteFatura={handleDeleteFatura}
         onUpdateStatus={handleUpdateFaturaStatus}
         onUpdateFatura={handleUpdateFatura}
+        refetchFaturas={refetch} // Passar a função de refetch para a tabela
       />
 
       {faturaToConfirmPayment && (

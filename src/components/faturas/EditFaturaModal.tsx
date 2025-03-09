@@ -1,4 +1,3 @@
-
 import {
   Dialog,
   DialogContent,
@@ -27,6 +26,7 @@ interface EditFaturaModalProps {
   onClose: () => void;
   onSave: (data: any) => Promise<void>;
   isProcessing: boolean;
+  refetchFaturas?: () => void;
 }
 
 const formSchema = z.object({
@@ -48,8 +48,9 @@ export function EditFaturaModal({
   isOpen,
   onClose,
   onSave,
-  isProcessing
-}: EditFaturaModalProps) {
+  isProcessing,
+  refetchFaturas
+}: EditFaturaModalProps & { refetchFaturas?: () => void }) {
   const [isCalculating, setIsCalculating] = useState(false);
   const [arquivoInfo, setArquivoInfo] = useState({
     nome: fatura?.arquivo_concessionaria_nome || null,
@@ -58,7 +59,6 @@ export function EditFaturaModal({
     tamanho: fatura?.arquivo_concessionaria_tamanho || null
   });
   
-  // Estado para valores locais
   const [localTotalFatura, setLocalTotalFatura] = useState(fatura?.total_fatura.toString() || "0");
   const [localIluminacaoPublica, setLocalIluminacaoPublica] = useState(fatura?.iluminacao_publica.toString() || "0");
   const [localOutrosValores, setLocalOutrosValores] = useState(fatura?.outros_valores.toString() || "0");
@@ -71,7 +71,6 @@ export function EditFaturaModal({
     
     setIsCalculating(true);
     try {
-      // Buscar o percentual de desconto da unidade
       const { data: unidade, error } = await supabase
         .from('unidades_beneficiarias')
         .select('percentual_desconto')
@@ -82,7 +81,6 @@ export function EditFaturaModal({
       
       const percentualDesconto = unidade?.percentual_desconto || 0;
       
-      // Chamar a função de cálculo com o parâmetro no formato de objeto
       const valores = await calculateValues({
         totalFatura: localTotalFatura,
         iluminacaoPublica: localIluminacaoPublica,
@@ -123,7 +121,7 @@ export function EditFaturaModal({
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     return `${year}-${month}-${day}`;
   };
@@ -209,6 +207,7 @@ export function EditFaturaModal({
               arquivoTipo={fatura.arquivo_concessionaria_tipo}
               arquivoTamanho={fatura.arquivo_concessionaria_tamanho}
               onFileChange={handleFileChange}
+              refetchFaturas={refetchFaturas}
             />
             
             <ActionButtons 

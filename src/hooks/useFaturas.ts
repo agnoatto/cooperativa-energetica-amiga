@@ -23,6 +23,7 @@ export const useFaturas = (currentDate: Date): UseFaturasResult => {
     gerarFaturas: () => gerarFaturasMutation.mutate(),
     isGenerating: gerarFaturasMutation.isPending,
     deleteFatura: (id: string) => deleteFaturaMutation.mutate(id),
+    refetch, // Expondo a função de refetch
     updateFaturaStatus: async (data: UpdateFaturaStatusInput) => {
       try {
         console.log('[useFaturas] Iniciando atualização de status:', data);

@@ -12,6 +12,7 @@ interface FaturaFileUploadProps {
   arquivoTamanho?: number | null;
   onSuccess: () => void;
   onFileChange?: (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => void;
+  refetchFaturas?: () => void; // Nova prop para refetch
 }
 
 export function FaturaFileUpload({ 
@@ -21,7 +22,8 @@ export function FaturaFileUpload({
   arquivoTipo,
   arquivoTamanho,
   onSuccess,
-  onFileChange
+  onFileChange,
+  refetchFaturas
 }: FaturaFileUploadProps) {
   const {
     isUploading,
@@ -34,7 +36,11 @@ export function FaturaFileUpload({
     handleDownload,
     handleRemoveFile,
     handlePreview,
-  } = useFileUpload(faturaId, onSuccess, onFileChange);
+  } = useFileUpload(faturaId, { 
+    onSuccess, 
+    onFileChange,
+    refetchFaturas 
+  });
 
   return (
     <div className="space-y-4">
