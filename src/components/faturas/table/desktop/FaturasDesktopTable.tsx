@@ -25,6 +25,17 @@ export function FaturasDesktopTable({
   onDelete,
   onUpdateStatus
 }: FaturasDesktopTableProps) {
+  // Função para visualizar PDF da fatura
+  const handleViewPdf = (fatura: Fatura) => {
+    // Verificamos se existe um arquivo de fatura
+    if (!fatura.arquivo_concessionaria_path) {
+      return;
+    }
+    
+    // Esta função apenas passa o evento para o componente que exibe o PDF
+    // A lógica de exibição está implementada no FaturaDesktopRow
+  };
+
   return (
     <div className="rounded-md border border-gray-200 overflow-hidden">
       <Table className="w-full [&_th]:bg-gray-50 [&_th]:font-medium [&_th]:text-gray-700 [&_th]:h-9 [&_tr]:border-b [&_tr]:border-gray-200">
@@ -49,6 +60,7 @@ export function FaturasDesktopTable({
               onEdit={onEdit}
               onDelete={onDelete}
               onUpdateStatus={onUpdateStatus}
+              onViewPdf={handleViewPdf}
             />
           ))}
         </TableBody>
