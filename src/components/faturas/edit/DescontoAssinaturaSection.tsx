@@ -13,10 +13,10 @@ import { Loader2 } from "lucide-react";
 
 interface DescontoAssinaturaSectionProps {
   formState: UseFormReturn<any>;
-  localValorDesconto: string;
-  setLocalValorDesconto: (value: string) => void;
-  localValorAssinatura: string;
-  setLocalValorAssinatura: (value: string) => void;
+  localValorDesconto: number;
+  setLocalValorDesconto: (value: number) => void;
+  localValorAssinatura: number;
+  setLocalValorAssinatura: (value: number) => void;
   isCalculating: boolean;
   onCalcularClick: () => void;
 }

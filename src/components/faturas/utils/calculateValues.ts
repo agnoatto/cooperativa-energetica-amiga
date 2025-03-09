@@ -4,6 +4,7 @@
  * 
  * Este módulo contém funções simplificadas para calcular valores derivados
  * das faturas, utilizando dados numéricos diretamente sem conversões desnecessárias.
+ * Os valores já vêm como números do CurrencyInput e são usados diretamente.
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -11,22 +12,19 @@ import { CalculoFaturaTemplate } from "@/types/template";
 import { toast } from "sonner";
 
 /**
- * Converte string para número, garantindo formato adequado
- * @param value String ou número a ser convertido
- * @returns Número convertido ou 0 se inválido
+ * Garante que um valor seja numérico, convertendo se necessário
+ * @param value Valor de entrada (número ou string)
+ * @returns Número válido ou 0 se inválido
  */
-export const parseValue = (value: string | number): number => {
+export const parseValue = (value: number | string): number => {
   // Se já for número, retorna diretamente
   if (typeof value === 'number') return value;
   
   // Se for string vazia ou não definida, retorna 0
   if (!value) return 0;
   
-  // Remove todos os separadores de milhar (ponto) e converte a vírgula decimal
-  const numeric = value.replace(/\./g, '').replace(',', '.');
-  
-  // Converte para número
-  const parsed = parseFloat(numeric);
+  // Se for string, tenta converter para número
+  const parsed = parseFloat(String(value).replace(/\./g, '').replace(',', '.'));
   
   // Retorna o valor convertido ou 0 se for NaN
   return isNaN(parsed) ? 0 : parsed;
@@ -45,46 +43,40 @@ export const formatCurrency = (value: number): string => {
 };
 
 /**
- * Interface para parâmetros de cálculo
+ * Interface para parâmetros de cálculo - todos já são numéricos
  */
 interface CalculateValuesParams {
-  totalFatura: string;
-  iluminacaoPublica: string;
-  outrosValores: string;
-  faturaConcessionaria: string;
+  totalFatura: number;
+  iluminacaoPublica: number;
+  outrosValores: number;
+  faturaConcessionaria: number;
   percentualDesconto: number;
   unidadeBeneficiariaId: string;
 }
 
 /**
- * Função principal de cálculo - simplificada e direta
+ * Função principal de cálculo - todos os valores já são numéricos
  */
 export const calculateValues = async (params: CalculateValuesParams) => {
   // Extrair parâmetros
   const { 
-    totalFatura: totalFaturaStr, 
-    iluminacaoPublica: iluminacaoPublicaStr, 
-    outrosValores: outrosValoresStr, 
-    faturaConcessionaria: faturaConcessionariaStr,
+    totalFatura, 
+    iluminacaoPublica, 
+    outrosValores, 
+    faturaConcessionaria,
     percentualDesconto,
     unidadeBeneficiariaId 
   } = params;
   
-  // Converter strings para números - estes valores vêm do CurrencyInput (já são strings numéricas)
-  const totalFatura = parseValue(totalFaturaStr);
-  const iluminacaoPublica = parseValue(iluminacaoPublicaStr);
-  const outrosValores = parseValue(outrosValoresStr);
-  const faturaConcessionaria = parseValue(faturaConcessionariaStr);
-  
-  console.log("[calculateValues] Valores convertidos para cálculo:", {
+  console.log("[calculateValues] Valores para cálculo:", {
     totalFatura,
     iluminacaoPublica,
     outrosValores,
     faturaConcessionaria,
-    percentualDesconto: percentualDesconto // Já é um número
+    percentualDesconto
   });
   
-  // Se os valores não forem válidos, usar os valores padrão
+  // Verificação básica de valores
   if (isNaN(totalFatura) || isNaN(iluminacaoPublica) || isNaN(outrosValores) || 
       isNaN(faturaConcessionaria) || isNaN(percentualDesconto)) {
     console.error("Valores inválidos para cálculo");

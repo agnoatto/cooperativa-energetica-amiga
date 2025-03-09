@@ -11,14 +11,14 @@ import { UseFormReturn } from "react-hook-form";
 
 interface FaturaValoresSectionProps {
   formState: UseFormReturn<any>;
-  localTotalFatura: string;
-  setLocalTotalFatura: (value: string) => void;
-  localFaturaConcessionaria: string;
-  setLocalFaturaConcessionaria: (value: string) => void;
-  localIluminacaoPublica: string;
-  setLocalIluminacaoPublica: (value: string) => void;
-  localOutrosValores: string;
-  setLocalOutrosValores: (value: string) => void;
+  localTotalFatura: number;
+  setLocalTotalFatura: (value: number) => void;
+  localFaturaConcessionaria: number;
+  setLocalFaturaConcessionaria: (value: number) => void;
+  localIluminacaoPublica: number;
+  setLocalIluminacaoPublica: (value: number) => void;
+  localOutrosValores: number;
+  setLocalOutrosValores: (value: number) => void;
 }
 
 export function FaturaValoresSection({
