@@ -1,4 +1,10 @@
 
+/**
+ * Seção para edição de valores da fatura
+ *
+ * Este componente permite visualizar e editar os valores principais da fatura,
+ * incluindo total da fatura, iluminação pública, e outros valores.
+ */
 import {
   FormField,
   FormItem,

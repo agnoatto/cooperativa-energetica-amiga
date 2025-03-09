@@ -1,4 +1,10 @@
 
+/**
+ * Campos básicos para formulário de usinas fotovoltaicas
+ * 
+ * Este componente apresenta os campos básicos para cadastro e edição de usinas,
+ * incluindo investidor, unidade, valor do kWh e potência instalada.
+ */
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
@@ -28,10 +34,9 @@ export function UsinaBasicInfoFields({ form, usinaId }: UsinaBasicInfoFieldsProp
               <FormLabel>Valor do kWh</FormLabel>
               <FormControl>
                 <CurrencyInput
-                  value={field.value?.toString() || "0"}
+                  value={field.value || 0}
                   onValueChange={(value) => {
-                    const numericValue = parseFloat(value) || 0;
-                    field.onChange(numericValue);
+                    field.onChange(value);
                   }}
                 />
               </FormControl>

@@ -1,4 +1,10 @@
 
+/**
+ * Modal para confirmação de pagamento de faturas
+ * 
+ * Este componente permite registrar o pagamento de uma fatura, incluindo
+ * data de pagamento, valor adicional e observações sobre o pagamento.
+ */
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -37,7 +43,7 @@ export function PaymentConfirmationModal({
 }: PaymentConfirmationModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [dataPagamento, setDataPagamento] = useState(new Date().toISOString().split('T')[0]);
-  const [valorAdicional, setValorAdicional] = useState('0,00');
+  const [valorAdicional, setValorAdicional] = useState(0);
   const [observacao, setObservacao] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,7 +54,7 @@ export function PaymentConfirmationModal({
       await onConfirm({
         id: fatura.id,
         data_pagamento: dataPagamento,
-        valor_adicional: parseValue(valorAdicional),
+        valor_adicional: valorAdicional,
         observacao_pagamento: observacao || null,
       });
       
@@ -58,7 +64,7 @@ export function PaymentConfirmationModal({
     }
   };
 
-  const valorTotal = fatura.valor_assinatura + parseValue(valorAdicional);
+  const valorTotal = fatura.valor_assinatura + valorAdicional;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !isLoading && !open && onClose()}>
@@ -83,7 +89,7 @@ export function PaymentConfirmationModal({
             <CurrencyInput
               id="valorAdicional"
               value={valorAdicional}
-              onValueChange={setValorAdicional}
+              onValueChange={(value) => setValorAdicional(value)}
             />
           </div>
 

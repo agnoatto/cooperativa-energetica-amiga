@@ -1,9 +1,4 @@
 
-import React from 'react';
-import { NumericFormat, NumericFormatProps } from 'react-number-format';
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-
 /**
  * Componente para entrada de valores monetários no formato brasileiro (R$)
  * 
@@ -14,8 +9,13 @@ import { cn } from "@/lib/utils";
  * IMPORTANTE: Este componente transmite o valor como número decimal (floatValue),
  * já convertido do formato brasileiro (1.234,56) para o formato numérico (1234.56).
  */
+import React from 'react';
+import { NumericFormat, NumericFormatProps } from 'react-number-format';
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+
 export type CurrencyInputProps = {
-  value: number | string;
+  value: number;
   onValueChange: (value: number) => void;
   placeholder?: string;
   disabled?: boolean;
@@ -33,9 +33,6 @@ export function CurrencyInput({
   ...props 
 }: CurrencyInputProps & Omit<NumericFormatProps, 'value' | 'onValueChange' | 'customInput'>) {
   
-  // Converte para string se for número (para exibição)
-  const displayValue = typeof value === 'number' ? value.toString() : value;
-  
   const handleValueChange = (values: { formattedValue: string; value: string; floatValue: number | undefined }) => {
     // Passamos o floatValue (já com ponto decimal) para o onChange
     // Se floatValue for undefined, usamos 0 como fallback
@@ -49,7 +46,7 @@ export function CurrencyInput({
   return (
     <NumericFormat
       customInput={Input}
-      value={displayValue}
+      value={value}
       onValueChange={handleValueChange}
       thousandSeparator="."
       decimalSeparator=","

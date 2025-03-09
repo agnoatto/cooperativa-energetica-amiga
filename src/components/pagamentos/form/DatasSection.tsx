@@ -1,4 +1,10 @@
 
+/**
+ * Componente para gerenciamento de datas relacionadas a pagamentos
+ * 
+ * Este componente permite controlar datas importantes para pagamentos
+ * como data de emissão, vencimento e vencimento da concessionária.
+ */
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from "@/components/faturas/CurrencyInput";
@@ -38,8 +44,8 @@ export function DatasSection({ form, setForm }: DatasSectionProps) {
         <Label htmlFor="valor_concessionaria">Valor Fatura Concessionária (R$)</Label>
         <CurrencyInput
           id="valor_concessionaria"
-          value={form.valor_concessionaria.toString()}
-          onValueChange={(value) => setForm({ ...form, valor_concessionaria: parseFloat(value) || 0 })}
+          value={form.valor_concessionaria}
+          onValueChange={(value) => setForm({ ...form, valor_concessionaria: value })}
           placeholder="0,00"
         />
       </div>

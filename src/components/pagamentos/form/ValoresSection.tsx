@@ -1,4 +1,10 @@
 
+/**
+ * Componente para gerenciamento de valores relacionados a pagamentos
+ * 
+ * Este componente exibe e permite editar os valores relacionados aos pagamentos
+ * de usinas, incluindo valores brutos, TUSD e valores efetivos.
+ */
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from "@/components/faturas/CurrencyInput";
@@ -19,8 +25,8 @@ export function ValoresSection({ form, setForm, valorBruto, valorEfetivo, valorT
         <Label htmlFor="tusd_fio_b">TUSD Fio B (R$/kWh)</Label>
         <CurrencyInput
           id="tusd_fio_b"
-          value={form.tusd_fio_b.toString()}
-          onValueChange={(value) => setForm({ ...form, tusd_fio_b: parseFloat(value) || 0 })}
+          value={form.tusd_fio_b}
+          onValueChange={(value) => setForm({ ...form, tusd_fio_b: value })}
         />
       </div>
 

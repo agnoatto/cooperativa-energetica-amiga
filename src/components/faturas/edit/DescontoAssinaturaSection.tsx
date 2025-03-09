@@ -1,4 +1,10 @@
 
+/**
+ * Seção para edição de valores de desconto e assinatura
+ *
+ * Este componente permite visualizar e editar os valores de desconto e assinatura
+ * nas faturas, incluindo um botão para calcular automaticamente estes valores.
+ */
 import {
   FormField,
   FormItem,
