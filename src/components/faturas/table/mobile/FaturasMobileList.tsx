@@ -2,10 +2,7 @@
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { useState } from "react";
 import { FaturaMobileCard } from "./FaturaMobileCard";
-import { SimplePdfViewer } from "../../upload/SimplePdfViewer";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { STORAGE_BUCKET } from "../../upload/constants";
+import { PdfPreview } from "../../upload/PdfPreview";
 
 interface FaturasMobileListProps {
   faturas: Fatura[];
@@ -24,50 +21,16 @@ export function FaturasMobileList({
 }: FaturasMobileListProps) {
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
-  const [isLoadingPdf, setIsLoadingPdf] = useState(false);
+  const [previewTitle, setPreviewTitle] = useState<string>("Visualização da Conta de Energia");
 
   const handleViewPdf = async (fatura: Fatura) => {
     if (!fatura.arquivo_concessionaria_path) {
-      toast.error("Nenhum arquivo de fatura disponível");
       return;
     }
 
-    setIsLoadingPdf(true);
-    const toastId = toast.loading("Carregando visualização...");
-
-    try {
-      setSelectedFatura(fatura);
-      
-      // Obter URL assinada diretamente sem verificar a existência do arquivo primeiro
-      const { data: storageUrl, error } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .createSignedUrl(fatura.arquivo_concessionaria_path, 3600);
-
-      if (error) {
-        throw error;
-      }
-
-      if (storageUrl?.signedUrl) {
-        setPdfUrl(storageUrl.signedUrl);
-        setShowPdfPreview(true);
-        toast.success("PDF carregado com sucesso!", { id: toastId });
-      } else {
-        throw new Error("Não foi possível gerar a URL assinada");
-      }
-    } catch (error: any) {
-      console.error("Erro ao obter URL do PDF:", error);
-      toast.error(`Erro ao carregar o PDF: ${error.message}`, { id: toastId });
-      setPdfUrl(null);
-    } finally {
-      setIsLoadingPdf(false);
-    }
-  };
-
-  const handleClosePdfPreview = () => {
-    setShowPdfPreview(false);
-    setPdfUrl(null);
-    setSelectedFatura(null);
+    setPdfUrl(fatura.arquivo_concessionaria_path);
+    setPreviewTitle("Visualização da Conta de Energia");
+    setShowPdfPreview(true);
   };
 
   return (
@@ -86,12 +49,14 @@ export function FaturasMobileList({
         ))}
       </div>
 
-      <SimplePdfViewer
+      <PdfPreview
         isOpen={showPdfPreview}
-        onClose={handleClosePdfPreview}
+        onClose={() => {
+          setShowPdfPreview(false);
+          setPdfUrl(null);
+        }}
         pdfUrl={pdfUrl}
-        title="Visualização da Conta de Energia"
-        allowDownload={true}
+        title={previewTitle}
       />
     </>
   );

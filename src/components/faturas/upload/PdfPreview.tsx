@@ -10,9 +10,16 @@ interface PdfPreviewProps {
   onClose: () => void;
   pdfUrl: string | null;
   title?: string;
+  isRelatorio?: boolean;
 }
 
-export function PdfPreview({ isOpen, onClose, pdfUrl, title = "Visualização da Conta de Energia" }: PdfPreviewProps) {
+export function PdfPreview({ 
+  isOpen, 
+  onClose, 
+  pdfUrl, 
+  title = "Visualização da Conta de Energia",
+  isRelatorio = false 
+}: PdfPreviewProps) {
   const [processedUrl, setProcessedUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -23,8 +30,12 @@ export function PdfPreview({ isOpen, onClose, pdfUrl, title = "Visualização da
       setIsLoading(true);
       
       try {
+        // Verifica se é um blob URL (usado para PDF gerado na hora)
+        if (pdfUrl.startsWith('blob:')) {
+          setProcessedUrl(pdfUrl);
+        } 
         // Verifica se é um caminho do Supabase Storage ou uma URL relativa
-        if (pdfUrl.startsWith('/')) {
+        else if (pdfUrl.startsWith('/')) {
           // É uma URL relativa para geração de PDF no servidor
           setProcessedUrl(pdfUrl);
         } else {

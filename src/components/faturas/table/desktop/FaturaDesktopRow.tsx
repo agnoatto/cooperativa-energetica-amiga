@@ -9,6 +9,8 @@ import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PdfPreview } from "../../upload/PdfPreview";
 import { toast } from "sonner";
+import { pdf } from "@react-pdf/renderer";
+import { FaturaPDF } from "../../pdf/FaturaPDF";
 
 interface FaturaDesktopRowProps {
   fatura: Fatura;
@@ -29,6 +31,8 @@ export function FaturaDesktopRow({
 }: FaturaDesktopRowProps) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
 
   // Formatação de valores
   const formatCurrency = (value: number) => {
@@ -43,12 +47,13 @@ export function FaturaDesktopRow({
     return format(date, "dd/MM/yyyy");
   };
 
-  const handleViewArquivoConcessionaria = () => {
+  const handleViewArquivoConcessionaria = async () => {
     if (!fatura.arquivo_concessionaria_path) {
       toast.error("Nenhum arquivo de fatura disponível");
       return;
     }
     
+    // Usando o componente de visualização
     setShowPdfPreview(true);
   };
 

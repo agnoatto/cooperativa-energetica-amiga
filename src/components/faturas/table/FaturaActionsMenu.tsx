@@ -5,6 +5,8 @@ import { Eye, Edit, FileText, Trash2, CheckCircle2, RotateCw, MoreVertical } fro
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { PdfPreview } from "../upload/PdfPreview";
+import { pdf } from "@react-pdf/renderer";
+import { FaturaPDF } from "../pdf/FaturaPDF";
 
 interface FaturaActionsMenuProps {
   fatura: Fatura;
@@ -28,7 +30,9 @@ export function FaturaActionsMenu({
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
-  const [isLoadingPdf, setIsLoadingPdf] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+  const [isConcessionariaPreview, setIsConcessionariaPreview] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -64,6 +68,15 @@ export function FaturaActionsMenu({
       document.removeEventListener("keydown", handleEscape);
     };
   }, [isOpen]);
+
+  // Revoke blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (pdfBlobUrl && pdfBlobUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(pdfBlobUrl);
+      }
+    };
+  }, [pdfBlobUrl]);
 
   const toggleMenu = () => {
     if (!isOpen && buttonRef.current) {
@@ -106,9 +119,42 @@ export function FaturaActionsMenu({
     }
   };
 
-  const handleViewPdf = () => {
-    setIsOpen(false);
+  const handleViewConcessionaria = () => {
+    if (!fatura.arquivo_concessionaria_path) {
+      toast.error("Nenhum arquivo de fatura disponível");
+      return;
+    }
+    
+    setIsConcessionariaPreview(true);
     setShowPdfPreview(true);
+    setIsOpen(false);
+  };
+
+  const handleViewRelatorio = async () => {
+    setIsGeneratingPdf(true);
+    setIsOpen(false);
+    
+    try {
+      // Certifique-se de que temos todas as informações necessárias
+      if (!fatura || !fatura.unidade_beneficiaria) {
+        toast.error("Dados da fatura incompletos");
+        return;
+      }
+      
+      // Gerar PDF usando o FaturaPDF
+      const blob = await pdf(<FaturaPDF fatura={fatura} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      
+      // Atualizar estado para abrir o visualizador
+      setPdfBlobUrl(url);
+      setIsConcessionariaPreview(false);
+      setShowPdfPreview(true);
+    } catch (error: any) {
+      console.error('Erro ao gerar PDF:', error);
+      toast.error(`Erro ao gerar PDF: ${error.message}`);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   return (
@@ -165,10 +211,7 @@ export function FaturaActionsMenu({
             {fatura.status === 'corrigida' && (
               <button
                 className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                onClick={() => {
-                  handleReenviarFatura();
-                  setIsOpen(false);
-                }}
+                onClick={handleReenviarFatura}
                 role="menuitem"
               >
                 <RotateCw className="mr-2 h-4 w-4" />
@@ -204,13 +247,25 @@ export function FaturaActionsMenu({
               </button>
             )}
             
+            {fatura.arquivo_concessionaria_path && (
+              <button
+                className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={handleViewConcessionaria}
+                role="menuitem"
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Ver Fatura Concessionária
+              </button>
+            )}
+            
             <button
               className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              onClick={handleViewPdf}
+              onClick={handleViewRelatorio}
+              disabled={isGeneratingPdf}
               role="menuitem"
             >
               <FileText className="mr-2 h-4 w-4" />
-              Ver Relatório Mensal
+              {isGeneratingPdf ? "Gerando relatório..." : "Ver Relatório Mensal"}
             </button>
           </div>
         </div>,
@@ -219,9 +274,16 @@ export function FaturaActionsMenu({
 
       <PdfPreview
         isOpen={showPdfPreview}
-        onClose={() => setShowPdfPreview(false)}
-        pdfUrl={`/faturas/pdf/${fatura.id}`}
-        title="Relatório Mensal"
+        onClose={() => {
+          setShowPdfPreview(false);
+          if (pdfBlobUrl && pdfBlobUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(pdfBlobUrl);
+            setPdfBlobUrl(null);
+          }
+        }}
+        pdfUrl={isConcessionariaPreview ? fatura.arquivo_concessionaria_path : pdfBlobUrl}
+        title={isConcessionariaPreview ? "Fatura da Concessionária" : "Relatório Mensal"}
+        isRelatorio={!isConcessionariaPreview}
       />
     </div>
   );
