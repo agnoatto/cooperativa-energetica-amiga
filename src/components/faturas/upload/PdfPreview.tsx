@@ -22,56 +22,75 @@ export function PdfPreview({
 }: PdfPreviewProps) {
   const [processedUrl, setProcessedUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [error, setError] = useState<string | null>(null);
+  
   useEffect(() => {
     const processUrl = async () => {
       if (!isOpen || !pdfUrl) return;
       
       setIsLoading(true);
-      console.log("Processando URL:", pdfUrl);
+      setError(null);
+      console.log("[PdfPreview] Processando URL:", pdfUrl);
       
       try {
-        // Verifica se é um blob URL (usado para PDF gerado na hora)
-        if (pdfUrl.startsWith('blob:')) {
-          console.log("URL do tipo blob detectada");
+        // Se for um relatório gerado (blob URL)
+        if (isRelatorio || pdfUrl.startsWith('blob:')) {
+          console.log("[PdfPreview] URL é um blob ou relatório gerado");
           setProcessedUrl(pdfUrl);
           return;
         }
         
-        // Verifica se é uma URL absoluta (já com https://)
+        // Se for uma URL absoluta (já com http)
         if (pdfUrl.startsWith('http://') || pdfUrl.startsWith('https://')) {
-          console.log("URL absoluta detectada");
+          console.log("[PdfPreview] URL absoluta detectada:", pdfUrl);
           setProcessedUrl(pdfUrl);
           return;
         }
         
-        // Verifica se é um caminho do Supabase Storage ou uma URL relativa
+        // Se for uma URL do servidor para geração de PDF
         if (pdfUrl.startsWith('/')) {
-          console.log("URL relativa detectada");
-          // É uma URL relativa para geração de PDF no servidor
+          console.log("[PdfPreview] URL relativa detectada:", pdfUrl);
           setProcessedUrl(pdfUrl);
           return;
         }
           
         // É um caminho do Storage do Supabase
-        console.log("Gerando URL assinada para:", pdfUrl);
+        console.log("[PdfPreview] Gerando URL para arquivo do Supabase:", pdfUrl);
+        
         const { data, error } = await supabase.storage
           .from(STORAGE_BUCKET)
           .createSignedUrl(pdfUrl, 3600);
           
         if (error) {
-          console.error("Erro ao criar URL assinada:", error);
+          console.error("[PdfPreview] Erro ao criar URL assinada:", error);
+          
+          // Tentar uma abordagem alternativa se o caminho não for encontrado
+          if (error.message === "Object not found" && !pdfUrl.startsWith('faturas/')) {
+            console.log("[PdfPreview] Tentando com prefixo 'faturas/'");
+            const alternativePath = `faturas/${pdfUrl}`;
+            const alternativeResult = await supabase.storage
+              .from(STORAGE_BUCKET)
+              .createSignedUrl(alternativePath, 3600);
+              
+            if (!alternativeResult.error && alternativeResult.data?.signedUrl) {
+              console.log("[PdfPreview] URL alternativa gerada com sucesso");
+              setProcessedUrl(alternativeResult.data.signedUrl);
+              return;
+            }
+          }
+          
           throw error;
         }
         
         if (data?.signedUrl) {
-          console.log("URL assinada gerada com sucesso");
+          console.log("[PdfPreview] URL assinada gerada com sucesso:", data.signedUrl);
           setProcessedUrl(data.signedUrl);
         } else {
           throw new Error("Não foi possível gerar a URL assinada");
         }
       } catch (error: any) {
-        console.error("Erro ao processar URL do PDF:", error);
+        console.error("[PdfPreview] Erro ao processar URL do PDF:", error);
+        setError(error.message || 'Arquivo não encontrado');
         toast.error(`Erro ao carregar o PDF: ${error.message || 'Arquivo não encontrado'}`);
         setProcessedUrl(null);
       } finally {
@@ -80,7 +99,7 @@ export function PdfPreview({
     };
     
     processUrl();
-  }, [isOpen, pdfUrl]);
+  }, [isOpen, pdfUrl, isRelatorio]);
   
   return (
     <SimplePdfViewer
@@ -88,11 +107,13 @@ export function PdfPreview({
       onClose={() => {
         onClose();
         setProcessedUrl(null);
+        setError(null);
       }}
       pdfUrl={processedUrl}
       title={title}
       allowDownload={true}
       isInitialLoading={isLoading}
+      error={error}
     />
   );
 }

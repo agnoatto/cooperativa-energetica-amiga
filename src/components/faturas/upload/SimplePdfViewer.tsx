@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { X, ZoomIn, ZoomOut, RotateCw, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ZoomIn, ZoomOut, RotateCw, Download, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useEffect, useState } from "react";
@@ -19,6 +19,7 @@ interface SimplePdfViewerProps {
   title?: string;
   allowDownload?: boolean;
   isInitialLoading?: boolean;
+  error?: string | null;
 }
 
 export function SimplePdfViewer({ 
@@ -27,7 +28,8 @@ export function SimplePdfViewer({
   pdfUrl,
   title = "Visualização do Documento",
   allowDownload = false,
-  isInitialLoading = false
+  isInitialLoading = false,
+  error = null
 }: SimplePdfViewerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -36,32 +38,42 @@ export function SimplePdfViewer({
   const [rotation, setRotation] = useState(0);
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (isOpen) {
       setIsLoading(true);
-      setHasError(false);
-      setErrorMessage("");
+      setHasError(error !== null);
+      setErrorMessage(error || "");
       setZoom(1.0);
       setRotation(0);
       setPageNumber(1);
       
-      console.log("SimplePdfViewer - URL do PDF:", pdfUrl);
+      console.log("[SimplePdfViewer] Abrindo visualizador com URL:", pdfUrl);
     }
-  }, [isOpen, pdfUrl]);
+  }, [isOpen, pdfUrl, error]);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    console.log("PDF carregado com sucesso. Número de páginas:", numPages);
+    console.log("[SimplePdfViewer] PDF carregado com sucesso. Páginas:", numPages);
     setNumPages(numPages);
     setIsLoading(false);
     setHasError(false);
   };
 
   const onDocumentLoadError = (error: Error) => {
-    console.error("Erro ao carregar PDF:", error);
+    console.error("[SimplePdfViewer] Erro ao carregar PDF:", error);
     setIsLoading(false);
     setHasError(true);
     setErrorMessage(error.message || "Não foi possível carregar o documento");
+  };
+
+  const handleRetry = () => {
+    if (!pdfUrl) return;
+    
+    setIsLoading(true);
+    setHasError(false);
+    setRetryCount(prev => prev + 1);
+    console.log("[SimplePdfViewer] Tentando carregar o PDF novamente:", pdfUrl);
   };
 
   const zoomIn = () => {
@@ -169,13 +181,22 @@ export function SimplePdfViewer({
           )}
           
           {hasError && (
-            <div className="w-full h-full flex items-center justify-center">
-              <Alert variant="destructive" className="max-w-md">
+            <div className="w-full h-full flex flex-col items-center justify-center">
+              <Alert variant="destructive" className="max-w-md mb-4">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
+                <AlertDescription className="ml-2">
                   {errorMessage || "Não foi possível carregar o documento. Verifique se o arquivo existe ou tente novamente mais tarde."}
                 </AlertDescription>
               </Alert>
+              
+              <Button 
+                variant="outline" 
+                onClick={handleRetry} 
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Tentar novamente
+              </Button>
             </div>
           )}
           
@@ -198,6 +219,7 @@ export function SimplePdfViewer({
                     </AlertDescription>
                   </Alert>
                 }
+                key={`pdf-doc-${retryCount}`} // Força o recarregamento ao tentar novamente
               >
                 <Page
                   pageNumber={pageNumber}

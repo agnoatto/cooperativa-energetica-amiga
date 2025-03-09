@@ -19,7 +19,7 @@ export function useFileUpload(
     if (files.length === 0) return;
 
     const file = files[0];
-    const fileExt = file.name.split(".").pop();
+    const fileExt = file.name.split(".").pop()?.toLowerCase();
     
     // Verificar tipo de arquivo
     if (fileExt !== "pdf") {
@@ -39,6 +39,16 @@ export function useFileUpload(
     try {
       // Criar path único para o arquivo
       const filePath = `faturas/${faturaId}/${Date.now()}.${fileExt}`;
+      console.log("[useFileUpload] Enviando arquivo para:", filePath);
+
+      // Verificar se o bucket existe
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const bucketExists = buckets?.some(bucket => bucket.name === STORAGE_BUCKET);
+      
+      if (!bucketExists) {
+        console.error(`[useFileUpload] Bucket '${STORAGE_BUCKET}' não existe!`);
+        throw new Error(`Bucket de armazenamento '${STORAGE_BUCKET}' não encontrado`);
+      }
 
       // Upload para o storage
       const { error: uploadError } = await supabase.storage
@@ -49,8 +59,11 @@ export function useFileUpload(
         });
 
       if (uploadError) {
+        console.error("[useFileUpload] Erro ao fazer upload:", uploadError);
         throw uploadError;
       }
+
+      console.log("[useFileUpload] Upload concluído com sucesso, atualizando fatura");
 
       // Atualizar a fatura com informações do arquivo
       const { error: updateError } = await supabase
@@ -64,6 +77,7 @@ export function useFileUpload(
         .eq("id", faturaId);
 
       if (updateError) {
+        console.error("[useFileUpload] Erro ao atualizar fatura:", updateError);
         throw updateError;
       }
 
@@ -78,7 +92,7 @@ export function useFileUpload(
         onFileChange(file.name, filePath, file.type, file.size);
       }
     } catch (error: any) {
-      console.error("Erro ao fazer upload:", error);
+      console.error("[useFileUpload] Erro ao processar upload:", error);
       toast.error(`Erro ao fazer upload: ${error.message}`, { id: toastId });
     } finally {
       setIsUploading(false);
@@ -90,11 +104,13 @@ export function useFileUpload(
     const toastId = toast.loading("Preparando download...");
     
     try {
+      console.log("[useFileUpload] Iniciando download de:", filePath);
       const { data, error } = await supabase.storage
         .from(STORAGE_BUCKET)
         .download(filePath);
 
       if (error) {
+        console.error("[useFileUpload] Erro ao baixar arquivo:", error);
         throw error;
       }
 
@@ -110,7 +126,7 @@ export function useFileUpload(
       
       toast.success("Download iniciado", { id: toastId });
     } catch (error: any) {
-      console.error("Erro ao baixar arquivo:", error);
+      console.error("[useFileUpload] Erro ao baixar arquivo:", error);
       toast.error(`Erro ao baixar: ${error.message}`, { id: toastId });
     }
   };
@@ -120,12 +136,14 @@ export function useFileUpload(
     const toastId = toast.loading("Removendo arquivo...");
     
     try {
+      console.log("[useFileUpload] Removendo arquivo:", filePath);
       // Remover do storage
       const { error: storageError } = await supabase.storage
         .from(STORAGE_BUCKET)
         .remove([filePath]);
 
       if (storageError) {
+        console.error("[useFileUpload] Erro ao remover do storage:", storageError);
         throw storageError;
       }
 
@@ -141,6 +159,7 @@ export function useFileUpload(
         .eq("id", faturaId);
 
       if (updateError) {
+        console.error("[useFileUpload] Erro ao atualizar fatura:", updateError);
         throw updateError;
       }
 
@@ -154,7 +173,7 @@ export function useFileUpload(
         onFileChange(null, null, null, null);
       }
     } catch (error: any) {
-      console.error("Erro ao remover arquivo:", error);
+      console.error("[useFileUpload] Erro ao remover arquivo:", error);
       toast.error(`Erro ao remover: ${error.message}`, { id: toastId });
     }
   };
@@ -164,19 +183,26 @@ export function useFileUpload(
     const toastId = toast.loading("Carregando visualização...");
     
     try {
+      console.log("[useFileUpload] Gerando URL para visualização:", filePath);
       const { data, error } = await supabase.storage
         .from(STORAGE_BUCKET)
         .createSignedUrl(filePath, 3600); // URL válida por 1 hora
 
       if (error) {
+        console.error("[useFileUpload] Erro ao criar URL assinada:", error);
         throw error;
       }
 
+      if (!data.signedUrl) {
+        throw new Error("Não foi possível gerar a URL do documento");
+      }
+
+      console.log("[useFileUpload] URL gerada com sucesso:", data.signedUrl);
       setPdfUrl(data.signedUrl);
       setShowPdfPreview(true);
       toast.success("Documento carregado", { id: toastId });
     } catch (error: any) {
-      console.error("Erro ao obter URL do PDF:", error);
+      console.error("[useFileUpload] Erro ao obter URL do PDF:", error);
       toast.error(`Erro ao carregar visualização: ${error.message}`, { id: toastId });
     }
   };

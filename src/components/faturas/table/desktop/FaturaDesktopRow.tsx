@@ -49,7 +49,7 @@ export function FaturaDesktopRow({
       return;
     }
     
-    console.log("Abrindo visualização da fatura da concessionária:", fatura.arquivo_concessionaria_path);
+    console.log("[FaturaDesktopRow] Abrindo visualização da fatura:", fatura.arquivo_concessionaria_path);
     setShowPdfPreview(true);
   };
 
