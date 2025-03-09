@@ -20,3 +20,14 @@ export interface UseFaturasResult {
   updateFatura: (data: any) => Promise<Fatura>;
   refetch: () => void; // Adicionando a função de refetch
 }
+
+// Adicionando a definição de UnidadeBeneficiaria para resolver os erros de importação
+export interface UnidadeBeneficiaria {
+  id: string;
+  numero_uc: string;
+  apelido: string | null;
+  data_entrada: string;
+  cooperado: {
+    nome: string;
+  };
+}
