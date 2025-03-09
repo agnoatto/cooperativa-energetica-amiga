@@ -3,6 +3,7 @@ import { Fatura, FaturaStatus } from "@/types/fatura";
 import { useState } from "react";
 import { FaturaMobileCard } from "./FaturaMobileCard";
 import { PdfPreview } from "../../upload/PdfPreview";
+import { STORAGE_BUCKET } from "../../upload/constants";
 
 interface FaturasMobileListProps {
   faturas: Fatura[];
@@ -57,6 +58,7 @@ export function FaturasMobileList({
         }}
         pdfUrl={pdfUrl}
         title={previewTitle}
+        bucketName={STORAGE_BUCKET} // Adicionando o nome do bucket explicitamente
       />
     </>
   );

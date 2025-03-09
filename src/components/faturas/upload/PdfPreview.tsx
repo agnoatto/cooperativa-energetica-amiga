@@ -11,7 +11,7 @@ interface PdfPreviewProps {
   pdfUrl: string | null;
   title?: string;
   isRelatorio?: boolean;
-  bucketName?: string; // Novo parâmetro para especificar o bucket
+  bucketName?: string; // Nome do bucket para permitir visualização de diferentes origens
 }
 
 export function PdfPreview({ 
