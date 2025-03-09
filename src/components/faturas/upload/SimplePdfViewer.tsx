@@ -1,10 +1,16 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { X, ZoomIn, ZoomOut, RotateCw, Download } from "lucide-react";
+import { X, ZoomIn, ZoomOut, RotateCw, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useEffect, useState } from "react";
+import { Document, Page, pdfjs } from "react-pdf";
+import "react-pdf/dist/esm/Page/AnnotationLayer.css";
+import "react-pdf/dist/esm/Page/TextLayer.css";
+
+// Configurar worker do PDF.js
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 interface SimplePdfViewerProps {
   isOpen: boolean;
@@ -25,33 +31,39 @@ export function SimplePdfViewer({
 }: SimplePdfViewerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [zoom, setZoom] = useState(100);
+  const [zoom, setZoom] = useState(1.0);
   const [rotation, setRotation] = useState(0);
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [pageNumber, setPageNumber] = useState(1);
 
   useEffect(() => {
     if (isOpen) {
       setIsLoading(true);
       setHasError(false);
-      setZoom(100);
+      setZoom(1.0);
       setRotation(0);
+      setPageNumber(1);
     }
   }, [isOpen, pdfUrl]);
 
-  const handleIframeLoad = () => {
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
     setIsLoading(false);
+    setHasError(false);
   };
 
-  const handleIframeError = () => {
+  const onDocumentLoadError = (error: Error) => {
+    console.error("Erro ao carregar PDF:", error);
     setIsLoading(false);
     setHasError(true);
   };
 
   const zoomIn = () => {
-    setZoom(prev => Math.min(prev + 25, 200));
+    setZoom(prev => Math.min(prev + 0.2, 2.0));
   };
 
   const zoomOut = () => {
-    setZoom(prev => Math.max(prev - 25, 50));
+    setZoom(prev => Math.max(prev - 0.2, 0.5));
   };
 
   const rotate = () => {
@@ -63,6 +75,14 @@ export function SimplePdfViewer({
       // Abrir o PDF em uma nova aba, o que permite o download
       window.open(pdfUrl, '_blank');
     }
+  };
+
+  const goToPrevPage = () => {
+    setPageNumber(prev => Math.max(prev - 1, 1));
+  };
+
+  const goToNextPage = () => {
+    setPageNumber(prev => Math.min(prev + 1, numPages || 1));
   };
 
   if (!isOpen) return null;
@@ -80,7 +100,7 @@ export function SimplePdfViewer({
               onClick={zoomIn}
               className="h-8 w-8"
               title="Aumentar zoom"
-              disabled={zoom >= 200}
+              disabled={zoom >= 2.0}
             >
               <ZoomIn className="h-4 w-4" />
             </Button>
@@ -91,7 +111,7 @@ export function SimplePdfViewer({
               onClick={zoomOut}
               className="h-8 w-8"
               title="Diminuir zoom"
-              disabled={zoom <= 50}
+              disabled={zoom <= 0.5}
             >
               <ZoomOut className="h-4 w-4" />
             </Button>
@@ -153,25 +173,62 @@ export function SimplePdfViewer({
           )}
           
           {pdfUrl && (
-            <div 
-              className="w-full h-full flex items-center justify-center"
-              style={{
-                transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
-                transformOrigin: 'center',
-                transition: 'transform 0.2s ease-in-out'
-              }}
-            >
-              <iframe
-                src={pdfUrl}
-                className="w-full h-full border rounded shadow-lg bg-white"
-                title="Visualização do documento"
-                onLoad={handleIframeLoad}
-                onError={handleIframeError}
-                style={{
-                  visibility: isLoading || isInitialLoading ? 'hidden' : 'visible'
-                }}
-                sandbox="allow-scripts allow-same-origin allow-forms"
-              />
+            <div className="w-full h-full flex flex-col items-center justify-center">
+              <Document
+                file={pdfUrl}
+                onLoadSuccess={onDocumentLoadSuccess}
+                onLoadError={onDocumentLoadError}
+                loading={
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                }
+                error={
+                  <Alert variant="destructive" className="max-w-md">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Erro ao carregar o documento.
+                    </AlertDescription>
+                  </Alert>
+                }
+              >
+                <Page
+                  pageNumber={pageNumber}
+                  scale={zoom}
+                  rotate={rotation}
+                  className="shadow-lg bg-white"
+                />
+              </Document>
+              
+              {numPages && numPages > 1 && (
+                <div className="flex items-center gap-4 mt-4 bg-white p-2 rounded shadow">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={goToPrevPage}
+                    disabled={pageNumber <= 1}
+                    className="h-8 w-8"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  
+                  <span className="text-sm">
+                    Página {pageNumber} de {numPages}
+                  </span>
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={goToNextPage}
+                    disabled={pageNumber >= numPages}
+                    className="h-8 w-8"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>

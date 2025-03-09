@@ -9,7 +9,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { FaturaDesktopRow } from "./FaturaDesktopRow";
-import { useState } from "react";
 
 interface FaturasDesktopTableProps {
   faturas: Fatura[];
@@ -26,11 +25,6 @@ export function FaturasDesktopTable({
   onDelete,
   onUpdateStatus
 }: FaturasDesktopTableProps) {
-  const handleViewPdf = (fatura: Fatura) => {
-    // Esta função agora é apenas um passador, a lógica está dentro do FaturaDesktopRow
-    console.log("Visualizando PDF para fatura:", fatura.id);
-  };
-
   return (
     <div className="rounded-md border border-gray-200 overflow-hidden">
       <Table className="w-full [&_th]:bg-gray-50 [&_th]:font-medium [&_th]:text-gray-700 [&_th]:h-9 [&_tr]:border-b [&_tr]:border-gray-200">
@@ -55,7 +49,6 @@ export function FaturasDesktopTable({
               onEdit={onEdit}
               onDelete={onDelete}
               onUpdateStatus={onUpdateStatus}
-              onViewPdf={handleViewPdf}
             />
           ))}
         </TableBody>
