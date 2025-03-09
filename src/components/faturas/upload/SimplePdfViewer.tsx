@@ -31,6 +31,7 @@ export function SimplePdfViewer({
 }: SimplePdfViewerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [zoom, setZoom] = useState(1.0);
   const [rotation, setRotation] = useState(0);
   const [numPages, setNumPages] = useState<number | null>(null);
@@ -40,13 +41,17 @@ export function SimplePdfViewer({
     if (isOpen) {
       setIsLoading(true);
       setHasError(false);
+      setErrorMessage("");
       setZoom(1.0);
       setRotation(0);
       setPageNumber(1);
+      
+      console.log("SimplePdfViewer - URL do PDF:", pdfUrl);
     }
   }, [isOpen, pdfUrl]);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    console.log("PDF carregado com sucesso. Número de páginas:", numPages);
     setNumPages(numPages);
     setIsLoading(false);
     setHasError(false);
@@ -56,6 +61,7 @@ export function SimplePdfViewer({
     console.error("Erro ao carregar PDF:", error);
     setIsLoading(false);
     setHasError(true);
+    setErrorMessage(error.message || "Não foi possível carregar o documento");
   };
 
   const zoomIn = () => {
@@ -100,7 +106,7 @@ export function SimplePdfViewer({
               onClick={zoomIn}
               className="h-8 w-8"
               title="Aumentar zoom"
-              disabled={zoom >= 2.0}
+              disabled={zoom >= 2.0 || isLoading || hasError}
             >
               <ZoomIn className="h-4 w-4" />
             </Button>
@@ -111,7 +117,7 @@ export function SimplePdfViewer({
               onClick={zoomOut}
               className="h-8 w-8"
               title="Diminuir zoom"
-              disabled={zoom <= 0.5}
+              disabled={zoom <= 0.5 || isLoading || hasError}
             >
               <ZoomOut className="h-4 w-4" />
             </Button>
@@ -122,6 +128,7 @@ export function SimplePdfViewer({
               onClick={rotate}
               className="h-8 w-8"
               title="Girar"
+              disabled={isLoading || hasError}
             >
               <RotateCw className="h-4 w-4" />
             </Button>
@@ -133,7 +140,7 @@ export function SimplePdfViewer({
                 onClick={handleDownload}
                 className="h-8 w-8"
                 title="Baixar"
-                disabled={!pdfUrl}
+                disabled={!pdfUrl || isLoading || hasError}
               >
                 <Download className="h-4 w-4" />
               </Button>
@@ -166,13 +173,13 @@ export function SimplePdfViewer({
               <Alert variant="destructive" className="max-w-md">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Não foi possível carregar o documento. Verifique se o arquivo existe ou tente novamente mais tarde.
+                  {errorMessage || "Não foi possível carregar o documento. Verifique se o arquivo existe ou tente novamente mais tarde."}
                 </AlertDescription>
               </Alert>
             </div>
           )}
           
-          {pdfUrl && (
+          {pdfUrl && !hasError && (
             <div className="w-full h-full flex flex-col items-center justify-center">
               <Document
                 file={pdfUrl}

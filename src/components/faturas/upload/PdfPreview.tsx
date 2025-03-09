@@ -28,33 +28,51 @@ export function PdfPreview({
       if (!isOpen || !pdfUrl) return;
       
       setIsLoading(true);
+      console.log("Processando URL:", pdfUrl);
       
       try {
         // Verifica se é um blob URL (usado para PDF gerado na hora)
         if (pdfUrl.startsWith('blob:')) {
+          console.log("URL do tipo blob detectada");
           setProcessedUrl(pdfUrl);
-        } 
+          return;
+        }
+        
+        // Verifica se é uma URL absoluta (já com https://)
+        if (pdfUrl.startsWith('http://') || pdfUrl.startsWith('https://')) {
+          console.log("URL absoluta detectada");
+          setProcessedUrl(pdfUrl);
+          return;
+        }
+        
         // Verifica se é um caminho do Supabase Storage ou uma URL relativa
-        else if (pdfUrl.startsWith('/')) {
+        if (pdfUrl.startsWith('/')) {
+          console.log("URL relativa detectada");
           // É uma URL relativa para geração de PDF no servidor
           setProcessedUrl(pdfUrl);
-        } else {
-          // É um caminho do Storage do Supabase
-          const { data, error } = await supabase.storage
-            .from(STORAGE_BUCKET)
-            .createSignedUrl(pdfUrl, 3600);
-            
-          if (error) throw error;
+          return;
+        }
           
-          if (data?.signedUrl) {
-            setProcessedUrl(data.signedUrl);
-          } else {
-            throw new Error("Não foi possível gerar a URL assinada");
-          }
+        // É um caminho do Storage do Supabase
+        console.log("Gerando URL assinada para:", pdfUrl);
+        const { data, error } = await supabase.storage
+          .from(STORAGE_BUCKET)
+          .createSignedUrl(pdfUrl, 3600);
+          
+        if (error) {
+          console.error("Erro ao criar URL assinada:", error);
+          throw error;
+        }
+        
+        if (data?.signedUrl) {
+          console.log("URL assinada gerada com sucesso");
+          setProcessedUrl(data.signedUrl);
+        } else {
+          throw new Error("Não foi possível gerar a URL assinada");
         }
       } catch (error: any) {
         console.error("Erro ao processar URL do PDF:", error);
-        toast.error(`Erro ao carregar o PDF: ${error.message}`);
+        toast.error(`Erro ao carregar o PDF: ${error.message || 'Arquivo não encontrado'}`);
         setProcessedUrl(null);
       } finally {
         setIsLoading(false);

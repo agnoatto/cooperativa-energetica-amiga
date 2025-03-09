@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from "react";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { Eye, Edit, FileText, Trash2, CheckCircle2, RotateCw, MoreVertical } from "lucide-react";
@@ -69,7 +68,6 @@ export function FaturaActionsMenu({
     };
   }, [isOpen]);
 
-  // Revoke blob URL on unmount
   useEffect(() => {
     return () => {
       if (pdfBlobUrl && pdfBlobUrl.startsWith('blob:')) {
@@ -82,24 +80,19 @@ export function FaturaActionsMenu({
     if (!isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       
-      // Cálculo da posição ideal para o dropdown
       const viewportHeight = window.innerHeight;
       const viewportWidth = window.innerWidth;
       
-      // Tamanho aproximado do menu (ajuste conforme necessário)
       const menuHeight = 200;
       const menuWidth = 180;
       
-      // Posicionamento padrão (abaixo do botão)
       let top = rect.bottom + 5;
       let left = rect.left;
       
-      // Verificar se tem espaço embaixo ou se é melhor aparecer acima
       if (top + menuHeight > viewportHeight) {
         top = rect.top - menuHeight - 5;
       }
       
-      // Evitar que o menu fique fora da tela horizontalmente
       if (left + menuWidth > viewportWidth) {
         left = rect.right - menuWidth;
       }
@@ -125,6 +118,7 @@ export function FaturaActionsMenu({
       return;
     }
     
+    console.log("Visualizando fatura da concessionária:", fatura.arquivo_concessionaria_path);
     setIsConcessionariaPreview(true);
     setShowPdfPreview(true);
     setIsOpen(false);
@@ -135,17 +129,15 @@ export function FaturaActionsMenu({
     setIsOpen(false);
     
     try {
-      // Certifique-se de que temos todas as informações necessárias
       if (!fatura || !fatura.unidade_beneficiaria) {
         toast.error("Dados da fatura incompletos");
         return;
       }
       
-      // Gerar PDF usando o FaturaPDF
+      console.log("Gerando PDF do relatório mensal");
       const blob = await pdf(<FaturaPDF fatura={fatura} />).toBlob();
       const url = URL.createObjectURL(blob);
       
-      // Atualizar estado para abrir o visualizador
       setPdfBlobUrl(url);
       setIsConcessionariaPreview(false);
       setShowPdfPreview(true);
@@ -275,6 +267,7 @@ export function FaturaActionsMenu({
       <PdfPreview
         isOpen={showPdfPreview}
         onClose={() => {
+          console.log("Fechando previsualização PDF");
           setShowPdfPreview(false);
           if (pdfBlobUrl && pdfBlobUrl.startsWith('blob:')) {
             URL.revokeObjectURL(pdfBlobUrl);
