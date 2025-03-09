@@ -24,9 +24,18 @@ export function FileUploadSection({ form, setForm, pagamentoId }: FileUploadSect
   } = useFileState({ pagamentoId, form, setForm });
 
   const handleViewFile = async () => {
-    const url = await handlePreview();
-    if (url) {
-      setShowPdfPreview(true);
+    if (!form.arquivo_conta_energia_path) {
+      return;
+    }
+    
+    try {
+      const url = await handlePreview();
+      if (url) {
+        console.log("[FileUploadSection] URL para preview gerada:", url);
+        setShowPdfPreview(true);
+      }
+    } catch (error) {
+      console.error("[FileUploadSection] Erro ao gerar preview:", error);
     }
   };
 
@@ -51,10 +60,12 @@ export function FileUploadSection({ form, setForm, pagamentoId }: FileUploadSect
       <PdfPreview
         isOpen={showPdfPreview}
         onClose={() => {
+          console.log("[FileUploadSection] Fechando preview PDF");
           setShowPdfPreview(false);
           setPdfUrl(null);
         }}
         pdfUrl={pdfUrl}
+        title="Conta de Energia"
       />
     </div>
   );

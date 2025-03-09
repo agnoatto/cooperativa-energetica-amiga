@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { X, ZoomIn, ZoomOut, RotateCw, Download, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
+import { X, ZoomIn, ZoomOut, RotateCw, Download, ChevronLeft, ChevronRight, RefreshCw, ExternalLink } from "lucide-react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useEffect, useState } from "react";
@@ -50,6 +50,9 @@ export function SimplePdfViewer({
       setPageNumber(1);
       
       console.log("[SimplePdfViewer] Abrindo visualizador com URL:", pdfUrl);
+      if (error) {
+        console.log("[SimplePdfViewer] Com erro:", error);
+      }
     }
   }, [isOpen, pdfUrl, error]);
 
@@ -74,6 +77,12 @@ export function SimplePdfViewer({
     setHasError(false);
     setRetryCount(prev => prev + 1);
     console.log("[SimplePdfViewer] Tentando carregar o PDF novamente:", pdfUrl);
+  };
+
+  const handleOpenExternal = () => {
+    if (pdfUrl) {
+      window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+    }
   };
 
   const zoomIn = () => {
@@ -159,6 +168,17 @@ export function SimplePdfViewer({
             )}
             <Button
               type="button"
+              variant="outline"
+              size="icon"
+              onClick={handleOpenExternal}
+              className="h-8 w-8"
+              title="Abrir em nova janela"
+              disabled={!pdfUrl || isLoading || hasError}
+            >
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
               variant="ghost"
               size="icon"
               onClick={onClose}
@@ -189,14 +209,27 @@ export function SimplePdfViewer({
                 </AlertDescription>
               </Alert>
               
-              <Button 
-                variant="outline" 
-                onClick={handleRetry} 
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Tentar novamente
-              </Button>
+              <div className="flex gap-2 mt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={handleRetry} 
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Tentar novamente
+                </Button>
+                
+                {pdfUrl && (
+                  <Button 
+                    variant="outline" 
+                    onClick={handleOpenExternal} 
+                    className="flex items-center gap-2"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Abrir em nova janela
+                  </Button>
+                )}
+              </div>
             </div>
           )}
           

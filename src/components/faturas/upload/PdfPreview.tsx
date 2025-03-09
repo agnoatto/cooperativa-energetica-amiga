@@ -25,69 +25,117 @@ export function PdfPreview({
   const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
+    // Apenas processa o URL quando o modal estiver aberto e um URL for fornecido
+    if (!isOpen || !pdfUrl) return;
+    
     const processUrl = async () => {
-      if (!isOpen || !pdfUrl) return;
-      
       setIsLoading(true);
       setError(null);
-      console.log("[PdfPreview] Processando URL:", pdfUrl);
+      console.log("[PdfPreview] Iniciando processamento de URL:", pdfUrl);
       
       try {
-        // Se for um relatório gerado (blob URL)
+        // Caso 1: Se for um relatório gerado ou blob URL, use diretamente
         if (isRelatorio || pdfUrl.startsWith('blob:')) {
-          console.log("[PdfPreview] URL é um blob ou relatório gerado");
+          console.log("[PdfPreview] URL é um relatório/blob, usando diretamente");
           setProcessedUrl(pdfUrl);
           return;
         }
         
-        // Se for uma URL absoluta (já com http)
+        // Caso 2: Se for uma URL absoluta (http/https), use diretamente
         if (pdfUrl.startsWith('http://') || pdfUrl.startsWith('https://')) {
-          console.log("[PdfPreview] URL absoluta detectada:", pdfUrl);
+          console.log("[PdfPreview] URL absoluta detectada, usando diretamente");
           setProcessedUrl(pdfUrl);
           return;
         }
         
-        // Se for uma URL do servidor para geração de PDF
+        // Caso 3: URL relativa da API, use diretamente
         if (pdfUrl.startsWith('/')) {
-          console.log("[PdfPreview] URL relativa detectada:", pdfUrl);
+          console.log("[PdfPreview] URL relativa detectada, usando diretamente");
           setProcessedUrl(pdfUrl);
           return;
         }
           
-        // É um caminho do Storage do Supabase
-        console.log("[PdfPreview] Gerando URL para arquivo do Supabase:", pdfUrl);
+        // Caso 4: Caminho do Storage do Supabase - precisamos gerar URL assinada
         
-        const { data, error } = await supabase.storage
-          .from(STORAGE_BUCKET)
-          .createSignedUrl(pdfUrl, 3600);
+        // Verificar primeiro se o bucket existe
+        const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+        
+        if (bucketsError) {
+          console.error("[PdfPreview] Erro ao listar buckets:", bucketsError);
+          throw new Error(`Erro ao verificar buckets: ${bucketsError.message}`);
+        }
+        
+        const bucketExists = buckets?.some(bucket => bucket.name === STORAGE_BUCKET);
+        if (!bucketExists) {
+          console.error(`[PdfPreview] Bucket '${STORAGE_BUCKET}' não existe!`);
+          throw new Error(`Bucket de armazenamento '${STORAGE_BUCKET}' não encontrado`);
+        }
+        
+        console.log(`[PdfPreview] Bucket '${STORAGE_BUCKET}' verificado com sucesso`);
+        
+        // Tentar diferentes formatos de caminho para encontrar o arquivo
+        // Ordem das tentativas:
+        // 1. Caminho original sem modificação
+        // 2. Caminho com prefixo "faturas/" adicionado
+        
+        const pathsToTry = [
+          pdfUrl,
+          pdfUrl.startsWith('faturas/') ? pdfUrl : `faturas/${pdfUrl}`
+        ];
+        
+        let successUrl = null;
+        let lastError = null;
+        
+        for (const path of pathsToTry) {
+          console.log(`[PdfPreview] Tentando caminho: ${path}`);
           
-        if (error) {
-          console.error("[PdfPreview] Erro ao criar URL assinada:", error);
-          
-          // Tentar uma abordagem alternativa se o caminho não for encontrado
-          if (error.message === "Object not found" && !pdfUrl.startsWith('faturas/')) {
-            console.log("[PdfPreview] Tentando com prefixo 'faturas/'");
-            const alternativePath = `faturas/${pdfUrl}`;
-            const alternativeResult = await supabase.storage
+          try {
+            // Verificar se o arquivo existe antes de criar URL assinada
+            const { data: fileExists, error: fileExistsError } = await supabase.storage
               .from(STORAGE_BUCKET)
-              .createSignedUrl(alternativePath, 3600);
+              .list(path.split('/').slice(0, -1).join('/') || undefined);
               
-            if (!alternativeResult.error && alternativeResult.data?.signedUrl) {
-              console.log("[PdfPreview] URL alternativa gerada com sucesso");
-              setProcessedUrl(alternativeResult.data.signedUrl);
-              return;
+            if (fileExistsError) {
+              console.warn(`[PdfPreview] Erro ao verificar existência do caminho: ${path}`, fileExistsError);
+              continue;
             }
+            
+            const fileName = path.split('/').pop();
+            const fileFound = fileExists?.some(file => file.name === fileName);
+            
+            if (!fileFound) {
+              console.warn(`[PdfPreview] Arquivo não encontrado em: ${path}`);
+              continue;
+            }
+            
+            // Arquivo existe, criar URL assinada
+            const { data, error } = await supabase.storage
+              .from(STORAGE_BUCKET)
+              .createSignedUrl(path, 3600);
+              
+            if (error) {
+              console.warn(`[PdfPreview] Erro ao criar URL assinada para: ${path}`, error);
+              lastError = error;
+              continue;
+            }
+            
+            if (data?.signedUrl) {
+              console.log(`[PdfPreview] URL assinada gerada com sucesso para: ${path}`);
+              successUrl = data.signedUrl;
+              break;
+            }
+          } catch (error) {
+            console.warn(`[PdfPreview] Erro ao processar caminho: ${path}`, error);
+            lastError = error;
           }
-          
-          throw error;
         }
         
-        if (data?.signedUrl) {
-          console.log("[PdfPreview] URL assinada gerada com sucesso:", data.signedUrl);
-          setProcessedUrl(data.signedUrl);
+        if (successUrl) {
+          setProcessedUrl(successUrl);
         } else {
-          throw new Error("Não foi possível gerar a URL assinada");
+          throw new Error(lastError?.message || "Não foi possível encontrar o arquivo");
         }
+        
       } catch (error: any) {
         console.error("[PdfPreview] Erro ao processar URL do PDF:", error);
         setError(error.message || 'Arquivo não encontrado');

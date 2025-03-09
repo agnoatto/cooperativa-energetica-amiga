@@ -14,6 +14,42 @@ export function useFileUpload(
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
+  // Função para verificar se o bucket existe, criando-o se necessário
+  const ensureBucketExists = async () => {
+    try {
+      // Verificar se o bucket já existe
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      
+      if (bucketsError) {
+        console.error("[useFileUpload] Erro ao listar buckets:", bucketsError);
+        throw bucketsError;
+      }
+      
+      const bucketExists = buckets?.some(bucket => bucket.name === STORAGE_BUCKET);
+      
+      if (!bucketExists) {
+        console.log(`[useFileUpload] Bucket '${STORAGE_BUCKET}' não existe, tentando criar...`);
+        const { error: createError } = await supabase.storage.createBucket(STORAGE_BUCKET, {
+          public: false, // Configurar como privado para controle de acesso
+        });
+        
+        if (createError) {
+          console.error(`[useFileUpload] Erro ao criar bucket:`, createError);
+          throw createError;
+        }
+        
+        console.log(`[useFileUpload] Bucket '${STORAGE_BUCKET}' criado com sucesso`);
+      } else {
+        console.log(`[useFileUpload] Bucket '${STORAGE_BUCKET}' já existe`);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("[useFileUpload] Erro ao verificar/criar bucket:", error);
+      throw error;
+    }
+  };
+
   // Função para lidar com upload de arquivo
   const handleFileUpload = async (files: File[]) => {
     if (files.length === 0) return;
@@ -37,25 +73,19 @@ export function useFileUpload(
     const toastId = toast.loading("Enviando arquivo...");
 
     try {
+      // Verificar se o bucket existe
+      await ensureBucketExists();
+      
       // Criar path único para o arquivo
       const filePath = `faturas/${faturaId}/${Date.now()}.${fileExt}`;
       console.log("[useFileUpload] Enviando arquivo para:", filePath);
-
-      // Verificar se o bucket existe
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const bucketExists = buckets?.some(bucket => bucket.name === STORAGE_BUCKET);
-      
-      if (!bucketExists) {
-        console.error(`[useFileUpload] Bucket '${STORAGE_BUCKET}' não existe!`);
-        throw new Error(`Bucket de armazenamento '${STORAGE_BUCKET}' não encontrado`);
-      }
 
       // Upload para o storage
       const { error: uploadError } = await supabase.storage
         .from(STORAGE_BUCKET)
         .upload(filePath, file, {
           upsert: true,
-          contentType: file.type,
+          contentType: 'application/pdf',
         });
 
       if (uploadError) {
@@ -184,6 +214,11 @@ export function useFileUpload(
     
     try {
       console.log("[useFileUpload] Gerando URL para visualização:", filePath);
+      
+      // Verificar se o bucket existe
+      await ensureBucketExists();
+      
+      // Tentar obter URL assinada
       const { data, error } = await supabase.storage
         .from(STORAGE_BUCKET)
         .createSignedUrl(filePath, 3600); // URL válida por 1 hora
