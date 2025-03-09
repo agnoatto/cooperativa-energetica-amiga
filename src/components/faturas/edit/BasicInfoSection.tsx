@@ -11,10 +11,9 @@ import { UseFormReturn } from "react-hook-form";
 
 interface BasicInfoSectionProps {
   formState: UseFormReturn<any>;
-  formatDate: (date: string) => string;
 }
 
-export function BasicInfoSection({ formState, formatDate }: BasicInfoSectionProps) {
+export function BasicInfoSection({ formState }: BasicInfoSectionProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <FormField
@@ -41,7 +40,6 @@ export function BasicInfoSection({ formState, formatDate }: BasicInfoSectionProp
               <Input 
                 type="date" 
                 {...field} 
-                defaultValue={formatDate(field.value)} 
               />
             </FormControl>
             <FormMessage />

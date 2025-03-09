@@ -2,9 +2,9 @@
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { FaturaStatusBadge } from "../FaturaStatusBadge";
-import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Edit, Eye, FileText } from "lucide-react";
+import { formatDateToPtBR } from "@/utils/dateFormatters";
 
 interface FaturaMobileCardProps {
   fatura: Fatura;
@@ -30,11 +30,6 @@ export function FaturaMobileCard({
     }).format(value);
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return format(date, "dd/MM/yyyy");
-  };
-
   return (
     <Card className="mb-4">
       <CardContent className="p-4">
@@ -57,7 +52,7 @@ export function FaturaMobileCard({
           </div>
           <div>
             <p className="text-sm text-gray-500">Vencimento:</p>
-            <p className="font-medium">{formatDate(fatura.data_vencimento)}</p>
+            <p className="font-medium">{formatDateToPtBR(fatura.data_vencimento)}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Fatura:</p>

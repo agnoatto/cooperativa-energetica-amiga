@@ -20,6 +20,7 @@ import { DescontoAssinaturaSection } from "./edit/DescontoAssinaturaSection";
 import { ObservacaoSection } from "./edit/ObservacaoSection";
 import { ArquivoSection } from "./edit/ArquivoSection";
 import { ActionButtons } from "./edit/ActionButtons";
+import { convertLocalToUTC, convertUTCToLocal } from "@/utils/dateFormatters";
 
 interface EditFaturaModalProps {
   fatura: any;
@@ -133,7 +134,7 @@ export function EditFaturaModal({
     resolver: zodResolver(formSchema),
     defaultValues: {
       consumo_kwh: fatura?.consumo_kwh.toString() || "0",
-      data_vencimento: fatura?.data_vencimento || "",
+      data_vencimento: fatura?.data_vencimento ? convertUTCToLocal(fatura.data_vencimento) : "",
       economia_acumulada: fatura?.economia_acumulada.toString() || "0",
       saldo_energia_kwh: fatura?.saldo_energia_kwh.toString() || "0",
       observacao: fatura?.observacao || "",
@@ -141,13 +142,17 @@ export function EditFaturaModal({
     mode: "onChange",
   });
 
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${year}-${month}-${day}`;
-  };
+  useEffect(() => {
+    if (fatura) {
+      formState.reset({
+        consumo_kwh: fatura.consumo_kwh.toString() || "0",
+        data_vencimento: fatura.data_vencimento ? convertUTCToLocal(fatura.data_vencimento) : "",
+        economia_acumulada: fatura.economia_acumulada.toString() || "0",
+        saldo_energia_kwh: fatura.saldo_energia_kwh.toString() || "0",
+        observacao: fatura.observacao || "",
+      });
+    }
+  }, [fatura, formState]);
 
   const handleFileChange = (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => {
     console.log("[EditFaturaModal] Atualizando arquivo:", { nome, path, tipo, tamanho });
@@ -179,7 +184,7 @@ export function EditFaturaModal({
       id: fatura.id,
       consumo_kwh: Number(values.consumo_kwh),
       valor_assinatura: localValorAssinatura,
-      data_vencimento: formatDate(values.data_vencimento),
+      data_vencimento: convertLocalToUTC(values.data_vencimento),
       fatura_concessionaria: localFaturaConcessionaria,
       total_fatura: localTotalFatura,
       iluminacao_publica: localIluminacaoPublica,

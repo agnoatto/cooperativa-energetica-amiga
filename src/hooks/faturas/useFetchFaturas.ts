@@ -88,6 +88,8 @@ export const useFetchFaturas = (currentDate: Date) => {
         toast.error("Erro ao carregar faturas");
         throw error;
       }
+      
+      console.log('Dados recebidos do banco:', data);
 
       // Processar e formatar as faturas
       const faturas: Fatura[] = data.map(fatura => {

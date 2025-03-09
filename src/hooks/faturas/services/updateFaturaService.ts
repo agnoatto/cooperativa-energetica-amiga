@@ -29,11 +29,16 @@ export async function updateFatura(data: UpdateFaturaInput): Promise<Fatura> {
       ...restData
     } = data;
 
+    // Garantir que a data de vencimento esteja no formato correto (YYYY-MM-DD)
+    let formattedData = { ...restData };
+    
+    console.log("[updateFaturaService] Data de vencimento recebida:", data.data_vencimento);
+
     // Atualizar a tabela faturas com os dados principais
     const { data: updatedFatura, error } = await supabase
       .from('faturas')
       .update({
-        ...restData,
+        ...formattedData,
         arquivo_concessionaria_nome,
         arquivo_concessionaria_path,
         arquivo_concessionaria_tipo,
@@ -96,7 +101,7 @@ export async function updateFaturaStatus(data: UpdateFaturaStatusInput): Promise
 
     // Para faturas pagas, registrar a data de confirmação do pagamento
     if (data.status === 'paga') {
-      updateData.data_confirmacao_pagamento = new Date().toISOString();
+      updateData.data_confirmacao_pagamento = new Date().toISOString().split('T')[0];
     }
 
     // Atualizar a fatura

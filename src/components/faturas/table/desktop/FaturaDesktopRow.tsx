@@ -3,6 +3,7 @@ import { Fatura, FaturaStatus } from "@/types/fatura";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { FaturaStatusBadge } from "../FaturaStatusBadge";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { FaturaActionsMenu } from "../FaturaActionsMenu";
 import { FileText } from "lucide-react";
@@ -10,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { PdfPreview } from "../../upload/PdfPreview";
 import { toast } from "sonner";
 import { STORAGE_BUCKET } from "../../upload/constants";
+import { formatDateToPtBR } from "@/utils/dateFormatters";
 
 interface FaturaDesktopRowProps {
   fatura: Fatura;
@@ -39,11 +41,6 @@ export function FaturaDesktopRow({
     }).format(value);
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return format(date, "dd/MM/yyyy");
-  };
-
   const handleViewArquivoConcessionaria = () => {
     if (!fatura.arquivo_concessionaria_path) {
       toast.error("Nenhum arquivo de fatura disponível");
@@ -69,7 +66,7 @@ export function FaturaDesktopRow({
           {formatCurrency(fatura.valor_assinatura || 0)}
         </TableCell>
         <TableCell className="py-1.5 px-3 text-sm text-right">
-          {formatDate(fatura.data_vencimento)}
+          {formatDateToPtBR(fatura.data_vencimento)}
         </TableCell>
         <TableCell className="py-1.5 px-3 text-sm text-right">
           <FaturaStatusBadge fatura={fatura} />
