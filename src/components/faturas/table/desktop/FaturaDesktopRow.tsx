@@ -7,10 +7,8 @@ import { useState } from "react";
 import { FaturaActionsMenu } from "../FaturaActionsMenu";
 import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SimplePdfViewer } from "../../upload/SimplePdfViewer";
-import { supabase } from "@/integrations/supabase/client";
+import { PdfPreview } from "../../upload/PdfPreview";
 import { toast } from "sonner";
-import { STORAGE_BUCKET } from "../../upload/constants";
 
 interface FaturaDesktopRowProps {
   fatura: Fatura;
@@ -31,8 +29,6 @@ export function FaturaDesktopRow({
 }: FaturaDesktopRowProps) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [isLoadingPdf, setIsLoadingPdf] = useState(false);
 
   // Formatação de valores
   const formatCurrency = (value: number) => {
@@ -47,39 +43,13 @@ export function FaturaDesktopRow({
     return format(date, "dd/MM/yyyy");
   };
 
-  const handleViewArquivoConcessionaria = async () => {
+  const handleViewArquivoConcessionaria = () => {
     if (!fatura.arquivo_concessionaria_path) {
       toast.error("Nenhum arquivo de fatura disponível");
       return;
     }
-
-    setIsLoadingPdf(true);
-    const toastId = toast.loading("Carregando visualização...");
-
-    try {
-      // Obter URL assinada diretamente sem verificar a existência do arquivo primeiro
-      const { data: storageUrl, error } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .createSignedUrl(fatura.arquivo_concessionaria_path, 3600);
-
-      if (error) {
-        throw error;
-      }
-
-      if (storageUrl?.signedUrl) {
-        setPdfUrl(storageUrl.signedUrl);
-        setShowPdfPreview(true);
-        toast.success("PDF carregado com sucesso!", { id: toastId });
-      } else {
-        throw new Error("Não foi possível gerar a URL assinada");
-      }
-    } catch (error: any) {
-      console.error("Erro ao obter URL do PDF:", error);
-      toast.error(`Erro ao carregar o PDF: ${error.message}`, { id: toastId });
-      setPdfUrl(null);
-    } finally {
-      setIsLoadingPdf(false);
-    }
+    
+    setShowPdfPreview(true);
   };
 
   return (
@@ -128,12 +98,11 @@ export function FaturaDesktopRow({
         </TableCell>
       </TableRow>
 
-      <SimplePdfViewer
+      <PdfPreview
         isOpen={showPdfPreview}
         onClose={() => setShowPdfPreview(false)}
-        pdfUrl={pdfUrl}
+        pdfUrl={fatura.arquivo_concessionaria_path}
         title="Visualização da Conta de Energia"
-        allowDownload={true}
       />
     </>
   );

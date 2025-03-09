@@ -10,10 +10,7 @@ import {
 } from "@/components/ui/table";
 import { FaturaDesktopRow } from "./FaturaDesktopRow";
 import { useState } from "react";
-import { SimplePdfViewer } from "../../upload/SimplePdfViewer";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { STORAGE_BUCKET } from "../../upload/constants";
+import { PdfPreview } from "../../upload/PdfPreview";
 
 interface FaturasDesktopTableProps {
   faturas: Fatura[];
@@ -31,51 +28,11 @@ export function FaturasDesktopTable({
   onUpdateStatus
 }: FaturasDesktopTableProps) {
   const [showPdfPreview, setShowPdfPreview] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
-  const [isLoadingPdf, setIsLoadingPdf] = useState(false);
 
   const handleViewPdf = async (fatura: Fatura) => {
-    if (!fatura.arquivo_concessionaria_path) {
-      toast.error("Nenhum arquivo de fatura disponível");
-      return;
-    }
-
-    setIsLoadingPdf(true);
-    const toastId = toast.loading("Carregando visualização...");
-
-    try {
-      setSelectedFatura(fatura);
-      
-      // Obter URL assinada diretamente sem verificar a existência do arquivo primeiro
-      const { data: storageUrl, error } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .createSignedUrl(fatura.arquivo_concessionaria_path, 3600);
-
-      if (error) {
-        throw error;
-      }
-
-      if (storageUrl?.signedUrl) {
-        setPdfUrl(storageUrl.signedUrl);
-        setShowPdfPreview(true);
-        toast.success("PDF carregado com sucesso!", { id: toastId });
-      } else {
-        throw new Error("Não foi possível gerar a URL assinada");
-      }
-    } catch (error: any) {
-      console.error("Erro ao obter URL do PDF:", error);
-      toast.error(`Erro ao carregar o PDF: ${error.message}`, { id: toastId });
-      setPdfUrl(null);
-    } finally {
-      setIsLoadingPdf(false);
-    }
-  };
-
-  const handleClosePdfPreview = () => {
-    setShowPdfPreview(false);
-    setPdfUrl(null);
-    setSelectedFatura(null);
+    setSelectedFatura(fatura);
+    setShowPdfPreview(true);
   };
 
   return (
@@ -110,13 +67,17 @@ export function FaturasDesktopTable({
         </Table>
       </div>
 
-      <SimplePdfViewer
-        isOpen={showPdfPreview}
-        onClose={handleClosePdfPreview}
-        pdfUrl={pdfUrl}
-        title="Visualização da Conta de Energia"
-        allowDownload={true}
-      />
+      {selectedFatura && (
+        <PdfPreview
+          isOpen={showPdfPreview}
+          onClose={() => {
+            setShowPdfPreview(false);
+            setSelectedFatura(null);
+          }}
+          pdfUrl={selectedFatura.arquivo_concessionaria_path}
+          title="Visualização da Conta de Energia"
+        />
+      )}
     </>
   );
 }

@@ -12,6 +12,7 @@ interface SimplePdfViewerProps {
   pdfUrl: string | null;
   title?: string;
   allowDownload?: boolean;
+  isInitialLoading?: boolean;
 }
 
 export function SimplePdfViewer({ 
@@ -19,7 +20,8 @@ export function SimplePdfViewer({
   onClose, 
   pdfUrl,
   title = "Visualização do Documento",
-  allowDownload = false
+  allowDownload = false,
+  isInitialLoading = false
 }: SimplePdfViewerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -130,7 +132,7 @@ export function SimplePdfViewer({
         </div>
         
         <div className="flex-1 w-full h-[calc(100%-60px)] overflow-auto bg-gray-100 p-4">
-          {isLoading && (
+          {(isLoading || isInitialLoading) && (
             <div className="w-full h-full flex items-center justify-center">
               <div className="flex flex-col items-center gap-2">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -166,7 +168,7 @@ export function SimplePdfViewer({
                 onLoad={handleIframeLoad}
                 onError={handleIframeError}
                 style={{
-                  visibility: isLoading ? 'hidden' : 'visible'
+                  visibility: isLoading || isInitialLoading ? 'hidden' : 'visible'
                 }}
                 sandbox="allow-scripts allow-same-origin allow-forms"
               />
