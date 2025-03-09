@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { SimplePdfViewer } from "./SimplePdfViewer";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { STORAGE_BUCKET } from "./constants";
+import { STORAGE_BUCKET as FATURAS_BUCKET } from "./constants";
 
 interface PdfPreviewProps {
   isOpen: boolean;
@@ -11,6 +11,7 @@ interface PdfPreviewProps {
   pdfUrl: string | null;
   title?: string;
   isRelatorio?: boolean;
+  bucketName?: string; // Novo parâmetro para especificar o bucket
 }
 
 export function PdfPreview({ 
@@ -18,11 +19,15 @@ export function PdfPreview({
   onClose, 
   pdfUrl, 
   title = "Visualização da Conta de Energia",
-  isRelatorio = false 
+  isRelatorio = false,
+  bucketName
 }: PdfPreviewProps) {
   const [processedUrl, setProcessedUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Determinar qual bucket usar - usando o fornecido ou o default das faturas
+  const storageBucket = bucketName || FATURAS_BUCKET;
   
   useEffect(() => {
     // Apenas processa o URL quando o modal estiver aberto e um URL for fornecido
@@ -32,6 +37,7 @@ export function PdfPreview({
       setIsLoading(true);
       setError(null);
       console.log("[PdfPreview] Iniciando processamento de URL:", pdfUrl);
+      console.log("[PdfPreview] Usando bucket:", storageBucket);
       
       try {
         // Caso 1: Se for um relatório gerado ou blob URL, use diretamente
@@ -54,80 +60,30 @@ export function PdfPreview({
           setProcessedUrl(pdfUrl);
           return;
         }
-          
+        
         // Caso 4: Caminho do Storage do Supabase - precisamos gerar URL assinada
-        
-        // Verificar primeiro se o bucket existe
-        const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
-        
-        if (bucketsError) {
-          console.error("[PdfPreview] Erro ao listar buckets:", bucketsError);
-          throw new Error(`Erro ao verificar buckets: ${bucketsError.message}`);
-        }
-        
-        const bucketExists = buckets?.some(bucket => bucket.name === STORAGE_BUCKET);
-        if (!bucketExists) {
-          console.error(`[PdfPreview] Bucket '${STORAGE_BUCKET}' não existe!`);
-          throw new Error(`Bucket de armazenamento '${STORAGE_BUCKET}' não encontrado`);
-        }
-        
-        console.log(`[PdfPreview] Bucket '${STORAGE_BUCKET}' verificado com sucesso`);
-        
         // Tentar diferentes formatos de caminho para encontrar o arquivo
-        // Ordem das tentativas:
-        // 1. Caminho original sem modificação
-        // 2. Caminho com prefixo "faturas/" adicionado
-        
-        const pathsToTry = [
-          pdfUrl,
-          pdfUrl.startsWith('faturas/') ? pdfUrl : `faturas/${pdfUrl}`
-        ];
-        
         let successUrl = null;
         let lastError = null;
         
-        for (const path of pathsToTry) {
-          console.log(`[PdfPreview] Tentando caminho: ${path}`);
+        // Tentativa direta com o caminho fornecido
+        try {
+          console.log(`[PdfPreview] Tentando gerar URL assinada para: ${pdfUrl} no bucket: ${storageBucket}`);
           
-          try {
-            // Verificar se o arquivo existe antes de criar URL assinada
-            const { data: fileExists, error: fileExistsError } = await supabase.storage
-              .from(STORAGE_BUCKET)
-              .list(path.split('/').slice(0, -1).join('/') || undefined);
-              
-            if (fileExistsError) {
-              console.warn(`[PdfPreview] Erro ao verificar existência do caminho: ${path}`, fileExistsError);
-              continue;
-            }
+          const { data, error } = await supabase.storage
+            .from(storageBucket)
+            .createSignedUrl(pdfUrl, 3600);
             
-            const fileName = path.split('/').pop();
-            const fileFound = fileExists?.some(file => file.name === fileName);
-            
-            if (!fileFound) {
-              console.warn(`[PdfPreview] Arquivo não encontrado em: ${path}`);
-              continue;
-            }
-            
-            // Arquivo existe, criar URL assinada
-            const { data, error } = await supabase.storage
-              .from(STORAGE_BUCKET)
-              .createSignedUrl(path, 3600);
-              
-            if (error) {
-              console.warn(`[PdfPreview] Erro ao criar URL assinada para: ${path}`, error);
-              lastError = error;
-              continue;
-            }
-            
-            if (data?.signedUrl) {
-              console.log(`[PdfPreview] URL assinada gerada com sucesso para: ${path}`);
-              successUrl = data.signedUrl;
-              break;
-            }
-          } catch (error) {
-            console.warn(`[PdfPreview] Erro ao processar caminho: ${path}`, error);
+          if (error) {
+            console.warn(`[PdfPreview] Erro ao criar URL assinada:`, error);
             lastError = error;
+          } else if (data?.signedUrl) {
+            console.log(`[PdfPreview] URL assinada gerada com sucesso:`, data.signedUrl);
+            successUrl = data.signedUrl;
           }
+        } catch (error) {
+          console.warn(`[PdfPreview] Erro ao processar URL:`, error);
+          lastError = error;
         }
         
         if (successUrl) {
@@ -147,7 +103,7 @@ export function PdfPreview({
     };
     
     processUrl();
-  }, [isOpen, pdfUrl, isRelatorio]);
+  }, [isOpen, pdfUrl, isRelatorio, storageBucket]);
   
   return (
     <SimplePdfViewer

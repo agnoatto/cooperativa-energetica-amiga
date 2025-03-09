@@ -9,6 +9,7 @@ import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PdfPreview } from "../../upload/PdfPreview";
 import { toast } from "sonner";
+import { STORAGE_BUCKET } from "../../upload/constants";
 
 interface FaturaDesktopRowProps {
   fatura: Fatura;
@@ -50,6 +51,7 @@ export function FaturaDesktopRow({
     }
     
     console.log("[FaturaDesktopRow] Abrindo visualização da fatura:", fatura.arquivo_concessionaria_path);
+    console.log("[FaturaDesktopRow] Bucket utilizado:", STORAGE_BUCKET);
     setShowPdfPreview(true);
   };
 
@@ -104,6 +106,7 @@ export function FaturaDesktopRow({
         onClose={() => setShowPdfPreview(false)}
         pdfUrl={fatura.arquivo_concessionaria_path}
         title="Visualização da Conta de Energia"
+        bucketName={STORAGE_BUCKET} // Passando o nome do bucket explicitamente
       />
     </>
   );

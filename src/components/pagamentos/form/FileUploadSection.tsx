@@ -5,6 +5,7 @@ import { PagamentoFormValues } from "../types/pagamento";
 import { ContaEnergiaUpload } from "../upload/ContaEnergiaUpload";
 import { useFileState } from "../hooks/useFileState";
 import { PdfPreview } from "@/components/faturas/upload/PdfPreview";
+import { STORAGE_BUCKET } from "../hooks/constants";
 
 interface FileUploadSectionProps {
   form: PagamentoFormValues;
@@ -29,6 +30,9 @@ export function FileUploadSection({ form, setForm, pagamentoId }: FileUploadSect
     }
     
     try {
+      console.log("[FileUploadSection] Tentando visualizar arquivo:", form.arquivo_conta_energia_path);
+      console.log("[FileUploadSection] Bucket utilizado:", STORAGE_BUCKET);
+      
       const url = await handlePreview();
       if (url) {
         console.log("[FileUploadSection] URL para preview gerada:", url);
@@ -66,6 +70,7 @@ export function FileUploadSection({ form, setForm, pagamentoId }: FileUploadSect
         }}
         pdfUrl={pdfUrl}
         title="Conta de Energia"
+        bucketName={STORAGE_BUCKET} // Passando o nome do bucket explicitamente
       />
     </div>
   );
