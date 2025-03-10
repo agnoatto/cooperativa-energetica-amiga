@@ -28,10 +28,11 @@ export const useFaturas = (currentDate: Date): UseFaturasResult => {
     updateFaturaStatus: async (data: UpdateFaturaStatusInput) => {
       try {
         console.log('[useFaturas] Iniciando atualização de status:', data);
-        await updateFaturaStatusMutation.updateFaturaStatus(data);
+        const updatedFatura = await updateFaturaStatusMutation.updateFaturaStatus(data);
         console.log('[useFaturas] Atualização de status concluída');
         // Forçar atualização após mudança de status
         refetch();
+        return updatedFatura;
       } catch (error) {
         console.error('[useFaturas] Erro ao atualizar status:', error);
         throw error;

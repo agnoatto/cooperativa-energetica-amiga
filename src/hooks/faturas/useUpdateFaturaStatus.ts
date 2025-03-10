@@ -48,12 +48,12 @@ export const useUpdateFaturaStatus = () => {
   });
 
   // Exposição da função diretamente para facilitar o uso
-  const updateFaturaStatus = async (data: UpdateFaturaStatusInput): Promise<Fatura> => {
+  const updateFaturaStatusFn = async (data: UpdateFaturaStatusInput): Promise<Fatura> => {
     return await mutation.mutateAsync(data);
   };
 
   return {
     ...mutation,
-    updateFaturaStatus
+    updateFaturaStatus: updateFaturaStatusFn
   };
 };

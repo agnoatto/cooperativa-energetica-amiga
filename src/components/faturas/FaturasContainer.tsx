@@ -41,7 +41,7 @@ export function FaturasContainer() {
     });
   };
 
-  const handleUpdateFatura = async (data: UpdateFaturaInput) => {
+  const handleUpdateFatura = async (data: UpdateFaturaInput): Promise<Fatura> => {
     // Agora estamos retornando o resultado da função updateFatura
     return await updateFatura(data);
   };

@@ -21,7 +21,7 @@ export interface UseFaturasResult {
   isGenerating: boolean;
   gerarFaturas: () => void;
   deleteFatura: (id: string) => void;
-  updateFaturaStatus: (data: UpdateFaturaStatusInput) => Promise<void>;
+  updateFaturaStatus: (data: UpdateFaturaStatusInput) => Promise<Fatura>;
   updateFatura: (data: any) => Promise<Fatura>;
   refetch: () => void;
 }
