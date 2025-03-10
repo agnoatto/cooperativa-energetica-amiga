@@ -9,9 +9,9 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { calculateValues } from "../../utils/calculateValues";
+import { getUnidadePercentualDesconto } from "../../utils/templateQueries";
 import { editFaturaSchema } from "../schema";
 import { convertUTCToLocal } from "@/utils/dateFormatters";
 
@@ -88,16 +88,11 @@ export function useEditFatura(fatura: any, onSave: (data: any) => Promise<void>,
       });
       
       // Buscar percentual de desconto da unidade
-      const { data: unidade, error } = await supabase
-        .from('unidades_beneficiarias')
-        .select('percentual_desconto')
-        .eq('id', fatura.unidade_beneficiaria.id)
-        .single();
+      const { percentualDesconto, error } = 
+        await getUnidadePercentualDesconto(fatura.unidade_beneficiaria.id);
       
       if (error) throw error;
       
-      // O percentual já vem como número da consulta SQL
-      const percentualDesconto = unidade?.percentual_desconto || 0;
       console.log("[useEditFatura] Percentual de desconto da unidade:", percentualDesconto);
       
       // Calcula os valores usando números diretamente

@@ -6,12 +6,17 @@
  * utilizando templates personalizados ou cálculo padrão conforme necessário.
  */
 
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CalculoFaturaTemplate } from "@/types/template";
 import { calculoPadrao } from "./calculoPadrao";
 import { aplicarFormulasTemplate } from "./templateProcessor";
 import { parseValue } from "./formatters";
+import { 
+  getUnidadeTemplate,
+  getDefaultTemplate,
+  getTemplateById,
+  getUnidadePercentualDesconto
+} from "./templateQueries";
 
 /**
  * Interface para parâmetros de cálculo - todos já são numéricos
@@ -60,9 +65,8 @@ export const calculateValues = async (params: CalculateValuesParams) => {
 
   try {
     // Buscar template vinculado à unidade
-    const { data: unidadeData, error: unidadeError } = await supabase.rpc('get_unidade_beneficiaria_template', {
-      unidade_id: unidadeBeneficiariaId
-    });
+    const { templateId: unidadeTemplateId, error: unidadeError } = 
+      await getUnidadeTemplate(unidadeBeneficiariaId);
 
     if (unidadeError) {
       console.error("Erro ao buscar template da unidade:", unidadeError);
@@ -70,21 +74,22 @@ export const calculateValues = async (params: CalculateValuesParams) => {
     }
 
     // Template de cálculo a ser utilizado
-    let templateId = unidadeData?.length > 0 ? unidadeData[0].calculo_fatura_template_id : null;
+    let templateId = unidadeTemplateId;
 
     // Se a unidade não tiver template, buscar o padrão
     if (!templateId) {
       console.log("Unidade sem template, buscando template padrão");
-      const { data: templatePadrao, error: erroPadrao } = await supabase.rpc('get_default_calculo_fatura_template');
+      const { templateId: defaultTemplateId, error: erroPadrao } = 
+        await getDefaultTemplate();
 
       if (erroPadrao) {
         console.error("Erro ao buscar template padrão:", erroPadrao);
         throw erroPadrao;
       }
 
-      if (templatePadrao && templatePadrao.length > 0) {
-        templateId = templatePadrao[0].id;
-      } else {
+      templateId = defaultTemplateId;
+      
+      if (!templateId) {
         // Se não houver template padrão, usar cálculo padrão
         console.warn("Nenhum template padrão encontrado, usando cálculo padrão");
         return calculoPadrao(totalFatura, iluminacaoPublica, outrosValores, faturaConcessionaria, percentualDesconto);
@@ -92,22 +97,19 @@ export const calculateValues = async (params: CalculateValuesParams) => {
     }
 
     // Buscar o template
-    const { data: template, error: templateError } = await supabase.rpc('get_calculo_fatura_template', {
-      template_id: templateId
-    });
+    const { template, error: templateError } = await getTemplateById(templateId);
 
-    if (templateError || !template || template.length === 0) {
+    if (templateError || !template) {
       console.error("Erro ao buscar template:", templateError);
       // Se houver erro ou não encontrar o template, usar cálculo padrão
       return calculoPadrao(totalFatura, iluminacaoPublica, outrosValores, faturaConcessionaria, percentualDesconto);
     }
 
-    const templateCalculo = template[0] as CalculoFaturaTemplate;
-    console.log("[calculateValues] Template de cálculo encontrado:", templateCalculo);
+    console.log("[calculateValues] Template de cálculo encontrado:", template);
 
     // Calcular usando as fórmulas do template
     return aplicarFormulasTemplate(
-      templateCalculo,
+      template,
       totalFatura,
       iluminacaoPublica,
       outrosValores,
