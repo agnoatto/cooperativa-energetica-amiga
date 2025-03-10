@@ -5,24 +5,22 @@
  * antes do upload ou outras operações
  */
 
-import { toast } from "sonner";
-
 // Validar tipo e tamanho do arquivo
-export const validateFile = (file: File, maxSize: number = 5 * 1024 * 1024, allowedTypes: string[] = ['pdf']): boolean => {
+export const validateFile = (file: File): string | null => {
   const fileExt = file.name.split(".").pop()?.toLowerCase();
+  const allowedTypes = ['pdf'];
+  const maxSize = 5 * 1024 * 1024; // 5MB
   
   // Verificar tipo de arquivo
   if (!fileExt || !allowedTypes.includes(fileExt)) {
-    toast.error(`Apenas arquivos ${allowedTypes.join(', ')} são permitidos`);
-    return false;
+    return `Apenas arquivos ${allowedTypes.join(', ')} são permitidos`;
   }
 
   // Verificar tamanho do arquivo
   if (file.size > maxSize) {
     const maxSizeMB = maxSize / (1024 * 1024);
-    toast.error(`O tamanho máximo do arquivo é ${maxSizeMB}MB`);
-    return false;
+    return `O tamanho máximo do arquivo é ${maxSizeMB}MB`;
   }
 
-  return true;
+  return null;
 };

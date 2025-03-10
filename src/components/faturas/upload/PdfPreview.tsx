@@ -60,7 +60,7 @@ export function PdfPreview({ url, onClose, fileName }: PdfPreviewProps) {
         </div>
         
         <div className="flex-1 overflow-auto">
-          <SimplePdfViewer url={url} />
+          <SimplePdfViewer pdfUrl={url} />
         </div>
       </div>
     </div>

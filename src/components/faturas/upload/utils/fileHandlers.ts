@@ -26,9 +26,9 @@ export async function handleFileUpload(
   }
 
   // Validar o arquivo
-  const error = validateFile(file);
-  if (error) {
-    toast.error(error);
+  const validationError = validateFile(file);
+  if (validationError) {
+    toast.error(validationError);
     return;
   }
 

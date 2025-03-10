@@ -7,9 +7,9 @@
  */
 import { useState, useCallback } from "react";
 import { 
-  handleFileUpload, 
-  handleFileRemove, 
-  getFilePreviewUrl 
+  handleFileUpload as uploadFileHandler, 
+  handleFileRemove as removeFileHandler, 
+  getFilePreviewUrl as getPreviewUrl 
 } from "./utils/fileHandlers";
 
 export interface FileInfo {
@@ -35,11 +35,12 @@ export function useFileUpload({
   const [file, setFile] = useState<FileInfo>(initialFile);
   const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleUpload = useCallback(async (newFile: File) => {
     setLoading(true);
     try {
-      await handleFileUpload(newFile, faturaId, (nome, path, tipo, tamanho) => {
+      await uploadFileHandler(newFile, faturaId, (nome, path, tipo, tamanho) => {
         setFile({ nome, path, tipo, tamanho });
         onFileChange(nome, path, tipo, tamanho);
       }, onStatusChange);
@@ -53,7 +54,7 @@ export function useFileUpload({
     
     setLoading(true);
     try {
-      await handleFileRemove(file.path, faturaId, (nome, path, tipo, tamanho) => {
+      await removeFileHandler(file.path, faturaId, (nome, path, tipo, tamanho) => {
         setFile({ nome, path, tipo, tamanho });
         onFileChange(nome, path, tipo, tamanho);
       });
@@ -71,7 +72,7 @@ export function useFileUpload({
     
     setLoading(true);
     try {
-      const url = await getFilePreviewUrl(file.path);
+      const url = await getPreviewUrl(file.path);
       setPreviewUrl(url);
       return url;
     } finally {
@@ -84,6 +85,8 @@ export function useFileUpload({
     loading,
     previewUrl,
     setPreviewUrl,
+    isDragging,
+    setIsDragging,
     handleUpload,
     handleRemove,
     handleViewFile
