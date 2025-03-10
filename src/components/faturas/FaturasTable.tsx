@@ -16,6 +16,7 @@ interface FaturasTableProps {
   isLoading: boolean;
   onDeleteFatura: (id: string) => Promise<void>;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
+  // Atualizando tipo para retornar Promise<Fatura>
   onUpdateFatura: (data: UpdateFaturaInput) => Promise<Fatura>;
   refetchFaturas?: () => void;
 }

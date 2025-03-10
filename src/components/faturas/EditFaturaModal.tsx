@@ -16,6 +16,7 @@ interface EditFaturaModalProps {
   fatura: Fatura;
   isOpen: boolean;
   onClose: () => void;
+  // Modificando o tipo para corresponder ao retorno de Promise<Fatura>
   onSave: (data: UpdateFaturaInput) => Promise<Fatura>;
   isProcessing: boolean;
   refetchFaturas?: () => void;
