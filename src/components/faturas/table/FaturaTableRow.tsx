@@ -1,4 +1,10 @@
 
+/**
+ * Componente de linha de tabela para faturas
+ * 
+ * Este componente renderiza uma linha da tabela de faturas, adaptando-se
+ * para visualização em dispositivos móveis ou desktop.
+ */
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { useState } from "react";
 import { PaymentConfirmationModal } from "../PaymentConfirmationModal";
@@ -14,6 +20,7 @@ interface FaturaTableRowProps {
   onDelete: (fatura: Fatura) => void;
   onEdit: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
+  onShowPaymentConfirmation: (fatura: Fatura) => void;
 }
 
 interface PaymentData {
@@ -29,19 +36,11 @@ export function FaturaTableRow({
   onDelete,
   onEdit,
   onUpdateStatus,
+  onShowPaymentConfirmation
 }: FaturaTableRowProps) {
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const isMobile = useIsMobile();
-
-  const handlePaymentConfirm = async (paymentData: PaymentData) => {
-    await onUpdateStatus(
-      fatura,
-      'paga',
-      'Pagamento confirmado com' + (paymentData.valor_adicional > 0 ? ' valor adicional' : '')
-    );
-  };
 
   const handleViewPdf = async () => {
     if (!fatura.arquivo_concessionaria_path) return;
@@ -70,6 +69,7 @@ export function FaturaTableRow({
           onDelete={onDelete}
           onUpdateStatus={onUpdateStatus}
           onViewPdf={handleViewPdf}
+          onShowPaymentConfirmation={onShowPaymentConfirmation}
         />
 
         <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
@@ -96,13 +96,7 @@ export function FaturaTableRow({
         onEdit={onEdit}
         onUpdateStatus={onUpdateStatus}
         onViewPdf={handleViewPdf}
-      />
-
-      <PaymentConfirmationModal
-        isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        fatura={fatura}
-        onConfirm={handlePaymentConfirm}
+        onShowPaymentConfirmation={onShowPaymentConfirmation}
       />
 
       <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
