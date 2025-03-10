@@ -1,4 +1,10 @@
 
+/**
+ * Modal para edição de faturas
+ * 
+ * Este componente permite editar os detalhes de uma fatura existente,
+ * incluindo valores, consumo, documentos e outras informações relevantes.
+ */
 import React, { useCallback } from "react";
 import { Dialog, DialogHeader, DialogTitle, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -11,12 +17,12 @@ import { FaturaUploadArea } from "./upload/FaturaUploadArea";
 import { UpdateFaturaInput } from "@/hooks/faturas/types/updateFatura";
 import { formatCurrency } from "@/utils/formatters";
 import { useUpdateFaturaStatus } from "@/hooks/faturas/useUpdateFaturaStatus";
+import { CurrencyInput } from "./CurrencyInput";
 
 interface EditFaturaModalProps {
   fatura: Fatura;
   isOpen: boolean;
   onClose: () => void;
-  // Modificando o tipo para corresponder ao retorno de Promise<Fatura>
   onSave: (data: UpdateFaturaInput) => Promise<Fatura>;
   isProcessing: boolean;
   refetchFaturas?: () => void;
@@ -53,7 +59,7 @@ export function EditFaturaModal({
     handleSubmit
   } = useEditFatura(fatura, onSave, refetchFaturas);
 
-  // Novo método para atualizar o status da fatura após upload
+  // Método para atualizar o status da fatura após upload
   const handleStatusUpdate = useCallback(async (newStatus: FaturaStatus) => {
     // Se a fatura já está no status sugerido, não faz nada
     if (fatura.status === newStatus) return;
@@ -123,22 +129,20 @@ export function EditFaturaModal({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="total_fatura">Total da Fatura</Label>
-              <input
-                type="number"
+              <CurrencyInput
                 id="total_fatura"
-                className="w-full h-10 p-2 border rounded-md"
                 value={localTotalFatura}
-                onChange={(e) => setLocalTotalFatura(Number(e.target.value))}
+                onValueChange={setLocalTotalFatura}
+                placeholder="Total da fatura"
               />
             </div>
             <div>
               <Label htmlFor="iluminacao_publica">Iluminação Pública</Label>
-              <input
-                type="number"
+              <CurrencyInput
                 id="iluminacao_publica"
-                className="w-full h-10 p-2 border rounded-md"
                 value={localIluminacaoPublica}
-                onChange={(e) => setLocalIluminacaoPublica(Number(e.target.value))}
+                onValueChange={setLocalIluminacaoPublica}
+                placeholder="Iluminação pública"
               />
             </div>
           </div>
@@ -146,44 +150,61 @@ export function EditFaturaModal({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="outros_valores">Outros Valores</Label>
-              <input
-                type="number"
+              <CurrencyInput
                 id="outros_valores"
-                className="w-full h-10 p-2 border rounded-md"
                 value={localOutrosValores}
-                onChange={(e) => setLocalOutrosValores(Number(e.target.value))}
+                onValueChange={setLocalOutrosValores}
+                placeholder="Outros valores"
               />
             </div>
             <div>
               <Label htmlFor="fatura_concessionaria">Fatura Concessionária</Label>
-              <input
-                type="number"
+              <CurrencyInput
                 id="fatura_concessionaria"
-                className="w-full h-10 p-2 border rounded-md"
                 value={localFaturaConcessionaria}
-                onChange={(e) => setLocalFaturaConcessionaria(Number(e.target.value))}
+                onValueChange={setLocalFaturaConcessionaria}
+                placeholder="Fatura concessionária"
               />
             </div>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleCalcularClick}
+              disabled={isProcessing || isCalculating}
+              className="w-full"
+            >
+              {isCalculating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Calculando...
+                </>
+              ) : (
+                'Calcular Valores'
+              )}
+            </Button>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="valor_desconto">Valor Desconto</Label>
               <input
-                type="number"
+                type="text"
                 id="valor_desconto"
-                className="w-full h-10 p-2 border rounded-md"
-                value={localValorDesconto}
+                className="w-full h-10 p-2 border rounded-md bg-gray-50"
+                value={formatCurrency(localValorDesconto)}
                 readOnly
               />
             </div>
             <div>
               <Label htmlFor="valor_assinatura">Valor Assinatura</Label>
               <input
-                type="number"
+                type="text"
                 id="valor_assinatura"
-                className="w-full h-10 p-2 border rounded-md"
-                value={localValorAssinatura}
+                className="w-full h-10 p-2 border rounded-md bg-gray-50"
+                value={formatCurrency(localValorAssinatura)}
                 readOnly
               />
             </div>
@@ -255,7 +276,7 @@ export function EditFaturaModal({
                     tamanho: arquivoInfo.tamanho
                   }}
                   onFileChange={handleFileChange}
-                  onStatusUpdate={handleStatusUpdate} // Novo: passar callback para sugestão de atualização de status
+                  onStatusUpdate={handleStatusUpdate}
                   refetchFaturas={refetchFaturas}
                 />
               </CardContent>
@@ -270,21 +291,6 @@ export function EditFaturaModal({
               disabled={isProcessing || isCalculating}
             >
               Cancelar
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={handleCalcularClick}
-              disabled={isProcessing || isCalculating}
-            >
-              {isCalculating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Calculando...
-                </>
-              ) : (
-                'Calcular Valores'
-              )}
             </Button>
             <Button 
               type="submit" 
