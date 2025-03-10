@@ -1,4 +1,11 @@
 
+/**
+ * Utilitários para validação de arquivos de pagamentos
+ * 
+ * Este módulo contém funções para validar e processar nomes de arquivos
+ * antes do upload para o storage
+ */
+
 import { FILE_TYPE, MAX_FILE_SIZE, VALID_FILE_CHARS } from "../constants";
 
 export function sanitizeFileName(fileName: string): string {

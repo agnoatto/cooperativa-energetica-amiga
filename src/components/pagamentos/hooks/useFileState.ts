@@ -1,17 +1,30 @@
 
+/**
+ * Hook para gerenciamento de arquivos em pagamentos
+ * 
+ * Este hook centraliza a lógica de estado e operações relacionadas a arquivos
+ * de contas de energia nos pagamentos de usinas
+ */
+
 import { useState, useCallback } from 'react';
 import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { SIGNED_URL_EXPIRY, STORAGE_BUCKET } from './constants';
 import { UseFileStateProps, FileMetadata } from './types/fileState';
 import { validateFile, generateFilePath } from './utils/fileValidation';
+import { 
+  uploadFile, 
+  updateMetadataInDB, 
+  getSignedUrl, 
+  removeFile, 
+  downloadFile 
+} from './utils/storageUtils';
 
 export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
+  // Atualizar o formulário com informações do arquivo
   const updateFormWithFile = useCallback(({ fileName, filePath, fileType, fileSize }: FileMetadata) => {
     console.log("[useFileState] Atualizando form com arquivo:", { fileName, filePath, fileType, fileSize });
     setForm({
@@ -23,6 +36,7 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
     });
   }, [form, setForm]);
 
+  // Lidar com upload de arquivo
   const handleFileUpload = useCallback(async (file: File) => {
     console.log("[useFileState] Iniciando processo de upload para:", file.name);
     
@@ -45,37 +59,24 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
       console.log("[useFileState] Caminho do arquivo gerado:", filePath);
 
       // Upload do arquivo para o Storage
-      const { error: uploadError } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true // Permite substituir arquivo existente
-        });
+      const { success: uploadSuccess, error: uploadError } = await uploadFile(filePath, file);
 
-      if (uploadError) {
-        console.error("[useFileState] Erro no upload:", uploadError);
-        throw new Error(`Erro no upload: ${uploadError.message}`);
+      if (!uploadSuccess) {
+        throw uploadError || new Error("Erro no upload");
       }
 
       // Atualização do registro no banco
-      const { error: updateError } = await supabase
-        .from('pagamentos_usina')
-        .update({
-          arquivo_conta_energia_nome: file.name,
-          arquivo_conta_energia_path: filePath,
-          arquivo_conta_energia_tipo: file.type,
-          arquivo_conta_energia_tamanho: file.size
-        })
-        .eq('id', pagamentoId);
+      const { success: updateSuccess, error: updateError } = await updateMetadataInDB(pagamentoId, {
+        nome: file.name,
+        path: filePath,
+        tipo: file.type,
+        tamanho: file.size
+      });
 
-      if (updateError) {
+      if (!updateSuccess) {
         // Se falhar a atualização do banco, remove o arquivo do Storage
-        await supabase.storage
-          .from(STORAGE_BUCKET)
-          .remove([filePath]);
-          
-        console.error("[useFileState] Erro ao atualizar registro:", updateError);
-        throw new Error(`Erro ao atualizar registro: ${updateError.message}`);
+        await removeFile(filePath);
+        throw updateError || new Error("Erro ao atualizar registro");
       }
 
       // Atualiza o formulário local
@@ -102,6 +103,7 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
     }
   }, [pagamentoId, updateFormWithFile, queryClient]);
 
+  // Lidar com remoção de arquivo
   const handleRemoveFile = useCallback(async () => {
     if (!form.arquivo_conta_energia_path) {
       console.log("[useFileState] Nenhum arquivo para remover");
@@ -113,29 +115,22 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
       console.log("[useFileState] Iniciando remoção do arquivo:", form.arquivo_conta_energia_path);
       
       // Remove o arquivo do Storage
-      const { error: removeError } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .remove([form.arquivo_conta_energia_path]);
+      const { success: removeSuccess, error: removeError } = await removeFile(form.arquivo_conta_energia_path);
 
-      if (removeError) {
-        console.error("[useFileState] Erro ao remover arquivo:", removeError);
-        throw new Error(`Erro ao remover arquivo: ${removeError.message}`);
+      if (!removeSuccess) {
+        throw removeError || new Error("Erro ao remover arquivo");
       }
 
       // Atualiza o registro no banco
-      const { error: updateError } = await supabase
-        .from('pagamentos_usina')
-        .update({
-          arquivo_conta_energia_nome: null,
-          arquivo_conta_energia_path: null,
-          arquivo_conta_energia_tipo: null,
-          arquivo_conta_energia_tamanho: null
-        })
-        .eq('id', pagamentoId);
+      const { success: updateSuccess, error: updateError } = await updateMetadataInDB(pagamentoId, {
+        nome: null,
+        path: null,
+        tipo: null,
+        tamanho: null
+      });
 
-      if (updateError) {
-        console.error("[useFileState] Erro ao atualizar registro após remoção:", updateError);
-        throw new Error(`Erro ao atualizar registro: ${updateError.message}`);
+      if (!updateSuccess) {
+        throw updateError || new Error("Erro ao atualizar registro após remoção");
       }
 
       // Atualiza o formulário local
@@ -163,6 +158,7 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
     }
   }, [pagamentoId, form.arquivo_conta_energia_path, updateFormWithFile, queryClient]);
 
+  // Lidar com visualização de arquivo
   const handlePreview = useCallback(async () => {
     if (!form.arquivo_conta_energia_path) {
       console.log("[useFileState] Nenhum arquivo para visualizar");
@@ -171,18 +167,15 @@ export function useFileState({ pagamentoId, form, setForm }: UseFileStateProps) 
 
     try {
       console.log("[useFileState] Gerando URL de preview para:", form.arquivo_conta_energia_path);
-      const { data, error } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .createSignedUrl(form.arquivo_conta_energia_path, SIGNED_URL_EXPIRY);
+      const { url, error } = await getSignedUrl(form.arquivo_conta_energia_path);
 
-      if (error) {
-        console.error("[useFileState] Erro ao gerar URL assinada:", error);
-        throw new Error(`Erro ao gerar URL assinada: ${error.message}`);
+      if (!url) {
+        throw error || new Error("Erro ao gerar URL assinada");
       }
 
       console.log("[useFileState] URL de preview gerada com sucesso");
-      setPdfUrl(data.signedUrl);
-      return data.signedUrl;
+      setPdfUrl(url);
+      return url;
     } catch (error: any) {
       console.error('[useFileState] Erro ao gerar preview:', error);
       toast.error(`Erro ao gerar preview do arquivo: ${error.message}`);
