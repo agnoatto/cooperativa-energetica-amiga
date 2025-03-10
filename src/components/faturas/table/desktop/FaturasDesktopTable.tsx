@@ -1,4 +1,10 @@
 
+/**
+ * Tabela de faturas para desktop
+ * 
+ * Este componente exibe as faturas em formato de tabela otimizado
+ * para visualização em dispositivos desktop.
+ */
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import {
   Table,
@@ -16,6 +22,7 @@ interface FaturasDesktopTableProps {
   onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
+  onShowPaymentConfirmation: (fatura: Fatura) => void;
 }
 
 export function FaturasDesktopTable({
@@ -23,7 +30,8 @@ export function FaturasDesktopTable({
   onViewDetails,
   onEdit,
   onDelete,
-  onUpdateStatus
+  onUpdateStatus,
+  onShowPaymentConfirmation
 }: FaturasDesktopTableProps) {
   // Função para visualizar PDF da fatura
   const handleViewPdf = (fatura: Fatura) => {
@@ -61,6 +69,7 @@ export function FaturasDesktopTable({
               onDelete={onDelete}
               onUpdateStatus={onUpdateStatus}
               onViewPdf={handleViewPdf}
+              onShowPaymentConfirmation={onShowPaymentConfirmation}
             />
           ))}
         </TableBody>

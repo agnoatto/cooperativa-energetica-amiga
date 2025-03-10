@@ -1,3 +1,10 @@
+
+/**
+ * Container principal para o módulo de faturas
+ * 
+ * Este componente gerencia o estado e as operações relacionadas às faturas,
+ * incluindo a seleção de mês, listagem, edição e alteração de status.
+ */
 import { useState } from "react";
 import { MonthSelector } from "./MonthSelector";
 import { FaturasTable } from "./FaturasTable";

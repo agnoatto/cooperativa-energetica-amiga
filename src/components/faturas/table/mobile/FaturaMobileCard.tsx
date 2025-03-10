@@ -1,10 +1,17 @@
 
+/**
+ * Card de fatura para mobile
+ * 
+ * Este componente exibe os dados de uma fatura em formato de card,
+ * otimizado para visualização em dispositivos móveis.
+ */
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { FaturaStatusBadge } from "../FaturaStatusBadge";
 import { Button } from "@/components/ui/button";
-import { Edit, Eye, FileText } from "lucide-react";
+import { Edit, Eye, FileText, CheckCircle } from "lucide-react";
 import { formatDateToPtBR } from "@/utils/dateFormatters";
+import { StatusTransitionButtons } from "../../StatusTransitionButtons";
 
 interface FaturaMobileCardProps {
   fatura: Fatura;
@@ -13,6 +20,7 @@ interface FaturaMobileCardProps {
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
   onViewPdf: () => void;
+  onShowPaymentConfirmation: (fatura: Fatura) => void;
 }
 
 export function FaturaMobileCard({
@@ -21,7 +29,8 @@ export function FaturaMobileCard({
   onEdit,
   onDelete,
   onUpdateStatus,
-  onViewPdf
+  onViewPdf,
+  onShowPaymentConfirmation
 }: FaturaMobileCardProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -29,6 +38,9 @@ export function FaturaMobileCard({
       currency: "BRL",
     }).format(value);
   };
+
+  // Verificar se a fatura está em um status que permite confirmar pagamento
+  const canConfirmPayment = ['enviada', 'reenviada', 'atrasada'].includes(fatura.status);
 
   return (
     <Card className="mb-4">
@@ -59,9 +71,18 @@ export function FaturaMobileCard({
             <p className="font-medium">{formatCurrency(fatura.total_fatura || 0)}</p>
           </div>
         </div>
+        
+        {/* Botões de alteração de status */}
+        <div className="mt-3">
+          <StatusTransitionButtons 
+            fatura={fatura} 
+            onUpdateStatus={onUpdateStatus} 
+            size="sm"
+          />
+        </div>
       </CardContent>
       
-      <CardFooter className="px-4 py-3 border-t flex justify-end space-x-2">
+      <CardFooter className="px-4 py-3 border-t flex flex-wrap justify-end gap-2">
         <Button 
           variant="outline" 
           size="sm" 
@@ -88,6 +109,18 @@ export function FaturaMobileCard({
           >
             <FileText className="mr-1 h-4 w-4" />
             Ver PDF
+          </Button>
+        )}
+        
+        {canConfirmPayment && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="border-green-300 bg-green-50 text-green-900 hover:bg-green-100"
+            onClick={() => onShowPaymentConfirmation(fatura)}
+          >
+            <CheckCircle className="mr-1 h-4 w-4" />
+            Confirmar Pagamento
           </Button>
         )}
       </CardFooter>

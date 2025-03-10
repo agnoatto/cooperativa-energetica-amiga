@@ -1,6 +1,12 @@
 
-import { Fatura, FaturaStatus } from "@/types/fatura";
+/**
+ * Lista de faturas otimizada para mobile
+ * 
+ * Este componente exibe as faturas em formato de lista de cards,
+ * otimizado para visualização em dispositivos móveis.
+ */
 import { useState } from "react";
+import { Fatura, FaturaStatus } from "@/types/fatura";
 import { FaturaMobileCard } from "./FaturaMobileCard";
 import { PdfPreview } from "../../upload/PdfPreview";
 import { STORAGE_BUCKET } from "../../upload/constants";
@@ -11,6 +17,7 @@ interface FaturasMobileListProps {
   onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
+  onShowPaymentConfirmation: (fatura: Fatura) => void;
 }
 
 export function FaturasMobileList({
@@ -18,48 +25,43 @@ export function FaturasMobileList({
   onViewDetails,
   onEdit,
   onDelete,
-  onUpdateStatus
+  onUpdateStatus,
+  onShowPaymentConfirmation
 }: FaturasMobileListProps) {
+  const [selectedFaturaPdf, setSelectedFaturaPdf] = useState<Fatura | null>(null);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [previewTitle, setPreviewTitle] = useState<string>("Visualização da Conta de Energia");
 
-  const handleViewPdf = async (fatura: Fatura) => {
-    if (!fatura.arquivo_concessionaria_path) {
-      return;
+  const handleViewPdf = (fatura: Fatura) => {
+    if (fatura.arquivo_concessionaria_path) {
+      setSelectedFaturaPdf(fatura);
+      setShowPdfPreview(true);
     }
-
-    setPdfUrl(fatura.arquivo_concessionaria_path);
-    setPreviewTitle("Visualização da Conta de Energia");
-    setShowPdfPreview(true);
   };
 
   return (
-    <>
-      <div className="mt-4">
-        {faturas.map((fatura) => (
-          <FaturaMobileCard
-            key={fatura.id}
-            fatura={fatura}
-            onViewDetails={onViewDetails}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onUpdateStatus={onUpdateStatus}
-            onViewPdf={() => handleViewPdf(fatura)}
-          />
-        ))}
-      </div>
+    <div className="space-y-4">
+      {faturas.map((fatura) => (
+        <FaturaMobileCard
+          key={fatura.id}
+          fatura={fatura}
+          onViewDetails={onViewDetails}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onUpdateStatus={onUpdateStatus}
+          onViewPdf={() => handleViewPdf(fatura)}
+          onShowPaymentConfirmation={onShowPaymentConfirmation}
+        />
+      ))}
 
-      <PdfPreview
-        isOpen={showPdfPreview}
-        onClose={() => {
-          setShowPdfPreview(false);
-          setPdfUrl(null);
-        }}
-        pdfUrl={pdfUrl}
-        title={previewTitle}
-        bucketName={STORAGE_BUCKET} // Adicionando o nome do bucket explicitamente
-      />
-    </>
+      {selectedFaturaPdf && showPdfPreview && (
+        <PdfPreview
+          isOpen={showPdfPreview}
+          onClose={() => setShowPdfPreview(false)}
+          pdfUrl={selectedFaturaPdf.arquivo_concessionaria_path}
+          title="Visualização da Conta de Energia"
+          bucketName={STORAGE_BUCKET}
+        />
+      )}
+    </div>
   );
 }

@@ -1,9 +1,13 @@
 
+/**
+ * Linha da tabela de faturas para desktop
+ * 
+ * Este componente exibe uma linha na tabela de faturas com os dados
+ * de uma fatura e as ações disponíveis.
+ */
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { FaturaStatusBadge } from "../FaturaStatusBadge";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { FaturaActionsMenu } from "../FaturaActionsMenu";
 import { FileText } from "lucide-react";
@@ -20,6 +24,7 @@ interface FaturaDesktopRowProps {
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
   onViewPdf: (fatura: Fatura) => void;
+  onShowPaymentConfirmation: (fatura: Fatura) => void;
 }
 
 export function FaturaDesktopRow({
@@ -28,9 +33,9 @@ export function FaturaDesktopRow({
   onEdit,
   onDelete,
   onUpdateStatus,
-  onViewPdf
+  onViewPdf,
+  onShowPaymentConfirmation
 }: FaturaDesktopRowProps) {
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
 
   // Formatação de valores
@@ -93,7 +98,7 @@ export function FaturaDesktopRow({
             onEdit={onEdit}
             onDelete={onDelete}
             onUpdateStatus={onUpdateStatus}
-            onShowPaymentModal={() => setShowPaymentModal(true)}
+            onShowPaymentModal={() => onShowPaymentConfirmation(fatura)}
           />
         </TableCell>
       </TableRow>

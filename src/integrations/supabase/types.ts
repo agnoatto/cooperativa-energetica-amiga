@@ -1605,6 +1605,15 @@ export type Database = {
           updated_at: string
         }
       }
+      criarnovafatura: {
+        Args: {
+          unidade_beneficiaria_id: string
+          mes: number
+          ano: number
+          data_vencimento: string
+        }
+        Returns: Json
+      }
       deletar_fatura: {
         Args: {
           p_fatura_id: string
