@@ -1,4 +1,3 @@
-
 /**
  * Hook personalizado para gerenciar o estado e a lógica do modal de edição de faturas
  * 
@@ -14,8 +13,15 @@ import { calculateValues } from "../../utils/calculateValues";
 import { getUnidadePercentualDesconto } from "../../utils/templateQueries";
 import { editFaturaSchema } from "../schema";
 import { convertUTCToLocal } from "@/utils/dateFormatters";
+import { Fatura } from "@/types/fatura";
+import { UpdateFaturaInput } from "@/hooks/faturas/types/updateFatura";
 
-export function useEditFatura(fatura: any, onSave: (data: any) => Promise<void>, refetchFaturas?: () => void) {
+// Atualizando o tipo da função onSave para retornar Promise<Fatura> em vez de Promise<void>
+export function useEditFatura(
+  fatura: Fatura, 
+  onSave: (data: UpdateFaturaInput) => Promise<Fatura>, 
+  refetchFaturas?: () => void
+) {
   const [isCalculating, setIsCalculating] = useState(false);
   const [arquivoInfo, setArquivoInfo] = useState({
     nome: fatura?.arquivo_concessionaria_nome || null,
@@ -166,7 +172,7 @@ export function useEditFatura(fatura: any, onSave: (data: any) => Promise<void>,
     };
 
     console.log("[useEditFatura] Dados finais para salvar:", data);
-    await onSave(data);
+    return await onSave(data);
   };
 
   return {
