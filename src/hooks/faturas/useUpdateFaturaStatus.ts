@@ -10,11 +10,12 @@ import { toast } from "sonner";
 import { UpdateFaturaStatusInput } from "./types";
 import { updateFaturaStatus } from "./services/updateFaturaService";
 import { statusMessages } from "./utils/statusMessages";
+import { Fatura } from "@/types/fatura";
 
 export const useUpdateFaturaStatus = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async (data: UpdateFaturaStatusInput) => {
       console.log('[useUpdateFaturaStatus] Atualizando status para:', data);
       try {
@@ -45,4 +46,14 @@ export const useUpdateFaturaStatus = () => {
       toast.error(`Erro ao atualizar status: ${error.message || 'Erro desconhecido'}`);
     }
   });
+
+  // Exposição da função diretamente para facilitar o uso
+  const updateFaturaStatus = async (data: UpdateFaturaStatusInput): Promise<Fatura> => {
+    return await mutation.mutateAsync(data);
+  };
+
+  return {
+    ...mutation,
+    updateFaturaStatus
+  };
 };

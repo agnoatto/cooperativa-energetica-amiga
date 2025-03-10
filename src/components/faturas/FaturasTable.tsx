@@ -1,3 +1,4 @@
+
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { useState } from "react";
 import { FaturasLoadingState } from "./table/FaturasLoadingState";
@@ -46,12 +47,15 @@ export function FaturasTable({
     }
   };
 
-  const handleUpdateFatura = async (data: UpdateFaturaInput) => {
+  const handleUpdateFatura = async (data: UpdateFaturaInput): Promise<Fatura> => {
     setIsUpdating(true);
     try {
-      await onUpdateFatura(data);
+      const updatedFatura = await onUpdateFatura(data);
+      setFaturaToEdit(null);
+      return updatedFatura;
     } catch (error) {
       console.error("Erro ao atualizar fatura:", error);
+      throw error;
     } finally {
       setIsUpdating(false);
     }

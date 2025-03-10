@@ -6,6 +6,7 @@ import { useUpdateFaturaStatus } from "./faturas/useUpdateFaturaStatus";
 import { useUpdateFatura } from "./faturas/useUpdateFatura";
 import type { UseFaturasResult, UpdateFaturaStatusInput } from "./faturas/types";
 import type { UpdateFaturaInput } from "./faturas/types/updateFatura";
+import { Fatura } from "@/types/fatura";
 
 export const useFaturas = (currentDate: Date): UseFaturasResult => {
   const { data: faturas, isLoading, refetch } = useFetchFaturas(currentDate);
@@ -27,7 +28,7 @@ export const useFaturas = (currentDate: Date): UseFaturasResult => {
     updateFaturaStatus: async (data: UpdateFaturaStatusInput) => {
       try {
         console.log('[useFaturas] Iniciando atualização de status:', data);
-        await updateFaturaStatusMutation.mutateAsync(data);
+        await updateFaturaStatusMutation.updateFaturaStatus(data);
         console.log('[useFaturas] Atualização de status concluída');
         // Forçar atualização após mudança de status
         refetch();
@@ -36,7 +37,7 @@ export const useFaturas = (currentDate: Date): UseFaturasResult => {
         throw error;
       }
     },
-    updateFatura: async (data: UpdateFaturaInput) => {
+    updateFatura: async (data: UpdateFaturaInput): Promise<Fatura> => {
       try {
         console.log('[useFaturas] Iniciando atualização de fatura:', data);
         const updatedFatura = await updateFaturaMutation.mutateAsync(data);

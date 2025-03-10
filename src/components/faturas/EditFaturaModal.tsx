@@ -1,3 +1,4 @@
+
 import React, { useCallback } from "react";
 import { Dialog, DialogHeader, DialogTitle, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -77,13 +78,6 @@ export function EditFaturaModal({
     }
   }, [fatura, updateFaturaStatus, refetchFaturas]);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value);
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl">
@@ -104,7 +98,7 @@ export function EditFaturaModal({
               />
               {formState.formState.errors.consumo_kwh && (
                 <p className="text-red-500 text-xs mt-1">
-                  {formState.formState.errors.consumo_kwh.message}
+                  {String(formState.formState.errors.consumo_kwh.message)}
                 </p>
               )}
             </div>
@@ -119,7 +113,7 @@ export function EditFaturaModal({
               />
               {formState.formState.errors.data_vencimento && (
                 <p className="text-red-500 text-xs mt-1">
-                  {formState.formState.errors.data_vencimento.message}
+                  {String(formState.formState.errors.data_vencimento.message)}
                 </p>
               )}
             </div>
@@ -178,7 +172,7 @@ export function EditFaturaModal({
                 type="number"
                 id="valor_desconto"
                 className="w-full h-10 p-2 border rounded-md"
-                value={formatCurrency(localValorDesconto)}
+                value={localValorDesconto}
                 readOnly
               />
             </div>
@@ -188,7 +182,7 @@ export function EditFaturaModal({
                 type="number"
                 id="valor_assinatura"
                 className="w-full h-10 p-2 border rounded-md"
-                value={formatCurrency(localValorAssinatura)}
+                value={localValorAssinatura}
                 readOnly
               />
             </div>
@@ -206,7 +200,7 @@ export function EditFaturaModal({
               />
               {formState.formState.errors.economia_acumulada && (
                 <p className="text-red-500 text-xs mt-1">
-                  {formState.formState.errors.economia_acumulada.message}
+                  {String(formState.formState.errors.economia_acumulada.message)}
                 </p>
               )}
             </div>
@@ -221,7 +215,7 @@ export function EditFaturaModal({
               />
               {formState.formState.errors.saldo_energia_kwh && (
                 <p className="text-red-500 text-xs mt-1">
-                  {formState.formState.errors.saldo_energia_kwh.message}
+                  {String(formState.formState.errors.saldo_energia_kwh.message)}
                 </p>
               )}
             </div>
@@ -237,7 +231,7 @@ export function EditFaturaModal({
             />
             {formState.formState.errors.observacao && (
               <p className="text-red-500 text-xs mt-1">
-                {formState.formState.errors.observacao.message}
+                {String(formState.formState.errors.observacao.message)}
               </p>
             )}
           </div>

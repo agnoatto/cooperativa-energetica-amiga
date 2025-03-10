@@ -1,3 +1,4 @@
+
 export const formatarDocumento = (doc: string) => {
   if (!doc) return '-';
   const numero = doc.replace(/\D/g, '');
@@ -31,4 +32,15 @@ export const formatarKwh = (valor: number) => {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }) ?? '0,00';
+};
+
+// Função para formatação do tamanho do arquivo
+export const formatFileSize = (size: number): string => {
+  if (size < 1024) {
+    return `${size} bytes`;
+  } else if (size < 1024 * 1024) {
+    return `${(size / 1024).toFixed(2)} KB`;
+  } else {
+    return `${(size / (1024 * 1024)).toFixed(2)} MB`;
+  }
 };

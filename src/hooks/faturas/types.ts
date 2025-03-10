@@ -23,7 +23,7 @@ export interface UseFaturasResult {
   deleteFatura: (id: string) => void;
   updateFaturaStatus: (data: UpdateFaturaStatusInput) => Promise<void>;
   updateFatura: (data: any) => Promise<Fatura>;
-  refetch: () => void; // Adicionando a função de refetch
+  refetch: () => void;
 }
 
 // Adicionando a definição de UnidadeBeneficiaria para resolver os erros de importação
