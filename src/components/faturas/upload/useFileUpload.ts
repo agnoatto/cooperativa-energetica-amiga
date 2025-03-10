@@ -2,7 +2,8 @@
 /**
  * Hook para gerenciamento de upload e visualização de arquivos de faturas
  * Este hook fornece funcionalidades para upload, download, visualização e
- * remoção de arquivos relacionados às faturas de concessionárias
+ * remoção de arquivos relacionados às faturas de concessionárias.
+ * Suporta o novo fluxo de status: pendente -> gerada -> enviada
  */
 
 import { useState, useEffect } from "react";
@@ -13,6 +14,7 @@ interface UseFileUploadOptions {
   onSuccess?: () => void;
   onFileChange?: (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => void;
   refetchFaturas?: () => void;
+  onStatusUpdate?: (newStatus: string) => void; // Novo: callback para atualizar status após upload
 }
 
 export function useFileUpload(
@@ -33,7 +35,8 @@ export function useFileUpload(
   const callbacks: NotifyCallbacks = {
     onFileChange: options?.onFileChange,
     onSuccess: options?.onSuccess,
-    refetchFaturas: options?.refetchFaturas
+    refetchFaturas: options?.refetchFaturas,
+    onStatusUpdate: options?.onStatusUpdate
   };
 
   // Função para controlar upload de arquivos
@@ -67,6 +70,10 @@ export function useFileUpload(
       }
       if (options.refetchFaturas) {
         options.refetchFaturas();
+      }
+      // Se estávamos no status "gerada", voltamos para "pendente" se o arquivo for removido
+      if (options.onStatusUpdate) {
+        options.onStatusUpdate('pendente');
       }
     }
   };

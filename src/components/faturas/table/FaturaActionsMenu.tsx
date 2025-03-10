@@ -1,11 +1,12 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import { Eye, Edit, FileText, Trash2, CheckCircle2, RotateCw, MoreVertical } from "lucide-react";
+import { Eye, Edit, FileText, Trash2, CheckCircle2, RotateCw, MoreVertical, Send, FileCheck } from "lucide-react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { PdfPreview } from "../upload/PdfPreview";
 import { pdf } from "@react-pdf/renderer";
 import { FaturaPDF } from "../pdf/FaturaPDF";
+import { getNextActionButton } from "./utils/statusUtils";
 
 interface FaturaActionsMenuProps {
   fatura: Fatura;
@@ -103,12 +104,44 @@ export function FaturaActionsMenu({
     setIsOpen(!isOpen);
   };
 
+  const handleMarcarComoGerada = async () => {
+    try {
+      if (!fatura.arquivo_concessionaria_path) {
+        toast.error("É necessário anexar o documento da concessionária antes de marcar como gerada");
+        return;
+      }
+      
+      await onUpdateStatus(fatura, 'gerada', 'Fatura preenchida e pronta para envio');
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Erro ao marcar fatura como gerada:', error);
+    }
+  };
+
+  const handleEnviarFatura = async () => {
+    try {
+      await onUpdateStatus(fatura, 'enviada', 'Fatura enviada ao cliente');
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Erro ao enviar fatura:', error);
+    }
+  };
+
   const handleReenviarFatura = async () => {
     try {
       await onUpdateStatus(fatura, 'reenviada', 'Fatura reenviada após correção');
       setIsOpen(false);
     } catch (error) {
       console.error('Erro ao reenviar fatura:', error);
+    }
+  };
+
+  const handleFinalizarFatura = async () => {
+    try {
+      await onUpdateStatus(fatura, 'finalizada', 'Fatura finalizada com sucesso');
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Erro ao finalizar fatura:', error);
     }
   };
 
@@ -148,6 +181,8 @@ export function FaturaActionsMenu({
       setIsGeneratingPdf(false);
     }
   };
+
+  const nextAction = getNextActionButton(fatura.status);
 
   return (
     <div className="relative inline-block text-left">
@@ -200,20 +235,42 @@ export function FaturaActionsMenu({
               Editar
             </button>
             
+            {fatura.status === 'pendente' && (
+              <button
+                className="flex w-full items-center px-3 py-2 text-sm text-blue-600 hover:bg-blue-50"
+                onClick={handleMarcarComoGerada}
+                role="menuitem"
+              >
+                <FileCheck className="mr-2 h-4 w-4" />
+                Marcar como Gerada
+              </button>
+            )}
+            
+            {fatura.status === 'gerada' && (
+              <button
+                className="flex w-full items-center px-3 py-2 text-sm text-green-600 hover:bg-green-50"
+                onClick={handleEnviarFatura}
+                role="menuitem"
+              >
+                <Send className="mr-2 h-4 w-4" />
+                Enviar Fatura
+              </button>
+            )}
+            
             {fatura.status === 'corrigida' && (
               <button
-                className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                className="flex w-full items-center px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50"
                 onClick={handleReenviarFatura}
                 role="menuitem"
               >
                 <RotateCw className="mr-2 h-4 w-4" />
-                Reenviar
+                Reenviar Fatura
               </button>
             )}
             
             {['enviada', 'reenviada', 'atrasada'].includes(fatura.status) && (
               <button
-                className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                className="flex w-full items-center px-3 py-2 text-sm text-emerald-600 hover:bg-emerald-50"
                 onClick={() => {
                   onShowPaymentModal();
                   setIsOpen(false);
@@ -225,9 +282,20 @@ export function FaturaActionsMenu({
               </button>
             )}
             
-            {fatura.status === 'gerada' && (
+            {fatura.status === 'paga' && (
               <button
-                className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                className="flex w-full items-center px-3 py-2 text-sm text-purple-600 hover:bg-purple-50"
+                onClick={handleFinalizarFatura}
+                role="menuitem"
+              >
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Finalizar Fatura
+              </button>
+            )}
+            
+            {fatura.status === 'pendente' && (
+              <button
+                className="flex w-full items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50"
                 onClick={() => {
                   onDelete(fatura);
                   setIsOpen(false);

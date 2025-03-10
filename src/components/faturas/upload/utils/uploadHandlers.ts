@@ -2,7 +2,8 @@
 /**
  * Utilitários para operações de upload de arquivos de faturas
  * Este módulo contém funções para processamento de upload de arquivos
- * e atualização dos metadados no banco de dados
+ * e atualização dos metadados no banco de dados.
+ * Suporta o novo fluxo de status: pendente -> gerada -> enviada
  */
 
 import { toast } from "sonner";
@@ -16,6 +17,7 @@ export interface NotifyCallbacks {
   onFileChange?: (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => void;
   onSuccess?: () => void;
   refetchFaturas?: () => void;
+  onStatusUpdate?: (newStatus: string) => void; // Novo: callback para atualizar status
 }
 
 // Notifica as mudanças para os callbacks registrados
@@ -41,6 +43,13 @@ export const notifyChanges = (
   if (callbacks?.refetchFaturas) {
     console.log("[uploadHandlers] Chamando refetchFaturas");
     callbacks.refetchFaturas();
+  }
+  
+  // Opcionalmente sugerir atualização de status para 'gerada'
+  if (callbacks?.onStatusUpdate && nome && path) {
+    console.log("[uploadHandlers] Sugerindo atualização de status para 'gerada'");
+    // Não atualizamos automaticamente, apenas sugerimos via callback
+    callbacks.onStatusUpdate('gerada');
   }
 };
 
@@ -83,6 +92,7 @@ export const processFileUpload = async (
 
     toast.success("Arquivo enviado com sucesso!", { id: toastId });
     
+    // Notificar mudanças aos callbacks registrados
     notifyChanges(file.name, filePath, file.type, file.size, callbacks);
     
     return { success: true, error: null };
