@@ -16,6 +16,13 @@ import { PdfPreview } from "../../upload/PdfPreview";
 import { toast } from "sonner";
 import { STORAGE_BUCKET } from "../../upload/constants";
 import { formatDateToPtBR } from "@/utils/dateFormatters";
+import { StatusTransitionButtons } from "../../StatusTransitionButtons";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ArrowDown } from "lucide-react";
 
 interface FaturaDesktopRowProps {
   fatura: Fatura;
@@ -90,6 +97,27 @@ export function FaturaDesktopRow({
           ) : (
             <span className="text-xs text-gray-400">Não anexada</span>
           )}
+        </TableCell>
+        <TableCell className="py-1.5 px-3 text-sm">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-7 w-full flex justify-between items-center">
+                Ações <ArrowDown className="h-3 w-3 ml-1" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="p-2 w-fit" align="end">
+              <StatusTransitionButtons 
+                fatura={fatura} 
+                onUpdateStatus={onUpdateStatus} 
+                size="sm"
+                direction="column"
+                className="w-full"
+              />
+            </PopoverContent>
+          </Popover>
         </TableCell>
         <TableCell className="py-1.5 px-3 text-sm w-10">
           <FaturaActionsMenu

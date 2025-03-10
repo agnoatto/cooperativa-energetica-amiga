@@ -9,6 +9,7 @@ import React from "react";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { StatusTransitionButton } from "./StatusTransitionButton";
 import { getNextAllowedStatuses } from "@/hooks/faturas/utils/statusTransitions";
+import { cn } from "@/lib/utils";
 
 interface StatusTransitionButtonsProps {
   fatura: Fatura;
@@ -37,7 +38,10 @@ export function StatusTransitionButtons({
 
   return (
     <div 
-      className={`flex ${direction === "row" ? "flex-row space-x-2" : "flex-col space-y-2"} ${className || ""}`}
+      className={cn(
+        direction === "row" ? "flex flex-row flex-wrap gap-2" : "flex flex-col gap-2",
+        className
+      )}
     >
       {filteredStatuses.map((status) => (
         <StatusTransitionButton
@@ -46,6 +50,7 @@ export function StatusTransitionButtons({
           currentStatus={currentStatus}
           onUpdateStatus={() => onUpdateStatus(fatura, status, `Status alterado de ${currentStatus} para ${status}`)}
           size={size}
+          className={direction === "column" ? "w-full" : ""}
         />
       ))}
     </div>

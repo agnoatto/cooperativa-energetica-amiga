@@ -9,9 +9,11 @@ import { Fatura, FaturaStatus } from "@/types/fatura";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { FaturaStatusBadge } from "../FaturaStatusBadge";
 import { Button } from "@/components/ui/button";
-import { Edit, Eye, FileText, CheckCircle } from "lucide-react";
+import { Edit, Eye, FileText, CheckCircle, ChevronRight, ChevronDown } from "lucide-react";
 import { formatDateToPtBR } from "@/utils/dateFormatters";
 import { StatusTransitionButtons } from "../../StatusTransitionButtons";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface FaturaMobileCardProps {
   fatura: Fatura;
@@ -32,6 +34,8 @@ export function FaturaMobileCard({
   onViewPdf,
   onShowPaymentConfirmation
 }: FaturaMobileCardProps) {
+  const [showStatusButtons, setShowStatusButtons] = useState(false);
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -72,12 +76,31 @@ export function FaturaMobileCard({
           </div>
         </div>
         
+        {/* Botão para mostrar/esconder as ações de status */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => setShowStatusButtons(!showStatusButtons)}
+          className="mt-3 w-full flex justify-between items-center"
+        >
+          Alterar Status
+          {showStatusButtons ? 
+            <ChevronDown className="h-4 w-4 ml-1" /> : 
+            <ChevronRight className="h-4 w-4 ml-1" />
+          }
+        </Button>
+        
         {/* Botões de alteração de status */}
-        <div className="mt-3">
+        <div className={cn(
+          "mt-2 transition-all duration-200 overflow-hidden", 
+          showStatusButtons ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        )}>
           <StatusTransitionButtons 
             fatura={fatura} 
             onUpdateStatus={onUpdateStatus} 
             size="sm"
+            direction="column"
+            className="space-y-2 w-full"
           />
         </div>
       </CardContent>

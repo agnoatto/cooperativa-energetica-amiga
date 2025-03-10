@@ -62,10 +62,15 @@ export function FaturaDetailsDialog({
           <div className="border-b border-gray-200 pb-4 mb-4">
             <div className="flex flex-col space-y-2">
               <h3 className="text-sm font-medium text-gray-500 mb-2">Ações disponíveis:</h3>
-              <StatusTransitionButtons 
-                fatura={fatura} 
-                onUpdateStatus={onUpdateStatus} 
-              />
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                <StatusTransitionButtons 
+                  fatura={fatura} 
+                  onUpdateStatus={onUpdateStatus}
+                  size="sm"
+                  direction="column"
+                  className="w-full"
+                />
+              </div>
             </div>
           </div>
         )}
