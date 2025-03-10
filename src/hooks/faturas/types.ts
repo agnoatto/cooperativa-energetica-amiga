@@ -28,7 +28,7 @@ export interface UseFaturasResult {
 
 // Adicionando a definição de UnidadeBeneficiaria para resolver os erros de importação
 export interface UnidadeBeneficiaria {
-  id: string;
+  id: string;  // Garantindo que o ID exista
   numero_uc: string;
   apelido: string | null;
   data_entrada: string;
