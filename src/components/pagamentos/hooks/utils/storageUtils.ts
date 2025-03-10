@@ -6,30 +6,30 @@
  * remoção e geração de URLs assinadas para arquivos de contas de energia
  */
 
-import { supabase } from "@/integrations/supabase/client";
 import { STORAGE_BUCKET, SIGNED_URL_EXPIRY } from "../constants";
+import { 
+  uploadFile as sharedUploadFile, 
+  getSignedUrl as sharedGetSignedUrl,
+  downloadFile as sharedDownloadFile,
+  removeFile as sharedRemoveFile
+} from "@/utils/storageUtils";
+import { supabase } from "@/integrations/supabase/client";
 
 // Upload de arquivo para o bucket
 export async function uploadFile(filePath: string, file: File) {
-  console.log("[storageUtils] Iniciando upload para:", filePath);
+  console.log("[storageUtils:pagamentos] Iniciando upload para:", filePath);
   
   try {
-    const { error } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: true
-      });
+    const { success, error } = await sharedUploadFile(STORAGE_BUCKET, filePath, file);
 
-    if (error) {
-      console.error("[storageUtils] Erro no upload:", error);
+    if (!success) {
       throw error;
     }
 
-    console.log("[storageUtils] Upload finalizado com sucesso");
+    console.log("[storageUtils:pagamentos] Upload finalizado com sucesso");
     return { success: true, error: null };
   } catch (error) {
-    console.error("[storageUtils] Erro no processo de upload:", error);
+    console.error("[storageUtils:pagamentos] Erro no processo de upload:", error);
     return { success: false, error };
   }
 }
@@ -41,7 +41,7 @@ export async function updateMetadataInDB(pagamentoId: string, metadata: {
   tipo: string | null,
   tamanho: number | null
 }) {
-  console.log("[storageUtils] Atualizando metadados no DB para pagamento:", pagamentoId);
+  console.log("[storageUtils:pagamentos] Atualizando metadados no DB para pagamento:", pagamentoId);
   
   try {
     const { error } = await supabase
@@ -55,80 +55,71 @@ export async function updateMetadataInDB(pagamentoId: string, metadata: {
       .eq('id', pagamentoId);
 
     if (error) {
-      console.error("[storageUtils] Erro ao atualizar registro:", error);
+      console.error("[storageUtils:pagamentos] Erro ao atualizar registro:", error);
       throw error;
     }
 
-    console.log("[storageUtils] Metadados atualizados com sucesso");
+    console.log("[storageUtils:pagamentos] Metadados atualizados com sucesso");
     return { success: true, error: null };
   } catch (error) {
-    console.error("[storageUtils] Erro na atualização de metadados:", error);
+    console.error("[storageUtils:pagamentos] Erro na atualização de metadados:", error);
     return { success: false, error };
   }
 }
 
 // Gerar URL assinada para visualização
 export async function getSignedUrl(filePath: string) {
-  console.log("[storageUtils] Gerando URL assinada para:", filePath);
+  console.log("[storageUtils:pagamentos] Gerando URL assinada para:", filePath);
   
   try {
-    const { data, error } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .createSignedUrl(filePath, SIGNED_URL_EXPIRY);
+    const { url, error } = await sharedGetSignedUrl(STORAGE_BUCKET, filePath, SIGNED_URL_EXPIRY);
 
-    if (error) {
-      console.error("[storageUtils] Erro ao gerar URL assinada:", error);
-      throw error;
+    if (!url) {
+      throw error || new Error("Erro ao gerar URL assinada");
     }
 
-    console.log("[storageUtils] URL assinada gerada com sucesso");
-    return { url: data.signedUrl, error: null };
+    console.log("[storageUtils:pagamentos] URL assinada gerada com sucesso");
+    return { url, error: null };
   } catch (error) {
-    console.error("[storageUtils] Erro ao gerar URL assinada:", error);
+    console.error("[storageUtils:pagamentos] Erro ao gerar URL assinada:", error);
     return { url: null, error };
   }
 }
 
 // Remover arquivo do storage
 export async function removeFile(filePath: string) {
-  console.log("[storageUtils] Removendo arquivo:", filePath);
+  console.log("[storageUtils:pagamentos] Removendo arquivo:", filePath);
   
   try {
-    const { error } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .remove([filePath]);
+    const { success, error } = await sharedRemoveFile(STORAGE_BUCKET, filePath);
 
-    if (error) {
-      console.error("[storageUtils] Erro ao remover arquivo:", error);
+    if (!success) {
       throw error;
     }
 
-    console.log("[storageUtils] Arquivo removido com sucesso");
+    console.log("[storageUtils:pagamentos] Arquivo removido com sucesso");
     return { success: true, error: null };
   } catch (error) {
-    console.error("[storageUtils] Erro ao remover arquivo:", error);
+    console.error("[storageUtils:pagamentos] Erro ao remover arquivo:", error);
     return { success: false, error };
   }
 }
 
 // Download de arquivo
 export async function downloadFile(filePath: string, fileName: string) {
-  console.log("[storageUtils] Baixando arquivo:", filePath);
+  console.log("[storageUtils:pagamentos] Baixando arquivo:", filePath);
   
   try {
-    const { data, error } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .download(filePath);
+    const { data, error } = await sharedDownloadFile(STORAGE_BUCKET, filePath);
 
-    if (error) {
-      console.error("[storageUtils] Erro no download:", error);
+    if (!data) {
       throw error;
     }
 
-    console.log("[storageUtils] Download concluído, criando URL");
+    console.log("[storageUtils:pagamentos] Download concluído, criando URL");
     return { data, error: null };
   } catch (error) {
-    console.error("[storageUtils] Erro ao baixar arquivo:", error);
+    console.error("[storageUtils:pagamentos] Erro ao baixar arquivo:", error);
     return { data: null, error };
   }
 }
