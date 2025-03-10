@@ -1,94 +1,86 @@
 
 /**
- * Hook para gerenciar o upload e visualização de arquivos de faturas
- * 
- * Este hook encapsula toda a lógica de estado e manipulação de arquivos
- * para upload, remoção e visualização de arquivos de faturas.
+ * Hook para gerenciamento de upload e visualização de arquivos de faturas
+ * Este hook fornece funcionalidades para upload, download, visualização e
+ * remoção de arquivos relacionados às faturas de concessionárias
  */
-import { useState, useCallback } from "react";
-import { 
-  handleFileUpload as uploadFileHandler, 
-  handleFileRemove as removeFileHandler, 
-  getFilePreviewUrl as getPreviewUrl 
-} from "./utils/fileHandlers";
 
-export interface FileInfo {
-  nome: string | null;
-  path: string | null;
-  tipo: string | null;
-  tamanho: number | null;
+import { useState, useEffect } from "react";
+import { handleDownload, handleRemoveFile, handlePreview } from "./utils/fileHandlers";
+import { processFileUpload, NotifyCallbacks } from "./utils/uploadHandlers";
+
+interface UseFileUploadOptions {
+  onSuccess?: () => void;
+  onFileChange?: (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => void;
+  refetchFaturas?: () => void;
 }
 
-interface UseFileUploadProps {
-  faturaId: string;
-  initialFile: FileInfo;
-  onFileChange: (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => void;
-  onStatusChange?: (newStatus: string) => void;
-}
-
-export function useFileUpload({ 
-  faturaId, 
-  initialFile, 
-  onFileChange, 
-  onStatusChange 
-}: UseFileUploadProps) {
-  const [file, setFile] = useState<FileInfo>(initialFile);
-  const [loading, setLoading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+export function useFileUpload(
+  faturaId: string,
+  options?: UseFileUploadOptions
+) {
+  const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  
+  useEffect(() => {
+    console.log("[useFileUpload] Hook inicializado, faturaId:", faturaId);
+    console.log("[useFileUpload] refetchFaturas presente:", !!options?.refetchFaturas);
+  }, [faturaId, options?.refetchFaturas]);
 
-  const handleUpload = useCallback(async (newFile: File) => {
-    setLoading(true);
-    try {
-      await uploadFileHandler(newFile, faturaId, (nome, path, tipo, tamanho) => {
-        setFile({ nome, path, tipo, tamanho });
-        onFileChange(nome, path, tipo, tamanho);
-      }, onStatusChange);
-    } finally {
-      setLoading(false);
-    }
-  }, [faturaId, onFileChange, onStatusChange]);
+  // Preparar callbacks para notificações
+  const callbacks: NotifyCallbacks = {
+    onFileChange: options?.onFileChange,
+    onSuccess: options?.onSuccess,
+    refetchFaturas: options?.refetchFaturas
+  };
 
-  const handleRemove = useCallback(async () => {
-    if (!file.path) return;
-    
-    setLoading(true);
+  // Função para controlar upload de arquivos
+  const handleFileUpload = async (files: File[]) => {
+    setIsUploading(true);
     try {
-      await removeFileHandler(file.path, faturaId, (nome, path, tipo, tamanho) => {
-        setFile({ nome, path, tipo, tamanho });
-        onFileChange(nome, path, tipo, tamanho);
-      });
-      setPreviewUrl(null);
+      await processFileUpload(files, faturaId, callbacks);
     } finally {
-      setLoading(false);
+      setIsUploading(false);
     }
-  }, [file.path, faturaId, onFileChange]);
+  };
 
-  // Nova função que apenas obtém a URL de visualização sem fechar o formulário
-  const handleViewFile = useCallback(async () => {
-    if (!file.path) {
-      return null;
+  // Função para visualizar PDF
+  const handlePdfPreview = async (filePath: string) => {
+    const { url } = await handlePreview(filePath);
+    if (url) {
+      setPdfUrl(url);
+      setShowPdfPreview(true);
     }
-    
-    setLoading(true);
-    try {
-      const url = await getPreviewUrl(file.path);
-      setPreviewUrl(url);
-      return url;
-    } finally {
-      setLoading(false);
+  };
+
+  // Função para remover arquivo com callbacks
+  const handleFileRemoval = async (filePath: string, faturaId: string) => {
+    const { success } = await handleRemoveFile(filePath, faturaId);
+    if (success && options) {
+      if (options.onFileChange) {
+        options.onFileChange(null, null, null, null);
+      }
+      if (options.onSuccess) {
+        options.onSuccess();
+      }
+      if (options.refetchFaturas) {
+        options.refetchFaturas();
+      }
     }
-  }, [file.path]);
+  };
 
   return {
-    file,
-    loading,
-    previewUrl,
-    setPreviewUrl,
+    isUploading,
     isDragging,
+    showPdfPreview,
+    pdfUrl,
     setIsDragging,
-    handleUpload,
-    handleRemove,
-    handleViewFile
+    setShowPdfPreview,
+    handleFileUpload,
+    handleDownload,
+    handleRemoveFile: handleFileRemoval,
+    handlePreview: handlePdfPreview,
   };
 }

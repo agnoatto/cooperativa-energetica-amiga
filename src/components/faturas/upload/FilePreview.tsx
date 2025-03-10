@@ -1,80 +1,103 @@
 
-/**
- * Componente para exibição e interação com arquivos anexados
- * 
- * Este componente mostra informações do arquivo anexado e oferece
- * opções para visualização e remoção do arquivo.
- */
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Eye, Trash2 } from "lucide-react";
-import { formatFileSize } from "@/utils/formatters";
+import { FileText, FileUp, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface FilePreviewProps {
   fileName: string;
-  fileSize: number | null;
-  fileType: string | null;
-  onView: () => void;
-  onDelete: () => void;
-  isLoading: boolean;
+  onPreview: () => void;
+  onDownload: () => void;
+  onRemove: () => void;
+  className?: string;
 }
 
-export function FilePreview({
-  fileName,
-  fileSize,
-  fileType,
-  onView,
-  onDelete,
-  isLoading
+export function FilePreview({ 
+  fileName, 
+  onPreview, 
+  onDownload, 
+  onRemove,
+  className 
 }: FilePreviewProps) {
-  // Função para manipular a visualização sem propagar o evento
-  const handleView = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Impedir que o evento se propague
-    e.preventDefault(); // Prevenir comportamento padrão
-    onView();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await onRemove();
+    } catch (error) {
+      console.error("Erro ao remover arquivo:", error);
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
   };
-  
-  // Função para manipular a exclusão sem propagar o evento
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Impedir que o evento se propague
-    e.preventDefault(); // Prevenir comportamento padrão
-    onDelete();
-  };
-  
+
   return (
-    <div className="bg-gray-50 border rounded-md p-3 flex items-center justify-between">
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate" title={fileName}>
-          {fileName}
-        </p>
-        <p className="text-xs text-gray-500">
-          {fileSize ? formatFileSize(fileSize) : 'Tamanho desconhecido'} • 
-          {fileType ? fileType.split('/')[1].toUpperCase() : 'Tipo desconhecido'}
-        </p>
-      </div>
-      
-      <div className="flex space-x-2">
+    <>
+      <div className={cn("flex items-center gap-2 p-2 rounded-md", className)}>
+        <FileText className="h-4 w-4 text-muted-foreground" />
+        <span className="flex-1 text-sm truncate">{fileName}</span>
         <Button
-          variant="outline"
-          size="sm"
-          className="h-8 px-2"
-          onClick={handleView}
-          disabled={isLoading}
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={onPreview}
+          className="h-8 w-8"
+          title="Visualizar arquivo"
         >
-          <Eye className="h-4 w-4 mr-1" />
-          <span className="hidden sm:inline">Ver</span>
+          <FileText className="h-4 w-4" />
         </Button>
-        
         <Button
-          variant="outline"
-          size="sm"
-          className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50 focus:ring-red-500"
-          onClick={handleDelete}
-          disabled={isLoading}
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={onDownload}
+          className="h-8 w-8"
+          title="Baixar arquivo"
         >
-          <Trash2 className="h-4 w-4 mr-1" />
-          <span className="hidden sm:inline">Excluir</span>
+          <FileUp className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => setShowDeleteDialog(true)}
+          className="h-8 w-8"
+          title="Remover arquivo"
+          disabled={isDeleting}
+        >
+          <Trash2 className="h-4 w-4" />
         </Button>
       </div>
-    </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover este arquivo? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? "Removendo..." : "Remover"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

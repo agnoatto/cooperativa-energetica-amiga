@@ -1,4 +1,3 @@
-
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { useState } from "react";
 import { FaturasLoadingState } from "./table/FaturasLoadingState";
@@ -16,7 +15,6 @@ interface FaturasTableProps {
   isLoading: boolean;
   onDeleteFatura: (id: string) => Promise<void>;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
-  // Atualizando tipo para retornar Promise<Fatura>
   onUpdateFatura: (data: UpdateFaturaInput) => Promise<Fatura>;
   refetchFaturas?: () => void;
 }
@@ -48,15 +46,12 @@ export function FaturasTable({
     }
   };
 
-  const handleUpdateFatura = async (data: UpdateFaturaInput): Promise<Fatura> => {
+  const handleUpdateFatura = async (data: UpdateFaturaInput) => {
     setIsUpdating(true);
     try {
-      const updatedFatura = await onUpdateFatura(data);
-      setFaturaToEdit(null);
-      return updatedFatura;
+      await onUpdateFatura(data);
     } catch (error) {
       console.error("Erro ao atualizar fatura:", error);
-      throw error;
     } finally {
       setIsUpdating(false);
     }

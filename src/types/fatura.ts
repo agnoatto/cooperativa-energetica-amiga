@@ -5,7 +5,6 @@ export interface Cooperado {
 }
 
 export interface UnidadeBeneficiaria {
-  id: string; // Adicionando o campo id que estava faltando
   numero_uc: string;
   apelido: string | null;
   endereco: string;

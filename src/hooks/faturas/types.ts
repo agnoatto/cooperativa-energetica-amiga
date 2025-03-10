@@ -21,14 +21,14 @@ export interface UseFaturasResult {
   isGenerating: boolean;
   gerarFaturas: () => void;
   deleteFatura: (id: string) => void;
-  updateFaturaStatus: (data: UpdateFaturaStatusInput) => Promise<Fatura>;
+  updateFaturaStatus: (data: UpdateFaturaStatusInput) => Promise<void>;
   updateFatura: (data: any) => Promise<Fatura>;
-  refetch: () => void;
+  refetch: () => void; // Adicionando a função de refetch
 }
 
 // Adicionando a definição de UnidadeBeneficiaria para resolver os erros de importação
 export interface UnidadeBeneficiaria {
-  id: string;  // Garantindo que o ID exista
+  id: string;
   numero_uc: string;
   apelido: string | null;
   data_entrada: string;

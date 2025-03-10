@@ -1,142 +1,91 @@
 
 /**
- * Funções para manipulação de arquivos relacionados às faturas
- * 
- * Este módulo contém funções para upload, download e visualização
- * de arquivos relacionados às faturas.
+ * Utilitários para manipulação de arquivos de faturas
+ * Este módulo contém funções para download, preview e remoção de arquivos
+ * relacionados às faturas de concessionárias
  */
+
 import { toast } from "sonner";
-import { validateFile } from "./fileValidation";
-import { 
-  uploadFileToStorage, 
-  updateFaturaFileMetadata,
-  getFileFromStorage,
-  removeFileFromStorage
-} from "./storageUtils";
+import { STORAGE_BUCKET } from "../constants";
+import { downloadFile, getSignedUrl, removeFile } from "./storageUtils";
+import { updateFaturaArquivo } from "./faturaUtils";
 
-export async function handleFileUpload(
-  file: File, 
-  faturaId: string,
-  onFileChange: (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => void,
-  onStatusChange?: (newStatus: string) => void
-) {
-  if (!file) {
-    toast.error("Nenhum arquivo selecionado");
-    return;
-  }
-
-  // Validar o arquivo
-  const validationError = validateFile(file);
-  if (validationError) {
-    toast.error(validationError);
-    return;
-  }
-
-  // Mostrar toast de loading
-  toast.loading("Enviando arquivo...");
-
+// Função para download de arquivo
+export const handleDownload = async (filePath: string, fileName: string) => {
+  const toastId = toast.loading("Preparando download...");
+  
   try {
-    // Gerar nome do arquivo no storage (id-fatura_nome-original)
-    const fileName = `${faturaId}_${file.name.replace(/\s+/g, '_')}`;
-    const filePath = `faturas/${fileName}`;
+    const { data, error } = await downloadFile(STORAGE_BUCKET, filePath);
 
-    // Fazer upload para o storage
-    const uploadResult = await uploadFileToStorage(filePath, file);
-    if (!uploadResult.success) {
-      throw new Error(uploadResult.error || "Erro ao fazer upload do arquivo");
+    if (!data) {
+      throw error;
     }
 
-    // Atualizar metadados na tabela faturas
-    const updateResult = await updateFaturaFileMetadata(faturaId, {
-      nome: file.name,
-      path: filePath,
-      tipo: file.type,
-      tamanho: file.size
-    });
-
-    if (!updateResult.success) {
-      // Se falhar a atualização no banco, remove o arquivo do storage
-      await removeFileFromStorage(filePath);
-      throw new Error(updateResult.error || "Erro ao atualizar informações do arquivo");
-    }
-
-    // Atualizar estado local
-    onFileChange(file.name, filePath, file.type, file.size);
+    const url = URL.createObjectURL(data);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
     
-    // Se a função de mudança de status foi fornecida, sugerir atualização
-    if (onStatusChange) {
-      onStatusChange('gerada');
-    }
-
-    toast.dismiss();
-    toast.success("Arquivo enviado com sucesso!");
+    toast.success("Download iniciado", { id: toastId });
+    return { success: true, error: null };
   } catch (error: any) {
-    toast.dismiss();
-    toast.error(`Erro ao enviar arquivo: ${error.message}`);
-    console.error("Erro no upload de arquivo:", error);
+    console.error("[fileHandlers] Erro ao baixar arquivo:", error);
+    toast.error(`Erro ao baixar: ${error.message}`, { id: toastId });
+    return { success: false, error };
   }
-}
+};
 
-export async function handleFileRemove(
-  filePath: string | null,
-  faturaId: string,
-  onFileChange: (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => void
-) {
-  if (!filePath) {
-    return;
-  }
-
-  toast.loading("Removendo arquivo...");
-
+// Função para remover arquivo
+export const handleRemoveFile = async (filePath: string, faturaId: string) => {
+  const toastId = toast.loading("Removendo arquivo...");
+  
   try {
-    // Remover do storage
-    const removeResult = await removeFileFromStorage(filePath);
-    if (!removeResult.success) {
-      throw new Error(removeResult.error || "Erro ao remover arquivo");
+    const { success, error: removeError } = await removeFile(STORAGE_BUCKET, filePath);
+
+    if (!success) {
+      throw removeError;
     }
 
-    // Atualizar metadados na tabela faturas (limpar)
-    const updateResult = await updateFaturaFileMetadata(faturaId, {
+    const { success: updateSuccess, error: updateError } = await updateFaturaArquivo(faturaId, {
       nome: null,
       path: null,
       tipo: null,
       tamanho: null
     });
 
-    if (!updateResult.success) {
-      throw new Error(updateResult.error || "Erro ao atualizar informações do arquivo");
+    if (!updateSuccess) {
+      throw updateError;
     }
 
-    // Atualizar estado local
-    onFileChange(null, null, null, null);
-
-    toast.dismiss();
-    toast.success("Arquivo removido com sucesso!");
+    toast.success("Arquivo removido com sucesso", { id: toastId });
+    return { success: true, error: null };
   } catch (error: any) {
-    toast.dismiss();
-    toast.error(`Erro ao remover arquivo: ${error.message}`);
-    console.error("Erro na remoção de arquivo:", error);
+    console.error("[fileHandlers] Erro ao remover arquivo:", error);
+    toast.error(`Erro ao remover: ${error.message}`, { id: toastId });
+    return { success: false, error };
   }
-}
+};
 
-// Esta função apenas retorna a URL do arquivo sem fechar o formulário
-export async function getFilePreviewUrl(filePath: string | null) {
-  if (!filePath) {
-    toast.error("Nenhum arquivo para visualizar");
-    return null;
-  }
-
+// Função para gerar preview de arquivo
+export const handlePreview = async (filePath: string) => {
+  const toastId = toast.loading("Carregando visualização...");
+  
   try {
-    const result = await getFileFromStorage(filePath);
-    
-    if (!result.success || !result.url) {
-      throw new Error(result.error || "Erro ao obter URL do arquivo");
+    const { url, error } = await getSignedUrl(STORAGE_BUCKET, filePath);
+
+    if (!url) {
+      throw error || new Error("Não foi possível gerar a URL do documento");
     }
-    
-    return result.url;
+
+    toast.success("Documento carregado", { id: toastId });
+    return { url, error: null };
   } catch (error: any) {
-    toast.error(`Erro ao gerar URL para visualização: ${error.message}`);
-    console.error("Erro ao gerar URL de visualização:", error);
-    return null;
+    console.error("[fileHandlers] Erro ao obter URL do PDF:", error);
+    toast.error(`Erro ao carregar visualização: ${error.message}`, { id: toastId });
+    return { url: null, error };
   }
-}
+};

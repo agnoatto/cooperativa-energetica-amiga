@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { MonthSelector } from "./MonthSelector";
 import { FaturasTable } from "./FaturasTable";
@@ -41,7 +40,7 @@ export function FaturasContainer() {
     });
   };
 
-  const handleUpdateFatura = async (data: UpdateFaturaInput): Promise<Fatura> => {
+  const handleUpdateFatura = async (data: UpdateFaturaInput) => {
     // Agora estamos retornando o resultado da função updateFatura
     return await updateFatura(data);
   };
