@@ -126,6 +126,21 @@ export function usePagamentoForm(
         return;
       }
 
+      // Preparar histórico de status
+      const statusAtualizado = form.status !== pagamento.status;
+      let novoHistoricoStatus = pagamento.historico_status || [];
+      
+      if (statusAtualizado) {
+        novoHistoricoStatus = [
+          ...novoHistoricoStatus,
+          {
+            data: new Date().toISOString(),
+            status_anterior: pagamento.status,
+            novo_status: form.status
+          }
+        ];
+      }
+
       const { error } = await supabase
         .from('pagamentos_usina')
         .update({
@@ -138,6 +153,7 @@ export function usePagamentoForm(
           data_vencimento: form.data_vencimento || null,
           data_vencimento_concessionaria: form.data_vencimento_concessionaria,
           data_emissao: form.data_emissao,
+          data_pagamento: form.data_pagamento,
           observacao: form.observacao || null,
           observacao_pagamento: form.observacao_pagamento || null,
           arquivo_conta_energia_nome: form.arquivo_conta_energia_nome,
@@ -145,14 +161,7 @@ export function usePagamentoForm(
           arquivo_conta_energia_tipo: form.arquivo_conta_energia_tipo,
           arquivo_conta_energia_tamanho: form.arquivo_conta_energia_tamanho,
           cooperativa_id: profile.cooperativa_id,
-          historico_status: JSON.stringify([
-            ...(pagamento.historico_status || []),
-            {
-              data: new Date().toISOString(),
-              status_anterior: pagamento.status,
-              novo_status: form.status
-            }
-          ])
+          historico_status: statusAtualizado ? JSON.stringify(novoHistoricoStatus) : undefined
         })
         .eq('id', pagamento.id);
 

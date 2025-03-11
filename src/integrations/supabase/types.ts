@@ -819,6 +819,7 @@ export type Database = {
           arquivo_conta_energia_path: string | null
           arquivo_conta_energia_tamanho: number | null
           arquivo_conta_energia_tipo: string | null
+          cooperativa_id: string | null
           created_at: string
           data_confirmacao: string | null
           data_emissao: string | null
@@ -826,7 +827,6 @@ export type Database = {
           data_pagamento: string | null
           data_vencimento: string
           data_vencimento_concessionaria: string | null
-          empresa_id: string | null
           geracao_kwh: number
           historico_status: Json | null
           id: string
@@ -848,6 +848,7 @@ export type Database = {
           arquivo_conta_energia_path?: string | null
           arquivo_conta_energia_tamanho?: number | null
           arquivo_conta_energia_tipo?: string | null
+          cooperativa_id?: string | null
           created_at?: string
           data_confirmacao?: string | null
           data_emissao?: string | null
@@ -855,7 +856,6 @@ export type Database = {
           data_pagamento?: string | null
           data_vencimento: string
           data_vencimento_concessionaria?: string | null
-          empresa_id?: string | null
           geracao_kwh: number
           historico_status?: Json | null
           id?: string
@@ -877,6 +877,7 @@ export type Database = {
           arquivo_conta_energia_path?: string | null
           arquivo_conta_energia_tamanho?: number | null
           arquivo_conta_energia_tipo?: string | null
+          cooperativa_id?: string | null
           created_at?: string
           data_confirmacao?: string | null
           data_emissao?: string | null
@@ -884,7 +885,6 @@ export type Database = {
           data_pagamento?: string | null
           data_vencimento?: string
           data_vencimento_concessionaria?: string | null
-          empresa_id?: string | null
           geracao_kwh?: number
           historico_status?: Json | null
           id?: string
@@ -902,10 +902,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "pagamentos_usina_empresa_id_fkey"
-            columns: ["empresa_id"]
+            foreignKeyName: "pagamentos_usina_cooperativa_id_fkey"
+            columns: ["cooperativa_id"]
             isOneToOne: false
-            referencedRelation: "empresas"
+            referencedRelation: "cooperativas"
             referencedColumns: ["id"]
           },
           {
@@ -1828,6 +1828,7 @@ export type Database = {
           arquivo_conta_energia_path: string | null
           arquivo_conta_energia_tamanho: number | null
           arquivo_conta_energia_tipo: string | null
+          cooperativa_id: string | null
           created_at: string
           data_confirmacao: string | null
           data_emissao: string | null
@@ -1835,7 +1836,6 @@ export type Database = {
           data_pagamento: string | null
           data_vencimento: string
           data_vencimento_concessionaria: string | null
-          empresa_id: string | null
           geracao_kwh: number
           historico_status: Json | null
           id: string
