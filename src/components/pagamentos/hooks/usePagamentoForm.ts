@@ -133,30 +133,6 @@ export function usePagamentoForm(
         return;
       }
 
-      // Verificar se o status foi alterado
-      const statusAtualizado = form.status !== pagamento.status;
-      
-      // Preparar histórico de status somente se houve mudança
-      let historicoStatusUpdate = null;
-      
-      if (statusAtualizado && form.status) {
-        console.log('[usePagamentoForm] Status atualizado:', {
-          anterior: pagamento.status,
-          novo: form.status
-        });
-        
-        const novoHistoricoStatus = [
-          ...(pagamento.historico_status || []),
-          {
-            data: new Date().toISOString(),
-            status_anterior: pagamento.status,
-            novo_status: form.status
-          }
-        ];
-        
-        historicoStatusUpdate = JSON.stringify(novoHistoricoStatus);
-      }
-
       // Formatação adequada dos valores numéricos
       const dadosAtualizados: {
         status: PagamentoStatus | null;
@@ -176,7 +152,6 @@ export function usePagamentoForm(
         arquivo_conta_energia_tipo: string | null;
         arquivo_conta_energia_tamanho: number | null;
         cooperativa_id: string;
-        historico_status?: string;
       } = {
         status: form.status,
         geracao_kwh: Number(form.geracao_kwh) || 0,
@@ -196,11 +171,6 @@ export function usePagamentoForm(
         arquivo_conta_energia_tamanho: form.arquivo_conta_energia_tamanho,
         cooperativa_id: profile.cooperativa_id
       };
-
-      // Se houver atualização no histórico de status, adicioná-lo
-      if (historicoStatusUpdate) {
-        dadosAtualizados.historico_status = historicoStatusUpdate;
-      }
 
       console.log('[usePagamentoForm] Dados para atualização:', dadosAtualizados);
 
