@@ -134,25 +134,7 @@ export function usePagamentoForm(
       }
 
       // Formatação adequada dos valores numéricos
-      const dadosAtualizados: {
-        status: PagamentoStatus | null;
-        geracao_kwh: number;
-        valor_total: number;
-        tusd_fio_b: number;
-        valor_tusd_fio_b: number;
-        valor_concessionaria: number;
-        data_vencimento: string | null;
-        data_vencimento_concessionaria: string | null;
-        data_emissao: string | null;
-        data_pagamento: string | null;
-        observacao: string | null;
-        observacao_pagamento: string | null;
-        arquivo_conta_energia_nome: string | null;
-        arquivo_conta_energia_path: string | null;
-        arquivo_conta_energia_tipo: string | null;
-        arquivo_conta_energia_tamanho: number | null;
-        cooperativa_id: string;
-      } = {
+      const dadosAtualizados = {
         status: form.status,
         geracao_kwh: Number(form.geracao_kwh) || 0,
         valor_total: Number(valorEfetivo.toFixed(4)),
@@ -174,12 +156,28 @@ export function usePagamentoForm(
 
       console.log('[usePagamentoForm] Dados para atualização:', dadosAtualizados);
 
-      // Realizar a atualização do pagamento
-      const { data: updatedData, error } = await supabase
-        .from('pagamentos_usina')
-        .update(dadosAtualizados)
-        .eq('id', pagamento.id)
-        .select();
+      // Realizar a atualização do pagamento usando update_pagamento_status para mudanças de status ou método normal para outras alterações
+      let updateResponse;
+      
+      // Se estamos alterando o status, usar a função RPC para garantir a validação correta de transição
+      if (pagamento.status !== form.status && form.status) {
+        console.log('[usePagamentoForm] Detectada mudança de status, usando update_pagamento_status');
+        updateResponse = await supabase.rpc('update_pagamento_status', {
+          p_pagamento_id: pagamento.id,
+          p_novo_status: form.status,
+          p_method: null // Não estamos enviando por método específico nesse caso
+        });
+      } else {
+        // Para outras alterações que não envolvem mudança de status, usar atualização direta
+        console.log('[usePagamentoForm] Sem mudança de status, usando update padrão');
+        updateResponse = await supabase
+          .from('pagamentos_usina')
+          .update(dadosAtualizados)
+          .eq('id', pagamento.id)
+          .select();
+      }
+      
+      const { data: updatedData, error } = updateResponse;
 
       if (error) {
         console.error('[usePagamentoForm] Erro ao atualizar pagamento:', error);
@@ -188,6 +186,8 @@ export function usePagamentoForm(
         if (error.message.includes('violates trigger') || error.message.includes('atualizar_lancamento_pagamento_usina')) {
           console.error('[usePagamentoForm] Erro relacionado ao trigger de lançamentos financeiros');
           toast.error('Erro ao atualizar lançamentos financeiros associados. Tente novamente mais tarde.');
+        } else if (error.message.includes('Transição de status inválida')) {
+          toast.error(`A transição de status de "${pagamento.status}" para "${form.status}" não é permitida.`);
         } else {
           toast.error(`Erro ao atualizar pagamento: ${error.message}`);
         }
