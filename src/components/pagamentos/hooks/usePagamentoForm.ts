@@ -1,3 +1,10 @@
+
+/**
+ * Hook personalizado para gerenciar o formulário de edição de pagamentos
+ * 
+ * Este hook centraliza toda a lógica de estado e operações do formulário de
+ * pagamentos, incluindo cálculos de valores e envio de dados ao servidor.
+ */
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -103,7 +110,8 @@ export function usePagamentoForm(
     try {
       console.log('[usePagamentoForm] Atualizando pagamento:', {
         id: pagamento.id,
-        formData: form
+        formData: form,
+        valorEfetivo: valorEfetivo
       });
 
       const { error } = await supabase
@@ -116,7 +124,7 @@ export function usePagamentoForm(
           tusd_fio_b: Number(form.tusd_fio_b.toFixed(4)),
           valor_tusd_fio_b: Number(valorTotalTusdFioB.toFixed(4)),
           valor_concessionaria: Number(form.valor_concessionaria.toFixed(4)),
-          data_vencimento: form.data_vencimento,
+          data_vencimento: form.data_vencimento || null,
           data_vencimento_concessionaria: form.data_vencimento_concessionaria,
           observacao: form.observacao || null,
           observacao_pagamento: form.observacao_pagamento || null,
@@ -127,15 +135,18 @@ export function usePagamentoForm(
         })
         .eq('id', pagamento.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('[usePagamentoForm] Erro ao atualizar pagamento:', error);
+        throw error;
+      }
 
       console.log('[usePagamentoForm] Pagamento atualizado com sucesso');
       toast.success('Pagamento atualizado com sucesso!');
       onSave();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('[usePagamentoForm] Erro ao atualizar pagamento:', error);
-      toast.error('Erro ao atualizar pagamento');
+      toast.error(`Erro ao atualizar pagamento: ${error.message}`);
     }
   };
 

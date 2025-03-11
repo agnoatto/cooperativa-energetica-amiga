@@ -1,6 +1,5 @@
 
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
 import { PagamentoFormValues } from "./types/pagamento";
 import { FileUploadSection } from "./form/FileUploadSection";
 import { GeracaoSection } from "./form/GeracaoSection";
@@ -58,12 +57,6 @@ export function PagamentoFormFields({
         <StatusSection 
           form={form}
         />
-
-        <div className="flex justify-end gap-4 pt-4">
-          <Button type="submit" variant="default">
-            Salvar
-          </Button>
-        </div>
       </div>
     </ScrollArea>
   );

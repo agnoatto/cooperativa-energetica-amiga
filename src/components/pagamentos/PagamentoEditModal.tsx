@@ -1,4 +1,10 @@
 
+/**
+ * Modal para edição de pagamentos de usinas
+ * 
+ * Este componente permite a visualização e edição dos dados de um pagamento
+ * de usina, incluindo informações de geração, valores e datas.
+ */
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PagamentoData } from "./types/pagamento";
 import { usePagamentoForm } from "./hooks/usePagamentoForm";
@@ -6,6 +12,7 @@ import { PagamentoFormFields } from "./PagamentoFormFields";
 import { formatarMoeda } from "@/utils/formatters";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
 
 interface PagamentoEditModalProps {
   pagamento: PagamentoData | null;
@@ -76,6 +83,15 @@ export function PagamentoEditModal({
             valorEfetivo={valorEfetivo}
             pagamentoId={pagamento?.id || ''}
           />
+          
+          <div className="flex justify-end gap-4 pt-4">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+            <Button type="submit">
+              Salvar
+            </Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>
