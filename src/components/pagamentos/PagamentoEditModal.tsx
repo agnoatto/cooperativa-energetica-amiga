@@ -5,6 +5,7 @@
  * Este componente permite a visualização e edição dos dados de um pagamento
  * de usina, incluindo informações de geração, valores e datas.
  */
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PagamentoData } from "./types/pagamento";
 import { usePagamentoForm } from "./hooks/usePagamentoForm";
@@ -13,6 +14,7 @@ import { formatarMoeda } from "@/utils/formatters";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 interface PagamentoEditModalProps {
   pagamento: PagamentoData | null;
@@ -27,6 +29,8 @@ export function PagamentoEditModal({
   onClose,
   onSave,
 }: PagamentoEditModalProps) {
+  const [isSaving, setIsSaving] = useState(false);
+  
   const {
     form,
     setForm,
@@ -37,8 +41,17 @@ export function PagamentoEditModal({
     handleSubmit,
   } = usePagamentoForm(pagamento, onSave, onClose);
 
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    setIsSaving(true);
+    try {
+      await handleSubmit(e);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !isSaving && onClose()}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>
@@ -73,7 +86,7 @@ export function PagamentoEditModal({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleFormSubmit} className="space-y-6">
           <PagamentoFormFields
             form={form}
             setForm={setForm}
@@ -85,11 +98,24 @@ export function PagamentoEditModal({
           />
           
           <div className="flex justify-end gap-4 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              disabled={isSaving}
+            >
               Cancelar
             </Button>
-            <Button type="submit">
-              Salvar
+            <Button 
+              type="submit"
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : 'Salvar'}
             </Button>
           </div>
         </form>

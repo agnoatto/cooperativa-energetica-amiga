@@ -56,6 +56,7 @@ export function PagamentoFormFields({
         
         <StatusSection 
           form={form}
+          setForm={setForm}
         />
       </div>
     </ScrollArea>

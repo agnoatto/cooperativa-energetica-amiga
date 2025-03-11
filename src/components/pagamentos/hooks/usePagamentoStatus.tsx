@@ -45,6 +45,25 @@ const STATUS_CONFIG: Record<PagamentoStatus, StatusConfig> = {
   },
 };
 
+// Função auxiliar para validar transições de status
+const validateStatusTransition = (
+  oldStatus: PagamentoStatus | null,
+  newStatus: PagamentoStatus
+): boolean => {
+  if (!oldStatus) return true; // Caso seja um novo pagamento
+
+  // Definir transições permitidas
+  const allowedTransitions: Record<PagamentoStatus, PagamentoStatus[]> = {
+    pendente: ['enviado', 'cancelado'],
+    enviado: ['pago', 'atrasado', 'cancelado'],
+    atrasado: ['pago', 'cancelado'],
+    pago: ['cancelado'],
+    cancelado: []
+  };
+
+  return allowedTransitions[oldStatus].includes(newStatus);
+};
+
 export function usePagamentoStatus() {
   const queryClient = useQueryClient();
 
@@ -70,48 +89,98 @@ export function usePagamentoStatus() {
 
   const updateStatusMutation = useMutation({
     mutationFn: async (variables: { id: string; method: SendMethod }) => {
-      console.log('Atualizando status do pagamento:', variables);
+      console.log('[usePagamentoStatus] Iniciando atualização de status:', variables);
       
-      const { data, error } = await supabase.rpc('update_pagamento_status', {
-        p_pagamento_id: variables.id,
-        p_novo_status: 'enviado',
-        p_method: variables.method
-      });
+      try {
+        // Verificar perfil do usuário e cooperativa
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('cooperativa_id')
+          .single();
+          
+        if (profileError) {
+          console.error('[usePagamentoStatus] Erro ao buscar perfil:', profileError);
+          throw new Error(`Erro ao buscar perfil: ${profileError.message}`);
+        }
+        
+        if (!profile?.cooperativa_id) {
+          console.error('[usePagamentoStatus] Cooperativa não encontrada');
+          throw new Error('Cooperativa não encontrada para o usuário atual');
+        }
+        
+        // Buscar pagamento atual para validação
+        const { data: currentPagamento, error: pagamentoError } = await supabase
+          .from('pagamentos_usina')
+          .select('status')
+          .eq('id', variables.id)
+          .single();
+          
+        if (pagamentoError) {
+          console.error('[usePagamentoStatus] Erro ao buscar pagamento:', pagamentoError);
+          throw new Error(`Erro ao buscar pagamento: ${pagamentoError.message}`);
+        }
+        
+        // Validar transição de status
+        const novoStatus = 'enviado';
+        if (!validateStatusTransition(currentPagamento.status, novoStatus)) {
+          console.error('[usePagamentoStatus] Transição de status inválida:', {
+            atual: currentPagamento.status,
+            novo: novoStatus
+          });
+          throw new Error(`Transição de status inválida: ${currentPagamento.status} para ${novoStatus}`);
+        }
+      
+        const { data, error } = await supabase.rpc('update_pagamento_status', {
+          p_pagamento_id: variables.id,
+          p_novo_status: novoStatus,
+          p_method: variables.method
+        });
 
-      if (error) {
-        console.error('Erro na atualização:', error);
+        if (error) {
+          console.error('[usePagamentoStatus] Erro na atualização via RPC:', error);
+          throw error;
+        }
+
+        console.log('[usePagamentoStatus] Resposta da atualização:', data);
+        return data;
+      } catch (error: any) {
+        console.error('[usePagamentoStatus] Erro durante processo de atualização:', error);
         throw error;
       }
-
-      console.log('Resposta da atualização:', data);
-      return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['pagamentos'] });
       toast.success(`Boletim enviado por ${variables.method === 'email' ? 'e-mail' : 'WhatsApp'}`);
     },
-    onError: (error) => {
-      console.error('Erro ao atualizar status:', error);
-      toast.error('Erro ao enviar boletim');
+    onError: (error: any) => {
+      console.error('[usePagamentoStatus] Erro ao atualizar status:', error);
+      toast.error(`Erro ao enviar boletim: ${error.message}`);
     },
   });
 
   const handleSendPagamento = async (pagamento: PagamentoData, method: SendMethod) => {
     if (!pagamento.status || pagamento.status !== 'pendente') {
-      throw new Error('Apenas pagamentos pendentes podem ser enviados');
+      console.error('[usePagamentoStatus] Status inválido para envio:', pagamento.status);
+      toast.error('Apenas pagamentos pendentes podem ser enviados');
+      return;
     }
 
     try {
-      console.log('Iniciando envio do pagamento:', { id: pagamento.id, method });
+      console.log('[usePagamentoStatus] Iniciando envio do pagamento:', { 
+        id: pagamento.id, 
+        method,
+        status_atual: pagamento.status 
+      });
       await updateStatusMutation.mutateAsync({ id: pagamento.id, method });
-    } catch (error) {
-      console.error('Erro no processo de envio:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('[usePagamentoStatus] Erro no processo de envio:', error);
+      toast.error(`Erro ao enviar boletim: ${error.message}`);
     }
   };
 
   return {
     StatusBadge,
     handleSendPagamento,
+    isUpdating: updateStatusMutation.isPending
   };
 }
