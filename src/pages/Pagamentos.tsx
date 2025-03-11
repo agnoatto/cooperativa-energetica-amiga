@@ -1,4 +1,10 @@
 
+/**
+ * Página principal de gerenciamento de pagamentos de usinas fotovoltaicas
+ * 
+ * Esta página permite visualizar, editar e gerenciar todos os pagamentos
+ * relacionados às usinas, incluindo geração de energia, valores e datas.
+ */
 import { useState } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -8,6 +14,7 @@ import { PagamentosDashboard } from "@/components/pagamentos/PagamentosDashboard
 import { PagamentosTable } from "@/components/pagamentos/PagamentosTable";
 import { PagamentoDetailsDialog } from "@/components/pagamentos/PagamentoDetailsDialog";
 import { DeletePagamentoDialog } from "@/components/pagamentos/DeletePagamentoDialog";
+import { PagamentoEditModal } from "@/components/pagamentos/PagamentoEditModal";
 import { PagamentoData } from "@/components/pagamentos/types/pagamento";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useMonthSelection } from "@/hooks/useMonthSelection";
@@ -16,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 const Pagamentos = () => {
   // Estados
   const [selectedPagamento, setSelectedPagamento] = useState<PagamentoData | null>(null);
+  const [selectedPagamentoToEdit, setSelectedPagamentoToEdit] = useState<PagamentoData | null>(null);
   const [pagamentoToDelete, setPagamentoToDelete] = useState<PagamentoData | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   
@@ -45,6 +53,10 @@ const Pagamentos = () => {
   const handleViewDetails = (pagamento: PagamentoData) => {
     setSelectedPagamento(pagamento);
     setShowDetails(true);
+  };
+
+  const handleEditPagamento = (pagamento: PagamentoData) => {
+    setSelectedPagamentoToEdit(pagamento);
   };
 
   const handleDeletePagamento = (pagamento: PagamentoData) => {
@@ -86,6 +98,7 @@ const Pagamentos = () => {
       <PagamentosTable
         pagamentos={pagamentos}
         isLoading={isLoading}
+        onEditPagamento={handleEditPagamento}
         onViewDetails={handleViewDetails}
         onDeletePagamento={handleDeletePagamento}
       />
@@ -100,6 +113,15 @@ const Pagamentos = () => {
           }}
         />
       )}
+
+      <PagamentoEditModal
+        pagamento={selectedPagamentoToEdit}
+        isOpen={!!selectedPagamentoToEdit}
+        onClose={() => setSelectedPagamentoToEdit(null)}
+        onSave={() => {
+          queryClient.invalidateQueries({ queryKey: ["pagamentos"] });
+        }}
+      />
 
       <DeletePagamentoDialog
         pagamento={pagamentoToDelete}
