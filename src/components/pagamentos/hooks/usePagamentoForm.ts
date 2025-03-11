@@ -8,7 +8,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { PagamentoData, PagamentoFormValues } from "../types/pagamento";
+import { PagamentoData, PagamentoFormValues, PagamentoStatus } from "../types/pagamento";
 
 export function usePagamentoForm(
   pagamento: PagamentoData | null,
@@ -137,7 +137,7 @@ export function usePagamentoForm(
       const statusAtualizado = form.status !== pagamento.status;
       
       // Preparar histórico de status somente se houve mudança
-      let historicoStatusUpdate = undefined;
+      let historicoStatusUpdate = null;
       
       if (statusAtualizado && form.status) {
         console.log('[usePagamentoForm] Status atualizado:', {
@@ -158,7 +158,26 @@ export function usePagamentoForm(
       }
 
       // Formatação adequada dos valores numéricos
-      const dadosAtualizados = {
+      const dadosAtualizados: {
+        status: PagamentoStatus | null;
+        geracao_kwh: number;
+        valor_total: number;
+        tusd_fio_b: number;
+        valor_tusd_fio_b: number;
+        valor_concessionaria: number;
+        data_vencimento: string | null;
+        data_vencimento_concessionaria: string | null;
+        data_emissao: string | null;
+        data_pagamento: string | null;
+        observacao: string | null;
+        observacao_pagamento: string | null;
+        arquivo_conta_energia_nome: string | null;
+        arquivo_conta_energia_path: string | null;
+        arquivo_conta_energia_tipo: string | null;
+        arquivo_conta_energia_tamanho: number | null;
+        cooperativa_id: string;
+        historico_status?: string;
+      } = {
         status: form.status,
         geracao_kwh: Number(form.geracao_kwh) || 0,
         valor_total: Number(valorEfetivo.toFixed(4)),
