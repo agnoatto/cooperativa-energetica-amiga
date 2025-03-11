@@ -15,7 +15,6 @@ import { PagamentoData } from "./types/pagamento";
 interface PagamentosTableProps {
   pagamentos?: PagamentoData[];
   isLoading: boolean;
-  onEditPagamento: (pagamento: PagamentoData) => void;
   onViewDetails: (pagamento: PagamentoData) => void;
   onDeletePagamento: (pagamento: PagamentoData) => void;
 }
@@ -23,7 +22,6 @@ interface PagamentosTableProps {
 export function PagamentosTable({
   pagamentos,
   isLoading,
-  onEditPagamento,
   onViewDetails,
   onDeletePagamento,
 }: PagamentosTableProps) {
@@ -55,7 +53,6 @@ export function PagamentosTable({
             <PagamentoTableRow
               key={pagamento.id}
               pagamento={pagamento}
-              onEdit={onEditPagamento}
               onDelete={onDeletePagamento}
               onViewDetails={onViewDetails}
             />

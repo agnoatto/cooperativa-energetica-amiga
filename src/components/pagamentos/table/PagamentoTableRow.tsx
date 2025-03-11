@@ -1,6 +1,5 @@
 
-import { format } from "date-fns";
-import { FileDown, Send, Eye, Pencil, Trash, FileText } from "lucide-react";
+import { FileDown, Send, Eye, Trash, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { PagamentoData, SendMethod } from "../types/pagamento";
@@ -22,14 +21,12 @@ import { STORAGE_BUCKET } from "../hooks/constants";
 
 interface PagamentoTableRowProps {
   pagamento: PagamentoData;
-  onEdit: (pagamento: PagamentoData) => void;
   onDelete: (pagamento: PagamentoData) => void;
   onViewDetails: (pagamento: PagamentoData) => void;
 }
 
 export function PagamentoTableRow({
   pagamento,
-  onEdit,
   onDelete,
   onViewDetails,
 }: PagamentoTableRowProps) {
@@ -194,22 +191,6 @@ export function PagamentoTableRow({
                 </TooltipContent>
               </Tooltip>
             )}
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => onEdit(pagamento)}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Editar</p>
-              </TooltipContent>
-            </Tooltip>
 
             <Tooltip>
               <TooltipTrigger asChild>
