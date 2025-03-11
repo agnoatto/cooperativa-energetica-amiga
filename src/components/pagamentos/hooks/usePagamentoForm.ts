@@ -103,6 +103,7 @@ export function usePagamentoForm(
     e.preventDefault();
     
     if (!pagamento?.id) {
+      console.error('[usePagamentoForm] ID do pagamento não encontrado');
       toast.error('ID do pagamento não encontrado');
       return;
     }
@@ -114,24 +115,44 @@ export function usePagamentoForm(
         valorEfetivo: valorEfetivo
       });
 
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('cooperativa_id')
+        .single();
+
+      if (!profile?.cooperativa_id) {
+        console.error('[usePagamentoForm] Cooperativa não encontrada para o usuário');
+        toast.error('Cooperativa não encontrada');
+        return;
+      }
+
       const { error } = await supabase
         .from('pagamentos_usina')
         .update({
+          status: form.status,
           geracao_kwh: Number(form.geracao_kwh),
           valor_total: Number(valorEfetivo.toFixed(4)),
-          status: form.status,
-          data_emissao: form.data_emissao,
           tusd_fio_b: Number(form.tusd_fio_b.toFixed(4)),
           valor_tusd_fio_b: Number(valorTotalTusdFioB.toFixed(4)),
           valor_concessionaria: Number(form.valor_concessionaria.toFixed(4)),
           data_vencimento: form.data_vencimento || null,
           data_vencimento_concessionaria: form.data_vencimento_concessionaria,
+          data_emissao: form.data_emissao,
           observacao: form.observacao || null,
           observacao_pagamento: form.observacao_pagamento || null,
           arquivo_conta_energia_nome: form.arquivo_conta_energia_nome,
           arquivo_conta_energia_path: form.arquivo_conta_energia_path,
           arquivo_conta_energia_tipo: form.arquivo_conta_energia_tipo,
-          arquivo_conta_energia_tamanho: form.arquivo_conta_energia_tamanho
+          arquivo_conta_energia_tamanho: form.arquivo_conta_energia_tamanho,
+          cooperativa_id: profile.cooperativa_id,
+          historico_status: JSON.stringify([
+            ...(pagamento.historico_status || []),
+            {
+              data: new Date().toISOString(),
+              status_anterior: pagamento.status,
+              novo_status: form.status
+            }
+          ])
         })
         .eq('id', pagamento.id);
 
