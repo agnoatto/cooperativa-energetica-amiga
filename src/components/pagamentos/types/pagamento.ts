@@ -37,7 +37,7 @@ export interface PagamentoData extends PagamentoFormValues {
   id: string;
   created_at: string;
   updated_at: string;
-  empresa_id: string | null;
+  cooperativa_id: string | null;
   historico_status: HistoricoStatus[];
   geracao_kwh: number;
   usina: {

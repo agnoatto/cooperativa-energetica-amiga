@@ -1,4 +1,10 @@
 
+/**
+ * Funções de consulta para buscar dados de pagamentos do banco de dados
+ * 
+ * Este arquivo contém consultas ao Supabase para obter informações
+ * sobre pagamentos de usinas, seja por mês atual ou histórico.
+ */
 import { supabase } from "@/integrations/supabase/client";
 import { PagamentoData } from "@/components/pagamentos/types/pagamento";
 
@@ -30,6 +36,7 @@ export const fetchPagamentos = async (currentDate: Date): Promise<PagamentoData[
     throw error;
   }
 
+  // Formata os dados retornados para corresponder ao tipo PagamentoData
   return (data || []).map(pagamento => ({
     ...pagamento,
     send_method: pagamento.send_method?.[0] || null, // Pega o primeiro método do array ou null
@@ -72,6 +79,7 @@ export const fetchPagamentosHistorico = async (pagamentoAtual: PagamentoData): P
     throw error;
   }
 
+  // Formata os dados retornados para corresponder ao tipo PagamentoData
   return (data || []).map(pagamento => ({
     ...pagamento,
     send_method: pagamento.send_method?.[0] || null, // Pega o primeiro método do array ou null
