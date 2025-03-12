@@ -141,7 +141,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
             {/* Informações da Usina */}
             <DadosUsinaSection pagamento={pagamento} />
             
-            {/* Seção de Geração e Valores */}
+            {/* Seção de Geração e Valores (agora ocupa 2 colunas) */}
             <GeracaoValoresSection 
               geracao={geracao}
               setGeracao={setGeracao}
@@ -154,14 +154,16 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
               setValorConcessionaria={setValorConcessionaria}
             />
             
-            {/* Seção de Datas */}
-            <DatasSection 
-              dataVencimentoConcessionaria={dataVencimentoConcessionaria}
-              setDataVencimentoConcessionaria={setDataVencimentoConcessionaria}
-              dataEmissao={dataEmissao}
-              setDataEmissao={setDataEmissao}
-              dataVencimento={dataVencimento}
-            />
+            {/* Seção de Datas (ocupa 2 colunas para manter o alinhamento) */}
+            <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <DatasSection 
+                dataVencimentoConcessionaria={dataVencimentoConcessionaria}
+                setDataVencimentoConcessionaria={setDataVencimentoConcessionaria}
+                dataEmissao={dataEmissao}
+                setDataEmissao={setDataEmissao}
+                dataVencimento={dataVencimento}
+              />
+            </div>
           </div>
           
           {/* Botões do Formulário */}

@@ -38,7 +38,7 @@ export function GeracaoValoresSection({
   const valorLiquido = valorBruto - valorTusdFioB - valorConcessionaria;
 
   return (
-    <>
+    <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Geração */}
       <div className="space-y-2">
         <Label htmlFor="geracao">Geração (kWh)</Label>
@@ -117,8 +117,8 @@ export function GeracaoValoresSection({
         />
       </div>
 
-      {/* Valor a Receber Líquido - Novo Campo */}
-      <div className="space-y-2">
+      {/* Valor a Receber Líquido - Novo Campo (ocupa a largura total) */}
+      <div className="space-y-2 col-span-2">
         <Label htmlFor="valorLiquido">Valor a Receber Líquido (R$)</Label>
         <Input
           id="valorLiquido"
@@ -128,7 +128,6 @@ export function GeracaoValoresSection({
           className="bg-green-50 border-green-200 font-medium"
         />
       </div>
-    </>
+    </div>
   );
 }
-
