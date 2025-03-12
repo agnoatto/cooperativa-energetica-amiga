@@ -1,3 +1,4 @@
+
 /**
  * Componente de modal para edição de pagamentos de usinas
  * 
@@ -46,7 +47,14 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
   const [dataVencimento, setDataVencimento] = useState<Date | undefined>();
   
   // Estado para o arquivo de conta de energia
-  const { fileInfo, setFileInfo } = useFileState();
+  const { 
+    fileInfo, 
+    setFileInfo, 
+    isUploading, 
+    uploadFile, 
+    removeFile, 
+    previewFile 
+  } = useFileState();
   
   // Custom hook para manipular o formulário
   const { salvarPagamento, isSaving } = usePagamentoForm();
@@ -106,6 +114,12 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
       setDataVencimento(novaDataVencimento);
     }
   }, [dataEmissao]);
+
+  // Handler para upload de arquivos
+  const handleFileUpload = async (file: File) => {
+    if (!pagamento?.id) return;
+    await uploadFile(file, pagamento.id);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -323,10 +337,10 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
                 pagamentoId={pagamento?.id || ''}
                 arquivoNome={fileInfo.nome}
                 arquivoPath={fileInfo.path}
-                isUploading={isSaving}
-                onUpload={(file) => console.log("Arquivo recebido:", file)}
-                onRemove={() => console.log("Remover arquivo")}
-                onPreview={() => console.log("Preview do arquivo")}
+                isUploading={isUploading}
+                onUpload={handleFileUpload}
+                onRemove={removeFile}
+                onPreview={previewFile}
               />
             </div>
           </div>

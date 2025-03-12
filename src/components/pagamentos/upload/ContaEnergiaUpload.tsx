@@ -46,7 +46,6 @@ export function ContaEnergiaUpload({
 
     try {
       console.log("[ContaEnergiaUpload] Iniciando download do arquivo:", arquivoPath);
-      // Implementação do download aqui
       window.open(arquivoPath, '_blank');
       toast.success("Download iniciado");
     } catch (error: any) {

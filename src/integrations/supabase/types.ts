@@ -1573,20 +1573,39 @@ export type Database = {
       }
     }
     Functions: {
-      atualizar_pagamento_usina: {
-        Args: {
-          p_id: string
-          p_geracao_kwh: number
-          p_tusd_fio_b: number
-          p_valor_tusd_fio_b: number
-          p_valor_concessionaria: number
-          p_valor_total: number
-          p_data_vencimento_concessionaria: string
-          p_data_emissao: string
-          p_data_vencimento: string
-        }
-        Returns: Json
-      }
+      atualizar_pagamento_usina:
+        | {
+            Args: {
+              p_id: string
+              p_geracao_kwh: number
+              p_tusd_fio_b: number
+              p_valor_tusd_fio_b: number
+              p_valor_concessionaria: number
+              p_valor_total: number
+              p_data_vencimento_concessionaria: string
+              p_data_emissao: string
+              p_data_vencimento: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_id: string
+              p_geracao_kwh: number
+              p_tusd_fio_b: number
+              p_valor_tusd_fio_b: number
+              p_valor_concessionaria: number
+              p_valor_total: number
+              p_data_vencimento_concessionaria: string
+              p_data_emissao: string
+              p_data_vencimento: string
+              p_arquivo_conta_energia_nome?: string
+              p_arquivo_conta_energia_path?: string
+              p_arquivo_conta_energia_tipo?: string
+              p_arquivo_conta_energia_tamanho?: number
+            }
+            Returns: Json
+          }
       avaliar_formula_calculo_fatura: {
         Args: {
           p_formula: string
