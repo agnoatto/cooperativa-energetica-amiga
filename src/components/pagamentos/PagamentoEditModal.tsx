@@ -179,7 +179,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
             
             {/* TUSD Fio B */}
             <div className="space-y-2">
-              <Label htmlFor="tusdFioB">TUSD Fio B (por kWh)</Label>
+              <Label htmlFor="tusdFioB">TUSD Fio B (R$/kWh)</Label>
               <Input
                 id="tusdFioB"
                 type="number"
