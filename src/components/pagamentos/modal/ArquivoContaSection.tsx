@@ -6,7 +6,7 @@
  * de contas de energia associadas aos pagamentos de usinas
  */
 import { useState, useEffect } from "react";
-import { FormLabel } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { ContaEnergiaUpload } from "../upload/ContaEnergiaUpload";
 import { useFileState } from "../hooks/useFileState";
 
@@ -34,7 +34,7 @@ export function ArquivoContaSection({
 
   return (
     <div className="space-y-2 col-span-2">
-      <FormLabel>Conta de Energia (PDF)</FormLabel>
+      <Label htmlFor="conta-energia">Conta de Energia (PDF)</Label>
       <ContaEnergiaUpload
         pagamentoId={pagamentoId}
         arquivoNome={arquivoNome}

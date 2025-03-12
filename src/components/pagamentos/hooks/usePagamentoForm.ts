@@ -19,6 +19,10 @@ interface PagamentoUpdateData {
   data_vencimento_concessionaria: string | null;
   data_emissao: string | null;
   data_vencimento: string | null;
+  arquivo_conta_energia_nome: string | null;
+  arquivo_conta_energia_path: string | null;
+  arquivo_conta_energia_tipo: string | null;
+  arquivo_conta_energia_tamanho: number | null;
 }
 
 export const usePagamentoForm = () => {
@@ -46,11 +50,11 @@ export const usePagamentoForm = () => {
         p_data_vencimento_concessionaria: dados.data_vencimento_concessionaria,
         p_data_emissao: dados.data_emissao,
         p_data_vencimento: dados.data_vencimento,
-        // Não enviamos mais informações sobre arquivos
-        p_arquivo_conta_energia_nome: null,
-        p_arquivo_conta_energia_path: null,
-        p_arquivo_conta_energia_tipo: null,
-        p_arquivo_conta_energia_tamanho: null
+        // Incluímos as informações do arquivo de conta de energia
+        p_arquivo_conta_energia_nome: dados.arquivo_conta_energia_nome,
+        p_arquivo_conta_energia_path: dados.arquivo_conta_energia_path,
+        p_arquivo_conta_energia_tipo: dados.arquivo_conta_energia_tipo,
+        p_arquivo_conta_energia_tamanho: dados.arquivo_conta_energia_tamanho
       });
         
       if (error) {
