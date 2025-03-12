@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
 import { styles, COLORS, FONTS } from '@/components/pdf/theme';
@@ -97,18 +98,17 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
                 <Text style={styles.highlightValue}>{formatarMoeda(economiaAcumulada)}</Text>
               </View>
 
-              {/* Histórico de Economia com título em destaque */}
+              {/* Histórico de Economia com título ajustado para mesmo tamanho dos outros */}
               <View style={{ marginTop: 20 }}>
                 <Text style={{ 
-                  fontSize: FONTS.TITLE,
+                  fontSize: FONTS.SUBTITLE,
                   marginBottom: 15,
                   fontWeight: 'bold',
-                  color: COLORS.PRIMARY,
-                  backgroundColor: COLORS.LIGHT_BLUE,
-                  padding: 10,
-                  borderRadius: 4,
-                  textAlign: 'center',
-                  textTransform: 'uppercase'
+                  color: COLORS.WHITE,
+                  backgroundColor: COLORS.HEADER_BG,
+                  padding: '5px 10px',
+                  borderRadius: 0,
+                  textAlign: 'left',
                 }}>
                   Histórico de Economia
                 </Text>
@@ -204,19 +204,20 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
           </View>
         </View>
 
-        {/* Nova seção: Observações da Fatura */}
+        {/* Nova seção: Observações da Fatura (simplificada, sem cor vermelha) */}
         {fatura.observacao && (
           <View style={{ 
             marginTop: 15, 
+            marginBottom: 80, // Espaço para o rodapé
             padding: 10, 
             borderWidth: 1, 
-            borderColor: COLORS.RED, 
+            borderColor: COLORS.GRAY, 
             borderRadius: 4 
           }}>
             <Text style={{ 
               fontSize: FONTS.SUBTITLE, 
-              color: COLORS.RED, 
               marginBottom: 5,
+              fontWeight: 'bold',
               textAlign: 'center'
             }}>
               Observações da Fatura
@@ -225,8 +226,8 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
           </View>
         )}
 
-        {/* Rodapé */}
-        <View style={styles.footer}>
+        {/* Rodapé (movido para parte inferior da página) */}
+        <View style={[styles.footer, { bottom: 30, left: 0, right: 0 }]}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
             <View>
               <Text>COGESOL Cooperativa de Energia Renovável</Text>
