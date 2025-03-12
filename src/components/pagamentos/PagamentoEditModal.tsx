@@ -7,22 +7,19 @@
  * Calcula automaticamente valores derivados baseados na entrada do usuário.
  */
 import { useEffect, useState } from "react";
-import { CalendarIcon } from "lucide-react";
-import { format, addDays } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { addDays } from "date-fns";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
-import { formatarMoeda } from "@/utils/formatters";
 import { convertLocalToUTC } from "@/utils/dateFormatters";
 import { PagamentoData } from "./types/pagamento";
 import { usePagamentoForm } from "./hooks/usePagamentoForm";
+
+// Componentes refatorados
+import { DadosUsinaSection } from "./modal/DadosUsinaSection";
+import { GeracaoValoresSection } from "./modal/GeracaoValoresSection";
+import { DatasSection } from "./modal/DatasSection";
+import { FormButtons } from "./modal/FormButtons";
 
 interface PagamentoEditModalProps {
   pagamento: PagamentoData | null;
@@ -142,177 +139,33 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Informações da Usina */}
-            <div className="col-span-2 mb-2">
-              <h3 className="text-lg font-medium">Dados da Usina</h3>
-              <p className="text-sm text-muted-foreground">
-                {pagamento?.usina?.unidade_usina?.numero_uc} - {pagamento?.usina?.investidor?.nome_investidor}
-              </p>
-            </div>
+            <DadosUsinaSection pagamento={pagamento} />
             
-            {/* Geração */}
-            <div className="space-y-2">
-              <Label htmlFor="geracao">Geração (kWh)</Label>
-              <Input
-                id="geracao"
-                type="number"
-                step="0.01"
-                min="0"
-                value={geracao}
-                onChange={(e) => setGeracao(parseFloat(e.target.value) || 0)}
-                required
-              />
-            </div>
+            {/* Seção de Geração e Valores */}
+            <GeracaoValoresSection 
+              geracao={geracao}
+              setGeracao={setGeracao}
+              valorKwh={valorKwh}
+              tusdFioB={tusdFioB}
+              setTusdFioB={setTusdFioB}
+              valorTusdFioB={valorTusdFioB}
+              valorBruto={valorBruto}
+              valorConcessionaria={valorConcessionaria}
+              setValorConcessionaria={setValorConcessionaria}
+            />
             
-            {/* Valor kWh - Agora somente leitura */}
-            <div className="space-y-2">
-              <Label htmlFor="valorKwh">Valor do kWh (R$)</Label>
-              <Input
-                id="valorKwh"
-                type="number"
-                step="0.0001"
-                min="0"
-                value={valorKwh}
-                readOnly
-                className="bg-gray-50 cursor-not-allowed"
-              />
-            </div>
-            
-            {/* TUSD Fio B */}
-            <div className="space-y-2">
-              <Label htmlFor="tusdFioB">TUSD Fio B (R$/kWh)</Label>
-              <Input
-                id="tusdFioB"
-                type="number"
-                step="0.0001"
-                min="0"
-                value={tusdFioB}
-                onChange={(e) => setTusdFioB(parseFloat(e.target.value) || 0)}
-                required
-              />
-            </div>
-            
-            {/* Valor TUSD Fio B Total */}
-            <div className="space-y-2">
-              <Label htmlFor="valorTusdFioB">Valor Total TUSD Fio B</Label>
-              <Input
-                id="valorTusdFioB"
-                type="text"
-                value={formatarMoeda(valorTusdFioB)}
-                disabled
-              />
-            </div>
-            
-            {/* Valor Bruto */}
-            <div className="space-y-2">
-              <Label htmlFor="valorBruto">Valor Bruto (R$)</Label>
-              <Input
-                id="valorBruto"
-                type="text"
-                value={formatarMoeda(valorBruto)}
-                disabled
-              />
-            </div>
-            
-            {/* Valor Concessionária */}
-            <div className="space-y-2">
-              <Label htmlFor="valorConcessionaria">Valor Concessionária (R$)</Label>
-              <Input
-                id="valorConcessionaria"
-                type="number"
-                step="0.01"
-                min="0"
-                value={valorConcessionaria}
-                onChange={(e) => setValorConcessionaria(parseFloat(e.target.value) || 0)}
-                required
-              />
-            </div>
-            
-            {/* Data Vencimento Concessionária */}
-            <div className="space-y-2">
-              <Label htmlFor="dataVencimentoConcessionaria">Data Vencimento Concessionária</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    id="dataVencimentoConcessionaria"
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !dataVencimentoConcessionaria && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dataVencimentoConcessionaria ? (
-                      format(dataVencimentoConcessionaria, "dd/MM/yyyy", { locale: ptBR })
-                    ) : (
-                      "Selecione uma data"
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={dataVencimentoConcessionaria}
-                    onSelect={setDataVencimentoConcessionaria}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            
-            {/* Data Emissão */}
-            <div className="space-y-2">
-              <Label htmlFor="dataEmissao">Data de Emissão</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    id="dataEmissao"
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !dataEmissao && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dataEmissao ? (
-                      format(dataEmissao, "dd/MM/yyyy", { locale: ptBR })
-                    ) : (
-                      "Selecione uma data"
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={dataEmissao}
-                    onSelect={setDataEmissao}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            
-            {/* Data Vencimento (90 dias após emissão) */}
-            <div className="space-y-2">
-              <Label htmlFor="dataVencimento">Data de Vencimento (90 dias após emissão)</Label>
-              <Input
-                id="dataVencimento"
-                type="text"
-                value={dataVencimento ? format(dataVencimento, "dd/MM/yyyy", { locale: ptBR }) : ""}
-                disabled
-              />
-            </div>
+            {/* Seção de Datas */}
+            <DatasSection 
+              dataVencimentoConcessionaria={dataVencimentoConcessionaria}
+              setDataVencimentoConcessionaria={setDataVencimentoConcessionaria}
+              dataEmissao={dataEmissao}
+              setDataEmissao={setDataEmissao}
+              dataVencimento={dataVencimento}
+            />
           </div>
           
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="outline" type="button" onClick={onClose} disabled={isSaving}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? "Salvando..." : "Salvar"}
-            </Button>
-          </div>
+          {/* Botões do Formulário */}
+          <FormButtons onClose={onClose} isSaving={isSaving} />
         </form>
       </DialogContent>
     </Dialog>
