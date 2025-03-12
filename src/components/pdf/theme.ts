@@ -178,10 +178,10 @@ export const styles = StyleSheet.create({
   },
   footer: {
     position: 'absolute',
-    bottom: 10,
+    bottom: 0,
     left: 0,
     right: 0,
-    padding: '20px',
+    padding: '10px 20px',
   },
   footerText: {
     fontSize: FONTS.SMALL,
@@ -190,7 +190,7 @@ export const styles = StyleSheet.create({
   },
   warningBox: {
     backgroundColor: '#4b7931',
-    marginTop: 5,
+    marginTop: 0,
   },
   warningText: {
     textAlign: 'center',
