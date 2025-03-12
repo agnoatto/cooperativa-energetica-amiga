@@ -4,8 +4,9 @@
  * 
  * Este componente controla os campos de geração de energia (kWh), valor do kWh,
  * TUSD Fio B, e exibe os cálculos automáticos de valores derivados.
+ * Inclui também o campo de Valor a Receber Líquido apenas para conferência.
  */
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatarMoeda } from "@/utils/formatters";
@@ -33,6 +34,9 @@ export function GeracaoValoresSection({
   valorConcessionaria,
   setValorConcessionaria
 }: GeracaoValoresSectionProps) {
+  // Calculamos o valor líquido a receber
+  const valorLiquido = valorBruto - valorTusdFioB - valorConcessionaria;
+
   return (
     <>
       {/* Geração */}
@@ -112,6 +116,19 @@ export function GeracaoValoresSection({
           required
         />
       </div>
+
+      {/* Valor a Receber Líquido - Novo Campo */}
+      <div className="space-y-2">
+        <Label htmlFor="valorLiquido">Valor a Receber Líquido (R$)</Label>
+        <Input
+          id="valorLiquido"
+          type="text"
+          value={formatarMoeda(valorLiquido)}
+          disabled
+          className="bg-green-50 border-green-200 font-medium"
+        />
+      </div>
     </>
   );
 }
+
