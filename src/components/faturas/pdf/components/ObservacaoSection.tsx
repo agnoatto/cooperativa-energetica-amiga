@@ -18,7 +18,7 @@ export const ObservacaoSection: React.FC<ObservacaoSectionProps> = ({ observacao
   return (
     <View style={{ 
       marginTop: 15, 
-      marginBottom: 15, // Reduzido o espaço para não ficar tão longe do rodapé
+      marginBottom: 50, // Aumentado o espaço para evitar sobreposição com o rodapé
       padding: 10, 
       borderWidth: 1, 
       borderColor: COLORS.GRAY, 
@@ -29,7 +29,7 @@ export const ObservacaoSection: React.FC<ObservacaoSectionProps> = ({ observacao
         marginBottom: 5,
         fontWeight: 'bold',
         textAlign: 'center',
-        color: COLORS.BLACK // Trocado para preto em vez de vermelho
+        color: COLORS.BLACK // Mantido preto em vez de vermelho
       }}>
         Observações da Fatura
       </Text>

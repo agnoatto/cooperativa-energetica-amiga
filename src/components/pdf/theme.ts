@@ -178,7 +178,7 @@ export const styles = StyleSheet.create({
   },
   footer: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 10,
     left: 0,
     right: 0,
     padding: '20px',

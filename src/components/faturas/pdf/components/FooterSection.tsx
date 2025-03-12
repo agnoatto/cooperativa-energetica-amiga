@@ -14,7 +14,7 @@ interface FooterSectionProps {
 }
 
 export const FooterSection: React.FC<FooterSectionProps> = ({ valorAssinatura }) => (
-  <View style={[styles.footer, { bottom: 30, left: 0, right: 0 }]}>
+  <View style={[styles.footer, { bottom: 10, left: 0, right: 0 }]}>
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
       <View>
         <Text>COGESOL Cooperativa de Energia Renovável</Text>
