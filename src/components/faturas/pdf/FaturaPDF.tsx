@@ -31,18 +31,22 @@ interface FaturaPDFProps {
 export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
   const mesReferencia = format(new Date(fatura.ano, fatura.mes - 1), 'MMMM/yy', { locale: ptBR });
   
+  // Filtrar e ordenar o histórico para mostrar exatamente 12 meses ou o máximo disponível
   const historicoFiltrado = fatura.historico_faturas
     ?.filter(hist => {
+      // Filtra apenas meses anteriores ou o mês atual
       if (hist.ano < fatura.ano) return true;
       if (hist.ano === fatura.ano && hist.mes <= fatura.mes) return true;
       return false;
     })
     .sort((a, b) => {
+      // Ordena por ano e mês (decrescente)
       if (a.ano !== b.ano) return b.ano - a.ano;
       return b.mes - a.mes;
     })
-    .slice(0, 12) || [];
+    .slice(0, 12) || []; // Exatamente os 12 meses mais recentes
 
+  // Calcula a economia acumulada baseada no histórico filtrado
   const economiaAcumulada = historicoFiltrado.reduce((total, hist) => total + hist.valor_desconto, 0) || 0;
   
   return (
