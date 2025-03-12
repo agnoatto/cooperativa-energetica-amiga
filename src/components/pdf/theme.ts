@@ -1,4 +1,3 @@
-
 import { StyleSheet } from '@react-pdf/renderer';
 
 export const COLORS = {
@@ -10,7 +9,7 @@ export const COLORS = {
   LIGHT_GRAY: '#f8f9fa',
   GREEN: '#008000',
   BLUE: '#0072CE',
-  LIGHT_BLUE: '#D3E4FD', // Adicionando a cor LIGHT_BLUE
+  LIGHT_BLUE: '#D3E4FD',
   RED: '#ff0000',
   HIGHLIGHT_BG: '#d7ff8f',
   HEADER_BG: '#1a1f2c',
@@ -189,10 +188,13 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     color: COLORS.GRAY,
   },
+  warningBox: {
+    backgroundColor: '#4b7931',
+    marginTop: 5,
+  },
   warningText: {
     textAlign: 'center',
     padding: '10px',
-    backgroundColor: '#4b7931',
     color: COLORS.WHITE,
     fontSize: FONTS.SMALL,
   },

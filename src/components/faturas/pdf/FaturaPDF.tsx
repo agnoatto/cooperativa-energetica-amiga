@@ -6,7 +6,7 @@
  * usando componentes menores para melhor organização e manutenção.
  */
 import React from 'react';
-import { Document, Page, View, Text } from '@react-pdf/renderer';
+import { Document, Page, View } from '@react-pdf/renderer';
 import { styles } from '@/components/pdf/theme';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -24,6 +24,10 @@ interface FaturaPDFProps {
   fatura: PdfFaturaData;
 }
 
+/**
+ * Componente principal que organiza o PDF da fatura
+ * Utiliza componentes menores para cada seção do documento
+ */
 export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
   const mesReferencia = format(new Date(fatura.ano, fatura.mes - 1), 'MMMM/yy', { locale: ptBR });
   
@@ -63,7 +67,9 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
 
         {/* Análise Mensal */}
         <View style={styles.contentSection}>
-          <Text style={styles.sectionHeader}>Análise Mensal</Text>
+          <View style={styles.sectionHeader}>
+            <text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>Análise Mensal</text>
+          </View>
           
           <View style={{ flexDirection: 'row' }}>
             {/* Coluna Esquerda - Histórico de Economia */}

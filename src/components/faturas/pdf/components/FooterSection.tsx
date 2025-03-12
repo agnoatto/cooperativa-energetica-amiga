@@ -28,8 +28,10 @@ export const FooterSection: React.FC<FooterSectionProps> = ({ valorAssinatura })
         </View>
       </View>
     </View>
-    <Text style={styles.warningText}>
-      Deverá ser pago a sua fatura COGESOL e a fatura RGE!
-    </Text>
+    <View style={styles.warningBox}>
+      <Text style={styles.warningText}>
+        Deverá ser pago a sua fatura COGESOL e a fatura RGE!
+      </Text>
+    </View>
   </View>
 );

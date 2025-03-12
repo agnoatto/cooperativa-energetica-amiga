@@ -44,18 +44,12 @@ export const EconomiaHistoricoSection: React.FC<EconomiaHistoricoSectionProps> =
       <Text style={styles.highlightValue}>{formatarMoeda(economiaAcumulada)}</Text>
     </View>
 
-    {/* Histórico de Economia */}
+    {/* Histórico de Economia - Ajustado para o mesmo tamanho do "Cálculo da Economia" */}
     <View style={{ marginTop: 20 }}>
-      <Text style={{ 
+      <Text style={[styles.sectionHeader, { 
         fontSize: FONTS.SUBTITLE, 
-        marginBottom: 15,
-        fontWeight: 'bold',
-        color: COLORS.WHITE,
-        backgroundColor: COLORS.HEADER_BG,
-        padding: '5px 10px',
-        borderRadius: 0,
-        textAlign: 'left',
-      }}>
+        marginBottom: 15
+      }]}>
         Histórico de Economia
       </Text>
       <View style={styles.table}>
