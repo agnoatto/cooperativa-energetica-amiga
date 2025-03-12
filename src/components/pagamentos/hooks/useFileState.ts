@@ -41,30 +41,30 @@ export function useFileState() {
       const filePath = `${pagamentoId}/${Date.now()}_${file.name}`;
       
       // Usar a função utilitária para fazer o upload
-      const { success, error, publicUrl } = await storageUploadFile(STORAGE_BUCKET, filePath, file);
+      const result = await storageUploadFile(STORAGE_BUCKET, filePath, file);
       
-      if (!success || error) {
-        console.error("[useFileState] Erro no upload:", error);
-        throw error;
+      if (!result.success || result.error) {
+        console.error("[useFileState] Erro no upload:", result.error);
+        throw result.error;
       }
       
-      if (!publicUrl) {
+      if (!result.publicUrl) {
         console.error("[useFileState] Não foi possível obter a URL pública");
         throw new Error("Não foi possível obter a URL pública do arquivo");
       }
       
-      console.log("[useFileState] URL pública obtida:", publicUrl);
+      console.log("[useFileState] URL pública obtida:", result.publicUrl);
       
       // Atualizar o estado com as informações do arquivo
       setFileInfo({
         nome: file.name,
-        path: publicUrl,
+        path: result.publicUrl,
         tipo: file.type,
         tamanho: file.size
       });
       
       toast.success("Arquivo enviado com sucesso");
-      return publicUrl;
+      return result.publicUrl;
     } catch (error: any) {
       console.error("[useFileState] Erro ao fazer upload do arquivo:", error);
       toast.error(`Erro ao enviar arquivo: ${error.message}`);
@@ -120,10 +120,10 @@ export function useFileState() {
       console.log(`[useFileState] Usando bucket: ${STORAGE_BUCKET}`);
       
       // Chamar a função de utilidade para remover o arquivo
-      const { success, error } = await removeFile(STORAGE_BUCKET, filePath);
+      const result = await removeFile(STORAGE_BUCKET, filePath);
       
-      if (!success) {
-        console.warn("[useFileState] Aviso ao remover arquivo:", error);
+      if (!result.success) {
+        console.warn("[useFileState] Aviso ao remover arquivo:", result.error);
         // Continuar mesmo com erro, para limpar o estado local
       } else {
         console.log("[useFileState] Arquivo removido com sucesso do storage");
@@ -154,7 +154,9 @@ export function useFileState() {
       console.log("[useFileState] Abrindo preview do arquivo:", fileInfo.path);
       // Corrigir o URL duplicado que aparece nos logs
       const cleanUrl = fileInfo.path.replace(/https?:\/\/[^\/]+\/storage\/v1\/object\/public\/[^\/]+\//g, '');
-      const correctUrl = `${supabase.supabaseUrl}/storage/v1/object/public/${STORAGE_BUCKET}/${cleanUrl}`;
+      // Obtém URL base usando configs do Supabase
+      const baseUrl = new URL(supabase.url).origin;
+      const correctUrl = `${baseUrl}/storage/v1/object/public/${STORAGE_BUCKET}/${cleanUrl}`;
       console.log("[useFileState] URL limpo para preview:", correctUrl);
       window.open(correctUrl, '_blank');
     } else {

@@ -1,10 +1,17 @@
 
+/**
+ * Componente para visualização de PDFs
+ * 
+ * Este componente permite visualizar arquivos PDF em um modal com opções
+ * de zoom, rotação e download.
+ */
+
 import { useState, useEffect } from "react";
 import { SimplePdfViewer } from "./SimplePdfViewer";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { STORAGE_BUCKET as FATURAS_BUCKET } from "./constants";
-import { STORAGE_BUCKET as ENERGIA_BUCKET } from "@/components/pagamentos/hooks/useFileState";
+import { STORAGE_BUCKET as ENERGIA_BUCKET } from "@/components/pagamentos/hooks/constants";
 
 interface PdfPreviewProps {
   isOpen: boolean;
@@ -72,7 +79,9 @@ export function PdfPreview({
               
               // Construir URL limpa com o bucket correto
               const storageBucket = detectBucket(pdfUrl);
-              const cleanUrl = `${supabase.supabaseUrl}/storage/v1/object/public/${storageBucket}/${path}`;
+              // Obtém URL base usando configs do Supabase
+              const baseUrl = new URL(supabase.url).origin;
+              const cleanUrl = `${baseUrl}/storage/v1/object/public/${storageBucket}/${path}`;
               console.log("[PdfPreview] URL limpa:", cleanUrl);
               setProcessedUrl(cleanUrl);
               return;
