@@ -5,6 +5,7 @@
  * Este componente permite editar informações de um pagamento específico,
  * como geração de energia, valores, datas de vencimento e emissão.
  * Calcula automaticamente valores derivados baseados na entrada do usuário.
+ * Também permite upload de arquivos de contas de energia relacionadas ao pagamento.
  */
 import { useEffect, useState } from "react";
 import { CalendarIcon } from "lucide-react";
@@ -23,6 +24,8 @@ import { formatarMoeda } from "@/utils/formatters";
 import { convertLocalToUTC, convertUTCToLocal } from "@/utils/dateFormatters";
 import { PagamentoData } from "./types/pagamento";
 import { usePagamentoForm } from "../pagamentos/hooks/usePagamentoForm";
+import { ContaEnergiaUpload } from "./upload/ContaEnergiaUpload";
+import { useFileState } from "./hooks/useFileState";
 
 interface PagamentoEditModalProps {
   pagamento: PagamentoData | null;
@@ -42,6 +45,9 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
   const [dataVencimentoConcessionaria, setDataVencimentoConcessionaria] = useState<Date | undefined>();
   const [dataEmissao, setDataEmissao] = useState<Date | undefined>();
   const [dataVencimento, setDataVencimento] = useState<Date | undefined>();
+  
+  // Estado para o arquivo de conta de energia
+  const fileState = useFileState();
   
   // Custom hook para manipular o formulário
   const { salvarPagamento, isSaving } = usePagamentoForm();
@@ -71,6 +77,14 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
       if (pagamento.data_vencimento) {
         setDataVencimento(new Date(pagamento.data_vencimento));
       }
+      
+      // Configurar o estado do arquivo
+      fileState.setFileInfo({
+        nome: pagamento.arquivo_conta_energia_nome || null,
+        path: pagamento.arquivo_conta_energia_path || null,
+        tipo: pagamento.arquivo_conta_energia_tipo || null,
+        tamanho: pagamento.arquivo_conta_energia_tamanho || null
+      });
     }
   }, [pagamento, isOpen]);
 
@@ -113,7 +127,12 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
         valor_total: valorTotal,
         data_vencimento_concessionaria: dataVencimentoConcessionaria ? convertLocalToUTC(dataVencimentoConcessionaria.toISOString()) : null,
         data_emissao: dataEmissao ? convertLocalToUTC(dataEmissao.toISOString()) : null,
-        data_vencimento: dataVencimento ? convertLocalToUTC(dataVencimento.toISOString()) : null
+        data_vencimento: dataVencimento ? convertLocalToUTC(dataVencimento.toISOString()) : null,
+        // Adicionar informações do arquivo
+        arquivo_conta_energia_nome: fileState.fileInfo.nome,
+        arquivo_conta_energia_path: fileState.fileInfo.path,
+        arquivo_conta_energia_tipo: fileState.fileInfo.tipo,
+        arquivo_conta_energia_tamanho: fileState.fileInfo.tamanho
       };
       
       await salvarPagamento(dadosAtualizados);
@@ -295,6 +314,21 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
                 type="text"
                 value={dataVencimento ? format(dataVencimento, "dd/MM/yyyy", { locale: ptBR }) : ""}
                 disabled
+              />
+            </div>
+            
+            {/* Upload de Conta de Energia */}
+            <div className="col-span-2 space-y-2 border p-4 rounded-md">
+              <Label htmlFor="contaEnergia">Conta de Energia</Label>
+              <ContaEnergiaUpload
+                pagamentoId={pagamento?.id || ''}
+                arquivoNome={fileState.fileInfo.nome}
+                arquivoPath={fileState.fileInfo.path}
+                arquivoTipo={fileState.fileInfo.tipo}
+                arquivoTamanho={fileState.fileInfo.tamanho}
+                onFileChange={(nome, path, tipo, tamanho) => {
+                  fileState.setFileInfo({ nome, path, tipo, tamanho });
+                }}
               />
             </div>
           </div>
