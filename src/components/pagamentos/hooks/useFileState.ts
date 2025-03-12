@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { removeFile, uploadFile as storageUploadFile } from "@/utils/storageUtils";
+import { removeFile as utilsRemoveFile, uploadFile as storageUploadFile } from "@/utils/storageUtils";
 
 // Nome do bucket usado para armazenar os arquivos de contas de energia
 export const STORAGE_BUCKET = 'contas-energia-usina';
@@ -120,7 +120,7 @@ export function useFileState() {
       console.log(`[useFileState] Usando bucket: ${STORAGE_BUCKET}`);
       
       // Chamar a função de utilidade para remover o arquivo
-      const result = await removeFile(STORAGE_BUCKET, filePath);
+      const result = await utilsRemoveFile(STORAGE_BUCKET, filePath);
       
       if (!result.success) {
         console.warn("[useFileState] Aviso ao remover arquivo:", result.error);
