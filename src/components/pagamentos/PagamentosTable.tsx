@@ -51,6 +51,7 @@ export function PagamentosTable({
             <TableHead className="py-1.5 px-3 text-sm text-right">Geração (kWh)</TableHead>
             <TableHead className="py-1.5 px-3 text-sm text-right">Valor Concess.</TableHead>
             <TableHead className="py-1.5 px-3 text-sm text-right">Valor Total</TableHead>
+            <TableHead className="py-1.5 px-3 text-sm text-right">Vencimento</TableHead>
             <TableHead className="py-1.5 px-3 text-sm text-right">Status</TableHead>
             <TableHead className="py-1.5 px-3 text-sm text-center">Conta</TableHead>
             <TableHead className="py-1.5 px-3 text-sm text-right">Ações</TableHead>

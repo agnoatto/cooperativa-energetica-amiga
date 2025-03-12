@@ -1,4 +1,3 @@
-
 /**
  * Componente de linha da tabela de pagamentos
  * 
@@ -25,6 +24,8 @@ import { BoletimPreviewDialog } from "../BoletimPreviewDialog";
 import { SendPagamentoDialog } from "../SendPagamentoDialog";
 import { STORAGE_BUCKET } from "../hooks/constants";
 import { useFileState } from "../hooks/useFileState";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface PagamentoTableRowProps {
   pagamento: PagamentoData;
@@ -54,7 +55,6 @@ export function PagamentoTableRow({
       try {
         console.log('[handlePreviewContaEnergia] Tentando obter URL do arquivo:', pagamento.arquivo_conta_energia_path);
         
-        // Tenta criar uma URL assinada primeiro
         const { data: signedUrlData, error: signedUrlError } = await supabase
           .storage
           .from(STORAGE_BUCKET)
@@ -63,7 +63,6 @@ export function PagamentoTableRow({
         if (signedUrlError) {
           console.error('[handlePreviewContaEnergia] Erro ao gerar URL assinada:', signedUrlError);
           
-          // Se falhar, tenta obter URL pública
           const { data } = await supabase
             .storage
             .from(STORAGE_BUCKET)
@@ -99,7 +98,6 @@ export function PagamentoTableRow({
           throw error;
         }
 
-        // Criar URL do blob e fazer download
         const url = window.URL.createObjectURL(data);
         const a = document.createElement('a');
         a.href = url;
@@ -126,7 +124,6 @@ export function PagamentoTableRow({
       const success = await deleteFileFromPagamento(pagamento.id);
       if (success) {
         toast.success("Arquivo da conta de energia removido com sucesso");
-        // Forçar o recarregamento dos dados
         window.location.reload();
       }
     } catch (error) {
@@ -134,6 +131,10 @@ export function PagamentoTableRow({
       toast.error('Erro ao excluir arquivo da conta de energia');
     }
   };
+
+  const formattedVencimento = pagamento.data_vencimento 
+    ? format(new Date(pagamento.data_vencimento), 'dd/MM/yyyy', { locale: ptBR })
+    : '-';
 
   return (
     <TableRow className="h-9 hover:bg-gray-50">
@@ -144,6 +145,7 @@ export function PagamentoTableRow({
         {formatarMoeda(pagamento.valor_concessionaria)}
       </TableCell>
       <TableCell className="py-1.5 px-3 text-sm text-right">{formatarMoeda(valorEfetivo)}</TableCell>
+      <TableCell className="py-1.5 px-3 text-sm text-right">{formattedVencimento}</TableCell>
       <TableCell className="py-1.5 px-3 text-sm text-right">
         <StatusBadge status={pagamento.status} />
       </TableCell>
@@ -232,7 +234,6 @@ export function PagamentoTableRow({
         </div>
       </TableCell>
 
-      {/* Modais */}
       <PdfPreview 
         isOpen={showContaEnergiaPreview}
         onClose={() => {
