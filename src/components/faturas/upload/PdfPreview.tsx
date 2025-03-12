@@ -4,6 +4,7 @@ import { SimplePdfViewer } from "./SimplePdfViewer";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { STORAGE_BUCKET as FATURAS_BUCKET } from "./constants";
+import { STORAGE_BUCKET as ENERGIA_BUCKET } from "@/components/pagamentos/hooks/useFileState";
 
 interface PdfPreviewProps {
   isOpen: boolean;
@@ -26,8 +27,16 @@ export function PdfPreview({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Determinar qual bucket usar - usando o fornecido ou o default das faturas
-  const storageBucket = bucketName || FATURAS_BUCKET;
+  // Determinar qual bucket usar - usando o fornecido ou autodetectar baseado na URL
+  const detectBucket = (url: string): string => {
+    if (bucketName) return bucketName;
+    
+    if (url.includes('contas-energia-usina')) {
+      return ENERGIA_BUCKET;
+    } else {
+      return FATURAS_BUCKET;
+    }
+  };
   
   useEffect(() => {
     // Apenas processa o URL quando o modal estiver aberto e um URL for fornecido
@@ -37,7 +46,6 @@ export function PdfPreview({
       setIsLoading(true);
       setError(null);
       console.log("[PdfPreview] Iniciando processamento de URL:", pdfUrl);
-      console.log("[PdfPreview] Usando bucket:", storageBucket);
       
       try {
         // Caso 1: Se for um relatório gerado ou blob URL, use diretamente
@@ -47,9 +55,32 @@ export function PdfPreview({
           return;
         }
         
-        // Caso 2: Se for uma URL absoluta (http/https), use diretamente
+        // Caso 2: Se for uma URL absoluta (http/https), limpar possível duplicação
         if (pdfUrl.startsWith('http://') || pdfUrl.startsWith('https://')) {
-          console.log("[PdfPreview] URL absoluta detectada, usando diretamente");
+          console.log("[PdfPreview] URL absoluta detectada");
+          
+          // Corrigir problema de URL duplicada
+          if (pdfUrl.includes('/storage/v1/object/public/') && pdfUrl.indexOf('/storage/v1/object/public/') !== pdfUrl.lastIndexOf('/storage/v1/object/public/')) {
+            console.log("[PdfPreview] Detectada URL duplicada, corrigindo...");
+            const matches = pdfUrl.match(/\/storage\/v1\/object\/public\/([^\/]+)\/(.+)/);
+            
+            if (matches && matches.length >= 3) {
+              const bucket = matches[1];
+              const path = matches[2];
+              
+              console.log(`[PdfPreview] Bucket extraído: ${bucket}, Caminho: ${path}`);
+              
+              // Construir URL limpa com o bucket correto
+              const storageBucket = detectBucket(pdfUrl);
+              const cleanUrl = `${supabase.supabaseUrl}/storage/v1/object/public/${storageBucket}/${path}`;
+              console.log("[PdfPreview] URL limpa:", cleanUrl);
+              setProcessedUrl(cleanUrl);
+              return;
+            }
+          }
+          
+          // Se não encontrou duplicação, usar a URL diretamente
+          console.log("[PdfPreview] Usando URL absoluta diretamente:", pdfUrl);
           setProcessedUrl(pdfUrl);
           return;
         }
@@ -61,37 +92,21 @@ export function PdfPreview({
           return;
         }
         
-        // Caso 4: Caminho do Storage do Supabase - precisamos gerar URL assinada
-        // Tentar diferentes formatos de caminho para encontrar o arquivo
-        let successUrl = null;
-        let lastError = null;
-        
-        // Tentativa direta com o caminho fornecido
-        try {
-          console.log(`[PdfPreview] Tentando gerar URL assinada para: ${pdfUrl} no bucket: ${storageBucket}`);
-          
-          const { data, error } = await supabase.storage
-            .from(storageBucket)
-            .createSignedUrl(pdfUrl, 3600);
+        // Caso 4: Caminho do Storage do Supabase - precisamos gerar URL pública
+        const storageBucket = detectBucket(pdfUrl);
+        console.log(`[PdfPreview] Usando bucket: ${storageBucket}`);
             
-          if (error) {
-            console.warn(`[PdfPreview] Erro ao criar URL assinada:`, error);
-            lastError = error;
-          } else if (data?.signedUrl) {
-            console.log(`[PdfPreview] URL assinada gerada com sucesso:`, data.signedUrl);
-            successUrl = data.signedUrl;
-          }
-        } catch (error) {
-          console.warn(`[PdfPreview] Erro ao processar URL:`, error);
-          lastError = error;
-        }
-        
-        if (successUrl) {
-          setProcessedUrl(successUrl);
+        console.log(`[PdfPreview] Gerando URL pública para: ${pdfUrl}`);
+        const { data } = await supabase.storage
+          .from(storageBucket)
+          .getPublicUrl(pdfUrl);
+            
+        if (data?.publicUrl) {
+          console.log(`[PdfPreview] URL pública gerada: ${data.publicUrl}`);
+          setProcessedUrl(data.publicUrl);
         } else {
-          throw new Error(lastError?.message || "Não foi possível encontrar o arquivo");
+          throw new Error("Não foi possível gerar URL pública");
         }
-        
       } catch (error: any) {
         console.error("[PdfPreview] Erro ao processar URL do PDF:", error);
         setError(error.message || 'Arquivo não encontrado');
@@ -103,7 +118,7 @@ export function PdfPreview({
     };
     
     processUrl();
-  }, [isOpen, pdfUrl, isRelatorio, storageBucket]);
+  }, [isOpen, pdfUrl, isRelatorio, bucketName]);
   
   return (
     <SimplePdfViewer

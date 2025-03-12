@@ -13,17 +13,24 @@ import { supabase } from "@/integrations/supabase/client";
  * @param bucketName Nome do bucket para o upload
  * @param filePath Caminho onde o arquivo será armazenado
  * @param file Arquivo a ser enviado
- * @returns Objeto contendo sucesso da operação e possível erro
+ * @returns Objeto contendo sucesso da operação, URL pública e possível erro
  */
 export const uploadFile = async (
   bucketName: string, 
   filePath: string, 
   file: File
-): Promise<{ success: boolean; error?: any }> => {
+): Promise<{ success: boolean; publicUrl?: string; error?: any }> => {
   try {
     console.log(`[storageUtils] Enviando arquivo para: ${filePath} no bucket: ${bucketName}`);
 
-    const { error } = await supabase.storage
+    // Verificar se o arquivo está presente
+    if (!file) {
+      console.error("[storageUtils] Arquivo ausente");
+      return { success: false, error: "Arquivo ausente" };
+    }
+
+    // Fazer o upload do arquivo
+    const { error: uploadError } = await supabase.storage
       .from(bucketName)
       .upload(filePath, file, {
         upsert: true,
@@ -31,13 +38,25 @@ export const uploadFile = async (
         contentType: file.type,
       });
 
-    if (error) {
-      console.error("[storageUtils] Erro ao fazer upload:", error);
-      return { success: false, error };
+    if (uploadError) {
+      console.error("[storageUtils] Erro ao fazer upload:", uploadError);
+      return { success: false, error: uploadError };
     }
 
     console.log("[storageUtils] Upload concluído com sucesso");
-    return { success: true };
+    
+    // Obter URL pública
+    const { data: urlData } = await supabase.storage
+      .from(bucketName)
+      .getPublicUrl(filePath);
+    
+    if (!urlData?.publicUrl) {
+      console.error("[storageUtils] Não foi possível obter a URL pública");
+      return { success: true, error: "Não foi possível obter a URL pública" };
+    }
+    
+    console.log("[storageUtils] URL pública gerada:", urlData.publicUrl);
+    return { success: true, publicUrl: urlData.publicUrl };
   } catch (error) {
     console.error("[storageUtils] Erro inesperado durante upload:", error);
     return { success: false, error };
@@ -122,6 +141,36 @@ export const removeFile = async (
   try {
     console.log(`[storageUtils] Removendo arquivo: ${filePath} do bucket: ${bucketName}`);
     
+    if (!filePath) {
+      console.error("[storageUtils] Caminho do arquivo inválido");
+      return { success: false, error: "Caminho do arquivo inválido" };
+    }
+    
+    // Verificar se temos uma URL completa
+    if (filePath.startsWith('http')) {
+      console.log("[storageUtils] Arquivo com URL completa. Extraindo caminho relativo.");
+      
+      // Tentamos extrair o caminho relativo
+      try {
+        // Especificamos o regex para capturar corretamente a URL
+        const regex = new RegExp(`/storage/v1/object/public/${bucketName}/(.+)`);
+        const match = filePath.match(regex);
+        
+        if (match && match[1]) {
+          filePath = match[1];
+          console.log(`[storageUtils] Caminho extraído: ${filePath}`);
+        } else {
+          console.error("[storageUtils] Não foi possível extrair o caminho do arquivo");
+          return { success: false, error: "Formato de URL inválido" };
+        }
+      } catch (error) {
+        console.error("[storageUtils] Erro ao processar URL:", error);
+        return { success: false, error };
+      }
+    }
+    
+    console.log(`[storageUtils] Removendo arquivo: ${filePath} do bucket: ${bucketName}`);
+    
     const { error } = await supabase.storage
       .from(bucketName)
       .remove([filePath]);
@@ -136,5 +185,35 @@ export const removeFile = async (
   } catch (error) {
     console.error("[storageUtils] Erro ao remover arquivo:", error);
     return { success: false, error };
+  }
+};
+
+/**
+ * Verifica se um arquivo existe no bucket
+ * @param bucketName Nome do bucket
+ * @param filePath Caminho do arquivo
+ * @returns Boolean indicando se o arquivo existe
+ */
+export const checkFileExists = async (
+  bucketName: string,
+  filePath: string
+): Promise<boolean> => {
+  try {
+    console.log(`[storageUtils] Verificando existência do arquivo: ${filePath} no bucket: ${bucketName}`);
+    
+    const { data, error } = await supabase.storage
+      .from(bucketName)
+      .list(filePath.split('/').slice(0, -1).join('/'));
+      
+    if (error) {
+      console.error("[storageUtils] Erro ao verificar existência do arquivo:", error);
+      return false;
+    }
+    
+    const fileName = filePath.split('/').pop();
+    return data.some(file => file.name === fileName);
+  } catch (error) {
+    console.error("[storageUtils] Erro ao verificar existência do arquivo:", error);
+    return false;
   }
 };

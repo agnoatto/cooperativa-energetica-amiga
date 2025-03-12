@@ -62,6 +62,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
   // Resetar campos quando o pagamento mudar ou o modal abrir
   useEffect(() => {
     if (pagamento && isOpen) {
+      console.log("[PagamentoEditModal] Carregando dados do pagamento:", pagamento);
       setGeracao(pagamento.geracao_kwh);
       setValorKwh(pagamento.usina?.valor_kwh || 0);
       setTusdFioB(pagamento.tusd_fio_b);
@@ -87,12 +88,15 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
       }
       
       // Configurar o estado do arquivo
-      setFileInfo({
+      const arquivoInfo = {
         nome: pagamento.arquivo_conta_energia_nome || null,
         path: pagamento.arquivo_conta_energia_path || null,
         tipo: pagamento.arquivo_conta_energia_tipo || null,
         tamanho: pagamento.arquivo_conta_energia_tamanho || null
-      });
+      };
+      
+      console.log("[PagamentoEditModal] Informações do arquivo:", arquivoInfo);
+      setFileInfo(arquivoInfo);
     }
   }, [pagamento, isOpen, setFileInfo]);
 
@@ -118,21 +122,38 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
 
   // Handler para upload de arquivos
   const handleFileUpload = async (file: File) => {
-    if (!pagamento?.id) return;
-    await uploadFile(file, pagamento.id);
-    setArquivoRemovido(false);
+    if (!pagamento?.id) {
+      toast.error("ID do pagamento não encontrado");
+      return;
+    }
+    
+    const url = await uploadFile(file, pagamento.id);
+    if (url) {
+      setArquivoRemovido(false);
+      toast.success("Arquivo enviado com sucesso");
+    }
   };
 
   // Handler para remover arquivo
   const handleRemoveFile = async () => {
-    await removeFile();
-    setArquivoRemovido(true);
+    console.log("[PagamentoEditModal] Solicitando remoção do arquivo");
+    try {
+      await removeFile();
+      setArquivoRemovido(true);
+      toast.success("Arquivo removido. Salve para confirmar a remoção no banco de dados.");
+    } catch (error) {
+      console.error("[PagamentoEditModal] Erro ao remover arquivo:", error);
+      toast.error("Erro ao remover arquivo");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!pagamento) return;
+    if (!pagamento) {
+      toast.error("Dados do pagamento não encontrados");
+      return;
+    }
     
     try {
       // Calcular valor total (valor bruto - valor TUSD FioB - valor concessionária)
@@ -162,9 +183,9 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
       toast.success("Pagamento atualizado com sucesso");
       onSave();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error("[PagamentoEditModal] Erro ao salvar pagamento:", error);
-      toast.error("Erro ao atualizar pagamento");
+      toast.error(`Erro ao atualizar pagamento: ${error.message || "Erro desconhecido"}`);
     }
   };
 
@@ -352,6 +373,11 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
                 onRemove={handleRemoveFile}
                 onPreview={previewFile}
               />
+              {arquivoRemovido && (
+                <p className="text-sm text-orange-500 mt-2">
+                  Arquivo marcado para remoção. Clique em Salvar para confirmar.
+                </p>
+              )}
             </div>
           </div>
           

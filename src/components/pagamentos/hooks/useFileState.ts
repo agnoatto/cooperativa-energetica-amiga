@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { removeFile, uploadFile as storageUploadFile } from "@/utils/storageUtils";
 
 // Nome do bucket usado para armazenar os arquivos de contas de energia
 export const STORAGE_BUCKET = 'contas-energia-usina';
@@ -39,43 +40,31 @@ export function useFileState() {
       // Criar um nome único para o arquivo usando o ID do pagamento
       const filePath = `${pagamentoId}/${Date.now()}_${file.name}`;
       
-      // Fazer o upload do arquivo para o bucket de armazenamento
-      const { data, error } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
+      // Usar a função utilitária para fazer o upload
+      const { success, error, publicUrl } = await storageUploadFile(STORAGE_BUCKET, filePath, file);
       
-      if (error) {
+      if (!success || error) {
         console.error("[useFileState] Erro no upload:", error);
         throw error;
       }
       
-      console.log("[useFileState] Upload concluído, obtendo URL pública");
-      
-      // Obter a URL pública do arquivo
-      const { data: urlData } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .getPublicUrl(data.path);
-      
-      if (!urlData?.publicUrl) {
+      if (!publicUrl) {
         console.error("[useFileState] Não foi possível obter a URL pública");
         throw new Error("Não foi possível obter a URL pública do arquivo");
       }
       
-      console.log("[useFileState] URL pública obtida:", urlData.publicUrl);
+      console.log("[useFileState] URL pública obtida:", publicUrl);
       
       // Atualizar o estado com as informações do arquivo
       setFileInfo({
         nome: file.name,
-        path: urlData.publicUrl,
+        path: publicUrl,
         tipo: file.type,
         tamanho: file.size
       });
       
       toast.success("Arquivo enviado com sucesso");
-      return urlData.publicUrl;
+      return publicUrl;
     } catch (error: any) {
       console.error("[useFileState] Erro ao fazer upload do arquivo:", error);
       toast.error(`Erro ao enviar arquivo: ${error.message}`);
@@ -87,31 +76,60 @@ export function useFileState() {
 
   const removeFile = async () => {
     // Se não houver arquivo, não faz nada
-    if (!fileInfo.path) return;
+    if (!fileInfo.path) {
+      console.log("[useFileState] Nenhum arquivo para remover");
+      return;
+    }
     
     try {
       console.log("[useFileState] Removendo arquivo:", fileInfo.path);
       
       // Extrair o caminho do arquivo da URL
-      const url = new URL(fileInfo.path);
-      const pathWithoutBucket = url.pathname.split('/').slice(2).join('/');
+      const extractPath = (url: string): string | null => {
+        try {
+          // Procura por um padrão "/object/public/bucket-name/path" na URL
+          const regex = /\/object\/public\/([^\/]+)\/(.+)/;
+          const match = url.match(regex);
+          
+          if (match && match.length >= 3) {
+            return match[2]; // O segundo grupo capturado é o caminho
+          }
+          
+          return null;
+        } catch (e) {
+          console.error("[useFileState] Erro ao extrair caminho do arquivo:", e);
+          return null;
+        }
+      };
       
-      console.log(`[useFileState] Caminho do arquivo no bucket: ${pathWithoutBucket}`);
-      console.log(`[useFileState] Usando bucket: ${STORAGE_BUCKET}`);
+      const filePath = extractPath(fileInfo.path);
       
-      // Remover o arquivo do armazenamento
-      const { error } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .remove([pathWithoutBucket]);
-      
-      if (error) {
-        console.error("[useFileState] Erro ao remover arquivo:", error);
-        throw error;
+      if (!filePath) {
+        console.error("[useFileState] Não foi possível extrair o caminho do arquivo da URL");
+        // Mesmo sem conseguir extrair o caminho, limparemos o estado
+        setFileInfo({
+          nome: null,
+          path: null,
+          tipo: null,
+          tamanho: null
+        });
+        return;
       }
       
-      console.log("[useFileState] Arquivo removido com sucesso");
+      console.log(`[useFileState] Caminho extraído para remoção: ${filePath}`);
+      console.log(`[useFileState] Usando bucket: ${STORAGE_BUCKET}`);
       
-      // Limpar as informações do arquivo
+      // Chamar a função de utilidade para remover o arquivo
+      const { success, error } = await removeFile(STORAGE_BUCKET, filePath);
+      
+      if (!success) {
+        console.warn("[useFileState] Aviso ao remover arquivo:", error);
+        // Continuar mesmo com erro, para limpar o estado local
+      } else {
+        console.log("[useFileState] Arquivo removido com sucesso do storage");
+      }
+      
+      // Limpar as informações do arquivo (independentemente do resultado da exclusão no storage)
       setFileInfo({
         nome: null,
         path: null,
@@ -119,19 +137,29 @@ export function useFileState() {
         tamanho: null
       });
       
-      toast.success("Arquivo removido com sucesso");
     } catch (error: any) {
       console.error("[useFileState] Erro ao remover arquivo:", error);
-      toast.error(`Erro ao remover arquivo: ${error.message}`);
+      // Continuar e limpar o estado local mesmo se houver erro
+      setFileInfo({
+        nome: null,
+        path: null,
+        tipo: null,
+        tamanho: null
+      });
     }
   };
 
   const previewFile = () => {
     if (fileInfo.path) {
       console.log("[useFileState] Abrindo preview do arquivo:", fileInfo.path);
-      window.open(fileInfo.path, '_blank');
+      // Corrigir o URL duplicado que aparece nos logs
+      const cleanUrl = fileInfo.path.replace(/https?:\/\/[^\/]+\/storage\/v1\/object\/public\/[^\/]+\//g, '');
+      const correctUrl = `${supabase.supabaseUrl}/storage/v1/object/public/${STORAGE_BUCKET}/${cleanUrl}`;
+      console.log("[useFileState] URL limpo para preview:", correctUrl);
+      window.open(correctUrl, '_blank');
     } else {
       console.log("[useFileState] Tentativa de abrir preview sem arquivo");
+      toast.error("Não há arquivo para visualizar");
     }
   };
 

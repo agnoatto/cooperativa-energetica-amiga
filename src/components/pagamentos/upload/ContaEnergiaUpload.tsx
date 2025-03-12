@@ -78,7 +78,11 @@ export function ContaEnergiaUpload({
 
   const handleRemove = useCallback(() => {
     console.log("[ContaEnergiaUpload] Solicitando remoção do arquivo:", arquivoNome);
-    onRemove();
+    // Confirmação antes de remover
+    if (confirm("Tem certeza que deseja remover este arquivo?")) {
+      onRemove();
+      toast.success("Arquivo removido do formulário");
+    }
   }, [arquivoNome, onRemove]);
 
   return (
