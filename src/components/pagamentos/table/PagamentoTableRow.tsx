@@ -5,7 +5,7 @@
  * Exibe os dados de um pagamento específico na tabela e fornece
  * botões de ação como visualizar, editar, excluir e enviar.
  */
-import { FileDown, Send, Eye, Pencil, Trash, FileText } from "lucide-react";
+import { FileDown, Send, Eye, Pencil, Trash, FileText, FileX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { PagamentoData, SendMethod } from "../types/pagamento";
@@ -24,6 +24,7 @@ import {
 import { BoletimPreviewDialog } from "../BoletimPreviewDialog";
 import { SendPagamentoDialog } from "../SendPagamentoDialog";
 import { STORAGE_BUCKET } from "../hooks/constants";
+import { useFileState } from "../hooks/useFileState";
 
 interface PagamentoTableRowProps {
   pagamento: PagamentoData;
@@ -39,6 +40,7 @@ export function PagamentoTableRow({
   onViewDetails,
 }: PagamentoTableRowProps) {
   const { StatusBadge, handleSendPagamento } = usePagamentoStatus();
+  const { deleteFileFromPagamento } = useFileState();
   const [showContaEnergiaPreview, setShowContaEnergiaPreview] = useState(false);
   const [showBoletimPreview, setShowBoletimPreview] = useState(false);
   const [showSendDialog, setShowSendDialog] = useState(false);
@@ -115,6 +117,24 @@ export function PagamentoTableRow({
     }
   };
 
+  const handleDeleteContaEnergia = async () => {
+    if (!pagamento.arquivo_conta_energia_path) {
+      return;
+    }
+
+    try {
+      const success = await deleteFileFromPagamento(pagamento.id);
+      if (success) {
+        toast.success("Arquivo da conta de energia removido com sucesso");
+        // Forçar o recarregamento dos dados
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('[handleDeleteContaEnergia] Erro ao excluir arquivo:', error);
+      toast.error('Erro ao excluir arquivo da conta de energia');
+    }
+  };
+
   return (
     <TableRow className="h-9 hover:bg-gray-50">
       <TableCell className="py-1.5 px-3 text-sm">{pagamento.usina?.unidade_usina?.numero_uc}</TableCell>
@@ -149,6 +169,16 @@ export function PagamentoTableRow({
                 title="Baixar conta"
               >
                 <FileDown className="h-4 w-4 text-gray-600" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={handleDeleteContaEnergia}
+                title="Excluir conta"
+              >
+                <FileX className="h-4 w-4 text-red-500" />
               </Button>
             </>
           ) : (

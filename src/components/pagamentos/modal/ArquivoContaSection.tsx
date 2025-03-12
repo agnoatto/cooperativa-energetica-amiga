@@ -5,10 +5,9 @@
  * Este componente permite o upload, visualização e remoção de arquivos PDF
  * de contas de energia associadas aos pagamentos de usinas
  */
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { ContaEnergiaUpload } from "../upload/ContaEnergiaUpload";
-import { useFileState } from "../hooks/useFileState";
 
 interface ArquivoContaSectionProps {
   pagamentoId: string;
@@ -30,7 +29,8 @@ export function ArquivoContaSection({
   // Log para debug inicial
   useEffect(() => {
     console.log("[ArquivoContaSection] Renderizando com arquivo:", arquivoNome);
-  }, [arquivoNome]);
+    console.log("[ArquivoContaSection] Path do arquivo:", arquivoPath);
+  }, [arquivoNome, arquivoPath]);
 
   return (
     <div className="space-y-2 col-span-2">

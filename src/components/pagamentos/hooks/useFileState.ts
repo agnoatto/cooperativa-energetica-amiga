@@ -70,23 +70,21 @@ export function useFileState() {
     }
   };
 
-  const removeFile = async () => {
+  const removeFile = async (pagamentoId?: string, filePath?: string) => {
+    // Usamos o filePath passado como parâmetro ou o do estado
+    const pathToRemove = filePath || fileInfo.path;
+    
     // Se não houver arquivo, não faz nada
-    if (!fileInfo.path) {
+    if (!pathToRemove) {
       console.log("[useFileState] Nenhum arquivo para remover");
       return;
     }
     
     try {
-      console.log("[useFileState] Removendo arquivo:", fileInfo.path);
-      
-      // Já temos o caminho correto, não precisamos extrair
-      const filePath = fileInfo.path;
-      
-      console.log(`[useFileState] Usando bucket: ${STORAGE_BUCKET}`);
+      console.log("[useFileState] Removendo arquivo:", pathToRemove);
       
       // Chamar a função de utilidade para remover o arquivo
-      const result = await utilsRemoveFile(STORAGE_BUCKET, filePath);
+      const result = await utilsRemoveFile(STORAGE_BUCKET, pathToRemove);
       
       if (!result.success) {
         console.warn("[useFileState] Aviso ao remover arquivo:", result.error);
@@ -95,7 +93,32 @@ export function useFileState() {
         console.log("[useFileState] Arquivo removido com sucesso do storage");
       }
       
-      // Limpar as informações do arquivo (independentemente do resultado da exclusão no storage)
+      // Se foi passado um pagamentoId, podemos atualizar o registro no banco também
+      if (pagamentoId) {
+        console.log("[useFileState] Atualizando registro do pagamento no banco de dados:", pagamentoId);
+        const { error: updateError } = await supabase.rpc('atualizar_pagamento_usina', {
+          p_id: pagamentoId,
+          p_geracao_kwh: null,           // Mantemos os valores intactos
+          p_tusd_fio_b: null,            // Passando null para manter os valores atuais
+          p_valor_tusd_fio_b: null,
+          p_valor_concessionaria: null,
+          p_valor_total: null,
+          p_data_vencimento_concessionaria: null,
+          p_data_emissao: null,
+          p_data_vencimento: null,
+          p_arquivo_conta_energia_nome: null,    // Limpar arquivo
+          p_arquivo_conta_energia_path: null,    // Limpar arquivo
+          p_arquivo_conta_energia_tipo: null,    // Limpar arquivo
+          p_arquivo_conta_energia_tamanho: null  // Limpar arquivo
+        });
+
+        if (updateError) {
+          console.error("[useFileState] Erro ao atualizar registro no banco:", updateError);
+          throw new Error(`Erro ao atualizar registro no banco: ${updateError.message}`);
+        }
+      }
+      
+      // Limpar as informações do arquivo no estado local
       setFileInfo({
         nome: null,
         path: null,
@@ -110,15 +133,53 @@ export function useFileState() {
         tamanho: null
       });
       
+      toast.success("Arquivo removido com sucesso");
+      return true;
+      
     } catch (error: any) {
       console.error("[useFileState] Erro ao remover arquivo:", error);
-      // Continuar e limpar o estado local mesmo se houver erro
+      toast.error(`Erro ao remover arquivo: ${error.message}`);
+      
+      // Limpar o estado local mesmo se houver erro com o storage
       setFileInfo({
         nome: null,
         path: null,
         tipo: null,
         tamanho: null
       });
+      
+      return false;
+    }
+  };
+
+  const deleteFileFromPagamento = async (pagamentoId: string) => {
+    try {
+      console.log("[useFileState] Buscando informações do pagamento:", pagamentoId);
+      
+      // Primeiro, buscar o pagamento para obter o caminho do arquivo
+      const { data: pagamento, error } = await supabase
+        .from('pagamentos_usina')
+        .select('arquivo_conta_energia_path')
+        .eq('id', pagamentoId)
+        .single();
+      
+      if (error) {
+        console.error("[useFileState] Erro ao buscar pagamento:", error);
+        throw error;
+      }
+      
+      if (!pagamento?.arquivo_conta_energia_path) {
+        console.log("[useFileState] Pagamento não possui arquivo para excluir");
+        return;
+      }
+      
+      // Chama o método de remoção passando o ID do pagamento e o caminho do arquivo
+      return await removeFile(pagamentoId, pagamento.arquivo_conta_energia_path);
+      
+    } catch (error: any) {
+      console.error("[useFileState] Erro ao excluir arquivo do pagamento:", error);
+      toast.error(`Erro ao excluir arquivo: ${error.message}`);
+      return false;
     }
   };
 
@@ -146,6 +207,7 @@ export function useFileState() {
     isUploading,
     uploadFile,
     removeFile,
+    deleteFileFromPagamento,
     previewFile
   };
 }
