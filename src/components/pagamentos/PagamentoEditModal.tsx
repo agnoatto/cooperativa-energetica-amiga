@@ -163,7 +163,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
               />
             </div>
             
-            {/* Valor kWh */}
+            {/* Valor kWh - Agora somente leitura */}
             <div className="space-y-2">
               <Label htmlFor="valorKwh">Valor do kWh (R$)</Label>
               <Input
@@ -172,8 +172,8 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
                 step="0.0001"
                 min="0"
                 value={valorKwh}
-                onChange={(e) => setValorKwh(parseFloat(e.target.value) || 0)}
-                required
+                readOnly
+                className="bg-gray-50 cursor-not-allowed"
               />
             </div>
             
