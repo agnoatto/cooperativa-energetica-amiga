@@ -1,10 +1,10 @@
+
 /**
  * Componente de modal para edição de pagamentos de usinas
  * 
  * Este componente permite editar informações de um pagamento específico,
  * como geração de energia, valores, datas de vencimento e emissão.
  * Calcula automaticamente valores derivados baseados na entrada do usuário.
- * Também permite upload de arquivos de contas de energia relacionadas ao pagamento.
  */
 import { useEffect, useState } from "react";
 import { CalendarIcon } from "lucide-react";
@@ -20,11 +20,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { formatarMoeda } from "@/utils/formatters";
-import { convertLocalToUTC, convertUTCToLocal } from "@/utils/dateFormatters";
+import { convertLocalToUTC } from "@/utils/dateFormatters";
 import { PagamentoData } from "./types/pagamento";
 import { usePagamentoForm } from "./hooks/usePagamentoForm";
-import { ContaEnergiaUpload } from "./upload/ContaEnergiaUpload";
-import { useFileState } from "./hooks/useFileState";
 
 interface PagamentoEditModalProps {
   pagamento: PagamentoData | null;
@@ -44,17 +42,6 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
   const [dataVencimentoConcessionaria, setDataVencimentoConcessionaria] = useState<Date | undefined>();
   const [dataEmissao, setDataEmissao] = useState<Date | undefined>();
   const [dataVencimento, setDataVencimento] = useState<Date | undefined>();
-  const [arquivoRemovido, setArquivoRemovido] = useState<boolean>(false);
-  
-  // Estado para o arquivo de conta de energia
-  const { 
-    fileInfo, 
-    setFileInfo, 
-    isUploading, 
-    uploadFile, 
-    removeFile, 
-    previewFile 
-  } = useFileState();
   
   // Custom hook para manipular o formulário
   const { salvarPagamento, isSaving } = usePagamentoForm();
@@ -68,7 +55,6 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
       setTusdFioB(pagamento.tusd_fio_b);
       setValorTusdFioB(pagamento.valor_tusd_fio_b);
       setValorConcessionaria(pagamento.valor_concessionaria);
-      setArquivoRemovido(false);
       
       // Calcular valor bruto
       const calculoValorBruto = pagamento.geracao_kwh * (pagamento.usina?.valor_kwh || 0);
@@ -86,19 +72,8 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
       if (pagamento.data_vencimento) {
         setDataVencimento(new Date(pagamento.data_vencimento));
       }
-      
-      // Configurar o estado do arquivo
-      const arquivoInfo = {
-        nome: pagamento.arquivo_conta_energia_nome || null,
-        path: pagamento.arquivo_conta_energia_path || null,
-        tipo: pagamento.arquivo_conta_energia_tipo || null,
-        tamanho: pagamento.arquivo_conta_energia_tamanho || null
-      };
-      
-      console.log("[PagamentoEditModal] Informações do arquivo:", arquivoInfo);
-      setFileInfo(arquivoInfo);
     }
-  }, [pagamento, isOpen, setFileInfo]);
+  }, [pagamento, isOpen]);
 
   // Calcula o valor da TUSD Fio B com base na geração e TUSD
   useEffect(() => {
@@ -120,33 +95,6 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
     }
   }, [dataEmissao]);
 
-  // Handler para upload de arquivos
-  const handleFileUpload = async (file: File) => {
-    if (!pagamento?.id) {
-      toast.error("ID do pagamento não encontrado");
-      return;
-    }
-    
-    const url = await uploadFile(file, pagamento.id);
-    if (url) {
-      setArquivoRemovido(false);
-      toast.success("Arquivo enviado com sucesso");
-    }
-  };
-
-  // Handler para remover arquivo
-  const handleRemoveFile = async () => {
-    console.log("[PagamentoEditModal] Solicitando remoção do arquivo");
-    try {
-      await removeFile();
-      setArquivoRemovido(true);
-      toast.success("Arquivo removido. Salve para confirmar a remoção no banco de dados.");
-    } catch (error) {
-      console.error("[PagamentoEditModal] Erro ao remover arquivo:", error);
-      toast.error("Erro ao remover arquivo");
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -159,10 +107,6 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
       // Calcular valor total (valor bruto - valor TUSD FioB - valor concessionária)
       const valorTotal = valorBruto - valorTusdFioB - valorConcessionaria;
       
-      // Log para debug
-      console.log("[PagamentoEditModal] Estado de arquivo removido:", arquivoRemovido);
-      console.log("[PagamentoEditModal] Informações atuais do arquivo:", fileInfo);
-      
       // Preparar dados para salvar
       const dadosAtualizados = {
         id: pagamento.id,
@@ -173,12 +117,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
         valor_total: valorTotal,
         data_vencimento_concessionaria: dataVencimentoConcessionaria ? convertLocalToUTC(dataVencimentoConcessionaria.toISOString()) : null,
         data_emissao: dataEmissao ? convertLocalToUTC(dataEmissao.toISOString()) : null,
-        data_vencimento: dataVencimento ? convertLocalToUTC(dataVencimento.toISOString()) : null,
-        // Definir explicitamente valores para os campos de arquivo
-        arquivo_conta_energia_nome: arquivoRemovido ? null : fileInfo.nome,
-        arquivo_conta_energia_path: arquivoRemovido ? null : fileInfo.path,
-        arquivo_conta_energia_tipo: arquivoRemovido ? null : fileInfo.tipo,
-        arquivo_conta_energia_tamanho: arquivoRemovido ? null : fileInfo.tamanho
+        data_vencimento: dataVencimento ? convertLocalToUTC(dataVencimento.toISOString()) : null
       };
       
       console.log("[PagamentoEditModal] Salvando dados:", dadosAtualizados);
@@ -363,25 +302,6 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
                 value={dataVencimento ? format(dataVencimento, "dd/MM/yyyy", { locale: ptBR }) : ""}
                 disabled
               />
-            </div>
-            
-            {/* Upload de Conta de Energia */}
-            <div className="col-span-2 space-y-2 border p-4 rounded-md">
-              <Label htmlFor="contaEnergia">Conta de Energia</Label>
-              <ContaEnergiaUpload
-                pagamentoId={pagamento?.id || ''}
-                arquivoNome={fileInfo.nome}
-                arquivoPath={fileInfo.path}
-                isUploading={isUploading}
-                onUpload={handleFileUpload}
-                onRemove={handleRemoveFile}
-                onPreview={previewFile}
-              />
-              {arquivoRemovido && (
-                <p className="text-sm text-orange-500 mt-2">
-                  Arquivo marcado para remoção. Clique em Salvar para confirmar.
-                </p>
-              )}
             </div>
           </div>
           
