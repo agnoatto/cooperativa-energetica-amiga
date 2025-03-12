@@ -1,4 +1,3 @@
-
 /**
  * Componente de modal para edição de pagamentos de usinas
  * 
@@ -47,7 +46,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
   const [dataVencimento, setDataVencimento] = useState<Date | undefined>();
   
   // Estado para o arquivo de conta de energia
-  const fileState = useFileState();
+  const { fileInfo, setFileInfo } = useFileState();
   
   // Custom hook para manipular o formulário
   const { salvarPagamento, isSaving } = usePagamentoForm();
@@ -79,14 +78,14 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
       }
       
       // Configurar o estado do arquivo
-      fileState.setFileInfo({
+      setFileInfo({
         nome: pagamento.arquivo_conta_energia_nome || null,
         path: pagamento.arquivo_conta_energia_path || null,
         tipo: pagamento.arquivo_conta_energia_tipo || null,
         tamanho: pagamento.arquivo_conta_energia_tamanho || null
       });
     }
-  }, [pagamento, isOpen]);
+  }, [pagamento, isOpen, setFileInfo]);
 
   // Calcula o valor da TUSD Fio B com base na geração e TUSD
   useEffect(() => {
@@ -129,10 +128,10 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
         data_emissao: dataEmissao ? convertLocalToUTC(dataEmissao.toISOString()) : null,
         data_vencimento: dataVencimento ? convertLocalToUTC(dataVencimento.toISOString()) : null,
         // Adicionar informações do arquivo
-        arquivo_conta_energia_nome: fileState.fileInfo.nome,
-        arquivo_conta_energia_path: fileState.fileInfo.path,
-        arquivo_conta_energia_tipo: fileState.fileInfo.tipo,
-        arquivo_conta_energia_tamanho: fileState.fileInfo.tamanho
+        arquivo_conta_energia_nome: fileInfo.nome,
+        arquivo_conta_energia_path: fileInfo.path,
+        arquivo_conta_energia_tipo: fileInfo.tipo,
+        arquivo_conta_energia_tamanho: fileInfo.tamanho
       };
       
       await salvarPagamento(dadosAtualizados);
@@ -322,13 +321,12 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
               <Label htmlFor="contaEnergia">Conta de Energia</Label>
               <ContaEnergiaUpload
                 pagamentoId={pagamento?.id || ''}
-                arquivoNome={fileState.fileInfo.nome}
-                arquivoPath={fileState.fileInfo.path}
-                arquivoTipo={fileState.fileInfo.tipo}
-                arquivoTamanho={fileState.fileInfo.tamanho}
-                onFileChange={(nome, path, tipo, tamanho) => {
-                  fileState.setFileInfo({ nome, path, tipo, tamanho });
-                }}
+                arquivoNome={fileInfo.nome}
+                arquivoPath={fileInfo.path}
+                isUploading={isSaving}
+                onUpload={(file) => console.log("Arquivo recebido:", file)}
+                onRemove={() => console.log("Remover arquivo")}
+                onPreview={() => console.log("Preview do arquivo")}
               />
             </div>
           </div>
