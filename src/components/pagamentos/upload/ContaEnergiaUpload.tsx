@@ -10,27 +10,43 @@ import { useCallback, useState } from "react";
 import { UploadDropZone } from "@/components/faturas/upload/UploadDropZone";
 import { FilePreview } from "@/components/faturas/upload/FilePreview";
 import { toast } from "sonner";
+import { useFileState } from "../hooks/useFileState";
 
 interface ContaEnergiaUploadProps {
   pagamentoId: string;
-  arquivoNome?: string | null;
-  arquivoPath?: string | null;
-  isUploading: boolean;
-  onUpload: (file: File) => void;
-  onRemove: () => void;
-  onPreview: () => void;
+  arquivoNome: string | null;
+  arquivoPath: string | null;
+  arquivoTipo: string | null;
+  arquivoTamanho: number | null;
+  onFileChange: (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => void;
 }
 
 export function ContaEnergiaUpload({
   pagamentoId,
   arquivoNome,
   arquivoPath,
-  isUploading,
-  onUpload,
-  onRemove,
-  onPreview
+  arquivoTipo,
+  arquivoTamanho,
+  onFileChange
 }: ContaEnergiaUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const { uploadFile, isUploading } = useFileState();
+
+  // Função para lidar com o upload de arquivos
+  const handleUpload = useCallback(async (file: File) => {
+    console.log("[ContaEnergiaUpload] Iniciando upload do arquivo:", file.name);
+    
+    try {
+      const fileUrl = await uploadFile(file, pagamentoId);
+      if (fileUrl) {
+        onFileChange(file.name, fileUrl, file.type, file.size);
+        console.log("[ContaEnergiaUpload] Upload concluído com sucesso:", fileUrl);
+      }
+    } catch (error) {
+      console.error("[ContaEnergiaUpload] Erro no upload:", error);
+      toast.error("Erro ao fazer upload do arquivo");
+    }
+  }, [pagamentoId, uploadFile, onFileChange]);
 
   // Adaptamos a função handleDrop para receber um array de arquivos
   // mas continuamos a usar apenas o primeiro arquivo
@@ -53,8 +69,8 @@ export function ContaEnergiaUpload({
       return;
     }
     
-    onUpload(file);
-  }, [onUpload]);
+    handleUpload(file);
+  }, [handleUpload]);
 
   const handleDragStateChange = useCallback((dragging: boolean) => {
     setIsDragging(dragging);
@@ -80,9 +96,19 @@ export function ContaEnergiaUpload({
   const handleRemove = useCallback(() => {
     console.log("[ContaEnergiaUpload] Solicitando remoção do arquivo:", arquivoNome);
     // Chama diretamente a função de remoção, sem o confirm do navegador
-    onRemove();
+    onFileChange(null, null, null, null);
     toast.success("Arquivo removido do formulário");
-  }, [arquivoNome, onRemove]);
+  }, [arquivoNome, onFileChange]);
+
+  const handlePreview = useCallback(() => {
+    if (!arquivoPath) {
+      console.log("[ContaEnergiaUpload] Tentativa de visualizar sem arquivo definido");
+      return;
+    }
+    
+    console.log("[ContaEnergiaUpload] Visualizando arquivo:", arquivoPath);
+    window.open(arquivoPath, '_blank');
+  }, [arquivoPath]);
 
   return (
     <div className="space-y-4">
@@ -98,7 +124,7 @@ export function ContaEnergiaUpload({
       {arquivoNome && arquivoPath && (
         <FilePreview
           fileName={arquivoNome}
-          onPreview={onPreview}
+          onPreview={handlePreview}
           onDownload={handleDownload}
           onRemove={handleRemove}
           className="bg-muted"
