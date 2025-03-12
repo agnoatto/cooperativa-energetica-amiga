@@ -11,6 +11,8 @@ import { UploadDropZone } from "@/components/faturas/upload/UploadDropZone";
 import { FilePreview } from "@/components/faturas/upload/FilePreview";
 import { toast } from "sonner";
 import { useFileState } from "../hooks/useFileState";
+import { supabase } from "@/integrations/supabase/client";
+import { STORAGE_BUCKET } from "../hooks/useFileState";
 
 interface ContaEnergiaUploadProps {
   pagamentoId: string;
@@ -37,10 +39,11 @@ export function ContaEnergiaUpload({
     console.log("[ContaEnergiaUpload] Iniciando upload do arquivo:", file.name);
     
     try {
-      const fileUrl = await uploadFile(file, pagamentoId);
-      if (fileUrl) {
-        onFileChange(file.name, fileUrl, file.type, file.size);
-        console.log("[ContaEnergiaUpload] Upload concluído com sucesso:", fileUrl);
+      // Agora recebemos o caminho relativo do arquivo, não a URL completa
+      const filePath = await uploadFile(file, pagamentoId);
+      if (filePath) {
+        onFileChange(file.name, filePath, file.type, file.size);
+        console.log("[ContaEnergiaUpload] Upload concluído com sucesso, caminho:", filePath);
       }
     } catch (error) {
       console.error("[ContaEnergiaUpload] Erro no upload:", error);
@@ -84,7 +87,13 @@ export function ContaEnergiaUpload({
 
     try {
       console.log("[ContaEnergiaUpload] Iniciando download do arquivo:", arquivoPath);
-      window.open(arquivoPath, '_blank');
+      
+      // Gerar URL pública para download
+      const { data } = supabase.storage
+        .from(STORAGE_BUCKET)
+        .getPublicUrl(arquivoPath);
+        
+      window.open(data.publicUrl, '_blank');
       toast.success("Download iniciado");
     } catch (error: any) {
       console.error('[ContaEnergiaUpload] Erro ao baixar arquivo:', error);
@@ -107,7 +116,13 @@ export function ContaEnergiaUpload({
     }
     
     console.log("[ContaEnergiaUpload] Visualizando arquivo:", arquivoPath);
-    window.open(arquivoPath, '_blank');
+    
+    // Gerar URL pública para visualização
+    const { data } = supabase.storage
+      .from(STORAGE_BUCKET)
+      .getPublicUrl(arquivoPath);
+      
+    window.open(data.publicUrl, '_blank');
   }, [arquivoPath]);
 
   return (

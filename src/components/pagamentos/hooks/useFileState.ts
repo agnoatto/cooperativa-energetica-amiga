@@ -1,3 +1,4 @@
+
 /**
  * Hook para gerenciamento de arquivos em pagamentos
  * 
@@ -47,23 +48,19 @@ export function useFileState() {
         throw result.error;
       }
       
-      if (!result.publicUrl) {
-        console.error("[useFileState] Não foi possível obter a URL pública");
-        throw new Error("Não foi possível obter a URL pública do arquivo");
-      }
-      
-      console.log("[useFileState] URL pública obtida:", result.publicUrl);
+      console.log("[useFileState] Upload realizado com sucesso para o caminho:", filePath);
       
       // Atualizar o estado com as informações do arquivo
+      // Importante: armazenamos apenas o caminho relativo, não a URL completa
       setFileInfo({
         nome: file.name,
-        path: result.publicUrl,
+        path: filePath,  // Armazenamos apenas o caminho relativo
         tipo: file.type,
         tamanho: file.size
       });
       
       toast.success("Arquivo enviado com sucesso");
-      return result.publicUrl;
+      return filePath;  // Retornamos o caminho relativo
     } catch (error: any) {
       console.error("[useFileState] Erro ao fazer upload do arquivo:", error);
       toast.error(`Erro ao enviar arquivo: ${error.message}`);
@@ -83,39 +80,9 @@ export function useFileState() {
     try {
       console.log("[useFileState] Removendo arquivo:", fileInfo.path);
       
-      // Extrair o caminho do arquivo da URL
-      const extractPath = (url: string): string | null => {
-        try {
-          // Procura por um padrão "/object/public/bucket-name/path" na URL
-          const regex = /\/storage\/v1\/object\/public\/([^\/]+)\/(.+)/;
-          const match = url.match(regex);
-          
-          if (match && match.length >= 3) {
-            return match[2]; // O segundo grupo capturado é o caminho
-          }
-          
-          return null;
-        } catch (e) {
-          console.error("[useFileState] Erro ao extrair caminho do arquivo:", e);
-          return null;
-        }
-      };
+      // Já temos o caminho correto, não precisamos extrair
+      const filePath = fileInfo.path;
       
-      const filePath = extractPath(fileInfo.path);
-      
-      if (!filePath) {
-        console.error("[useFileState] Não foi possível extrair o caminho do arquivo da URL");
-        // Mesmo sem conseguir extrair o caminho, limparemos o estado
-        setFileInfo({
-          nome: null,
-          path: null,
-          tipo: null,
-          tamanho: null
-        });
-        return;
-      }
-      
-      console.log(`[useFileState] Caminho extraído para remoção: ${filePath}`);
       console.log(`[useFileState] Usando bucket: ${STORAGE_BUCKET}`);
       
       // Chamar a função de utilidade para remover o arquivo
@@ -158,16 +125,15 @@ export function useFileState() {
   const previewFile = () => {
     if (fileInfo.path) {
       console.log("[useFileState] Abrindo preview do arquivo:", fileInfo.path);
-      // Corrigir o URL duplicado que aparece nos logs
-      const cleanUrl = fileInfo.path.replace(/https?:\/\/[^\/]+\/storage\/v1\/object\/public\/[^\/]+\//g, '');
-      // Obtém URL base usando getPublicUrl ao invés de acessar diretamente a URL do Supabase
+      
+      // Gerar URL pública para visualização
       const { data } = supabase.storage
         .from(STORAGE_BUCKET)
-        .getPublicUrl(cleanUrl);
+        .getPublicUrl(fileInfo.path);
         
-      const correctUrl = data.publicUrl;
-      console.log("[useFileState] URL limpo para preview:", correctUrl);
-      window.open(correctUrl, '_blank');
+      const publicUrl = data.publicUrl;
+      console.log("[useFileState] URL pública para preview:", publicUrl);
+      window.open(publicUrl, '_blank');
     } else {
       console.log("[useFileState] Tentativa de abrir preview sem arquivo");
       toast.error("Não há arquivo para visualizar");
