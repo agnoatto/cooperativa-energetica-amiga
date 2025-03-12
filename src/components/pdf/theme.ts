@@ -141,14 +141,14 @@ export const styles = StyleSheet.create({
   },
   table: {
     width: '100%',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   tableHeader: {
     backgroundColor: COLORS.LIGHT_GRAY,
     flexDirection: 'row',
     borderBottomColor: COLORS.GRAY,
     borderBottomWidth: 1,
-    padding: '3px 0',
+    padding: '5px 0',
   },
   tableHeaderText: {
     fontWeight: 'bold',
@@ -157,8 +157,8 @@ export const styles = StyleSheet.create({
   tableRow: {
     flexDirection: 'row',
     borderBottomColor: COLORS.GRAY,
-    borderBottomWidth: 0.5,
-    padding: '2px 0',
+    borderBottomWidth: 1,
+    padding: '5px 0',
   },
   tableCell: {
     flex: 1,
