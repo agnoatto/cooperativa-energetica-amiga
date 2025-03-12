@@ -205,6 +205,27 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
           </View>
         </View>
 
+        {/* Nova seção: Observações da Fatura */}
+        {fatura.observacao && (
+          <View style={{ 
+            marginTop: 15, 
+            padding: 10, 
+            borderWidth: 1, 
+            borderColor: COLORS.RED, 
+            borderRadius: 4 
+          }}>
+            <Text style={{ 
+              fontSize: FONTS.SUBTITLE, 
+              color: COLORS.RED, 
+              marginBottom: 5,
+              textAlign: 'center'
+            }}>
+              Observações da Fatura
+            </Text>
+            <Text style={{ fontSize: FONTS.BODY }}>{fatura.observacao}</Text>
+          </View>
+        )}
+
         {/* Rodapé */}
         <View style={styles.footer}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>

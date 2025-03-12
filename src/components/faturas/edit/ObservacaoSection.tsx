@@ -1,4 +1,10 @@
 
+/**
+ * Componente para edição de observações da fatura
+ * 
+ * Este componente fornece um campo de texto grande para inserção
+ * de observações relacionadas à fatura que serão exibidas no PDF.
+ */
 import {
   FormField,
   FormItem,
@@ -6,7 +12,7 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
 
 interface ObservacaoSectionProps {
@@ -20,9 +26,13 @@ export function ObservacaoSection({ formState }: ObservacaoSectionProps) {
       name="observacao"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Observação</FormLabel>
+          <FormLabel>Observações da Fatura</FormLabel>
           <FormControl>
-            <Input placeholder="Observação" {...field} />
+            <Textarea 
+              placeholder="Adicione aqui observações importantes que aparecerão no PDF da fatura"
+              className="min-h-[100px]" 
+              {...field} 
+            />
           </FormControl>
           <FormMessage />
         </FormItem>
