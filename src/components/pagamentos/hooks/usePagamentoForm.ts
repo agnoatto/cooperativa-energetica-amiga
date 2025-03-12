@@ -38,8 +38,8 @@ export const usePagamentoForm = () => {
     try {
       console.log("[usePagamentoForm] Iniciando salvamento do pagamento:", dados);
       
-      // Usar uma função RPC para atualizar o pagamento diretamente no PostgreSQL
-      // Isso contorna qualquer problema com policies de RLS
+      // Verificar a estrutura da função RPC no banco de dados
+      // e garantir que os parâmetros estejam corretos
       const { data, error } = await supabase.rpc('atualizar_pagamento_usina', {
         p_id: dados.id,
         p_geracao_kwh: dados.geracao_kwh,
@@ -50,10 +50,10 @@ export const usePagamentoForm = () => {
         p_data_vencimento_concessionaria: dados.data_vencimento_concessionaria,
         p_data_emissao: dados.data_emissao,
         p_data_vencimento: dados.data_vencimento,
-        p_arquivo_nome: dados.arquivo_conta_energia_nome,
-        p_arquivo_path: dados.arquivo_conta_energia_path,
-        p_arquivo_tipo: dados.arquivo_conta_energia_tipo,
-        p_arquivo_tamanho: dados.arquivo_conta_energia_tamanho
+        p_arquivo_conta_energia_nome: dados.arquivo_conta_energia_nome,
+        p_arquivo_conta_energia_path: dados.arquivo_conta_energia_path,
+        p_arquivo_conta_energia_tipo: dados.arquivo_conta_energia_tipo,
+        p_arquivo_conta_energia_tamanho: dados.arquivo_conta_energia_tamanho
       });
         
       if (error) {
