@@ -15,13 +15,10 @@ import { PagamentosTable } from "@/components/pagamentos/PagamentosTable";
 import { PagamentoDetailsDialog } from "@/components/pagamentos/PagamentoDetailsDialog";
 import { DeletePagamentoDialog } from "@/components/pagamentos/DeletePagamentoDialog";
 import { PagamentoEditModal } from "@/components/pagamentos/PagamentoEditModal";
-import { DeleteMultipleFilesDialog } from "@/components/pagamentos/DeleteMultipleFilesDialog";
 import { PagamentoData } from "@/components/pagamentos/types/pagamento";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useMonthSelection } from "@/hooks/useMonthSelection";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { FileX } from "lucide-react";
 
 const Pagamentos = () => {
   // Estados
@@ -29,8 +26,6 @@ const Pagamentos = () => {
   const [selectedPagamentoToEdit, setSelectedPagamentoToEdit] = useState<PagamentoData | null>(null);
   const [pagamentoToDelete, setPagamentoToDelete] = useState<PagamentoData | null>(null);
   const [showDetails, setShowDetails] = useState(false);
-  const [selectedPagamentoIds, setSelectedPagamentoIds] = useState<string[]>([]);
-  const [showDeleteFiles, setShowDeleteFiles] = useState(false);
   
   // Hooks
   const queryClient = useQueryClient();
@@ -82,23 +77,6 @@ const Pagamentos = () => {
     }
   };
 
-  const handlePagamentosSelection = (pagamentoIds: string[]) => {
-    setSelectedPagamentoIds(pagamentoIds);
-  };
-
-  const handleDeleteFilesClick = () => {
-    if (selectedPagamentoIds.length > 0) {
-      setShowDeleteFiles(true);
-    } else {
-      toast.warning("Selecione pelo menos um pagamento para excluir arquivos");
-    }
-  };
-
-  const handleFilesDeleted = () => {
-    queryClient.invalidateQueries({ queryKey: ["pagamentos"] });
-    setSelectedPagamentoIds([]);
-  };
-
   return (
     <div className="space-y-6">
       <PagamentosHeader 
@@ -117,30 +95,12 @@ const Pagamentos = () => {
         onNextMonth={handleNextMonth}
       />
 
-      {selectedPagamentoIds.length > 0 && (
-        <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
-          <span className="text-sm text-gray-700">
-            {selectedPagamentoIds.length} pagamento(s) selecionado(s)
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDeleteFilesClick}
-            className="text-red-500 hover:text-red-700 hover:bg-red-50"
-          >
-            <FileX className="h-4 w-4 mr-1" />
-            Excluir arquivos
-          </Button>
-        </div>
-      )}
-
       <PagamentosTable
         pagamentos={pagamentos}
         isLoading={isLoading}
         onEditPagamento={handleEditPagamento}
         onViewDetails={handleViewDetails}
         onDeletePagamento={handleDeletePagamento}
-        onSelectionChange={handlePagamentosSelection}
       />
 
       {selectedPagamento && (
@@ -168,13 +128,6 @@ const Pagamentos = () => {
         isDeleting={deleteMutation.isPending}
         onClose={() => setPagamentoToDelete(null)}
         onDelete={handleConfirmDelete}
-      />
-
-      <DeleteMultipleFilesDialog
-        pagamentoIds={selectedPagamentoIds}
-        isOpen={showDeleteFiles}
-        onClose={() => setShowDeleteFiles(false)}
-        onDelete={handleFilesDeleted}
       />
     </div>
   );
