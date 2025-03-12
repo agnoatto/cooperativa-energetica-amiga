@@ -116,127 +116,89 @@ export function PagamentoTableRow({
   };
 
   return (
-    <TableRow>
-      <TableCell>{pagamento.usina?.unidade_usina?.numero_uc}</TableCell>
-      <TableCell>{pagamento.usina?.investidor?.nome_investidor}</TableCell>
-      <TableCell className="text-right">{pagamento.geracao_kwh}</TableCell>
-      <TableCell className="text-right">
+    <TableRow className="h-9 hover:bg-gray-50">
+      <TableCell className="py-1.5 px-3 text-sm">{pagamento.usina?.unidade_usina?.numero_uc}</TableCell>
+      <TableCell className="py-1.5 px-3 text-sm font-medium truncate max-w-[180px]">{pagamento.usina?.investidor?.nome_investidor}</TableCell>
+      <TableCell className="py-1.5 px-3 text-sm text-right">{pagamento.geracao_kwh}</TableCell>
+      <TableCell className="py-1.5 px-3 text-sm text-right">
         {formatarMoeda(pagamento.valor_concessionaria)}
       </TableCell>
-      <TableCell className="text-right">{formatarMoeda(valorEfetivo)}</TableCell>
-      <TableCell className="text-right">
+      <TableCell className="py-1.5 px-3 text-sm text-right">{formatarMoeda(valorEfetivo)}</TableCell>
+      <TableCell className="py-1.5 px-3 text-sm text-right">
         <StatusBadge status={pagamento.status} />
       </TableCell>
-      <TableCell>
-        <div className="flex items-center justify-end gap-2">
-          <TooltipProvider>
-            {pagamento.arquivo_conta_energia_path && (
-              <>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={handlePreviewContaEnergia}
-                    >
-                      <FileText className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Visualizar Conta</p>
-                  </TooltipContent>
-                </Tooltip>
+      <TableCell className="py-1.5 px-3 text-sm text-center">
+        <div className="flex items-center justify-center space-x-1">
+          {pagamento.arquivo_conta_energia_path ? (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={handlePreviewContaEnergia}
+                title="Visualizar conta"
+              >
+                <FileText className="h-4 w-4 text-gray-600" />
+              </Button>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={handleDownloadContaEnergia}
-                    >
-                      <FileDown className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Download Conta</p>
-                  </TooltipContent>
-                </Tooltip>
-              </>
-            )}
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setShowBoletimPreview(true)}
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Visualizar Boletim</p>
-              </TooltipContent>
-            </Tooltip>
-
-            {pagamento.status === 'pendente' && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => setShowSendDialog(true)}
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Enviar Boletim</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
-          </TooltipProvider>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={handleDownloadContaEnergia}
+                title="Baixar conta"
+              >
+                <FileDown className="h-4 w-4 text-gray-600" />
+              </Button>
+            </>
+          ) : (
+            <span className="text-xs text-gray-400">Não anexada</span>
+          )}
         </div>
       </TableCell>
-      <TableCell>
-        <div className="flex items-center justify-end gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => onEdit(pagamento)}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Editar</p>
-              </TooltipContent>
-            </Tooltip>
+      <TableCell className="py-1.5 px-3 text-sm text-right">
+        <div className="flex items-center justify-end space-x-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => setShowBoletimPreview(true)}
+            title="Visualizar boletim"
+          >
+            <Eye className="h-4 w-4 text-gray-600" />
+          </Button>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => onDelete(pagamento)}
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Excluir</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {pagamento.status === 'pendente' && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => setShowSendDialog(true)}
+              title="Enviar boletim"
+            >
+              <Send className="h-4 w-4 text-gray-600" />
+            </Button>
+          )}
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => onEdit(pagamento)}
+            title="Editar"
+          >
+            <Pencil className="h-4 w-4 text-gray-600" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => onDelete(pagamento)}
+            title="Excluir"
+          >
+            <Trash className="h-4 w-4 text-gray-600" />
+          </Button>
         </div>
       </TableCell>
 

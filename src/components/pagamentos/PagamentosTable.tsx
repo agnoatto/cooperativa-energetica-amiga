@@ -42,18 +42,18 @@ export function PagamentosTable({
   }
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>UC</TableHead>
-            <TableHead>Investidor</TableHead>
-            <TableHead className="text-right">Geração (kWh)</TableHead>
-            <TableHead className="text-right">Valor Concess.</TableHead>
-            <TableHead className="text-right">Valor Total</TableHead>
-            <TableHead className="text-right">Status</TableHead>
-            <TableHead className="text-center">Conta</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
+    <div className="rounded-md border border-gray-200 overflow-hidden">
+      <Table className="w-full [&_th]:bg-gray-50 [&_th]:font-medium [&_th]:text-gray-700 [&_th]:h-9 [&_tr]:border-b [&_tr]:border-gray-200">
+        <TableHeader className="[&_tr]:border-b [&_tr]:border-gray-200">
+          <TableRow className="h-9">
+            <TableHead className="py-1.5 px-3 text-sm">UC</TableHead>
+            <TableHead className="py-1.5 px-3 text-sm">Investidor</TableHead>
+            <TableHead className="py-1.5 px-3 text-sm text-right">Geração (kWh)</TableHead>
+            <TableHead className="py-1.5 px-3 text-sm text-right">Valor Concess.</TableHead>
+            <TableHead className="py-1.5 px-3 text-sm text-right">Valor Total</TableHead>
+            <TableHead className="py-1.5 px-3 text-sm text-right">Status</TableHead>
+            <TableHead className="py-1.5 px-3 text-sm text-center">Conta</TableHead>
+            <TableHead className="py-1.5 px-3 text-sm text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
