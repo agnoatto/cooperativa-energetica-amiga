@@ -76,13 +76,12 @@ export function ContaEnergiaUpload({
     }
   }, [arquivoPath, arquivoNome]);
 
+  // Remove a função que mostrava o confirm do navegador
   const handleRemove = useCallback(() => {
     console.log("[ContaEnergiaUpload] Solicitando remoção do arquivo:", arquivoNome);
-    // Confirmação antes de remover
-    if (confirm("Tem certeza que deseja remover este arquivo?")) {
-      onRemove();
-      toast.success("Arquivo removido do formulário");
-    }
+    // Chama diretamente a função de remoção, sem o confirm do navegador
+    onRemove();
+    toast.success("Arquivo removido do formulário");
   }, [arquivoNome, onRemove]);
 
   return (
