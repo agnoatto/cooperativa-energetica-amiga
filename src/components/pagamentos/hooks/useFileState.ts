@@ -28,6 +28,7 @@ export function useFileState() {
   });
 
   const [isUploading, setIsUploading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const uploadFile = async (file: File, pagamentoId: string) => {
     if (!file) return;
@@ -154,6 +155,7 @@ export function useFileState() {
 
   const deleteFileFromPagamento = async (pagamentoId: string) => {
     try {
+      setIsDeleting(true);
       console.log("[useFileState] Buscando informações do pagamento:", pagamentoId);
       
       // Primeiro, buscar o pagamento para obter o caminho do arquivo
@@ -180,6 +182,79 @@ export function useFileState() {
       console.error("[useFileState] Erro ao excluir arquivo do pagamento:", error);
       toast.error(`Erro ao excluir arquivo: ${error.message}`);
       return false;
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  /**
+   * Método para excluir contas de energia por IDs de pagamento
+   * @param pagamentoIds Lista de IDs de pagamentos para remover os arquivos
+   */
+  const deleteMultipleFilesByPagamentoIds = async (pagamentoIds: string[]) => {
+    if (!pagamentoIds.length) {
+      toast.warning("Nenhum pagamento selecionado para excluir arquivos");
+      return;
+    }
+    
+    setIsDeleting(true);
+    let sucessos = 0;
+    let falhas = 0;
+    
+    try {
+      console.log(`[useFileState] Excluindo arquivos de ${pagamentoIds.length} pagamentos`);
+      
+      // Primeiro buscar todos os pagamentos para obter os caminhos dos arquivos
+      const { data: pagamentos, error } = await supabase
+        .from('pagamentos_usina')
+        .select('id, arquivo_conta_energia_path')
+        .in('id', pagamentoIds)
+        .filter('arquivo_conta_energia_path', 'not.is', null);
+      
+      if (error) {
+        console.error("[useFileState] Erro ao buscar pagamentos:", error);
+        throw error;
+      }
+      
+      if (!pagamentos?.length) {
+        console.log("[useFileState] Nenhum pagamento com arquivo encontrado");
+        return { sucessos: 0, falhas: 0 };
+      }
+      
+      console.log(`[useFileState] Encontrados ${pagamentos.length} pagamentos com arquivos`);
+      
+      // Para cada pagamento com arquivo, chamar a função de remoção
+      for (const pagamento of pagamentos) {
+        if (pagamento.arquivo_conta_energia_path) {
+          try {
+            const resultado = await removeFile(pagamento.id, pagamento.arquivo_conta_energia_path);
+            if (resultado) {
+              sucessos++;
+            } else {
+              falhas++;
+            }
+          } catch (error) {
+            console.error(`[useFileState] Erro ao excluir arquivo do pagamento ${pagamento.id}:`, error);
+            falhas++;
+          }
+        }
+      }
+      
+      if (sucessos > 0) {
+        toast.success(`${sucessos} arquivo${sucessos > 1 ? 's' : ''} removido${sucessos > 1 ? 's' : ''} com sucesso`);
+      }
+      
+      if (falhas > 0) {
+        toast.error(`Falha ao remover ${falhas} arquivo${falhas > 1 ? 's' : ''}`);
+      }
+      
+      return { sucessos, falhas };
+    } catch (error: any) {
+      console.error("[useFileState] Erro ao excluir múltiplos arquivos:", error);
+      toast.error(`Erro ao excluir arquivos: ${error.message}`);
+      return { sucessos, falhas };
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -205,9 +280,11 @@ export function useFileState() {
     fileInfo,
     setFileInfo,
     isUploading,
+    isDeleting,
     uploadFile,
     removeFile,
     deleteFileFromPagamento,
+    deleteMultipleFilesByPagamentoIds,
     previewFile
   };
 }

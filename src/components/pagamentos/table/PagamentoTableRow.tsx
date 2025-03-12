@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/tooltip";
 import { BoletimPreviewDialog } from "../BoletimPreviewDialog";
 import { SendPagamentoDialog } from "../SendPagamentoDialog";
-import { STORAGE_BUCKET } from "../hooks/constants";
+import { STORAGE_BUCKET } from "../hooks/useFileState";
 import { useFileState } from "../hooks/useFileState";
 
 interface PagamentoTableRowProps {
@@ -40,7 +40,7 @@ export function PagamentoTableRow({
   onViewDetails,
 }: PagamentoTableRowProps) {
   const { StatusBadge, handleSendPagamento } = usePagamentoStatus();
-  const { deleteFileFromPagamento } = useFileState();
+  const { deleteFileFromPagamento, isDeleting } = useFileState();
   const [showContaEnergiaPreview, setShowContaEnergiaPreview] = useState(false);
   const [showBoletimPreview, setShowBoletimPreview] = useState(false);
   const [showSendDialog, setShowSendDialog] = useState(false);
@@ -54,26 +54,32 @@ export function PagamentoTableRow({
       try {
         console.log('[handlePreviewContaEnergia] Tentando obter URL do arquivo:', pagamento.arquivo_conta_energia_path);
         
-        // Tenta criar uma URL assinada primeiro
-        const { data: signedUrlData, error: signedUrlError } = await supabase
-          .storage
-          .from(STORAGE_BUCKET)
-          .createSignedUrl(pagamento.arquivo_conta_energia_path, 3600);
-
-        if (signedUrlError) {
-          console.error('[handlePreviewContaEnergia] Erro ao gerar URL assinada:', signedUrlError);
-          
-          // Se falhar, tenta obter URL pública
-          const { data } = await supabase
+        // Verificar se o caminho já é uma URL completa
+        if (pagamento.arquivo_conta_energia_path.startsWith('http')) {
+          console.log('[handlePreviewContaEnergia] Usando URL completa existente');
+          setPdfUrl(pagamento.arquivo_conta_energia_path);
+        } else {
+          // Tenta criar uma URL assinada primeiro
+          const { data: signedUrlData, error: signedUrlError } = await supabase
             .storage
             .from(STORAGE_BUCKET)
-            .getPublicUrl(pagamento.arquivo_conta_energia_path);
+            .createSignedUrl(pagamento.arquivo_conta_energia_path, 3600);
+
+          if (signedUrlError) {
+            console.error('[handlePreviewContaEnergia] Erro ao gerar URL assinada:', signedUrlError);
             
-          console.log('[handlePreviewContaEnergia] URL pública obtida:', data.publicUrl);
-          setPdfUrl(data.publicUrl);
-        } else {
-          console.log('[handlePreviewContaEnergia] URL assinada obtida:', signedUrlData.signedUrl);
-          setPdfUrl(signedUrlData.signedUrl);
+            // Se falhar, tenta obter URL pública
+            const { data } = await supabase
+              .storage
+              .from(STORAGE_BUCKET)
+              .getPublicUrl(pagamento.arquivo_conta_energia_path);
+              
+            console.log('[handlePreviewContaEnergia] URL pública obtida:', data.publicUrl);
+            setPdfUrl(data.publicUrl);
+          } else {
+            console.log('[handlePreviewContaEnergia] URL assinada obtida:', signedUrlData.signedUrl);
+            setPdfUrl(signedUrlData.signedUrl);
+          }
         }
         
         setShowContaEnergiaPreview(true);
@@ -89,10 +95,22 @@ export function PagamentoTableRow({
       try {
         console.log('[handleDownloadContaEnergia] Tentando baixar arquivo:', pagamento.arquivo_conta_energia_path);
         
+        // Verificar se o caminho é uma URL completa
+        let filePath = pagamento.arquivo_conta_energia_path;
+        if (filePath.startsWith('http')) {
+          // Extrair o caminho relativo da URL
+          const regex = new RegExp(`/storage/v1/object/public/${STORAGE_BUCKET}/(.+)`);
+          const match = filePath.match(regex);
+          if (match && match[1]) {
+            filePath = match[1];
+            console.log(`[handleDownloadContaEnergia] Caminho extraído: ${filePath}`);
+          }
+        }
+        
         const { data, error } = await supabase
           .storage
           .from(STORAGE_BUCKET)
-          .download(pagamento.arquivo_conta_energia_path);
+          .download(filePath);
 
         if (error) {
           console.error('[handleDownloadContaEnergia] Erro no download:', error);
@@ -176,6 +194,7 @@ export function PagamentoTableRow({
                 size="icon"
                 className="h-7 w-7"
                 onClick={handleDeleteContaEnergia}
+                disabled={isDeleting}
                 title="Excluir conta"
               >
                 <FileX className="h-4 w-4 text-red-500" />
