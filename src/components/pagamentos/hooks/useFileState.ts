@@ -88,7 +88,7 @@ export function useFileState() {
       const extractPath = (url: string): string | null => {
         try {
           // Procura por um padrão "/object/public/bucket-name/path" na URL
-          const regex = /\/object\/public\/([^\/]+)\/(.+)/;
+          const regex = /\/storage\/v1\/object\/public\/([^\/]+)\/(.+)/;
           const match = url.match(regex);
           
           if (match && match.length >= 3) {
@@ -154,9 +154,12 @@ export function useFileState() {
       console.log("[useFileState] Abrindo preview do arquivo:", fileInfo.path);
       // Corrigir o URL duplicado que aparece nos logs
       const cleanUrl = fileInfo.path.replace(/https?:\/\/[^\/]+\/storage\/v1\/object\/public\/[^\/]+\//g, '');
-      // Obtém URL base usando configs do Supabase
-      const baseUrl = new URL(supabase.url).origin;
-      const correctUrl = `${baseUrl}/storage/v1/object/public/${STORAGE_BUCKET}/${cleanUrl}`;
+      // Obtém URL base usando getPublicUrl ao invés de acessar diretamente a URL do Supabase
+      const { data } = supabase.storage
+        .from(STORAGE_BUCKET)
+        .getPublicUrl(cleanUrl);
+        
+      const correctUrl = data.publicUrl;
       console.log("[useFileState] URL limpo para preview:", correctUrl);
       window.open(correctUrl, '_blank');
     } else {
