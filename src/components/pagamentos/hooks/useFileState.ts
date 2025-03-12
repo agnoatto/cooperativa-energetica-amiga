@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 // Nome do bucket usado para armazenar os arquivos de contas de energia
-const STORAGE_BUCKET = 'contas-energia-usina';
+export const STORAGE_BUCKET = 'contas-energia-usina';
 
 export function useFileState() {
   const [fileInfo, setFileInfo] = useState<{

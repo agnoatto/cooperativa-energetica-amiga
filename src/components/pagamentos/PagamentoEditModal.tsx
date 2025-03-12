@@ -1,4 +1,3 @@
-
 /**
  * Componente de modal para edição de pagamentos de usinas
  * 
@@ -23,7 +22,7 @@ import { cn } from "@/lib/utils";
 import { formatarMoeda } from "@/utils/formatters";
 import { convertLocalToUTC, convertUTCToLocal } from "@/utils/dateFormatters";
 import { PagamentoData } from "./types/pagamento";
-import { usePagamentoForm } from "../pagamentos/hooks/usePagamentoForm";
+import { usePagamentoForm } from "./hooks/usePagamentoForm";
 import { ContaEnergiaUpload } from "./upload/ContaEnergiaUpload";
 import { useFileState } from "./hooks/useFileState";
 
@@ -45,6 +44,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
   const [dataVencimentoConcessionaria, setDataVencimentoConcessionaria] = useState<Date | undefined>();
   const [dataEmissao, setDataEmissao] = useState<Date | undefined>();
   const [dataVencimento, setDataVencimento] = useState<Date | undefined>();
+  const [arquivoRemovido, setArquivoRemovido] = useState<boolean>(false);
   
   // Estado para o arquivo de conta de energia
   const { 
@@ -67,6 +67,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
       setTusdFioB(pagamento.tusd_fio_b);
       setValorTusdFioB(pagamento.valor_tusd_fio_b);
       setValorConcessionaria(pagamento.valor_concessionaria);
+      setArquivoRemovido(false);
       
       // Calcular valor bruto
       const calculoValorBruto = pagamento.geracao_kwh * (pagamento.usina?.valor_kwh || 0);
@@ -119,6 +120,13 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
   const handleFileUpload = async (file: File) => {
     if (!pagamento?.id) return;
     await uploadFile(file, pagamento.id);
+    setArquivoRemovido(false);
+  };
+
+  // Handler para remover arquivo
+  const handleRemoveFile = async () => {
+    await removeFile();
+    setArquivoRemovido(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -141,12 +149,14 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
         data_vencimento_concessionaria: dataVencimentoConcessionaria ? convertLocalToUTC(dataVencimentoConcessionaria.toISOString()) : null,
         data_emissao: dataEmissao ? convertLocalToUTC(dataEmissao.toISOString()) : null,
         data_vencimento: dataVencimento ? convertLocalToUTC(dataVencimento.toISOString()) : null,
-        // Adicionar informações do arquivo
-        arquivo_conta_energia_nome: fileInfo.nome,
-        arquivo_conta_energia_path: fileInfo.path,
-        arquivo_conta_energia_tipo: fileInfo.tipo,
-        arquivo_conta_energia_tamanho: fileInfo.tamanho
+        // Adicionar informações do arquivo ou null se removido
+        arquivo_conta_energia_nome: arquivoRemovido ? null : fileInfo.nome,
+        arquivo_conta_energia_path: arquivoRemovido ? null : fileInfo.path,
+        arquivo_conta_energia_tipo: arquivoRemovido ? null : fileInfo.tipo,
+        arquivo_conta_energia_tamanho: arquivoRemovido ? null : fileInfo.tamanho
       };
+      
+      console.log("[PagamentoEditModal] Salvando dados:", dadosAtualizados);
       
       await salvarPagamento(dadosAtualizados);
       toast.success("Pagamento atualizado com sucesso");
@@ -339,7 +349,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
                 arquivoPath={fileInfo.path}
                 isUploading={isUploading}
                 onUpload={handleFileUpload}
-                onRemove={removeFile}
+                onRemove={handleRemoveFile}
                 onPreview={previewFile}
               />
             </div>

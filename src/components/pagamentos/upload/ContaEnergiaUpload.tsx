@@ -76,6 +76,11 @@ export function ContaEnergiaUpload({
     }
   }, [arquivoPath, arquivoNome]);
 
+  const handleRemove = useCallback(() => {
+    console.log("[ContaEnergiaUpload] Solicitando remoção do arquivo:", arquivoNome);
+    onRemove();
+  }, [arquivoNome, onRemove]);
+
   return (
     <div className="space-y-4">
       {!arquivoNome && (
@@ -92,7 +97,7 @@ export function ContaEnergiaUpload({
           fileName={arquivoNome}
           onPreview={onPreview}
           onDownload={handleDownload}
-          onRemove={onRemove}
+          onRemove={handleRemove}
           className="bg-muted"
         />
       )}
