@@ -20,6 +20,7 @@ import { DadosUsinaSection } from "./modal/DadosUsinaSection";
 import { GeracaoValoresSection } from "./modal/GeracaoValoresSection";
 import { DatasSection } from "./modal/DatasSection";
 import { FormButtons } from "./modal/FormButtons";
+import { ArquivoContaSection } from "./modal/ArquivoContaSection";
 
 interface PagamentoEditModalProps {
   pagamento: PagamentoData | null;
@@ -39,6 +40,12 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
   const [dataVencimentoConcessionaria, setDataVencimentoConcessionaria] = useState<Date | undefined>();
   const [dataEmissao, setDataEmissao] = useState<Date | undefined>();
   const [dataVencimento, setDataVencimento] = useState<Date | undefined>();
+  
+  // Estado para o arquivo da conta de energia
+  const [arquivoContaNome, setArquivoContaNome] = useState<string | null>(null);
+  const [arquivoContaPath, setArquivoContaPath] = useState<string | null>(null);
+  const [arquivoContaTipo, setArquivoContaTipo] = useState<string | null>(null);
+  const [arquivoContaTamanho, setArquivoContaTamanho] = useState<number | null>(null);
   
   // Custom hook para manipular o formulário
   const { salvarPagamento, isSaving } = usePagamentoForm();
@@ -69,6 +76,12 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
       if (pagamento.data_vencimento) {
         setDataVencimento(new Date(pagamento.data_vencimento));
       }
+      
+      // Definir informações do arquivo de conta de energia
+      setArquivoContaNome(pagamento.arquivo_conta_energia_nome);
+      setArquivoContaPath(pagamento.arquivo_conta_energia_path);
+      setArquivoContaTipo(pagamento.arquivo_conta_energia_tipo);
+      setArquivoContaTamanho(pagamento.arquivo_conta_energia_tamanho);
     }
   }, [pagamento, isOpen]);
 
@@ -92,6 +105,15 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
     }
   }, [dataEmissao]);
 
+  // Função para lidar com alterações nos arquivos
+  const handleFileChange = (nome: string | null, path: string | null, tipo: string | null, tamanho: number | null) => {
+    console.log("[PagamentoEditModal] Arquivo alterado:", { nome, path, tipo, tamanho });
+    setArquivoContaNome(nome);
+    setArquivoContaPath(path);
+    setArquivoContaTipo(tipo);
+    setArquivoContaTamanho(tamanho);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -114,7 +136,11 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
         valor_total: valorTotal,
         data_vencimento_concessionaria: dataVencimentoConcessionaria ? convertLocalToUTC(dataVencimentoConcessionaria.toISOString()) : null,
         data_emissao: dataEmissao ? convertLocalToUTC(dataEmissao.toISOString()) : null,
-        data_vencimento: dataVencimento ? convertLocalToUTC(dataVencimento.toISOString()) : null
+        data_vencimento: dataVencimento ? convertLocalToUTC(dataVencimento.toISOString()) : null,
+        arquivo_conta_energia_nome: arquivoContaNome,
+        arquivo_conta_energia_path: arquivoContaPath,
+        arquivo_conta_energia_tipo: arquivoContaTipo,
+        arquivo_conta_energia_tamanho: arquivoContaTamanho
       };
       
       console.log("[PagamentoEditModal] Salvando dados:", dadosAtualizados);
@@ -164,6 +190,18 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
                 dataVencimento={dataVencimento}
               />
             </div>
+            
+            {/* Seção de Upload da Conta de Energia */}
+            {pagamento && (
+              <ArquivoContaSection
+                pagamentoId={pagamento.id}
+                arquivoNome={arquivoContaNome}
+                arquivoPath={arquivoContaPath}
+                arquivoTipo={arquivoContaTipo}
+                arquivoTamanho={arquivoContaTamanho}
+                onFileChange={handleFileChange}
+              />
+            )}
           </div>
           
           {/* Botões do Formulário */}
