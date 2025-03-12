@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
 import { styles, COLORS, FONTS } from '@/components/pdf/theme';
@@ -222,7 +221,7 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
             }}>
               Observações da Fatura
             </Text>
-            <Text style={{ fontSize: FONTS.BODY }}>{fatura.observacao}</Text>
+            <Text style={{ fontSize: FONTS.NORMAL }}>{fatura.observacao}</Text>
           </View>
         )}
 
