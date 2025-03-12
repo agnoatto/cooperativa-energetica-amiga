@@ -1,12 +1,24 @@
 
+/**
+ * Componente principal para geração do PDF da fatura
+ * 
+ * Organiza e compõe todas as seções do documento PDF da fatura,
+ * usando componentes menores para melhor organização e manutenção.
+ */
 import React from 'react';
-import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
-import { styles, COLORS, FONTS } from '@/components/pdf/theme';
+import { Document, Page, View, Text } from '@react-pdf/renderer';
+import { styles } from '@/components/pdf/theme';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PdfFaturaData } from '@/types/pdf';
-import { formatarDocumento, formatarMoeda } from '@/utils/formatters';
-import { formatDateToPtBR } from '@/utils/dateFormatters';
+
+import { PDFHeader } from './components/PDFHeader';
+import { ClientInfoSection } from './components/ClientInfoSection';
+import { HighlightBox } from './components/HighlightBox';
+import { EconomiaHistoricoSection } from './components/EconomiaHistoricoSection';
+import { CalculoEconomiaSection } from './components/CalculoEconomiaSection';
+import { ObservacaoSection } from './components/ObservacaoSection';
+import { FooterSection } from './components/FooterSection';
 
 interface FaturaPDFProps {
   fatura: PdfFaturaData;
@@ -33,218 +45,53 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Cabeçalho */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>
-            Relatório Mensal - Ref.: {mesReferencia}
-          </Text>
-        </View>
+        <PDFHeader mesReferencia={mesReferencia} />
 
         {/* Informações do Cliente */}
-        <View style={styles.clientInfo}>
-          <View style={styles.clientRow}>
-            <Text style={styles.clientLabel}>Cliente:</Text>
-            <Text>{fatura.unidade_beneficiaria.cooperado.nome}</Text>
-          </View>
-          <View style={styles.clientRow}>
-            <Text style={styles.clientLabel}>CPF/CNPJ:</Text>
-            <Text>{formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento || '')}</Text>
-          </View>
-          <View style={styles.clientRow}>
-            <Text style={styles.clientLabel}>Endereço:</Text>
-            <Text>{fatura.unidade_beneficiaria.endereco}</Text>
-          </View>
-        </View>
+        <ClientInfoSection 
+          nome={fatura.unidade_beneficiaria.cooperado.nome}
+          documento={fatura.unidade_beneficiaria.cooperado.documento}
+          endereco={fatura.unidade_beneficiaria.endereco}
+        />
 
         {/* Informações Destacadas */}
-        <View style={styles.highlightBox}>
-          <View style={styles.highlightItem}>
-            <Text style={styles.highlightLabel}>Unidade Consumidora:</Text>
-            <Text style={styles.highlightValue}>{fatura.unidade_beneficiaria.numero_uc}</Text>
-          </View>
-          <View style={styles.highlightItem}>
-            <Text style={styles.highlightLabel}>Data de Vencimento:</Text>
-            <Text style={styles.highlightValue}>
-              {formatDateToPtBR(fatura.data_vencimento)}
-            </Text>
-          </View>
-          <View style={styles.highlightItem}>
-            <Text style={styles.highlightLabel}>Valor a Pagar a Cogesol:</Text>
-            <Text style={styles.highlightValue}>{formatarMoeda(fatura.valor_assinatura)}</Text>
-          </View>
-        </View>
+        <HighlightBox 
+          numeroUC={fatura.unidade_beneficiaria.numero_uc}
+          dataVencimento={fatura.data_vencimento}
+          valorAssinatura={fatura.valor_assinatura}
+        />
 
         {/* Análise Mensal */}
         <View style={styles.contentSection}>
           <Text style={styles.sectionHeader}>Análise Mensal</Text>
           
           <View style={{ flexDirection: 'row' }}>
-            {/* Coluna Esquerda */}
-            <View style={{ flex: 1, marginRight: 20, borderRight: 1, borderColor: COLORS.GRAY, paddingRight: 20 }}>
-              <Text style={{ marginBottom: 10, fontSize: FONTS.SUBTITLE }}>Consumo do mês</Text>
-              <Text style={{ 
-                fontSize: FONTS.HEADER,
-                marginBottom: 20,
-                color: COLORS.PRIMARY,
-                fontWeight: 'bold'
-              }}>{fatura.consumo_kwh} kWh</Text>
-              
-              <Text style={{ marginBottom: 5 }}>Neste mês você economizou:</Text>
-              <View style={styles.highlightBox}>
-                <Text style={styles.highlightValue}>{formatarMoeda(fatura.valor_desconto)}</Text>
-              </View>
-              
-              <Text style={{ marginBottom: 5, marginTop: 10 }}>Até agora já economizou:</Text>
-              <View style={styles.highlightBox}>
-                <Text style={styles.highlightValue}>{formatarMoeda(economiaAcumulada)}</Text>
-              </View>
+            {/* Coluna Esquerda - Histórico de Economia */}
+            <EconomiaHistoricoSection 
+              consumoKwh={fatura.consumo_kwh}
+              valorDesconto={fatura.valor_desconto}
+              economiaAcumulada={economiaAcumulada}
+              historicoFiltrado={historicoFiltrado}
+            />
 
-              {/* Histórico de Economia com título ajustado para mesmo tamanho dos outros */}
-              <View style={{ marginTop: 20 }}>
-                <Text style={{ 
-                  fontSize: FONTS.SUBTITLE,
-                  marginBottom: 15,
-                  fontWeight: 'bold',
-                  color: COLORS.WHITE,
-                  backgroundColor: COLORS.HEADER_BG,
-                  padding: '5px 10px',
-                  borderRadius: 0,
-                  textAlign: 'left',
-                }}>
-                  Histórico de Economia
-                </Text>
-                <View style={styles.table}>
-                  <View style={styles.tableHeader}>
-                    <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Mês</Text>
-                    <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Consumo</Text>
-                    <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Economia</Text>
-                  </View>
-                  {historicoFiltrado.map((hist) => (
-                    <View key={`${hist.mes}-${hist.ano}`} style={styles.tableRow}>
-                      <Text style={styles.tableCell}>
-                        {format(new Date(hist.ano, hist.mes - 1), 'MMM/yy', { locale: ptBR })}
-                      </Text>
-                      <Text style={styles.tableCell}>{hist.consumo_kwh} kWh</Text>
-                      <Text style={styles.tableCellRight}>{formatarMoeda(hist.valor_desconto)}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            </View>
-
-            {/* Coluna Direita */}
-            <View style={{ flex: 1.5 }}>
-              {/* Fatura SEM a Cogesol */}
-              <Text style={[styles.sectionHeader, { backgroundColor: COLORS.RED }]}>
-                Fatura SEM a Cogesol
-              </Text>
-              <View style={styles.table}>
-                <View style={styles.tableRow}>
-                  <Text style={styles.tableCell}>Consumo</Text>
-                  <Text style={styles.tableCell}>{fatura.consumo_kwh} kWh</Text>
-                  <Text style={styles.tableCellRight}>
-                    {formatarMoeda(fatura.total_fatura - fatura.iluminacao_publica - fatura.outros_valores)}
-                  </Text>
-                </View>
-                <View style={styles.tableRow}>
-                  <Text style={styles.tableCell}>Iluminação</Text>
-                  <Text style={styles.tableCell}>1</Text>
-                  <Text style={styles.tableCellRight}>{formatarMoeda(fatura.iluminacao_publica)}</Text>
-                </View>
-                <View style={styles.tableRow}>
-                  <Text style={styles.tableCell}>Demais não abatido</Text>
-                  <Text style={styles.tableCell}>1</Text>
-                  <Text style={styles.tableCellRight}>{formatarMoeda(fatura.outros_valores)}</Text>
-                </View>
-                <View style={[styles.tableRow, { backgroundColor: COLORS.LIGHT_GRAY }]}>
-                  <Text style={[styles.tableCell, { flex: 2, textAlign: 'right', paddingRight: 10 }]}>Total:</Text>
-                  <Text style={styles.tableCellRight}>{formatarMoeda(fatura.total_fatura)}</Text>
-                </View>
-              </View>
-
-              {/* Fatura COM a Cogesol */}
-              <Text style={[styles.sectionHeader, { backgroundColor: COLORS.BLUE }]}>
-                Fatura COM a Cogesol
-              </Text>
-              <View style={styles.table}>
-                <View style={styles.tableRow}>
-                  <Text style={styles.tableCell}>Fatura RGE</Text>
-                  <Text style={styles.tableCellRight}>{formatarMoeda(fatura.fatura_concessionaria)}</Text>
-                </View>
-                <View style={styles.tableRow}>
-                  <Text style={styles.tableCell}>Fatura Cogesol</Text>
-                  <Text style={styles.tableCellRight}>{formatarMoeda(fatura.valor_assinatura)}</Text>
-                </View>
-                <View style={[styles.tableRow, { backgroundColor: COLORS.LIGHT_GRAY }]}>
-                  <Text style={[styles.tableCell, { textAlign: 'right', paddingRight: 10 }]}>Total:</Text>
-                  <Text style={styles.tableCellRight}>
-                    {formatarMoeda(fatura.fatura_concessionaria + fatura.valor_assinatura)}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Cálculo da Economia */}
-              <Text style={styles.sectionHeader}>Cálculo da Economia</Text>
-              <View style={styles.table}>
-                <View style={styles.tableRow}>
-                  <Text style={styles.tableCell}>Valor da Energia SEM a Cogesol</Text>
-                  <Text style={styles.tableCellRight}>{formatarMoeda(fatura.total_fatura)}</Text>
-                </View>
-                <View style={styles.tableRow}>
-                  <Text style={styles.tableCell}>Valor da Energia COM a Cogesol</Text>
-                  <Text style={styles.tableCellRight}>
-                    {formatarMoeda(fatura.fatura_concessionaria + fatura.valor_assinatura)}
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.totalRow}>
-                <Text style={{ flex: 1 }}>Total ECONOMIA sobre o consumo</Text>
-                <Text style={{ fontWeight: 'bold' }}>{formatarMoeda(fatura.valor_desconto)}</Text>
-              </View>
-            </View>
+            {/* Coluna Direita - Cálculo da Economia */}
+            <CalculoEconomiaSection 
+              faturaConcessionaria={fatura.fatura_concessionaria}
+              valorAssinatura={fatura.valor_assinatura}
+              totalFatura={fatura.total_fatura}
+              iluminacaoPublica={fatura.iluminacao_publica}
+              outrosValores={fatura.outros_valores}
+              consumoKwh={fatura.consumo_kwh}
+              valorDesconto={fatura.valor_desconto}
+            />
           </View>
         </View>
 
-        {/* Nova seção: Observações da Fatura (simplificada, sem cor vermelha) */}
-        {fatura.observacao && (
-          <View style={{ 
-            marginTop: 15, 
-            marginBottom: 80, // Espaço para o rodapé
-            padding: 10, 
-            borderWidth: 1, 
-            borderColor: COLORS.GRAY, 
-            borderRadius: 4 
-          }}>
-            <Text style={{ 
-              fontSize: FONTS.SUBTITLE, 
-              marginBottom: 5,
-              fontWeight: 'bold',
-              textAlign: 'center'
-            }}>
-              Observações da Fatura
-            </Text>
-            <Text style={{ fontSize: FONTS.NORMAL }}>{fatura.observacao}</Text>
-          </View>
-        )}
+        {/* Observações da Fatura */}
+        <ObservacaoSection observacao={fatura.observacao} />
 
-        {/* Rodapé (movido para parte inferior da página) */}
-        <View style={[styles.footer, { bottom: 30, left: 0, right: 0 }]}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
-            <View>
-              <Text>COGESOL Cooperativa de Energia Renovável</Text>
-              <Text>CNPJ: 00.175.059/0001-00</Text>
-              <Text>Rua Julio Golin, 552 - Centro - Nonoai/RS</Text>
-            </View>
-            <View style={[styles.highlightBox, { width: 250 }]}>
-              <View>
-                <Text style={{ fontSize: FONTS.SMALL, marginBottom: 5 }}>Total a pagar pela Assinatura</Text>
-                <Text style={styles.highlightValue}>{formatarMoeda(fatura.valor_assinatura)}</Text>
-              </View>
-            </View>
-          </View>
-          <Text style={styles.warningText}>
-            Deverá ser pago a sua fatura COGESOL e a fatura RGE!
-          </Text>
-        </View>
+        {/* Rodapé */}
+        <FooterSection valorAssinatura={fatura.valor_assinatura} />
       </Page>
     </Document>
   );
