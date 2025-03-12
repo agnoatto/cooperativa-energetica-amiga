@@ -159,6 +159,10 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
       // Calcular valor total (valor bruto - valor TUSD FioB - valor concessionária)
       const valorTotal = valorBruto - valorTusdFioB - valorConcessionaria;
       
+      // Log para debug
+      console.log("[PagamentoEditModal] Estado de arquivo removido:", arquivoRemovido);
+      console.log("[PagamentoEditModal] Informações atuais do arquivo:", fileInfo);
+      
       // Preparar dados para salvar
       const dadosAtualizados = {
         id: pagamento.id,
@@ -170,7 +174,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
         data_vencimento_concessionaria: dataVencimentoConcessionaria ? convertLocalToUTC(dataVencimentoConcessionaria.toISOString()) : null,
         data_emissao: dataEmissao ? convertLocalToUTC(dataEmissao.toISOString()) : null,
         data_vencimento: dataVencimento ? convertLocalToUTC(dataVencimento.toISOString()) : null,
-        // Adicionar informações do arquivo ou null se removido
+        // Definir explicitamente valores para os campos de arquivo
         arquivo_conta_energia_nome: arquivoRemovido ? null : fileInfo.nome,
         arquivo_conta_energia_path: arquivoRemovido ? null : fileInfo.path,
         arquivo_conta_energia_tipo: arquivoRemovido ? null : fileInfo.tipo,

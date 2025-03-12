@@ -1,4 +1,3 @@
-
 /**
  * Hook para gerenciamento de arquivos em pagamentos
  * 
@@ -131,6 +130,13 @@ export function useFileState() {
       
       // Limpar as informações do arquivo (independentemente do resultado da exclusão no storage)
       setFileInfo({
+        nome: null,
+        path: null,
+        tipo: null,
+        tamanho: null
+      });
+      
+      console.log("[useFileState] Estado do arquivo após remoção:", {
         nome: null,
         path: null,
         tipo: null,

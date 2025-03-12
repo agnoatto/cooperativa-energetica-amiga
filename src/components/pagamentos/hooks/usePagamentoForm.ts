@@ -38,6 +38,14 @@ export const usePagamentoForm = () => {
     try {
       console.log("[usePagamentoForm] Iniciando salvamento do pagamento:", dados);
       
+      // Log explícito para os campos do arquivo
+      console.log("[usePagamentoForm] Dados do arquivo para salvar:", {
+        nome: dados.arquivo_conta_energia_nome,
+        path: dados.arquivo_conta_energia_path,
+        tipo: dados.arquivo_conta_energia_tipo,
+        tamanho: dados.arquivo_conta_energia_tamanho
+      });
+      
       // Verificar a estrutura da função RPC no banco de dados
       // e garantir que os parâmetros estejam corretos
       const { data, error } = await supabase.rpc('atualizar_pagamento_usina', {
@@ -50,10 +58,11 @@ export const usePagamentoForm = () => {
         p_data_vencimento_concessionaria: dados.data_vencimento_concessionaria,
         p_data_emissao: dados.data_emissao,
         p_data_vencimento: dados.data_vencimento,
-        p_arquivo_conta_energia_nome: dados.arquivo_conta_energia_nome,
-        p_arquivo_conta_energia_path: dados.arquivo_conta_energia_path,
-        p_arquivo_conta_energia_tipo: dados.arquivo_conta_energia_tipo,
-        p_arquivo_conta_energia_tamanho: dados.arquivo_conta_energia_tamanho
+        // Passando null explicitamente quando o arquivo for removido
+        p_arquivo_conta_energia_nome: dados.arquivo_conta_energia_nome === undefined ? null : dados.arquivo_conta_energia_nome,
+        p_arquivo_conta_energia_path: dados.arquivo_conta_energia_path === undefined ? null : dados.arquivo_conta_energia_path,
+        p_arquivo_conta_energia_tipo: dados.arquivo_conta_energia_tipo === undefined ? null : dados.arquivo_conta_energia_tipo,
+        p_arquivo_conta_energia_tamanho: dados.arquivo_conta_energia_tamanho === undefined ? null : dados.arquivo_conta_energia_tamanho
       });
         
       if (error) {
