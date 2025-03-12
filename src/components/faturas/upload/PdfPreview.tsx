@@ -79,11 +79,14 @@ export function PdfPreview({
               
               // Construir URL limpa com o bucket correto
               const storageBucket = detectBucket(pdfUrl);
-              // Obtém URL base usando configs do Supabase - correção aqui
-              const baseUrl = new URL(supabase.auth.getSession().then(res => res.data.session?.access_token || "")).origin;
-              const cleanUrl = `${baseUrl}/storage/v1/object/public/${storageBucket}/${path}`;
-              console.log("[PdfPreview] URL limpa:", cleanUrl);
-              setProcessedUrl(cleanUrl);
+              
+              // Correto: Usar a API getPublicUrl do Supabase ao invés de montar manualmente
+              const { data } = supabase.storage
+                .from(storageBucket)
+                .getPublicUrl(path);
+                
+              console.log("[PdfPreview] URL pública obtida:", data.publicUrl);
+              setProcessedUrl(data.publicUrl);
               return;
             }
           }
