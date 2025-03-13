@@ -34,17 +34,6 @@ export function PdfPreview({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Determinar qual bucket usar - usando o fornecido ou autodetectar baseado na URL
-  const detectBucket = (url: string): string => {
-    if (bucketName) return bucketName;
-    
-    if (url.includes('contas-energia-usina')) {
-      return ENERGIA_BUCKET;
-    } else {
-      return FATURAS_BUCKET;
-    }
-  };
-  
   useEffect(() => {
     // Apenas processa o URL quando o modal estiver aberto e um URL for fornecido
     if (!isOpen || !pdfUrl) return;
@@ -55,70 +44,40 @@ export function PdfPreview({
       console.log("[PdfPreview] Iniciando processamento de URL:", pdfUrl);
       
       try {
-        // Caso 1: Se for um relatório gerado ou blob URL, use diretamente
-        if (isRelatorio || pdfUrl.startsWith('blob:')) {
-          console.log("[PdfPreview] URL é um relatório/blob, usando diretamente");
+        // Abordagem simplificada para obter URL pública
+        // Caso 1: Se já for uma URL completa (começa com http), usamos diretamente
+        if (pdfUrl.startsWith('http')) {
+          console.log("[PdfPreview] Usando URL HTTP diretamente:", pdfUrl);
           setProcessedUrl(pdfUrl);
           return;
         }
         
-        // Caso 2: Se for uma URL absoluta (http/https), limpar possível duplicação
-        if (pdfUrl.startsWith('http://') || pdfUrl.startsWith('https://')) {
-          console.log("[PdfPreview] URL absoluta detectada");
+        // Caso 2: Se for um blob, usamos diretamente
+        if (pdfUrl.startsWith('blob:')) {
+          console.log("[PdfPreview] Usando URL blob diretamente:", pdfUrl);
+          setProcessedUrl(pdfUrl);
+          return;
+        }
+        
+        // Caso 3: Se for um relatório, usamos diretamente
+        if (isRelatorio) {
+          console.log("[PdfPreview] Usando URL de relatório diretamente:", pdfUrl);
+          setProcessedUrl(pdfUrl);
+          return;
+        }
+        
+        // Caso 4: Caminho do Storage do Supabase - determinamos o bucket e geramos URL pública
+        const selectedBucket = bucketName || 
+          (pdfUrl.includes('contas-energia') ? ENERGIA_BUCKET : FATURAS_BUCKET);
           
-          // Corrigir problema de URL duplicada
-          if (pdfUrl.includes('/storage/v1/object/public/') && pdfUrl.indexOf('/storage/v1/object/public/') !== pdfUrl.lastIndexOf('/storage/v1/object/public/')) {
-            console.log("[PdfPreview] Detectada URL duplicada, corrigindo...");
-            const matches = pdfUrl.match(/\/storage\/v1\/object\/public\/([^\/]+)\/(.+)/);
-            
-            if (matches && matches.length >= 3) {
-              const bucket = matches[1];
-              const path = matches[2];
-              
-              console.log(`[PdfPreview] Bucket extraído: ${bucket}, Caminho: ${path}`);
-              
-              // Construir URL limpa com o bucket correto
-              const storageBucket = detectBucket(pdfUrl);
-              
-              // Correto: Usar a API getPublicUrl do Supabase ao invés de montar manualmente
-              const { data } = supabase.storage
-                .from(storageBucket)
-                .getPublicUrl(path);
-                
-              console.log("[PdfPreview] URL pública obtida:", data.publicUrl);
-              setProcessedUrl(data.publicUrl);
-              return;
-            }
-          }
-          
-          // Se não encontrou duplicação, usar a URL diretamente
-          console.log("[PdfPreview] Usando URL absoluta diretamente:", pdfUrl);
-          setProcessedUrl(pdfUrl);
-          return;
-        }
+        console.log(`[PdfPreview] Gerando URL pública usando bucket ${selectedBucket} para: ${pdfUrl}`);
         
-        // Caso 3: URL relativa da API, use diretamente
-        if (pdfUrl.startsWith('/')) {
-          console.log("[PdfPreview] URL relativa detectada, usando diretamente");
-          setProcessedUrl(pdfUrl);
-          return;
-        }
-        
-        // Caso 4: Caminho do Storage do Supabase - precisamos gerar URL pública
-        const storageBucket = detectBucket(pdfUrl);
-        console.log(`[PdfPreview] Usando bucket: ${storageBucket}`);
-            
-        console.log(`[PdfPreview] Gerando URL pública para: ${pdfUrl}`);
-        const { data } = await supabase.storage
-          .from(storageBucket)
+        const { data } = supabase.storage
+          .from(selectedBucket)
           .getPublicUrl(pdfUrl);
             
-        if (data?.publicUrl) {
-          console.log(`[PdfPreview] URL pública gerada: ${data.publicUrl}`);
-          setProcessedUrl(data.publicUrl);
-        } else {
-          throw new Error("Não foi possível gerar URL pública");
-        }
+        console.log("[PdfPreview] URL pública gerada:", data.publicUrl);
+        setProcessedUrl(data.publicUrl);
       } catch (error: any) {
         console.error("[PdfPreview] Erro ao processar URL do PDF:", error);
         setError(error.message || 'Arquivo não encontrado');
