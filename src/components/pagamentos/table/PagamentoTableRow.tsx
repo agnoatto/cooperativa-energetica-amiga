@@ -17,6 +17,7 @@ import { SendPagamentoDialog } from "../SendPagamentoDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FileActions } from "../upload/FileActions";
+import { toast } from "sonner"; // Adicionando a importação do toast
 
 interface PagamentoTableRowProps {
   pagamento: PagamentoData;
