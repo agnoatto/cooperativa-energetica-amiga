@@ -45,12 +45,9 @@ export const handleRemoveFile = async (filePath: string, pagamentoId: string) =>
   const toastId = toast.loading("Removendo arquivo...");
   
   try {
-    const { success, error: removeError } = await removeFile(STORAGE_BUCKET, filePath);
-
-    if (!success) {
-      throw removeError;
-    }
-
+    console.log(`[fileHandlers] Removendo arquivo ${filePath} do bucket ${STORAGE_BUCKET}`);
+    
+    // Primeiro atualizamos o registro no banco de dados
     const { success: updateSuccess, error: updateError } = await updatePagamentoArquivo(pagamentoId, {
       nome: null,
       path: null,
@@ -59,7 +56,14 @@ export const handleRemoveFile = async (filePath: string, pagamentoId: string) =>
     });
 
     if (!updateSuccess) {
-      throw updateError;
+      throw updateError || new Error("Erro ao atualizar informações do pagamento");
+    }
+
+    // Depois removemos o arquivo do storage
+    const { success, error: removeError } = await removeFile(STORAGE_BUCKET, filePath);
+
+    if (!success) {
+      console.warn("[fileHandlers] O arquivo pode não ter sido removido do storage, mas o registro foi atualizado:", removeError);
     }
 
     toast.success("Arquivo removido com sucesso", { id: toastId });
