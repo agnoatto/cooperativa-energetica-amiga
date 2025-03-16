@@ -12,7 +12,8 @@ import { FilePreview } from "@/components/faturas/upload/FilePreview";
 import { toast } from "sonner";
 import { useFileState } from "../hooks/useFileState";
 import { supabase } from "@/integrations/supabase/client";
-import { STORAGE_BUCKET } from "../hooks/useFileState";
+import { STORAGE_BUCKET } from "../hooks/constants";
+import { handleRemoveFile } from "./utils/fileHandlers";
 
 interface ContaEnergiaUploadProps {
   pagamentoId: string;
@@ -101,13 +102,30 @@ export function ContaEnergiaUpload({
     }
   }, [arquivoPath, arquivoNome]);
 
-  // Remove a função que mostrava o confirm do navegador
-  const handleRemove = useCallback(() => {
+  // Função de remoção atualizada para usar a função utilitária handleRemoveFile
+  const handleRemove = useCallback(async () => {
+    if (!arquivoPath || !pagamentoId) {
+      console.log("[ContaEnergiaUpload] Tentativa de remoção sem caminho de arquivo ou ID do pagamento");
+      return;
+    }
+    
     console.log("[ContaEnergiaUpload] Solicitando remoção do arquivo:", arquivoNome);
-    // Chama diretamente a função de remoção, sem o confirm do navegador
-    onFileChange(null, null, null, null);
-    toast.success("Arquivo removido do formulário");
-  }, [arquivoNome, onFileChange]);
+    
+    try {
+      const { success, error } = await handleRemoveFile(arquivoPath, pagamentoId);
+      
+      if (success) {
+        onFileChange(null, null, null, null);
+        toast.success("Arquivo removido com sucesso");
+      } else {
+        console.error("[ContaEnergiaUpload] Erro ao remover arquivo:", error);
+        toast.error(`Erro ao remover arquivo: ${error?.message || "Erro desconhecido"}`);
+      }
+    } catch (error: any) {
+      console.error("[ContaEnergiaUpload] Erro ao remover arquivo:", error);
+      toast.error(`Erro ao remover arquivo: ${error.message}`);
+    }
+  }, [arquivoPath, arquivoNome, pagamentoId, onFileChange]);
 
   const handlePreview = useCallback(() => {
     if (!arquivoPath) {

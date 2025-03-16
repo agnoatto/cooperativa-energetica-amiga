@@ -45,7 +45,7 @@ export const handleRemoveFile = async (filePath: string, pagamentoId: string) =>
   const toastId = toast.loading("Removendo arquivo...");
   
   try {
-    console.log(`[fileHandlers] Removendo arquivo ${filePath} do bucket ${STORAGE_BUCKET}`);
+    console.log(`[fileHandlers] Removendo arquivo ${filePath} do bucket ${STORAGE_BUCKET} para o pagamento ${pagamentoId}`);
     
     // Primeiro atualizamos o registro no banco de dados
     const { success: updateSuccess, error: updateError } = await updatePagamentoArquivo(pagamentoId, {
@@ -56,16 +56,24 @@ export const handleRemoveFile = async (filePath: string, pagamentoId: string) =>
     });
 
     if (!updateSuccess) {
-      throw updateError || new Error("Erro ao atualizar informações do pagamento");
+      console.error("[fileHandlers] Erro ao atualizar informações do pagamento:", updateError);
+      toast.error(`Erro ao atualizar dados: ${updateError?.message || "Erro desconhecido"}`, { id: toastId });
+      return { success: false, error: updateError };
     }
 
-    // Depois removemos o arquivo do storage
-    const { success, error: removeError } = await removeFile(STORAGE_BUCKET, filePath);
+    // Depois tentamos remover o arquivo do storage, mas não impedimos o sucesso da operação se falhar
+    try {
+      const { success, error: removeError } = await removeFile(STORAGE_BUCKET, filePath);
 
-    if (!success) {
-      console.warn("[fileHandlers] O arquivo pode não ter sido removido do storage, mas o registro foi atualizado:", removeError);
+      if (!success) {
+        console.warn("[fileHandlers] Aviso: O arquivo pode não ter sido removido do storage, mas o registro foi atualizado:", removeError);
+      }
+    } catch (removeError) {
+      console.warn("[fileHandlers] Erro ao remover arquivo do storage, mas continuando:", removeError);
+      // Não retornamos erro aqui, consideramos sucesso mesmo que a remoção do arquivo falhe
     }
 
+    console.log("[fileHandlers] Arquivo removido com sucesso do registro do pagamento");
     toast.success("Arquivo removido com sucesso", { id: toastId });
     return { success: true, error: null };
   } catch (error: any) {
