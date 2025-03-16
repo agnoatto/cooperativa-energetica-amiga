@@ -17,6 +17,22 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileRemoved }: UseFile
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
+  /**
+   * Gera um nome de arquivo seguro para armazenamento
+   * @param file Arquivo original
+   * @returns Nome de arquivo seguro com extensão
+   */
+  const generateSafeFileName = (file: File): string => {
+    // Extrair a extensão do arquivo original, ou usar 'pdf' como padrão
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'pdf';
+    
+    // Gerar um UUID parcial para garantir unicidade
+    const randomId = crypto.randomUUID().substring(0, 8);
+    
+    // Combinar ID do pagamento, timestamp e ID aleatório
+    return `${randomId}_${Date.now()}.${fileExt}`;
+  };
+
   const handleFileUpload = useCallback(async (file: File) => {
     if (!file) return;
 
@@ -33,9 +49,9 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileRemoved }: UseFile
     setIsUploading(true);
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${pagamentoId}_${Date.now()}.${fileExt}`;
-      const filePath = `${pagamentoId}/${fileName}`;
+      // Gerar um nome de arquivo seguro
+      const safeFileName = generateSafeFileName(file);
+      const filePath = `${pagamentoId}/${safeFileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('contas-energia')
@@ -46,8 +62,8 @@ export function useFileUpload({ pagamentoId, onSuccess, onFileRemoved }: UseFile
       const { error: updateError } = await supabase
         .from('pagamentos_usina')
         .update({
-          arquivo_conta_energia_nome: file.name,
-          arquivo_conta_energia_path: filePath,
+          arquivo_conta_energia_nome: file.name, // Nome original apenas para exibição
+          arquivo_conta_energia_path: filePath,  // Caminho seguro para storage
           arquivo_conta_energia_tipo: file.type,
           arquivo_conta_energia_tamanho: file.size
         })

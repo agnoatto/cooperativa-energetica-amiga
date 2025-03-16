@@ -3,7 +3,8 @@
  * Hook para gerenciamento de arquivos em pagamentos
  * 
  * Este hook centraliza a lógica de estado e operações relacionadas a arquivos
- * de contas de energia nos pagamentos de usinas
+ * de contas de energia nos pagamentos de usinas. Utiliza uma abordagem segura
+ * para nomear arquivos no storage, evitando caracteres especiais.
  */
 
 import { useState } from 'react';
@@ -28,6 +29,23 @@ export function useFileState() {
 
   const [isUploading, setIsUploading] = useState(false);
 
+  /**
+   * Gera um nome de arquivo seguro para armazenamento
+   * @param file Arquivo original
+   * @param pagamentoId ID do pagamento relacionado
+   * @returns Nome de arquivo seguro com extensão
+   */
+  const generateSafeFileName = (file: File, pagamentoId: string): string => {
+    // Extrair a extensão do arquivo original, ou usar 'pdf' como padrão
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'pdf';
+    
+    // Gerar um UUID parcial usando crypto
+    const randomId = crypto.randomUUID().substring(0, 8);
+    
+    // Combinar ID do pagamento, timestamp e ID aleatório para garantir unicidade
+    return `${pagamentoId}/${Date.now()}_${randomId}.${fileExt}`;
+  };
+
   const uploadFile = async (file: File, pagamentoId: string) => {
     if (!file) return;
     
@@ -36,8 +54,8 @@ export function useFileState() {
       console.log(`[useFileState] Iniciando upload do arquivo ${file.name} para o pagamento ${pagamentoId}`);
       console.log(`[useFileState] Usando bucket: ${STORAGE_BUCKET}`);
       
-      // Criar um nome único para o arquivo usando o ID do pagamento
-      const filePath = `${pagamentoId}/${Date.now()}_${file.name}`;
+      // Gerar um nome de arquivo seguro
+      const filePath = generateSafeFileName(file, pagamentoId);
       
       // Usar a função utilitária para fazer o upload
       const result = await storageUploadFile(STORAGE_BUCKET, filePath, file);
@@ -50,16 +68,15 @@ export function useFileState() {
       console.log("[useFileState] Upload realizado com sucesso para o caminho:", filePath);
       
       // Atualizar o estado com as informações do arquivo
-      // Importante: armazenamos apenas o caminho relativo, não a URL completa
       setFileInfo({
-        nome: file.name,
-        path: filePath,  // Armazenamos apenas o caminho relativo
+        nome: file.name, // Preservamos o nome original apenas para exibição ao usuário
+        path: filePath,  // Usamos o caminho seguro para armazenamento
         tipo: file.type,
         tamanho: file.size
       });
       
       toast.success("Arquivo enviado com sucesso");
-      return filePath;  // Retornamos o caminho relativo
+      return filePath;
     } catch (error: any) {
       console.error("[useFileState] Erro ao fazer upload do arquivo:", error);
       toast.error(`Erro ao enviar arquivo: ${error.message}`);
