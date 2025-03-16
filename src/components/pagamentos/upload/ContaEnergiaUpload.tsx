@@ -11,9 +11,9 @@ import { UploadDropZone } from "@/components/faturas/upload/UploadDropZone";
 import { FilePreview } from "@/components/faturas/upload/FilePreview";
 import { toast } from "sonner";
 import { useFileState } from "../hooks/useFileState";
+import { handleRemoveFile } from "./utils/fileHandlers";
 import { supabase } from "@/integrations/supabase/client";
 import { STORAGE_BUCKET } from "../hooks/constants";
-import { handleRemoveFile } from "./utils/fileHandlers";
 
 interface ContaEnergiaUploadProps {
   pagamentoId: string;
