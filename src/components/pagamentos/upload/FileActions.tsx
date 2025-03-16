@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { PdfPreview } from "@/components/faturas/upload/PdfPreview";
 import { STORAGE_BUCKET } from "../hooks/constants";
-import { supabase } from "@/integrations/supabase/client";
+import { handleDownload, handleRemoveFile, handlePreview } from "./utils/fileHandlers";
 
 interface FileActionsProps {
   fileName: string | null;
@@ -25,88 +25,74 @@ export function FileActions({ fileName, filePath, pagamentoId, onFileDeleted }: 
   const [showPreview, setShowPreview] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   
   // Função para visualizar o arquivo
-  const handlePreview = async () => {
+  const openPreview = async () => {
     if (!filePath) {
       toast.error("Não há arquivo para visualizar");
       return;
     }
     
-    setShowPreview(true);
+    setIsLoading(true);
+    
+    try {
+      const { url, error } = await handlePreview(filePath);
+      
+      if (error || !url) {
+        throw error || new Error("Erro ao gerar visualização");
+      }
+      
+      setPdfUrl(url);
+      setShowPreview(true);
+    } catch (error: any) {
+      console.error('[FileActions] Erro ao visualizar arquivo:', error);
+      toast.error(`Erro ao visualizar: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   // Função para baixar o arquivo
-  const handleDownload = async () => {
+  const downloadDocument = async () => {
     if (!filePath || !fileName) {
       toast.error("Não há arquivo para baixar");
       return;
     }
     
-    const toastId = toast.loading("Preparando download...");
+    setIsLoading(true);
     
     try {
-      // Obter URL pública e iniciar download
-      const { data } = supabase.storage
-        .from(STORAGE_BUCKET)
-        .getPublicUrl(filePath);
-      
-      // Abrir em nova aba para download
-      window.open(data.publicUrl, '_blank');
-      toast.success("Download iniciado", { id: toastId });
+      await handleDownload(filePath, fileName);
     } catch (error: any) {
       console.error('[FileActions] Erro ao baixar arquivo:', error);
-      toast.error(`Erro ao baixar: ${error.message}`, { id: toastId });
+      toast.error(`Erro ao baixar: ${error.message}`);
+    } finally {
+      setIsLoading(false);
     }
   };
   
   // Função para excluir o arquivo
-  const handleDelete = async () => {
+  const deleteDocument = async () => {
     if (!filePath) {
       toast.error("Não há arquivo para excluir");
       return;
     }
     
     setIsLoading(true);
-    const toastId = toast.loading("Removendo arquivo...");
     
     try {
-      // 1. Remover o arquivo do storage
-      const { error: removeError } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .remove([filePath]);
+      const { success, error } = await handleRemoveFile(filePath, pagamentoId);
       
-      if (removeError) {
-        throw removeError;
+      if (!success) {
+        throw error || new Error("Erro ao excluir arquivo");
       }
       
-      // 2. Atualizar o registro no banco de dados
-      const { error: updateError } = await supabase.rpc('atualizar_pagamento_usina', {
-        p_id: pagamentoId,
-        p_geracao_kwh: null,           // Mantemos os valores intactos
-        p_tusd_fio_b: null,            // Passando null para manter os valores atuais
-        p_valor_tusd_fio_b: null,
-        p_valor_concessionaria: null,
-        p_valor_total: null,
-        p_data_vencimento_concessionaria: null,
-        p_data_emissao: null,
-        p_data_vencimento: null,
-        p_arquivo_conta_energia_nome: null,    // Limpar arquivo
-        p_arquivo_conta_energia_path: null,    // Limpar arquivo
-        p_arquivo_conta_energia_tipo: null,    // Limpar arquivo
-        p_arquivo_conta_energia_tamanho: null  // Limpar arquivo
-      });
-      
-      if (updateError) {
-        throw updateError;
-      }
-      
-      toast.success("Arquivo removido com sucesso", { id: toastId });
       setShowDeleteConfirm(false);
       onFileDeleted();
     } catch (error: any) {
       console.error('[FileActions] Erro ao excluir arquivo:', error);
-      toast.error(`Erro ao excluir: ${error.message}`, { id: toastId });
+      toast.error(`Erro ao excluir: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -124,8 +110,9 @@ export function FileActions({ fileName, filePath, pagamentoId, onFileDeleted }: 
           variant="ghost"
           size="icon"
           className="h-7 w-7"
-          onClick={handlePreview}
+          onClick={openPreview}
           title="Visualizar conta"
+          disabled={isLoading}
         >
           <FileText className="h-4 w-4 text-gray-600" />
         </Button>
@@ -134,8 +121,9 @@ export function FileActions({ fileName, filePath, pagamentoId, onFileDeleted }: 
           variant="ghost"
           size="icon"
           className="h-7 w-7"
-          onClick={handleDownload}
+          onClick={downloadDocument}
           title="Baixar conta"
+          disabled={isLoading}
         >
           <FileDown className="h-4 w-4 text-gray-600" />
         </Button>
@@ -156,7 +144,7 @@ export function FileActions({ fileName, filePath, pagamentoId, onFileDeleted }: 
       <PdfPreview 
         isOpen={showPreview}
         onClose={() => setShowPreview(false)}
-        pdfUrl={filePath}
+        pdfUrl={pdfUrl}
         bucketName={STORAGE_BUCKET}
       />
       
@@ -174,7 +162,7 @@ export function FileActions({ fileName, filePath, pagamentoId, onFileDeleted }: 
             <AlertDialogAction 
               onClick={(e) => {
                 e.preventDefault();
-                handleDelete();
+                deleteDocument();
               }}
               disabled={isLoading}
               className="bg-red-600 text-white hover:bg-red-700"
