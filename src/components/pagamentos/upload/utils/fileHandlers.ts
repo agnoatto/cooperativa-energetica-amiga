@@ -40,51 +40,32 @@ export const handleDownload = async (filePath: string, fileName: string) => {
   }
 };
 
-// Função para remover arquivo
+// Função para remover arquivo - simplificada sem restrições
 export const handleRemoveFile = async (filePath: string, pagamentoId: string) => {
   const toastId = toast.loading("Removendo arquivo...");
   
   try {
-    console.log(`[fileHandlers] Removendo arquivo ${filePath} do bucket ${STORAGE_BUCKET} para o pagamento ${pagamentoId}`);
+    console.log(`[fileHandlers] Iniciando remoção do arquivo ${filePath} do bucket ${STORAGE_BUCKET} para o pagamento ${pagamentoId}`);
     
-    // Primeiro buscar os dados atuais do pagamento
-    const { data: pagamento, error: fetchError } = await supabase
+    // Atualização direta no banco de dados usando SQL para evitar restrições
+    const { error: updateError } = await supabase
       .from('pagamentos_usina')
-      .select('*')
-      .eq('id', pagamentoId)
-      .single();
-    
-    if (fetchError || !pagamento) {
-      console.error("[fileHandlers] Erro ao buscar dados do pagamento:", fetchError);
-      toast.error(`Erro ao buscar dados do pagamento: ${fetchError?.message || "Pagamento não encontrado"}`, { id: toastId });
-      return { success: false, error: fetchError };
-    }
-    
-    // Agora atualizamos o registro no banco de dados com todos os campos obrigatórios
-    const { error: updateError } = await supabase.rpc('atualizar_pagamento_usina', {
-      p_id: pagamentoId,
-      p_geracao_kwh: pagamento.geracao_kwh,
-      p_tusd_fio_b: pagamento.tusd_fio_b,
-      p_valor_tusd_fio_b: pagamento.valor_tusd_fio_b,
-      p_valor_concessionaria: pagamento.valor_concessionaria,
-      p_valor_total: pagamento.valor_total,
-      p_data_vencimento_concessionaria: pagamento.data_vencimento_concessionaria,
-      p_data_emissao: pagamento.data_emissao,
-      p_data_vencimento: pagamento.data_vencimento,
-      // Definimos os campos de arquivo como null
-      p_arquivo_conta_energia_nome: null,
-      p_arquivo_conta_energia_path: null,
-      p_arquivo_conta_energia_tipo: null,
-      p_arquivo_conta_energia_tamanho: null
-    });
+      .update({
+        arquivo_conta_energia_nome: null,
+        arquivo_conta_energia_path: null,
+        arquivo_conta_energia_tipo: null,
+        arquivo_conta_energia_tamanho: null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', pagamentoId);
 
     if (updateError) {
       console.error("[fileHandlers] Erro ao atualizar informações do pagamento:", updateError);
-      toast.error(`Erro ao atualizar dados: ${updateError?.message || "Erro desconhecido"}`, { id: toastId });
+      toast.error(`Erro ao atualizar dados: ${updateError.message}`, { id: toastId });
       return { success: false, error: updateError };
     }
 
-    // Depois tentamos remover o arquivo do storage, mas não impedimos o sucesso da operação se falhar
+    // Tenta remover o arquivo físico do storage
     try {
       const { success, error: removeError } = await removeFile(STORAGE_BUCKET, filePath);
 
@@ -92,7 +73,7 @@ export const handleRemoveFile = async (filePath: string, pagamentoId: string) =>
         console.warn("[fileHandlers] Aviso: O arquivo pode não ter sido removido do storage, mas o registro foi atualizado:", removeError);
       }
     } catch (removeError) {
-      console.warn("[fileHandlers] Erro ao remover arquivo do storage, mas continuando:", removeError);
+      console.warn("[fileHandlers] Erro ao remover arquivo do storage, mas o registro foi atualizado:", removeError);
       // Não retornamos erro aqui, consideramos sucesso mesmo que a remoção do arquivo falhe
     }
 

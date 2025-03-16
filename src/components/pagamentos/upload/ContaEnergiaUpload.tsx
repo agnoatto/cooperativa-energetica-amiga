@@ -11,7 +11,7 @@ import { UploadDropZone } from "@/components/faturas/upload/UploadDropZone";
 import { FilePreview } from "@/components/faturas/upload/FilePreview";
 import { toast } from "sonner";
 import { useFileState } from "../hooks/useFileState";
-import { handleRemoveFile } from "./utils/fileHandlers";
+import { handleRemoveFile, handleDownload, handlePreview } from "./utils/fileHandlers";
 import { supabase } from "@/integrations/supabase/client";
 import { STORAGE_BUCKET } from "../hooks/constants";
 
@@ -80,7 +80,7 @@ export function ContaEnergiaUpload({
     setIsDragging(dragging);
   }, []);
 
-  const handleDownload = useCallback(async () => {
+  const handleDownloadAction = useCallback(async () => {
     if (!arquivoPath || !arquivoNome) {
       console.log("[ContaEnergiaUpload] Tentativa de download sem arquivo ou nome definido");
       return;
@@ -102,7 +102,7 @@ export function ContaEnergiaUpload({
     }
   }, [arquivoPath, arquivoNome]);
 
-  // Função de remoção atualizada para usar a função utilitária handleRemoveFile
+  // Função de remoção atualizada que usa a função simplificada handleRemoveFile
   const handleRemove = useCallback(async () => {
     if (!arquivoPath || !pagamentoId) {
       console.log("[ContaEnergiaUpload] Tentativa de remoção sem caminho de arquivo ou ID do pagamento");
@@ -127,7 +127,7 @@ export function ContaEnergiaUpload({
     }
   }, [arquivoPath, arquivoNome, pagamentoId, onFileChange]);
 
-  const handlePreview = useCallback(() => {
+  const handlePreviewAction = useCallback(() => {
     if (!arquivoPath) {
       console.log("[ContaEnergiaUpload] Tentativa de visualizar sem arquivo definido");
       return;
@@ -157,8 +157,8 @@ export function ContaEnergiaUpload({
       {arquivoNome && arquivoPath && (
         <FilePreview
           fileName={arquivoNome}
-          onPreview={handlePreview}
-          onDownload={handleDownload}
+          onPreview={handlePreviewAction}
+          onDownload={handleDownloadAction}
           onRemove={handleRemove}
           className="bg-muted"
         />
