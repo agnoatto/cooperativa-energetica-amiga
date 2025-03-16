@@ -9,7 +9,7 @@
 import { toast } from "sonner";
 import { STORAGE_BUCKET } from "../../hooks/constants";
 import { downloadFile, getSignedUrl, removeFile } from "@/utils/storageUtils";
-import { updatePagamentoArquivo } from "./pagamentoUtils";
+import { supabase } from "@/integrations/supabase/client";
 
 // Função para download de arquivo
 export const handleDownload = async (filePath: string, fileName: string) => {
@@ -47,15 +47,38 @@ export const handleRemoveFile = async (filePath: string, pagamentoId: string) =>
   try {
     console.log(`[fileHandlers] Removendo arquivo ${filePath} do bucket ${STORAGE_BUCKET} para o pagamento ${pagamentoId}`);
     
-    // Primeiro atualizamos o registro no banco de dados
-    const { success: updateSuccess, error: updateError } = await updatePagamentoArquivo(pagamentoId, {
-      nome: null,
-      path: null,
-      tipo: null,
-      tamanho: null
+    // Primeiro buscar os dados atuais do pagamento
+    const { data: pagamento, error: fetchError } = await supabase
+      .from('pagamentos_usina')
+      .select('*')
+      .eq('id', pagamentoId)
+      .single();
+    
+    if (fetchError || !pagamento) {
+      console.error("[fileHandlers] Erro ao buscar dados do pagamento:", fetchError);
+      toast.error(`Erro ao buscar dados do pagamento: ${fetchError?.message || "Pagamento não encontrado"}`, { id: toastId });
+      return { success: false, error: fetchError };
+    }
+    
+    // Agora atualizamos o registro no banco de dados com todos os campos obrigatórios
+    const { error: updateError } = await supabase.rpc('atualizar_pagamento_usina', {
+      p_id: pagamentoId,
+      p_geracao_kwh: pagamento.geracao_kwh,
+      p_tusd_fio_b: pagamento.tusd_fio_b,
+      p_valor_tusd_fio_b: pagamento.valor_tusd_fio_b,
+      p_valor_concessionaria: pagamento.valor_concessionaria,
+      p_valor_total: pagamento.valor_total,
+      p_data_vencimento_concessionaria: pagamento.data_vencimento_concessionaria,
+      p_data_emissao: pagamento.data_emissao,
+      p_data_vencimento: pagamento.data_vencimento,
+      // Definimos os campos de arquivo como null
+      p_arquivo_conta_energia_nome: null,
+      p_arquivo_conta_energia_path: null,
+      p_arquivo_conta_energia_tipo: null,
+      p_arquivo_conta_energia_tamanho: null
     });
 
-    if (!updateSuccess) {
+    if (updateError) {
       console.error("[fileHandlers] Erro ao atualizar informações do pagamento:", updateError);
       toast.error(`Erro ao atualizar dados: ${updateError?.message || "Erro desconhecido"}`, { id: toastId });
       return { success: false, error: updateError };
