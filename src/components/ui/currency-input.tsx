@@ -1,4 +1,11 @@
 
+/**
+ * Componente para entrada de valores monetários ou numéricos no formato brasileiro
+ * 
+ * Este componente permite a entrada de valores seguindo o padrão brasileiro,
+ * com separador de milhar (.) e separador decimal (,). Ele retorna os valores
+ * como strings para compatibilidade com formulários.
+ */
 import React from 'react';
 import { NumericFormat, NumericFormatProps } from 'react-number-format';
 import { Input } from "@/components/ui/input";
@@ -28,14 +35,13 @@ export function CurrencyInput({
   // Converter para string se for número
   const stringValue = typeof value === 'number' ? value.toString() : value;
   
-  // Modificamos para passar o valor não-formatado (numérico) para o onChange
+  // Modificamos para passar o valor não-formatado (numérico) como string para o onChange
   const handleValueChange = (values: { formattedValue: string; value: string }) => {
-    // Passamos o valor não-formatado para ser usado em cálculos
-    // Este é o valor numérico puro como string (sem formatação)
+    // Passamos o valor não-formatado como string
     onValueChange(values.value);
     
     console.log('[CurrencyInput] Valor formatado:', values.formattedValue);
-    console.log('[CurrencyInput] Valor numérico:', values.value);
+    console.log('[CurrencyInput] Valor numérico (string):', values.value);
   };
 
   return (

@@ -1,16 +1,17 @@
 
+/**
+ * Componente que renderiza os campos básicos do formulário de unidade beneficiária
+ * 
+ * Este componente exibe campos como número de UC, apelido, percentual de desconto,
+ * consumo médio mensal e template de cálculo de fatura.
+ */
 import React, { useState, useEffect } from 'react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { CalculoFaturaTemplate } from '@/types/template';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { CurrencyInput } from '@/components/faturas/CurrencyInput';
-import { Textarea } from '@/components/ui/textarea';
-import { FormDescription } from '@/components/ui/form';
-import { cn } from '@/lib/utils';
+import { CurrencyInput } from '@/components/ui/currency-input';
 
 export function UnidadeBeneficiariaBasicInfo({ form }) {
   const [templates, setTemplates] = useState<CalculoFaturaTemplate[]>([]);
@@ -37,9 +38,6 @@ export function UnidadeBeneficiariaBasicInfo({ form }) {
 
     fetchTemplates();
   }, []);
-
-  // Encontrar o template padrão
-  const defaultTemplate = templates.find(template => template.is_padrao);
 
   return (
     <div className="grid gap-4 py-4">
@@ -83,7 +81,7 @@ export function UnidadeBeneficiariaBasicInfo({ form }) {
             <FormControl>
               <CurrencyInput
                 value={field.value}
-                onValueChange={field.onChange}
+                onValueChange={(value) => field.onChange(value)}
                 placeholder="0,00"
                 decimalScale={2}
               />
@@ -102,7 +100,7 @@ export function UnidadeBeneficiariaBasicInfo({ form }) {
             <FormControl>
               <CurrencyInput
                 value={field.value}
-                onValueChange={field.onChange}
+                onValueChange={(value) => field.onChange(value)}
                 placeholder="0,00"
                 decimalScale={2}
               />

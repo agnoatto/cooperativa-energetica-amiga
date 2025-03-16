@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 
 const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
@@ -44,22 +45,23 @@ export const cooperadoFormSchema = z.object({
   numero_cadastro: z.string().optional(),
 });
 
+// Correção: Alterando os campos percentual_desconto e consumo_kwh para string
 export const unidadeBeneficiariaFormSchema = z.object({
-  numero_uc: z.string().min(1, "Número da UC é obrigatório"),
+  numero_uc: z.string().min(1, { message: "Número da UC é obrigatório" }),
   apelido: z.string().optional(),
-  cep: z.string().min(1, "CEP é obrigatório").regex(cepRegex, "CEP inválido"),
-  logradouro: z.string().min(1, "Logradouro é obrigatório"),
-  numero: z.string().min(1, "Número é obrigatório"),
+  cep: z.string().min(1, { message: "CEP é obrigatório" }).regex(cepRegex, "CEP inválido"),
+  logradouro: z.string().min(1, { message: "Logradouro é obrigatório" }),
+  numero: z.string().min(1, { message: "Número é obrigatório" }),
   complemento: z.string().optional(),
-  bairro: z.string().min(1, "Bairro é obrigatório"),
-  cidade: z.string().min(1, "Cidade é obrigatória"),
+  bairro: z.string().min(1, { message: "Bairro é obrigatório" }),
+  cidade: z.string().min(1, { message: "Cidade é obrigatória" }),
   uf: z.enum(UFS, {
     required_error: "UF é obrigatória",
   }),
-  percentual_desconto: z.string().min(1, "Percentual de desconto é obrigatório"),
-  data_entrada: z.string().min(1, "Data de entrada é obrigatória"),
+  percentual_desconto: z.string().min(1, { message: "Percentual de desconto é obrigatório" }),
+  data_entrada: z.string().min(1, { message: "Data de entrada é obrigatória" }),
   data_saida: z.string().optional(),
-  consumo_kwh: z.string().min(1, "Consumo é obrigatório"),
+  consumo_kwh: z.string().min(1, { message: "Consumo é obrigatório" }),
   possui_geracao_propria: z.boolean().default(false),
   potencia_instalada: z.number().optional().nullable(),
   data_inicio_geracao: z.string().optional().nullable(),

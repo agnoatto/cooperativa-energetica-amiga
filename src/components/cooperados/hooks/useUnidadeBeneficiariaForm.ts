@@ -48,7 +48,7 @@ export function useUnidadeBeneficiariaForm({
       uc_origem_creditos: null,
       data_inicio_creditos: null,
       observacao_creditos: null,
-      calculo_fatura_template_id: "", // Adicionando campo de template aqui
+      calculo_fatura_template_id: "",
     },
   });
 
@@ -138,10 +138,11 @@ export function useUnidadeBeneficiariaForm({
             bairro: data.bairro || "",
             cidade: data.cidade || "",
             uf: (data.uf as any) || undefined,
+            // Convertendo números para strings
             percentual_desconto: data.percentual_desconto.toString(),
             data_entrada: new Date(data.data_entrada).toISOString().split('T')[0],
             data_saida: data.data_saida ? new Date(data.data_saida).toISOString().split('T')[0] : "",
-            consumo_kwh: data.consumo_kwh.toString(),
+            consumo_kwh: data.consumo_kwh ? data.consumo_kwh.toString() : "",
             possui_geracao_propria: data.possui_geracao_propria || false,
             potencia_instalada: data.potencia_instalada,
             data_inicio_geracao: data.data_inicio_geracao ? new Date(data.data_inicio_geracao).toISOString().split('T')[0] : null,
@@ -150,7 +151,7 @@ export function useUnidadeBeneficiariaForm({
             uc_origem_creditos: data.uc_origem_creditos,
             data_inicio_creditos: data.data_inicio_creditos ? new Date(data.data_inicio_creditos).toISOString().split('T')[0] : null,
             observacao_creditos: data.observacao_creditos,
-            calculo_fatura_template_id: data.calculo_fatura_template_id || "", // Adicionando o template_id aqui
+            calculo_fatura_template_id: data.calculo_fatura_template_id || "",
           });
         }
       } catch (error: any) {
@@ -165,7 +166,7 @@ export function useUnidadeBeneficiariaForm({
     return () => {
       isMounted = false;
     };
-  }, [unidadeId]); // Removi form das dependências pois não precisa re-executar quando o form mudar
+  }, [unidadeId]); 
 
   const fetchCep = async (cep: string) => {
     try {
@@ -211,6 +212,7 @@ export function useUnidadeBeneficiariaForm({
         cidade: data.cidade,
         uf: data.uf,
         cep: data.cep,
+        // Convertendo strings para números no momento de salvar
         consumo_kwh: parseFloat(data.consumo_kwh),
         percentual_desconto: parseFloat(data.percentual_desconto),
         data_entrada: new Date(data.data_entrada).toISOString(),
@@ -223,7 +225,7 @@ export function useUnidadeBeneficiariaForm({
         uc_origem_creditos: data.uc_origem_creditos,
         data_inicio_creditos: data.data_inicio_creditos ? new Date(data.data_inicio_creditos).toISOString() : null,
         observacao_creditos: data.observacao_creditos,
-        calculo_fatura_template_id: data.calculo_fatura_template_id || null, // Adicionando o template_id no objeto para salvar
+        calculo_fatura_template_id: data.calculo_fatura_template_id || null,
       };
 
       console.log("Dados da unidade para salvar:", unidadeData);
