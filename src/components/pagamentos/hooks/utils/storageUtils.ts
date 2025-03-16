@@ -1,13 +1,12 @@
-
 /**
- * Utilitários para operações no storage do Supabase
+ * Utilitários para operações de armazenamento relacionadas a pagamentos
  * 
- * Este arquivo contém funções para upload, download e remoção de arquivos
- * do storage do Supabase, específicas para pagamentos de usinas.
+ * Este módulo contém funções auxiliares para upload, download e gerenciamento
+ * de arquivos específicos para o módulo de pagamentos.
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { SIGNED_URL_EXPIRY } from "../constants";
+import { STORAGE_BUCKET, SIGNED_URL_EXPIRY } from "../constants";
 
 // Fazer upload de um arquivo para o storage
 export const uploadFile = async (
