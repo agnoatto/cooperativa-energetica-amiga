@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CooperadoForm } from "@/components/cooperados/CooperadoForm";
 import { CooperadosTable } from "@/components/cooperados/CooperadosTable";
-import { CooperadoDetailsDialog } from "@/components/cooperados/CooperadoDetailsDialog";
 import { FilterBar } from "@/components/shared/FilterBar";
 import { CooperadosHeader } from "@/components/cooperados/CooperadosHeader";
 import { useCooperadosQuery } from "@/components/cooperados/hooks/useCooperadosQuery";
@@ -22,7 +21,6 @@ type OrderBy = "nome_asc" | "nome_desc" | "cadastro_asc" | "cadastro_desc" | "ti
 const Cooperados = () => {
   const [showCooperadoForm, setShowCooperadoForm] = useState(false);
   const [selectedCooperadoId, setSelectedCooperadoId] = useState<string | null>(null);
-  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [busca, setBusca] = useState("");
   const [orderBy, setOrderBy] = useState<OrderBy>("nome_asc");
   
@@ -64,8 +62,9 @@ const Cooperados = () => {
   };
 
   const handleViewDetails = (cooperadoId: string) => {
-    setSelectedCooperadoId(cooperadoId);
-    setShowDetailsDialog(true);
+    // Essa função não é mais utilizada para abrir o diálogo,
+    // mas mantemos para compatibilidade com outros componentes
+    console.log("View details for cooperado:", cooperadoId);
   };
 
   const handleLimparFiltros = () => {
@@ -111,15 +110,6 @@ const Cooperados = () => {
         onOpenChange={setShowCooperadoForm}
         cooperadoId={selectedCooperadoId || undefined}
         onSuccess={() => fetchData(busca, orderBy)}
-      />
-
-      <CooperadoDetailsDialog
-        cooperadoId={selectedCooperadoId}
-        isOpen={showDetailsDialog}
-        onClose={() => {
-          setShowDetailsDialog(false);
-          setSelectedCooperadoId(null);
-        }}
       />
 
       <CooperadosTable
