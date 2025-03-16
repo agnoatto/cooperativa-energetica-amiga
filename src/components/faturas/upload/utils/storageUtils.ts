@@ -1,4 +1,3 @@
-
 /**
  * Utilitários para operações de armazenamento
  * Este módulo contém funções para upload, download e gerenciamento
@@ -10,7 +9,7 @@ import {
   getSignedUrl as sharedGetSignedUrl,
   downloadFile as sharedDownloadFile,
   removeFile as sharedRemoveFile
-} from "@/utils/storageUtils";
+} from "@/utils/storage";
 
 // Fazer upload de arquivo para o storage
 export const uploadFile = async (

@@ -8,7 +8,7 @@
 
 import { toast } from "sonner";
 import { STORAGE_BUCKET } from "../../hooks/constants";
-import { downloadFile, getSignedUrl, removeFile } from "@/utils/storageUtils";
+import { downloadFile, getSignedUrl, removeFile } from "@/utils/storage";
 import { supabase } from "@/integrations/supabase/client";
 
 // Função para download de arquivo
