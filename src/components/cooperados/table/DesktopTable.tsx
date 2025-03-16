@@ -1,9 +1,16 @@
 
 import { ExcelTable } from "@/components/ui/excel-table/ExcelTable";
 import { formatarDocumento, formatarTelefone } from "@/utils/formatters";
-import { ActionMenu } from "./ActionMenu";
+import { Button } from "@/components/ui/button";
+import { Edit, Plus, Trash, Eye } from "lucide-react";
 import { cooperadosTableColumns } from "./tableConfig";
 import { CooperadoTableProps } from "./types";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function DesktopTable({ 
   cooperados, 
@@ -53,13 +60,91 @@ export function DesktopTable({
               </div>
             </td>
             <td className="text-right">
-              <ActionMenu 
-                cooperado={cooperado}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onAddUnidade={onAddUnidade}
-                onViewDetails={onViewDetails}
-              />
+              <div className="flex justify-end gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onViewDetails(cooperado.id);
+                        }}
+                        className="h-8 w-8"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Visualizar</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(cooperado.id);
+                        }}
+                        className="h-8 w-8"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Editar</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddUnidade(cooperado.id);
+                        }}
+                        className="h-8 w-8"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Adicionar Unidade</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(cooperado.id);
+                        }}
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Excluir</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </td>
           </tr>
         ))}

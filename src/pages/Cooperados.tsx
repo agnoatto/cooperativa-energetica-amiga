@@ -15,12 +15,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PersonalInfoSection } from "@/components/cooperados/PersonalInfoSection";
+import { ResponsiblePersonSection } from "@/components/cooperados/ResponsiblePersonSection";
+import { UnitsTabContent } from "@/components/cooperados/UnitsTabContent";
+import { InvoicesTabContent } from "@/components/cooperados/InvoicesTabContent";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
 
 type OrderBy = "nome_asc" | "nome_desc" | "cadastro_asc" | "cadastro_desc" | "tipo_asc" | "tipo_desc";
 
 const Cooperados = () => {
   const [showCooperadoForm, setShowCooperadoForm] = useState(false);
   const [selectedCooperadoId, setSelectedCooperadoId] = useState<string | null>(null);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [busca, setBusca] = useState("");
   const [orderBy, setOrderBy] = useState<OrderBy>("nome_asc");
   
@@ -62,15 +76,63 @@ const Cooperados = () => {
   };
 
   const handleViewDetails = (cooperadoId: string) => {
-    // Essa função não é mais utilizada para abrir o diálogo,
-    // mas mantemos para compatibilidade com outros componentes
-    console.log("View details for cooperado:", cooperadoId);
+    setSelectedCooperadoId(cooperadoId);
+    setShowDetailsDialog(true);
   };
 
   const handleLimparFiltros = () => {
     setBusca("");
     setOrderBy("nome_asc");
   };
+
+  // Buscar dados do cooperado para o diálogo de detalhes
+  const { data: cooperadoDetalhes, isLoading: isLoadingCooperado } = useQuery({
+    queryKey: ["cooperado", selectedCooperadoId, showDetailsDialog],
+    queryFn: async () => {
+      if (!showDetailsDialog || !selectedCooperadoId) return null;
+      const { data, error } = await supabase
+        .from("cooperados")
+        .select("*")
+        .eq("id", selectedCooperadoId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: showDetailsDialog && !!selectedCooperadoId,
+  });
+
+  // Buscar unidades do cooperado para o diálogo de detalhes
+  const { data: unidadesCooperado, isLoading: isLoadingUnidades } = useQuery({
+    queryKey: ["unidades", selectedCooperadoId, showDetailsDialog],
+    queryFn: async () => {
+      if (!showDetailsDialog || !selectedCooperadoId) return null;
+      const { data, error } = await supabase
+        .from("unidades_beneficiarias")
+        .select(`
+          id,
+          numero_uc,
+          apelido,
+          endereco,
+          percentual_desconto,
+          data_entrada,
+          data_saida,
+          faturas (
+            id,
+            consumo_kwh,
+            valor_assinatura,
+            data_vencimento,
+            status,
+            valor_desconto
+          )
+        `)
+        .eq("cooperado_id", selectedCooperadoId);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: showDetailsDialog && !!selectedCooperadoId,
+  });
 
   return (
     <div className="space-y-6">
@@ -122,6 +184,61 @@ const Cooperados = () => {
         }}
         onViewDetails={handleViewDetails}
       />
+
+      {/* Diálogo de detalhes do cooperado */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Cooperado</DialogTitle>
+          </DialogHeader>
+
+          {isLoadingCooperado ? (
+            <div className="space-y-4">
+              <Skeleton className="h-4 w-[250px]" />
+              <Skeleton className="h-4 w-[200px]" />
+            </div>
+          ) : cooperadoDetalhes && (
+            <div className="space-y-6">
+              <PersonalInfoSection
+                nome={cooperadoDetalhes.nome}
+                documento={cooperadoDetalhes.documento}
+                tipo_pessoa={cooperadoDetalhes.tipo_pessoa}
+                telefone={cooperadoDetalhes.telefone}
+                email={cooperadoDetalhes.email}
+              />
+
+              {cooperadoDetalhes.tipo_pessoa === 'PJ' && (
+                <ResponsiblePersonSection
+                  nome={cooperadoDetalhes.responsavel_nome}
+                  cpf={cooperadoDetalhes.responsavel_cpf}
+                  telefone={cooperadoDetalhes.responsavel_telefone}
+                />
+              )}
+
+              <Tabs defaultValue="unidades" className="w-full">
+                <TabsList>
+                  <TabsTrigger value="unidades">Unidades Beneficiárias</TabsTrigger>
+                  <TabsTrigger value="faturas">Histórico de Faturas</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="unidades" className="mt-4">
+                  <UnitsTabContent
+                    units={unidadesCooperado}
+                    isLoading={isLoadingUnidades}
+                  />
+                </TabsContent>
+
+                <TabsContent value="faturas" className="mt-4">
+                  <InvoicesTabContent
+                    units={unidadesCooperado}
+                    isLoading={isLoadingUnidades}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

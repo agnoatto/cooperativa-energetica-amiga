@@ -4,6 +4,12 @@ import { Plus, Edit, Trash, Eye } from "lucide-react";
 import { CooperadoPdfButton } from "../CooperadoPdfButton";
 import { formatarDocumento, formatarTelefone } from "@/utils/formatters";
 import { CooperadoMobileCardProps } from "./types";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function CooperadoMobileCard({ 
   cooperado, 
@@ -17,7 +23,6 @@ export function CooperadoMobileCard({
     <div
       key={cooperado.id}
       className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
-      onClick={() => onViewDetails(cooperado.id)}
     >
       <div className="flex justify-between items-start mb-3">
         <div>
@@ -78,39 +83,59 @@ export function CooperadoMobileCard({
       </div>
 
       <div className="flex justify-end gap-2 mt-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            onViewDetails(cooperado.id);
-          }}
-          className="h-10 w-10 p-0"
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit(cooperado.id);
-          }}
-          className="h-10 w-10 p-0"
-        >
-          <Edit className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(cooperado.id);
-          }}
-          className="h-10 w-10 p-0"
-        >
-          <Trash className="h-4 w-4" />
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onViewDetails(cooperado.id)}
+                className="h-10 w-10 p-0"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Visualizar</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEdit(cooperado.id)}
+                className="h-10 w-10 p-0"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Editar</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onDelete(cooperado.id)}
+                className="h-10 w-10 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20"
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Excluir</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   );
