@@ -3,7 +3,7 @@
  * Hook para consulta de lançamentos financeiros
  * 
  * Este hook utiliza React Query para buscar lançamentos financeiros
- * do backend, sem aplicar filtros adicionais
+ * do backend, com tratamento de erros e cache otimizado
  */
 
 import { useQuery } from "@tanstack/react-query";
@@ -14,8 +14,9 @@ export function useLancamentosFinanceiros(options: UseLancamentosFinanceirosOpti
   return useQuery({
     queryKey: ['lancamentos', options.tipo],
     queryFn: () => fetchLancamentos(options),
-    retry: 1,
+    retry: 2,
     staleTime: 1000 * 60 * 5, // 5 minutos
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 }
