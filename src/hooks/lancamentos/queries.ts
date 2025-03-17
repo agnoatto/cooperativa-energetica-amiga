@@ -17,8 +17,7 @@ export async function fetchLancamentos({
   console.log('Iniciando busca por lançamentos do tipo:', tipo);
 
   try {
-    // Usar uma função RPC definida no Supabase que ignora as políticas RLS
-    // Essa função deverá ser criada no backend com SECURITY DEFINER
+    // Chamar a função RPC com tipagem correta e parâmetros nomeados
     const { data, error } = await supabase
       .rpc('get_lancamentos_by_tipo', { p_tipo: tipo });
 
@@ -32,7 +31,7 @@ export async function fetchLancamentos({
       throw error;
     }
 
-    console.log('Lançamentos encontrados:', data?.length || 0);
+    console.log('Lançamentos encontrados:', data ? data.length : 0);
     
     // Se não houver dados, retornar array vazio
     if (!data || data.length === 0) {

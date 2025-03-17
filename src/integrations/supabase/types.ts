@@ -1706,6 +1706,33 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_lancamentos_by_tipo: {
+        Args: {
+          p_tipo: string
+        }
+        Returns: {
+          comprovante_nome: string | null
+          comprovante_path: string | null
+          comprovante_tipo: string | null
+          cooperado_id: string | null
+          created_at: string
+          data_pagamento: string | null
+          data_vencimento: string
+          deleted_at: string | null
+          descricao: string
+          fatura_id: string | null
+          historico_status: Json | null
+          id: string
+          investidor_id: string | null
+          observacao: string | null
+          pagamento_usina_id: string | null
+          session_id: string | null
+          status: Database["public"]["Enums"]["status_lancamento"]
+          tipo: Database["public"]["Enums"]["tipo_lancamento"]
+          updated_at: string
+          valor: number
+        }[]
+      }
       get_unidade_beneficiaria_template: {
         Args: {
           unidade_id: string
