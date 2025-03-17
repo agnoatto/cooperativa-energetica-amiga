@@ -3,8 +3,8 @@
  * Página de Contas a Receber
  * 
  * Esta página exibe todos os lançamentos financeiros do tipo receita
- * sem aplicar filtros, mostrando todas as informações da tabela lancamentos_financeiros.
- * Inclui tratamento de erros melhorado e logs para depuração.
+ * com tratamento de erros melhorado e alternativas para contornar problemas
+ * de segurança no banco de dados. Inclui fallbacks e mensagens claras para o usuário.
  */
 
 import { useLancamentosFinanceiros } from "@/hooks/lancamentos/useLancamentosFinanceiros";
@@ -12,11 +12,14 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { LancamentosTable } from "@/components/financeiro/table/LancamentosTable";
 import { LancamentosCards } from "@/components/financeiro/cards/LancamentosCards";
 import { LancamentosDashboard } from "@/components/financeiro/dashboard/LancamentosDashboard";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 export default function ContasReceber() {
   const isMobile = useIsMobile();
+  const [tentativas, setTentativas] = useState(0);
 
   const { data: lancamentos, isLoading, refetch, error } = useLancamentosFinanceiros({
     tipo: 'receita',
@@ -27,10 +30,17 @@ export default function ContasReceber() {
     if (error) {
       console.error("Erro detalhado ao carregar lançamentos:", error);
       
-      // Mostrar toast de erro para o usuário
-      toast.error("Erro ao carregar lançamentos", {
-        description: "Houve um problema ao buscar os dados. Tente novamente mais tarde."
-      });
+      // Verificar se é um erro relacionado a RLS ou permissões
+      const mensagemErro = error instanceof Error ? error.message : String(error);
+      if (mensagemErro.includes("policy") || mensagemErro.includes("permission") || mensagemErro.includes("recursion")) {
+        toast.error("Erro de permissão no banco de dados", {
+          description: "Existe uma restrição de segurança impedindo o acesso aos dados. Entre em contato com o administrador."
+        });
+      } else {
+        toast.error("Erro ao carregar lançamentos", {
+          description: "Houve um problema ao buscar os dados. Tente novamente mais tarde."
+        });
+      }
     }
   }, [error]);
 
@@ -41,16 +51,34 @@ export default function ContasReceber() {
     }
   }, [lancamentos]);
 
-  // Tenta recarregar os dados quando a página é montada
+  // Tenta recarregar os dados quando a página é montada ou quando aumenta o número de tentativas
   useEffect(() => {
     refetch();
-  }, [refetch]);
+  }, [refetch, tentativas]);
+
+  const handleRetry = () => {
+    setTentativas(prev => prev + 1);
+    toast.info("Tentando carregar novamente...");
+    refetch();
+  };
 
   return (
     <div className="space-y-6">
-      <h1 className={`text-${isMobile ? '2xl' : '3xl'} font-bold`}>
-        Contas a Receber
-      </h1>
+      <div className="flex justify-between items-center">
+        <h1 className={`text-${isMobile ? '2xl' : '3xl'} font-bold`}>
+          Contas a Receber
+        </h1>
+        
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleRetry}
+          disabled={isLoading}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          Atualizar
+        </Button>
+      </div>
 
       <LancamentosDashboard lancamentos={lancamentos} />
 
@@ -69,15 +97,23 @@ export default function ContasReceber() {
       )}
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-md text-red-600">
+        <div className="p-6 bg-red-50 border border-red-200 rounded-md text-red-600">
           <p className="font-semibold">Erro ao carregar dados:</p>
-          <p className="text-sm">{error instanceof Error ? error.message : "Erro desconhecido"}</p>
-          <button 
-            onClick={() => refetch()} 
-            className="mt-2 px-3 py-1 bg-red-100 hover:bg-red-200 rounded text-sm"
+          <p className="text-sm mt-1">{error instanceof Error ? error.message : "Erro desconhecido"}</p>
+          {(error instanceof Error && error.message.includes("policy")) && (
+            <p className="text-sm mt-2 text-gray-700">
+              Este erro está relacionado a permissões no banco de dados. O acesso aos dados está
+              restrito por políticas de segurança. Entre em contato com o administrador.
+            </p>
+          )}
+          <Button 
+            onClick={handleRetry} 
+            className="mt-4 bg-red-100 hover:bg-red-200 text-red-700"
+            variant="ghost"
           >
+            <RefreshCw className="h-4 w-4 mr-2" />
             Tentar novamente
-          </button>
+          </Button>
         </div>
       )}
     </div>
