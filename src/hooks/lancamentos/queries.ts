@@ -1,3 +1,9 @@
+/**
+ * Consultas para lançamentos financeiros
+ * 
+ * Este módulo contém funções para buscar lançamentos financeiros do Supabase
+ * sem aplicar filtros, retornando todos os registros da tabela
+ */
 
 import { supabase } from "@/integrations/supabase/client";
 import { UseLancamentosFinanceirosOptions, LancamentoResponse } from "./types";
@@ -6,14 +12,8 @@ import { Json } from "@/integrations/supabase/types";
 
 export async function fetchLancamentos({
   tipo,
-  status,
-  busca,
 }: UseLancamentosFinanceirosOptions): Promise<LancamentoFinanceiro[]> {
-  console.log('Buscando lançamentos com parâmetros:', {
-    tipo,
-    status,
-    busca
-  });
+  console.log('Buscando todos os lançamentos do tipo:', tipo);
 
   let query = supabase
     .from('lancamentos_financeiros')
@@ -43,23 +43,11 @@ export async function fetchLancamentos({
       )
     `);
 
-  console.log('Query base construída, aplicando filtros...');
-
   query = query.eq('tipo', tipo);
   console.log('Filtro de tipo aplicado:', tipo);
 
   query = query.is('deleted_at', null);
   console.log('Filtro de deleted_at aplicado');
-
-  if (status && status !== 'todos') {
-    query = query.eq('status', status);
-    console.log('Filtro de status aplicado:', status);
-  }
-
-  if (busca) {
-    query = query.ilike('descricao', `%${busca}%`);
-    console.log('Filtro de busca aplicado:', busca);
-  }
 
   query = query.order('data_vencimento', { ascending: true });
   console.log('Ordenação aplicada');

@@ -1,3 +1,9 @@
+/**
+ * Tipos para lançamentos financeiros
+ * 
+ * Este arquivo define os tipos utilizados para consultas e operações
+ * relacionadas a lançamentos financeiros
+ */
 
 import { TipoLancamento, StatusLancamento } from "@/types/financeiro";
 
@@ -5,6 +11,8 @@ export interface UseLancamentosFinanceirosOptions {
   tipo: TipoLancamento;
   status?: StatusLancamento | 'todos';
   busca?: string;
+  dataInicio?: string;
+  dataFim?: string;
 }
 
 export interface HistoricoStatus {
