@@ -11,13 +11,29 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { LancamentosTable } from "@/components/financeiro/table/LancamentosTable";
 import { LancamentosCards } from "@/components/financeiro/cards/LancamentosCards";
 import { LancamentosDashboard } from "@/components/financeiro/dashboard/LancamentosDashboard";
+import { useEffect } from "react";
 
 export default function ContasReceber() {
   const isMobile = useIsMobile();
 
-  const { data: lancamentos, isLoading } = useLancamentosFinanceiros({
+  const { data: lancamentos, isLoading, refetch, error } = useLancamentosFinanceiros({
     tipo: 'receita',
   });
+
+  useEffect(() => {
+    // Tenta recarregar os dados quando a página é montada
+    refetch();
+  }, [refetch]);
+
+  // Log para depuração
+  useEffect(() => {
+    if (error) {
+      console.error("Erro ao carregar lançamentos:", error);
+    }
+    if (lancamentos) {
+      console.log("Lançamentos carregados:", lancamentos.length);
+    }
+  }, [lancamentos, error]);
 
   return (
     <div className="space-y-6">
@@ -39,6 +55,13 @@ export default function ContasReceber() {
           isLoading={isLoading}
           tipo="receita"
         />
+      )}
+
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-md text-red-600">
+          <p className="font-semibold">Erro ao carregar dados:</p>
+          <p className="text-sm">{error instanceof Error ? error.message : "Erro desconhecido"}</p>
+        </div>
       )}
     </div>
   );

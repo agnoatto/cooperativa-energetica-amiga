@@ -16,5 +16,6 @@ export function useLancamentosFinanceiros(options: UseLancamentosFinanceirosOpti
     queryFn: () => fetchLancamentos(options),
     retry: 1,
     staleTime: 1000 * 60 * 5, // 5 minutos
+    refetchOnWindowFocus: false,
   });
 }
