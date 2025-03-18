@@ -3,7 +3,8 @@
  * Linha da tabela de faturas para desktop
  * 
  * Este componente exibe uma linha na tabela de faturas com os dados
- * de uma fatura e as ações disponíveis.
+ * de uma fatura e as ações disponíveis. A data de próxima leitura
+ * mostra a leitura programada que foi cadastrada no mês anterior.
  */
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -115,7 +116,8 @@ export function FaturaDesktopRow({
                   </span>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Data programada para próxima leitura</p>
+                  <p>Leitura programada para esta data</p>
+                  <p className="text-xs text-gray-500">Esta data foi programada no mês anterior</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

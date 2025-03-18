@@ -8,10 +8,15 @@ export const useFetchFaturas = (currentDate: Date) => {
   const mes = currentDate.getMonth() + 1;
   const ano = currentDate.getFullYear();
   
+  // Calcular o mês anterior para buscar as datas de próxima leitura
+  const mesAnterior = mes === 1 ? 12 : mes - 1;
+  const anoAnterior = mes === 1 ? ano - 1 : ano;
+  
   return useQuery({
     queryKey: ['faturas', mes, ano],
     queryFn: async () => {
       console.log('Fetching faturas for:', currentDate);
+      console.log('Buscando datas de próxima leitura do mês anterior:', mesAnterior, anoAnterior);
       
       // Calcular a data limite para os últimos 12 meses
       const dataLimite = new Date(currentDate);
@@ -38,6 +43,32 @@ export const useFetchFaturas = (currentDate: Date) => {
         console.error('Erro ao buscar histórico de faturas:', errorHistorico);
         throw errorHistorico;
       }
+
+      // Buscar datas de próxima leitura do mês anterior
+      const { data: leiturasAnteriores, error: errorLeituras } = await supabase
+        .from("faturas")
+        .select(`
+          unidade_beneficiaria_id,
+          data_proxima_leitura
+        `)
+        .eq("mes", mesAnterior)
+        .eq("ano", anoAnterior)
+        .not("data_proxima_leitura", "is", null);
+
+      if (errorLeituras) {
+        console.error('Erro ao buscar datas de próxima leitura:', errorLeituras);
+        // Não interromper o fluxo se falhar, apenas registrar o erro
+      }
+
+      // Criar mapa de datas de próxima leitura por unidade beneficiária
+      const mapaLeituras = new Map();
+      leiturasAnteriores?.forEach(leitura => {
+        if (leitura.data_proxima_leitura) {
+          mapaLeituras.set(leitura.unidade_beneficiaria_id, leitura.data_proxima_leitura);
+        }
+      });
+
+      console.log('Mapa de datas de próxima leitura:', Object.fromEntries(mapaLeituras));
 
       // Buscar faturas do mês atual
       const { data, error } = await supabase
@@ -114,6 +145,9 @@ export const useFetchFaturas = (currentDate: Date) => {
         // Garantir que o status seja um valor válido do tipo FaturaStatus
         const status = fatura.status as FaturaStatus;
 
+        // Verificar se existe data de próxima leitura do mês anterior para esta unidade
+        const dataProximaLeituraDoMesAnterior = mapaLeituras.get(fatura.unidade_beneficiaria.id);
+
         return {
           ...fatura,
           status,
@@ -127,7 +161,8 @@ export const useFetchFaturas = (currentDate: Date) => {
           valor_adicional: fatura.valor_adicional || 0,
           observacao_pagamento: fatura.observacao_pagamento || null,
           data_pagamento: fatura.data_pagamento || null,
-          data_proxima_leitura: fatura.data_proxima_leitura || null,
+          // Usar a data do mês anterior se disponível, senão usar a do mês atual
+          data_proxima_leitura: dataProximaLeituraDoMesAnterior || fatura.data_proxima_leitura || null,
           arquivo_concessionaria_nome: fatura.arquivo_concessionaria_nome || null,
           arquivo_concessionaria_path: fatura.arquivo_concessionaria_path || null,
           arquivo_concessionaria_tipo: fatura.arquivo_concessionaria_tipo || null,

@@ -1,6 +1,12 @@
 
 import { TableHeader, TableRow, TableHead } from "@/components/ui/table"
 
+/**
+ * Cabeçalho da tabela de faturas
+ * 
+ * Este componente define as colunas da tabela de faturas, incluindo a coluna
+ * que mostra a próxima data de leitura programada vinda do mês anterior.
+ */
 export function FaturasTableHeader() {
   return (
     <TableHeader>
