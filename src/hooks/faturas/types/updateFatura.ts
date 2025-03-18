@@ -10,6 +10,7 @@ export interface UpdateFaturaInput {
   consumo_kwh?: number;
   valor_assinatura?: number;
   data_vencimento?: string;
+  data_proxima_leitura?: string | null;
   fatura_concessionaria?: number;
   total_fatura?: number;
   iluminacao_publica?: number;

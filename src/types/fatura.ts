@@ -48,6 +48,7 @@ export interface Fatura {
   data_confirmacao_pagamento?: string | null;
   data_criacao?: string;
   data_atualizacao?: string;
+  data_proxima_leitura?: string | null;
   historico_faturas: HistoricoFatura[];
   unidade_beneficiaria: UnidadeBeneficiaria;
 }

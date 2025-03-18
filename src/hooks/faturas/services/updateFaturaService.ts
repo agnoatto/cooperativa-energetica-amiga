@@ -33,6 +33,7 @@ export async function updateFatura(data: UpdateFaturaInput): Promise<Fatura> {
     let formattedData = { ...restData };
     
     console.log("[updateFaturaService] Data de vencimento recebida:", data.data_vencimento);
+    console.log("[updateFaturaService] Data próxima leitura recebida:", data.data_proxima_leitura);
 
     // Atualizar a tabela faturas com os dados principais
     const { data: updatedFatura, error } = await supabase
@@ -161,6 +162,7 @@ async function getFaturaCompleta(id: string, updatedFatura?: any): Promise<Fatur
       valor_adicional,
       observacao_pagamento,
       data_pagamento,
+      data_proxima_leitura,
       arquivo_concessionaria_nome,
       arquivo_concessionaria_path,
       arquivo_concessionaria_tipo,
@@ -203,6 +205,7 @@ async function getFaturaCompleta(id: string, updatedFatura?: any): Promise<Fatur
     valor_adicional: completeFatura.valor_adicional || 0,
     observacao_pagamento: completeFatura.observacao_pagamento || null,
     data_pagamento: completeFatura.data_pagamento || null,
+    data_proxima_leitura: completeFatura.data_proxima_leitura || null,
     consumo_kwh: Number(completeFatura.consumo_kwh),
     valor_assinatura: Number(completeFatura.valor_assinatura),
     fatura_concessionaria: Number(completeFatura.fatura_concessionaria),
@@ -256,6 +259,7 @@ async function construirFaturaComUnidade(updatedFatura: any): Promise<Fatura> {
     valor_adicional: updatedFatura.valor_adicional || 0,
     observacao_pagamento: updatedFatura.observacao_pagamento || null,
     data_pagamento: updatedFatura.data_pagamento || null,
+    data_proxima_leitura: updatedFatura.data_proxima_leitura || null,
     historico_faturas: [], // Campo obrigatório
     consumo_kwh: Number(updatedFatura.consumo_kwh),
     valor_assinatura: Number(updatedFatura.valor_assinatura),

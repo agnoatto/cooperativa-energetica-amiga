@@ -10,7 +10,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { FaturaStatusBadge } from "../FaturaStatusBadge";
 import { useState } from "react";
 import { FaturaActionsMenu } from "../FaturaActionsMenu";
-import { FileText } from "lucide-react";
+import { FileText, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PdfPreview } from "../../upload/PdfPreview";
 import { toast } from "sonner";
@@ -23,6 +23,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ArrowDown } from "lucide-react";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface FaturaDesktopRowProps {
   fatura: Fatura;
@@ -96,6 +102,25 @@ export function FaturaDesktopRow({
             </Button>
           ) : (
             <span className="text-xs text-gray-400">Não anexada</span>
+          )}
+        </TableCell>
+        <TableCell className="py-1.5 px-3 text-sm text-center">
+          {fatura.data_proxima_leitura ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex items-center text-green-600">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    {formatDateToPtBR(fatura.data_proxima_leitura)}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Data programada para próxima leitura</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            <span className="text-xs text-gray-400">Não agendada</span>
           )}
         </TableCell>
         <TableCell className="py-1.5 px-3 text-sm">

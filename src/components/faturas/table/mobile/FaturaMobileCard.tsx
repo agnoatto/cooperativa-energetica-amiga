@@ -9,7 +9,7 @@ import { Fatura, FaturaStatus } from "@/types/fatura";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { FaturaStatusBadge } from "../FaturaStatusBadge";
 import { Button } from "@/components/ui/button";
-import { Edit, Eye, FileText, CheckCircle, ChevronRight, ChevronDown } from "lucide-react";
+import { Edit, Eye, FileText, CheckCircle, ChevronRight, ChevronDown, Calendar } from "lucide-react";
 import { formatDateToPtBR } from "@/utils/dateFormatters";
 import { StatusTransitionButtons } from "../../StatusTransitionButtons";
 import { useState } from "react";
@@ -75,6 +75,16 @@ export function FaturaMobileCard({
             <p className="font-medium">{formatCurrency(fatura.total_fatura || 0)}</p>
           </div>
         </div>
+        
+        {fatura.data_proxima_leitura && (
+          <div className="mt-2 p-2 bg-green-50 border border-green-100 rounded-md flex items-center">
+            <Calendar className="h-4 w-4 text-green-600 mr-2" />
+            <div>
+              <p className="text-xs text-green-800">Próxima leitura:</p>
+              <p className="text-sm font-medium text-green-900">{formatDateToPtBR(fatura.data_proxima_leitura)}</p>
+            </div>
+          </div>
+        )}
         
         {/* Botão para mostrar/esconder as ações de status */}
         <Button 

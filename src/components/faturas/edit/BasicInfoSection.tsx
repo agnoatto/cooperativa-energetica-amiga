@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
+import { DataProximaLeituraField } from "./DataProximaLeituraField";
 
 interface BasicInfoSectionProps {
   formState: UseFormReturn<any>;
@@ -46,6 +47,8 @@ export function BasicInfoSection({ formState }: BasicInfoSectionProps) {
           </FormItem>
         )}
       />
+
+      <DataProximaLeituraField formState={formState} />
     </div>
   );
 }
