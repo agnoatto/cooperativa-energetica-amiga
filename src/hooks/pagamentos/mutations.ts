@@ -1,7 +1,7 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { lastDayOfMonth, startOfMonth } from "date-fns";
 import { toast } from "sonner";
+import { PagamentoData, PagamentoStatus, SendMethod } from "@/components/pagamentos/types/pagamento";
 
 export const gerarPagamentos = async (currentDate: Date) => {
   const mes = currentDate.getMonth() + 1;
@@ -87,3 +87,44 @@ export const gerarPagamentos = async (currentDate: Date) => {
   // Filtrar usinas que tiveram pagamentos gerados com sucesso
   return usinasComPagamento.filter(Boolean);
 };
+
+/**
+ * Atualiza o status de um pagamento usando uma função RPC segura
+ * 
+ * Esta função utiliza uma RPC com SECURITY DEFINER para garantir que
+ * a atualização de status ocorra mesmo com restrições de RLS.
+ */
+export const atualizarStatusPagamento = async (
+  pagamentoId: string, 
+  novoStatus: PagamentoStatus,
+  method?: SendMethod
+): Promise<PagamentoData> => {
+  console.log('[mutations] Iniciando atualização de status:', {
+    pagamentoId,
+    novoStatus,
+    method
+  });
+
+  try {
+    const { data, error } = await supabase.rpc('update_pagamento_status', {
+      p_pagamento_id: pagamentoId,
+      p_novo_status: novoStatus,
+      p_method: method || null
+    });
+
+    if (error) {
+      console.error('[mutations] Erro ao atualizar status do pagamento:', error);
+      throw new Error(`Erro ao atualizar status: ${error.message}`);
+    }
+
+    if (!data) {
+      throw new Error('Nenhum dado retornado da atualização');
+    }
+
+    console.log('[mutations] Pagamento atualizado com sucesso:', data);
+    return data as PagamentoData;
+  } catch (error: any) {
+    console.error('[mutations] Erro na atualização de status:', error);
+    throw error;
+  }
+}

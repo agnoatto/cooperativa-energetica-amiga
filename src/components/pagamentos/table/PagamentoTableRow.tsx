@@ -32,7 +32,7 @@ export function PagamentoTableRow({
   onDelete,
   onViewDetails,
 }: PagamentoTableRowProps) {
-  const { StatusBadge, handleSendPagamento } = usePagamentoStatus();
+  const { StatusBadge, handleSendPagamento, isUpdating } = usePagamentoStatus();
   const [showBoletimPreview, setShowBoletimPreview] = useState(false);
   const [showSendDialog, setShowSendDialog] = useState(false);
   const [isFileDeleted, setIsFileDeleted] = useState(false);
@@ -46,6 +46,31 @@ export function PagamentoTableRow({
 
   // Determina se deve mostrar as informações do arquivo ou o estado "Não anexada"
   const showFileActions = pagamento.arquivo_conta_energia_path && !isFileDeleted;
+
+  const handleSendClick = () => {
+    if (pagamento.status !== 'pendente') {
+      toast.error('Este pagamento não está com status pendente');
+      return;
+    }
+    
+    if (isUpdating) {
+      toast.info('Aguarde, uma operação de envio já está em andamento');
+      return;
+    }
+    
+    setShowSendDialog(true);
+  };
+
+  const handleSend = async (method: 'email' | 'whatsapp') => {
+    try {
+      console.log('[PagamentoTableRow] Enviando pagamento:', pagamento.id, 'por', method);
+      await handleSendPagamento(pagamento, method);
+      setShowSendDialog(false);
+    } catch (error) {
+      console.error('[PagamentoTableRow] Erro ao enviar pagamento:', error);
+      throw error; // Repassar o erro para o componente de diálogo
+    }
+  };
 
   return (
     <TableRow className="h-9 hover:bg-gray-50">
@@ -91,10 +116,11 @@ export function PagamentoTableRow({
               variant="ghost"
               size="icon"
               className="h-7 w-7"
-              onClick={() => setShowSendDialog(true)}
+              onClick={handleSendClick}
               title="Enviar boletim"
+              disabled={isUpdating}
             >
-              <Send className="h-4 w-4 text-gray-600" />
+              <Send className={`h-4 w-4 ${isUpdating ? 'text-gray-400 animate-pulse' : 'text-gray-600'}`} />
             </Button>
           )}
 
@@ -129,15 +155,7 @@ export function PagamentoTableRow({
       <SendPagamentoDialog
         isOpen={showSendDialog}
         onClose={() => setShowSendDialog(false)}
-        onSend={async (method) => {
-          try {
-            await handleSendPagamento(pagamento, method);
-            setShowSendDialog(false);
-          } catch (error) {
-            console.error('Erro ao enviar boletim:', error);
-            toast.error('Erro ao enviar boletim');
-          }
-        }}
+        onSend={handleSend}
       />
     </TableRow>
   );

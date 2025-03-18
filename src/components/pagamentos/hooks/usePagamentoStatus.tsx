@@ -1,4 +1,11 @@
 
+/**
+ * Hook para gerenciamento de status de pagamentos
+ * 
+ * Este hook fornece funções e componentes para exibir e alterar
+ * o status de pagamentos, com validações de transições e feedback visual.
+ */
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -7,9 +14,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { supabase } from "@/integrations/supabase/client";
 import { PagamentoData, PagamentoStatus, SendMethod } from "../types/pagamento";
 import { toast } from "sonner";
+import { atualizarStatusPagamento } from "@/hooks/pagamentos/mutations";
 
 interface StatusConfig {
   label: string;
@@ -45,25 +52,6 @@ const STATUS_CONFIG: Record<PagamentoStatus, StatusConfig> = {
   },
 };
 
-// Função auxiliar para validar transições de status
-const validateStatusTransition = (
-  oldStatus: PagamentoStatus | null,
-  newStatus: PagamentoStatus
-): boolean => {
-  if (!oldStatus) return true; // Caso seja um novo pagamento
-
-  // Definir transições permitidas
-  const allowedTransitions: Record<PagamentoStatus, PagamentoStatus[]> = {
-    pendente: ['enviado', 'cancelado'],
-    enviado: ['pago', 'atrasado', 'cancelado'],
-    atrasado: ['pago', 'cancelado'],
-    pago: ['cancelado'],
-    cancelado: []
-  };
-
-  return allowedTransitions[oldStatus].includes(newStatus);
-};
-
 export function usePagamentoStatus() {
   const queryClient = useQueryClient();
 
@@ -87,73 +75,19 @@ export function usePagamentoStatus() {
     );
   };
 
+  // Mutation para atualizar o status do pagamento usando a função RPC
   const updateStatusMutation = useMutation({
     mutationFn: async (variables: { id: string; method: SendMethod }) => {
-      console.log('[usePagamentoStatus] Iniciando atualização de status:', variables);
-      
-      try {
-        // Verificar perfil do usuário e cooperativa
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('cooperativa_id')
-          .single();
-          
-        if (profileError) {
-          console.error('[usePagamentoStatus] Erro ao buscar perfil:', profileError);
-          throw new Error(`Erro ao buscar perfil: ${profileError.message}`);
-        }
-        
-        if (!profile?.cooperativa_id) {
-          console.error('[usePagamentoStatus] Cooperativa não encontrada');
-          throw new Error('Cooperativa não encontrada para o usuário atual');
-        }
-        
-        // Buscar pagamento atual para validação
-        const { data: currentPagamento, error: pagamentoError } = await supabase
-          .from('pagamentos_usina')
-          .select('status')
-          .eq('id', variables.id)
-          .single();
-          
-        if (pagamentoError) {
-          console.error('[usePagamentoStatus] Erro ao buscar pagamento:', pagamentoError);
-          throw new Error(`Erro ao buscar pagamento: ${pagamentoError.message}`);
-        }
-        
-        // Validar transição de status
-        const novoStatus = 'enviado';
-        if (!validateStatusTransition(currentPagamento.status, novoStatus)) {
-          console.error('[usePagamentoStatus] Transição de status inválida:', {
-            atual: currentPagamento.status,
-            novo: novoStatus
-          });
-          throw new Error(`Transição de status inválida: ${currentPagamento.status} para ${novoStatus}`);
-        }
-      
-        const { data, error } = await supabase.rpc('update_pagamento_status', {
-          p_pagamento_id: variables.id,
-          p_novo_status: novoStatus,
-          p_method: variables.method
-        });
-
-        if (error) {
-          console.error('[usePagamentoStatus] Erro na atualização via RPC:', error);
-          throw error;
-        }
-
-        console.log('[usePagamentoStatus] Resposta da atualização:', data);
-        return data;
-      } catch (error: any) {
-        console.error('[usePagamentoStatus] Erro durante processo de atualização:', error);
-        throw error;
-      }
+      console.log('[usePagamentoStatus] Iniciando envio do pagamento:', variables);
+      return await atualizarStatusPagamento(variables.id, 'enviado', variables.method);
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['pagamentos'] });
-      toast.success(`Boletim enviado por ${variables.method === 'email' ? 'e-mail' : 'WhatsApp'}`);
+      const method = data.send_method?.[0];
+      toast.success(`Boletim enviado por ${method === 'email' ? 'e-mail' : 'WhatsApp'}`);
     },
     onError: (error: any) => {
-      console.error('[usePagamentoStatus] Erro ao atualizar status:', error);
+      console.error('[usePagamentoStatus] Erro ao enviar boletim:', error);
       toast.error(`Erro ao enviar boletim: ${error.message}`);
     },
   });
