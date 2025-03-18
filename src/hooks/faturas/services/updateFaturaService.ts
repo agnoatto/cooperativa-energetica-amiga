@@ -246,9 +246,13 @@ async function construirFaturaComUnidade(updatedFatura: any): Promise<Fatura> {
     throw new Error(`Erro ao buscar unidade beneficiária: ${unidadeError.message}`);
   }
   
+  // Verificar e corrigir o status se necessário
+  const status = updatedFatura.status as FaturaStatus;
+  
   // Construir objeto com a estrutura completa
-  return {
+  const fatura: Fatura = {
     ...updatedFatura,
+    status,
     valor_adicional: updatedFatura.valor_adicional || 0,
     observacao_pagamento: updatedFatura.observacao_pagamento || null,
     data_pagamento: updatedFatura.data_pagamento || null,
@@ -262,6 +266,8 @@ async function construirFaturaComUnidade(updatedFatura: any): Promise<Fatura> {
     valor_desconto: Number(updatedFatura.valor_desconto),
     saldo_energia_kwh: Number(updatedFatura.saldo_energia_kwh),
     economia_acumulada: updatedFatura.economia_acumulada || 0,
-    unidade_beneficiaria: unidadeData // Adicionando a unidade beneficiária
-  } as Fatura;
+    unidade_beneficiaria: unidadeData
+  };
+  
+  return fatura;
 }

@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from "react";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { Eye, Edit, FileText, Trash2, CheckCircle2, RotateCw, MoreVertical } from "lucide-react";
@@ -225,7 +226,7 @@ export function FaturaActionsMenu({
               </button>
             )}
             
-            {fatura.status === 'gerada' && (
+            {fatura.status === 'pendente' && (
               <button
                 className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 onClick={() => {

@@ -48,8 +48,6 @@ export function StatusTransitionButton({
 
   const getDescription = () => {
     switch (targetStatus) {
-      case "gerada":
-        return "Isto marcará a fatura como gerada e pronta para ser enviada.";
       case "pendente":
         return "Isto voltará a fatura para o estado de pendente.";
       case "enviada":

@@ -7,7 +7,7 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { PagamentoData, PagamentoStatus, SendMethod } from "@/components/pagamentos/types/pagamento";
+import { PagamentoData, PagamentoStatus, SendMethod, HistoricoStatus } from "@/components/pagamentos/types/pagamento";
 import { lastDayOfMonth, startOfMonth } from "date-fns";
 
 export const gerarPagamentos = async (currentDate: Date) => {
@@ -155,7 +155,38 @@ export const atualizarStatusPagamento = async (
       return data as unknown as PagamentoData;
     }
     
-    return pagamentoCompleto as PagamentoData;
+    // Converter o histórico de status para o formato correto
+    let historicoStatus: HistoricoStatus[] = [];
+    if (pagamentoCompleto.historico_status) {
+      try {
+        // Verificar se é um array JSON ou já um array
+        if (typeof pagamentoCompleto.historico_status === 'string') {
+          historicoStatus = JSON.parse(pagamentoCompleto.historico_status);
+        } else if (Array.isArray(pagamentoCompleto.historico_status)) {
+          historicoStatus = pagamentoCompleto.historico_status as unknown as HistoricoStatus[];
+        } else {
+          console.warn('[mutations] Formato do histórico de status não reconhecido:', 
+            typeof pagamentoCompleto.historico_status);
+        }
+      } catch (e) {
+        console.error('[mutations] Erro ao processar histórico de status:', e);
+      }
+    }
+    
+    // Construir o objeto PagamentoData formatado corretamente
+    const pagamentoFormatado: PagamentoData = {
+      ...pagamentoCompleto,
+      historico_status: historicoStatus,
+      // Garantir que os tipos numéricos estejam corretos
+      geracao_kwh: Number(pagamentoCompleto.geracao_kwh || 0),
+      valor_tusd_fio_b: Number(pagamentoCompleto.valor_tusd_fio_b || 0),
+      tusd_fio_b: Number(pagamentoCompleto.tusd_fio_b || 0),
+      valor_concessionaria: Number(pagamentoCompleto.valor_concessionaria || 0),
+      valor_total: Number(pagamentoCompleto.valor_total || 0),
+      arquivo_conta_energia_tamanho: pagamentoCompleto.arquivo_conta_energia_tamanho || null
+    } as PagamentoData;
+    
+    return pagamentoFormatado;
   } catch (error: any) {
     console.error('[mutations] Erro na atualização de status:', error);
     throw error;

@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Fatura } from "@/types/fatura";
+import { Fatura, FaturaStatus } from "@/types/fatura";
 
 export const useFetchFaturas = (currentDate: Date) => {
   const mes = currentDate.getMonth() + 1;
@@ -110,8 +110,12 @@ export const useFetchFaturas = (currentDate: Date) => {
           return total + Number(h.valor_desconto);
         }, 0) || 0;
 
+        // Garantir que o status seja um valor válido do tipo FaturaStatus
+        const status = fatura.status as FaturaStatus;
+
         return {
           ...fatura,
+          status,
           historico_faturas: historicoUnidade?.map(h => ({
             mes: h.mes,
             ano: h.ano,
