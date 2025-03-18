@@ -11,8 +11,7 @@ import { FaturaStatus } from "@/types/fatura";
 
 // Definir quais status podem ser transicionados a partir do status atual
 export const allowedTransitions: Record<FaturaStatus, FaturaStatus[]> = {
-  gerada: ['enviada', 'corrigida', 'pendente'],
-  pendente: ['gerada', 'enviada'],
+  pendente: ['enviada', 'corrigida'], // Transições permitidas a partir de pendente
   enviada: ['paga', 'corrigida', 'atrasada'],
   corrigida: ['reenviada'],
   reenviada: ['paga', 'corrigida', 'atrasada'],
@@ -38,7 +37,6 @@ export const getNextAllowedStatuses = (
 
 // Descrições amigáveis para as ações de transição
 export const transitionActionLabels: Record<FaturaStatus, string> = {
-  gerada: 'Marcar como Gerada',
   pendente: 'Voltar para Pendente',
   enviada: 'Enviar Fatura',
   corrigida: 'Marcar para Correção',
@@ -50,7 +48,6 @@ export const transitionActionLabels: Record<FaturaStatus, string> = {
 
 // Cores para os botões de transição
 export const transitionButtonColors: Record<FaturaStatus, string> = {
-  gerada: 'border-gray-300 bg-gray-50 text-gray-900 hover:bg-gray-100',
   pendente: 'border-yellow-300 bg-yellow-50 text-yellow-900 hover:bg-yellow-100',
   enviada: 'border-blue-300 bg-blue-50 text-blue-900 hover:bg-blue-100',
   corrigida: 'border-orange-300 bg-orange-50 text-orange-900 hover:bg-orange-100',
@@ -62,7 +59,6 @@ export const transitionButtonColors: Record<FaturaStatus, string> = {
 
 // Ícones para as transições de status
 export const transitionIcons: Record<FaturaStatus, string> = {
-  gerada: 'FileText',
   pendente: 'Clock',
   enviada: 'Send',
   corrigida: 'AlertCircle',

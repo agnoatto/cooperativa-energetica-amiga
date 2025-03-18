@@ -3,7 +3,6 @@ import { FaturaStatus } from "@/types/fatura";
 
 export const getStatusColor = (status: FaturaStatus) => {
   const colors = {
-    gerada: 'bg-gray-100 text-gray-800',
     pendente: 'bg-yellow-100 text-yellow-800',
     enviada: 'bg-blue-100 text-blue-800',
     corrigida: 'bg-orange-100 text-orange-800',
@@ -17,7 +16,6 @@ export const getStatusColor = (status: FaturaStatus) => {
 
 export const getStatusLabel = (status: FaturaStatus) => {
   const labels = {
-    gerada: 'Gerada',
     pendente: 'Pendente',
     enviada: 'Enviada',
     corrigida: 'Corrigida',

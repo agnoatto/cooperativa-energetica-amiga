@@ -8,6 +8,5 @@ export const statusMessages: Record<FaturaStatus, string> = {
   paga: "Pagamento confirmado com sucesso!",
   finalizada: "Fatura finalizada com sucesso!",
   atrasada: "Fatura marcada como atrasada!",
-  pendente: "Fatura marcada como pendente!",
-  gerada: "Fatura gerada com sucesso!"
+  pendente: "Fatura marcada como pendente!"
 };

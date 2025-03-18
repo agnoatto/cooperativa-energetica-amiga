@@ -37,7 +37,7 @@ export const criarNovaFatura = (
     ano,
     consumo_kwh: 0,
     total_fatura: 0,
-    status: "gerada",
+    status: "pendente",
     data_vencimento,
     economia_acumulada: 0,
     economia_mes: 0,
@@ -48,7 +48,7 @@ export const criarNovaFatura = (
     valor_desconto: 0,
     valor_assinatura: 0,
     historico_status: [{
-      status: "gerada",
+      status: "pendente",
       data: new Date().toISOString(),
       observacao: "Fatura gerada automaticamente pelo sistema"
     }],
