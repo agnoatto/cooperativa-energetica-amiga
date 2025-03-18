@@ -1,7 +1,14 @@
+
+/**
+ * Funções de mutação para criar e atualizar pagamentos
+ * 
+ * Este arquivo contém funções para gerar pagamentos mensais e
+ * atualizar o status de pagamentos existentes.
+ */
 import { supabase } from "@/integrations/supabase/client";
-import { lastDayOfMonth, startOfMonth } from "date-fns";
 import { toast } from "sonner";
 import { PagamentoData, PagamentoStatus, SendMethod } from "@/components/pagamentos/types/pagamento";
+import { lastDayOfMonth, startOfMonth } from "date-fns";
 
 export const gerarPagamentos = async (currentDate: Date) => {
   const mes = currentDate.getMonth() + 1;
@@ -122,7 +129,33 @@ export const atualizarStatusPagamento = async (
     }
 
     console.log('[mutations] Pagamento atualizado com sucesso:', data);
-    return data as PagamentoData;
+    
+    // Buscar dados completos do pagamento para incluir informações da usina
+    const { data: pagamentoCompleto, error: pagamentoError } = await supabase
+      .from("pagamentos_usina")
+      .select(`
+        *,
+        usina:usina_id (
+          id,
+          valor_kwh,
+          investidor:investidor_id (
+            nome_investidor
+          ),
+          unidade_usina:unidade_usina_id (
+            numero_uc
+          )
+        )
+      `)
+      .eq("id", pagamentoId)
+      .single();
+      
+    if (pagamentoError) {
+      console.error('[mutations] Erro ao buscar dados completos do pagamento:', pagamentoError);
+      // Mesmo com erro, retornar os dados parciais que já temos
+      return data as unknown as PagamentoData;
+    }
+    
+    return pagamentoCompleto as PagamentoData;
   } catch (error: any) {
     console.error('[mutations] Erro na atualização de status:', error);
     throw error;

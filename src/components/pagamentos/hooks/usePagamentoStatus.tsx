@@ -83,7 +83,8 @@ export function usePagamentoStatus() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['pagamentos'] });
-      const method = data.send_method?.[0];
+      // Aqui pegamos o método diretamente do array ou usamos um valor padrão
+      const method = data.send_method?.[0] || 'email';
       toast.success(`Boletim enviado por ${method === 'email' ? 'e-mail' : 'WhatsApp'}`);
     },
     onError: (error: any) => {
