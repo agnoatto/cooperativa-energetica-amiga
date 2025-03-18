@@ -249,8 +249,11 @@ async function construirFaturaComUnidade(updatedFatura: any): Promise<Fatura> {
     throw new Error(`Erro ao buscar unidade beneficiária: ${unidadeError.message}`);
   }
   
-  // Verificar e corrigir o status se necessário
-  const status = updatedFatura.status as FaturaStatus;
+  // Verificar e validar o status
+  const validStatus: FaturaStatus[] = ['pendente', 'enviada', 'corrigida', 'reenviada', 'atrasada', 'paga', 'finalizada'];
+  const status = validStatus.includes(updatedFatura.status as FaturaStatus) 
+    ? updatedFatura.status as FaturaStatus 
+    : 'pendente';
   
   // Construir objeto com a estrutura completa
   const fatura: Fatura = {

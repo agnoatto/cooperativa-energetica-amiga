@@ -173,10 +173,28 @@ export const atualizarStatusPagamento = async (
       }
     }
     
+    // Determinar o método de envio corretamente
+    let sendMethod: SendMethod = null;
+    if (pagamentoCompleto.send_method) {
+      if (Array.isArray(pagamentoCompleto.send_method) && pagamentoCompleto.send_method.length > 0) {
+        const methodValue = pagamentoCompleto.send_method[0];
+        // Garantir que é um valor válido para SendMethod
+        if (methodValue === 'email' || methodValue === 'whatsapp') {
+          sendMethod = methodValue;
+        }
+      } else if (typeof pagamentoCompleto.send_method === 'string') {
+        // Se for uma string, verificar se é um valor válido
+        if (pagamentoCompleto.send_method === 'email' || pagamentoCompleto.send_method === 'whatsapp') {
+          sendMethod = pagamentoCompleto.send_method as SendMethod;
+        }
+      }
+    }
+    
     // Construir o objeto PagamentoData formatado corretamente
     const pagamentoFormatado: PagamentoData = {
       ...pagamentoCompleto,
       historico_status: historicoStatus,
+      send_method: sendMethod,
       // Garantir que os tipos numéricos estejam corretos
       geracao_kwh: Number(pagamentoCompleto.geracao_kwh || 0),
       valor_tusd_fio_b: Number(pagamentoCompleto.valor_tusd_fio_b || 0),
@@ -184,7 +202,7 @@ export const atualizarStatusPagamento = async (
       valor_concessionaria: Number(pagamentoCompleto.valor_concessionaria || 0),
       valor_total: Number(pagamentoCompleto.valor_total || 0),
       arquivo_conta_energia_tamanho: pagamentoCompleto.arquivo_conta_energia_tamanho || null
-    } as PagamentoData;
+    };
     
     return pagamentoFormatado;
   } catch (error: any) {

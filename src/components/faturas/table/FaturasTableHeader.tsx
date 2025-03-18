@@ -1,3 +1,4 @@
+
 import { TableHeader, TableRow, TableHead } from "@/components/ui/table"
 
 export function FaturasTableHeader() {
