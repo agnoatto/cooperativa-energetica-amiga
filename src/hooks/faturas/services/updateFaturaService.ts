@@ -198,9 +198,16 @@ async function getFaturaCompleta(id: string, updatedFatura?: any): Promise<Fatur
     throw new Error(`Erro ao buscar fatura completa: ${completeError.message}`);
   }
 
+  // Verificar se o status é válido, caso contrário usar 'pendente'
+  const validStatuses: FaturaStatus[] = ['pendente', 'enviada', 'corrigida', 'reenviada', 'atrasada', 'paga', 'finalizada'];
+  const status = validStatuses.includes(completeFatura.status as FaturaStatus) 
+    ? completeFatura.status as FaturaStatus
+    : 'pendente' as FaturaStatus;
+
   // Montar o objeto com todos os campos necessários para tipo Fatura
   const result: Fatura = {
     ...completeFatura,
+    status,
     historico_faturas: [], // Como não temos o histórico nessa consulta, inicializamos vazio
     valor_adicional: completeFatura.valor_adicional || 0,
     observacao_pagamento: completeFatura.observacao_pagamento || null,
