@@ -153,14 +153,18 @@ export function LancamentoDetailsDialog({
                           {lancamento.pagamento_usina.usina?.unidade_usina?.numero_uc || '-'}
                         </p>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Geração (kWh)</p>
-                        <p className="text-sm text-gray-900">{lancamento.pagamento_usina.geracao_kwh}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Valor Total</p>
-                        <p className="text-sm text-gray-900">{formatarMoeda(lancamento.pagamento_usina.valor_total)}</p>
-                      </div>
+                      {lancamento.pagamento_usina.geracao_kwh !== undefined && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Geração (kWh)</p>
+                          <p className="text-sm text-gray-900">{lancamento.pagamento_usina.geracao_kwh}</p>
+                        </div>
+                      )}
+                      {lancamento.pagamento_usina.valor_total !== undefined && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Valor Total</p>
+                          <p className="text-sm text-gray-900">{formatarMoeda(lancamento.pagamento_usina.valor_total)}</p>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>

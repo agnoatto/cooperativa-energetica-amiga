@@ -30,7 +30,7 @@ export function useUpdateLancamentoStatus() {
       
       // Se está sendo marcado como pago, definir a data de pagamento como hoje
       const dataPagamento = newStatus === 'pago' ? new Date().toISOString() : 
-                           newStatus !== 'pago' && lancamento.status === 'pago' ? null : 
+                           (newStatus !== 'pago' && lancamento.status === 'pago') ? null : 
                            lancamento.data_pagamento;
 
       // Atualizar o lançamento no banco

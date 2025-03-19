@@ -107,23 +107,23 @@ function getAvailableStatusTransitions(currentStatus: StatusLancamento) {
   switch (currentStatus) {
     case 'pendente':
       return [
-        { value: 'pago', label: 'Marcar como Pago', className: 'text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-200' },
-        { value: 'atrasado', label: 'Marcar como Atrasado', className: 'text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200' },
-        { value: 'cancelado', label: 'Cancelar', className: 'text-gray-600 hover:bg-gray-50 hover:text-gray-700 hover:border-gray-200' }
+        { value: 'pago' as StatusLancamento, label: 'Marcar como Pago', className: 'text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-200' },
+        { value: 'atrasado' as StatusLancamento, label: 'Marcar como Atrasado', className: 'text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200' },
+        { value: 'cancelado' as StatusLancamento, label: 'Cancelar', className: 'text-gray-600 hover:bg-gray-50 hover:text-gray-700 hover:border-gray-200' }
       ];
     case 'atrasado':
       return [
-        { value: 'pago', label: 'Marcar como Pago', className: 'text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-200' },
-        { value: 'pendente', label: 'Marcar como Pendente', className: 'text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200' },
-        { value: 'cancelado', label: 'Cancelar', className: 'text-gray-600 hover:bg-gray-50 hover:text-gray-700 hover:border-gray-200' }
+        { value: 'pago' as StatusLancamento, label: 'Marcar como Pago', className: 'text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-200' },
+        { value: 'pendente' as StatusLancamento, label: 'Marcar como Pendente', className: 'text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200' },
+        { value: 'cancelado' as StatusLancamento, label: 'Cancelar', className: 'text-gray-600 hover:bg-gray-50 hover:text-gray-700 hover:border-gray-200' }
       ];
     case 'pago':
       return [
-        { value: 'pendente', label: 'Marcar como Pendente', className: 'text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200' }
+        { value: 'pendente' as StatusLancamento, label: 'Marcar como Pendente', className: 'text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200' }
       ];
     case 'cancelado':
       return [
-        { value: 'pendente', label: 'Reativar', className: 'text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200' }
+        { value: 'pendente' as StatusLancamento, label: 'Reativar', className: 'text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200' }
       ];
     default:
       return [];

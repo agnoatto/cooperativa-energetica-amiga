@@ -15,7 +15,7 @@ export interface LancamentoFinanceiro {
   descricao: string;
   valor: number;
   data_vencimento: string;
-  data_pagamento?: string;
+  data_pagamento?: string | null;
   observacao?: string;
   cooperado_id?: string;
   investidor_id?: string;
@@ -23,7 +23,7 @@ export interface LancamentoFinanceiro {
   pagamento_usina_id?: string;
   created_at: string;
   updated_at: string;
-  deleted_at?: string;
+  deleted_at?: string | null;
   historico_status: HistoricoStatus[];
   comprovante_path?: string;
   comprovante_nome?: string;
@@ -48,6 +48,8 @@ export interface LancamentoFinanceiro {
         numero_uc: string;
       };
     };
+    geracao_kwh?: number;
+    valor_total?: number;
   };
 }
 
