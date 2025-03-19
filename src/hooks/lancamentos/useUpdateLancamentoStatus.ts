@@ -29,10 +29,15 @@ export function useUpdateLancamentoStatus() {
       };
       
       // Se está sendo marcado como pago, definir a data de pagamento como hoje
-      // Corrigindo a comparação com operador de igualdade estrita (===)
-      const dataPagamento = newStatus === 'pago' ? new Date().toISOString() : 
-                           (newStatus !== 'pago' && lancamento.status === 'pago') ? null : 
-                           lancamento.data_pagamento;
+      // Se estava pago e agora não está mais, limpar a data de pagamento
+      let dataPagamento: string | null = lancamento.data_pagamento || null;
+      
+      if (newStatus === 'pago') {
+        dataPagamento = new Date().toISOString();
+      } else if (lancamento.status === 'pago') {
+        // Se estava como pago e mudou para outro status, remover a data de pagamento
+        dataPagamento = null;
+      }
 
       // Historico de status com tipagem correta para o Supabase
       const historicoAtualizado = [...(lancamento.historico_status || []), novoHistorico];
