@@ -16,13 +16,21 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
+import { StatusLancamento } from "@/types/financeiro";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FilterBar } from "@/components/shared/FilterBar";
 
 export default function ContasReceber() {
   const isMobile = useIsMobile();
   const [tentativas, setTentativas] = useState(0);
+  const [status, setStatus] = useState<StatusLancamento | 'todos'>('todos');
+  const [busca, setBusca] = useState('');
 
   const { data: lancamentos, isLoading, refetch, error } = useLancamentosFinanceiros({
     tipo: 'receita',
+    status,
+    busca,
   });
 
   useEffect(() => {
@@ -44,13 +52,6 @@ export default function ContasReceber() {
     }
   }, [error]);
 
-  // Log para depuração
-  useEffect(() => {
-    if (lancamentos) {
-      console.log("Lançamentos carregados:", lancamentos.length);
-    }
-  }, [lancamentos]);
-
   // Tenta recarregar os dados quando a página é montada ou quando aumenta o número de tentativas
   useEffect(() => {
     refetch();
@@ -60,6 +61,11 @@ export default function ContasReceber() {
     setTentativas(prev => prev + 1);
     toast.info("Tentando carregar novamente...");
     refetch();
+  };
+
+  const handleLimparFiltros = () => {
+    setStatus('todos');
+    setBusca('');
   };
 
   return (
@@ -82,17 +88,47 @@ export default function ContasReceber() {
 
       <LancamentosDashboard lancamentos={lancamentos} />
 
+      <FilterBar
+        busca={busca}
+        onBuscaChange={setBusca}
+        onLimparFiltros={handleLimparFiltros}
+        placeholder="Buscar por descrição..."
+      >
+        <div className="w-full sm:w-48">
+          <Label htmlFor="status">Status</Label>
+          <Select
+            value={status}
+            onValueChange={(value) => setStatus(value as StatusLancamento | 'todos')}
+          >
+            <SelectTrigger id="status">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="pendente">Pendente</SelectItem>
+                <SelectItem value="pago">Pago</SelectItem>
+                <SelectItem value="atrasado">Atrasado</SelectItem>
+                <SelectItem value="cancelado">Cancelado</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+      </FilterBar>
+
       {isMobile ? (
         <LancamentosCards
           lancamentos={lancamentos}
           isLoading={isLoading}
           tipo="receita"
+          refetch={refetch}
         />
       ) : (
         <LancamentosTable
           lancamentos={lancamentos}
           isLoading={isLoading}
           tipo="receita"
+          refetch={refetch}
         />
       )}
 

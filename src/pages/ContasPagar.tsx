@@ -22,7 +22,7 @@ export default function ContasPagar() {
   const [busca, setBusca] = useState('');
   const isMobile = useIsMobile();
 
-  const { data: lancamentos, isLoading } = useLancamentosFinanceiros({
+  const { data: lancamentos, isLoading, refetch } = useLancamentosFinanceiros({
     tipo: 'despesa',
     status,
     busca,
@@ -74,12 +74,14 @@ export default function ContasPagar() {
           lancamentos={lancamentos}
           isLoading={isLoading}
           tipo="despesa"
+          refetch={refetch}
         />
       ) : (
         <LancamentosTable
           lancamentos={lancamentos}
           isLoading={isLoading}
           tipo="despesa"
+          refetch={refetch}
         />
       )}
     </div>
