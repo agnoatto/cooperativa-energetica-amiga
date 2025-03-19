@@ -1,4 +1,3 @@
-
 /**
  * Componente principal para geração do PDF da fatura
  * 
@@ -48,8 +47,13 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Cabeçalho */}
-        <PDFHeader mesReferencia={mesReferencia} />
+        {/* Cabeçalho com dados completos da fatura */}
+        <PDFHeader 
+          mesReferencia={mesReferencia} 
+          numeroUC={fatura.unidade_beneficiaria.numero_uc}
+          nomeCliente={fatura.unidade_beneficiaria.cooperado.nome}
+          documento={fatura.unidade_beneficiaria.cooperado.documento}
+        />
 
         {/* Informações do Cliente */}
         <ClientInfoSection 
