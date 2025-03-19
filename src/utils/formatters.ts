@@ -1,9 +1,13 @@
-export const formatarDocumento = (doc: string) => {
+
+export const formatarDocumento = (doc: string, tipo_pessoa?: 'PF' | 'PJ') => {
   if (!doc) return '-';
   const numero = doc.replace(/\D/g, '');
-  if (numero.length === 11) {
+  
+  // Se o tipo_pessoa for explicitamente fornecido, usamos ele para determinar o formato
+  if (tipo_pessoa === 'PF' || (tipo_pessoa === undefined && numero.length === 11)) {
     return numero.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/g, '$1.$2.$3-$4');
   }
+  
   return numero.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/g, '$1.$2.$3/$4-$5');
 };
 
