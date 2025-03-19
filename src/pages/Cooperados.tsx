@@ -30,6 +30,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 
 type OrderBy = "nome_asc" | "nome_desc" | "cadastro_asc" | "cadastro_desc" | "tipo_asc" | "tipo_desc";
+type StatusFilter = "ativos" | "inativos" | "todos";
 
 const Cooperados = () => {
   const [showCooperadoForm, setShowCooperadoForm] = useState(false);
@@ -37,12 +38,13 @@ const Cooperados = () => {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [busca, setBusca] = useState("");
   const [orderBy, setOrderBy] = useState<OrderBy>("nome_asc");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ativos");
   
   const { cooperados, unidades, isLoading, fetchData } = useCooperadosQuery();
 
   useEffect(() => {
-    fetchData(busca, orderBy);
-  }, [busca, orderBy, fetchData]);
+    fetchData(busca, orderBy, statusFilter);
+  }, [busca, orderBy, statusFilter, fetchData]);
 
   const handleEdit = (cooperadoId: string) => {
     setSelectedCooperadoId(cooperadoId);
@@ -69,9 +71,26 @@ const Cooperados = () => {
       if (unidadesError) throw unidadesError;
 
       toast.success("Cooperado e suas unidades beneficiárias foram excluídos com sucesso!");
-      fetchData(busca, orderBy);
+      fetchData(busca, orderBy, statusFilter);
     } catch (error: any) {
       toast.error("Erro ao excluir cooperado: " + error.message);
+    }
+  };
+
+  const handleReactivate = async (cooperadoId: string) => {
+    try {
+      // Reativa o cooperado definindo data_exclusao como null
+      const { error: cooperadoError } = await supabase
+        .from('cooperados')
+        .update({ data_exclusao: null })
+        .eq('id', cooperadoId);
+
+      if (cooperadoError) throw cooperadoError;
+
+      toast.success("Cooperado reativado com sucesso!");
+      fetchData(busca, orderBy, statusFilter);
+    } catch (error: any) {
+      toast.error("Erro ao reativar cooperado: " + error.message);
     }
   };
 
@@ -83,6 +102,7 @@ const Cooperados = () => {
   const handleLimparFiltros = () => {
     setBusca("");
     setOrderBy("nome_asc");
+    setStatusFilter("ativos");
   };
 
   // Buscar dados do cooperado para o diálogo de detalhes
@@ -149,6 +169,20 @@ const Cooperados = () => {
         onLimparFiltros={handleLimparFiltros}
         placeholder="Buscar por nome, documento ou nº cadastro..."
       >
+        <div className="min-w-[180px]">
+          <Label htmlFor="statusFilter">Status</Label>
+          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
+            <SelectTrigger id="statusFilter">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ativos">Ativos</SelectItem>
+              <SelectItem value="inativos">Inativos</SelectItem>
+              <SelectItem value="todos">Todos</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
         <div className="min-w-[200px]">
           <Label htmlFor="orderBy">Ordenar por</Label>
           <Select value={orderBy} onValueChange={(value) => setOrderBy(value as OrderBy)}>
@@ -171,7 +205,7 @@ const Cooperados = () => {
         open={showCooperadoForm} 
         onOpenChange={setShowCooperadoForm}
         cooperadoId={selectedCooperadoId || undefined}
-        onSuccess={() => fetchData(busca, orderBy)}
+        onSuccess={() => fetchData(busca, orderBy, statusFilter)}
       />
 
       <CooperadosTable
@@ -179,10 +213,12 @@ const Cooperados = () => {
         unidades={unidades}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onReactivate={handleReactivate}
         onAddUnidade={(cooperadoId) => {
           window.location.href = `/cooperados/unidades?cooperado=${cooperadoId}`;
         }}
         onViewDetails={handleViewDetails}
+        statusFilter={statusFilter}
       />
 
       {/* Diálogo de detalhes do cooperado */}

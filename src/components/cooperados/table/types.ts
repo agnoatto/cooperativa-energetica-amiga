@@ -2,17 +2,10 @@
 export interface CooperadoTableProps {
   cooperados: any[];
   unidades: any[];
-  onEdit: (cooperadoId: string) => void;
-  onDelete: (cooperadoId: string) => void;
-  onAddUnidade: (cooperadoId: string) => void;
-  onViewDetails: (cooperadoId: string) => void;
-}
-
-export interface CooperadoMobileCardProps {
-  cooperado: any;
-  unidades: any[];
-  onEdit: (cooperadoId: string) => void;
-  onDelete: (cooperadoId: string) => void;
-  onAddUnidade: (cooperadoId: string) => void;
-  onViewDetails: (cooperadoId: string) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+  onReactivate: (id: string) => void;
+  onAddUnidade: (id: string) => void;
+  onViewDetails: (id: string) => void;
+  statusFilter: "ativos" | "inativos" | "todos";
 }

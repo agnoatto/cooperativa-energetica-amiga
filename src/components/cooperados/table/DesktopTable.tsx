@@ -1,154 +1,176 @@
 
-import { ExcelTable } from "@/components/ui/excel-table/ExcelTable";
-import { formatarDocumento, formatarTelefone } from "@/utils/formatters";
+/**
+ * Tabela de cooperados para visualização em desktop
+ * 
+ * Este componente exibe os cooperados em formato de tabela para desktop,
+ * permitindo visualizar informações como nome, documento, contato e ações disponíveis.
+ * Também mostra o status do cooperado (ativo ou inativo) e permite reativação 
+ * de cooperados inativos.
+ */
 import { Button } from "@/components/ui/button";
-import { Edit, Plus, Trash, Eye } from "lucide-react";
-import { cooperadosTableColumns } from "./tableConfig";
-import { CooperadoTableProps } from "./types";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { BuildingIcon, User2, MoreHorizontal, RefreshCw } from "lucide-react";
+import { CooperadoTableProps } from "./types";
+import { formatarDocumento } from "@/utils/formatters";
 
-export function DesktopTable({ 
-  cooperados, 
-  unidades, 
-  onEdit, 
-  onDelete, 
-  onAddUnidade, 
-  onViewDetails 
+export function DesktopTable({
+  cooperados,
+  unidades,
+  onEdit,
+  onDelete,
+  onReactivate,
+  onAddUnidade,
+  onViewDetails,
+  statusFilter
 }: CooperadoTableProps) {
   return (
-    <ExcelTable 
-      columns={cooperadosTableColumns} 
-      storageKey="cooperados-table-settings"
-    >
-      <tbody>
-        {cooperados.map((cooperado) => (
-          <tr
-            key={cooperado.id}
-            className="cursor-pointer"
-          >
-            <td>
-              <div className="flex flex-col">
-                <span className="font-medium text-gray-900">
-                  {cooperado.nome}
-                </span>
-                <span className="text-sm text-gray-500">
-                  {formatarDocumento(cooperado.documento)}
-                </span>
-              </div>
-            </td>
-            <td>{cooperado.numero_cadastro || '-'}</td>
-            <td>
-              {cooperado.tipo_pessoa === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física'}
-            </td>
-            <td>
-              <div className="leading-tight">
-                {formatarTelefone(cooperado.telefone)}
-                <br />
-                {cooperado.email || '-'}
-              </div>
-            </td>
-            <td>
-              <div className="flex items-center space-x-2">
-                <span>
-                  {unidades.filter(u => u.cooperado_id === cooperado.id).length}
-                </span>
-              </div>
-            </td>
-            <td className="text-right">
-              <div className="flex justify-end gap-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onViewDetails(cooperado.id);
-                        }}
-                        className="h-8 w-8"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Visualizar</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[200px]">Nome</TableHead>
+            <TableHead>Documento</TableHead>
+            <TableHead>Tipo</TableHead>
+            <TableHead>Contato</TableHead>
+            <TableHead>Nº Cadastro</TableHead>
+            <TableHead>Unid. Beneficiárias</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {cooperados.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={8} className="h-24 text-center">
+                Nenhum cooperado encontrado.
+              </TableCell>
+            </TableRow>
+          ) : (
+            cooperados.map((cooperado) => {
+              const unidadesDoCooperado = unidades.filter(
+                (u) => u.cooperado_id === cooperado.id
+              );
+              const isInativo = cooperado.data_exclusao !== null;
 
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEdit(cooperado.id);
-                        }}
-                        className="h-8 w-8"
+              return (
+                <TableRow key={cooperado.id} className={isInativo ? "bg-gray-50" : ""}>
+                  <TableCell className="font-medium">{cooperado.nome}</TableCell>
+                  <TableCell>
+                    {cooperado.documento
+                      ? formatarDocumento(
+                          cooperado.documento,
+                          cooperado.tipo_pessoa
+                        )
+                      : "-"}
+                  </TableCell>
+                  <TableCell>
+                    {cooperado.tipo_pessoa === "PF" ? (
+                      <Badge variant="outline" className="bg-blue-50">
+                        <User2 className="mr-1 h-3 w-3" />
+                        Pessoa Física
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-amber-50">
+                        <BuildingIcon className="mr-1 h-3 w-3" />
+                        Pessoa Jurídica
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {cooperado.telefone || cooperado.email
+                      ? [
+                          cooperado.telefone &&
+                            `Tel: ${cooperado.telefone}`,
+                          cooperado.email && `Email: ${cooperado.email}`,
+                        ]
+                          .filter(Boolean)
+                          .join(", ")
+                      : "-"}
+                  </TableCell>
+                  <TableCell>{cooperado.numero_cadastro || "-"}</TableCell>
+                  <TableCell>
+                    {unidadesDoCooperado.length > 0
+                      ? `${unidadesDoCooperado.length} unidade(s)`
+                      : "Nenhuma unidade"}
+                  </TableCell>
+                  <TableCell>
+                    {isInativo ? (
+                      <Badge variant="outline" className="bg-red-50 text-red-600">
+                        Inativo
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-green-50 text-green-600">
+                        Ativo
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {isInativo ? (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => onReactivate(cooperado.id)}
+                        className="text-green-600"
                       >
-                        <Edit className="h-4 w-4" />
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Reativar
                       </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Editar</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onAddUnidade(cooperado.id);
-                        }}
-                        className="h-8 w-8"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Adicionar Unidade</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDelete(cooperado.id);
-                        }}
-                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Excluir</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </ExcelTable>
+                    ) : (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => onViewDetails(cooperado.id)}
+                          >
+                            Ver detalhes
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onEdit(cooperado.id)}>
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => onAddUnidade(cooperado.id)}
+                          >
+                            Adicionar unidade
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={() => onDelete(cooperado.id)}
+                          >
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

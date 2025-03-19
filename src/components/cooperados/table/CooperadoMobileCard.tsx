@@ -1,142 +1,176 @@
 
+/**
+ * Card de cooperado para visualização em dispositivos móveis
+ * 
+ * Este componente exibe os dados de um cooperado em formato de card,
+ * adaptado para visualização em dispositivos móveis. Inclui informações
+ * básicas e ações disponíveis como editar, excluir, reativar e adicionar unidades.
+ */
+import { formatarDocumento } from "@/utils/formatters";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Edit, Trash, Eye } from "lucide-react";
-import { CooperadoPdfButton } from "../CooperadoPdfButton";
-import { formatarDocumento, formatarTelefone } from "@/utils/formatters";
-import { CooperadoMobileCardProps } from "./types";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { BuildingIcon, Eye, User2, RefreshCw } from "lucide-react";
 
-export function CooperadoMobileCard({ 
-  cooperado, 
-  unidades, 
-  onEdit, 
-  onDelete, 
-  onAddUnidade, 
-  onViewDetails 
+interface CooperadoMobileCardProps {
+  cooperado: any;
+  unidades: any[];
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+  onReactivate: (id: string) => void;
+  onAddUnidade: (id: string) => void;
+  onViewDetails: (id: string) => void;
+  statusFilter: "ativos" | "inativos" | "todos";
+}
+
+export function CooperadoMobileCard({
+  cooperado,
+  unidades,
+  onEdit,
+  onDelete,
+  onReactivate,
+  onAddUnidade,
+  onViewDetails,
 }: CooperadoMobileCardProps) {
+  const unidadesDoCooperado = unidades.filter(
+    (u) => u.cooperado_id === cooperado.id
+  );
+  const isInativo = cooperado.data_exclusao !== null;
+
   return (
-    <div
-      key={cooperado.id}
-      className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
-    >
-      <div className="flex justify-between items-start mb-3">
-        <div>
-          <h3 className="font-medium text-gray-900">{cooperado.nome}</h3>
-          <p className="text-sm text-gray-500">
-            {formatarDocumento(cooperado.documento)}
-          </p>
+    <Card className={isInativo ? "bg-gray-50" : ""}>
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-xl">{cooperado.nome}</CardTitle>
+          {cooperado.tipo_pessoa === "PF" ? (
+            <Badge variant="outline" className="bg-blue-50">
+              <User2 className="mr-1 h-3 w-3" />
+              Pessoa Física
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="bg-amber-50">
+              <BuildingIcon className="mr-1 h-3 w-3" />
+              Pessoa Jurídica
+            </Badge>
+          )}
         </div>
-        <div className="flex items-start gap-2">
-          <CooperadoPdfButton
-            cooperado={cooperado}
-            unidades={unidades.filter(u => u.cooperado_id === cooperado.id)}
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2 text-sm">
-        <div className="grid grid-cols-2 gap-1">
-          <span className="text-gray-500">Nº Cadastro:</span>
-          <span>{cooperado.numero_cadastro || '-'}</span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-1">
-          <span className="text-gray-500">Tipo:</span>
-          <span>
-            {cooperado.tipo_pessoa === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física'}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-1">
-          <span className="text-gray-500">Contato:</span>
-          <div>
-            <div>{formatarTelefone(cooperado.telefone)}</div>
-            <div className="text-xs text-gray-500">{cooperado.email || '-'}</div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-1">
-          <span className="text-gray-500">Unidades:</span>
-          <div className="flex items-center gap-2">
-            <span>
-              {unidades.filter(u => u.cooperado_id === cooperado.id).length}
+        <CardDescription>
+          {cooperado.documento
+            ? `Documento: ${formatarDocumento(
+                cooperado.documento,
+                cooperado.tipo_pessoa
+              )}`
+            : "Documento não informado"}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="pb-2">
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <span className="text-sm font-medium text-gray-500">Contato:</span>
+            <span className="text-sm text-gray-700">
+              {cooperado.telefone || cooperado.email
+                ? [
+                    cooperado.telefone && `Tel: ${cooperado.telefone}`,
+                    cooperado.email && `Email: ${cooperado.email}`,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")
+                : "-"}
             </span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddUnidade(cooperado.id);
-              }}
-              title="Adicionar Unidade Beneficiária"
-              className="h-6 w-6"
-            >
-              <Plus className="h-3 w-3" />
-            </Button>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm font-medium text-gray-500">
+              Nº Cadastro:
+            </span>
+            <span className="text-sm text-gray-700">
+              {cooperado.numero_cadastro || "-"}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm font-medium text-gray-500">
+              Unidades:
+            </span>
+            <span className="text-sm text-gray-700">
+              {unidadesDoCooperado.length > 0
+                ? `${unidadesDoCooperado.length} unidade(s)`
+                : "Nenhuma unidade"}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm font-medium text-gray-500">
+              Status:
+            </span>
+            <span>
+              {isInativo ? (
+                <Badge variant="outline" className="bg-red-50 text-red-600">
+                  Inativo
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="bg-green-50 text-green-600">
+                  Ativo
+                </Badge>
+              )}
+            </span>
           </div>
         </div>
-      </div>
-
-      <div className="flex justify-end gap-2 mt-4">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
+      </CardContent>
+      <CardFooter>
+        <div className="flex flex-wrap gap-2 w-full">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={() => onViewDetails(cooperado.id)}
+          >
+            <Eye className="mr-2 h-4 w-4" /> Detalhes
+          </Button>
+          
+          {isInativo ? (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 text-green-600"
+              onClick={() => onReactivate(cooperado.id)}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" /> Reativar
+            </Button>
+          ) : (
+            <>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onViewDetails(cooperado.id)}
-                className="h-10 w-10 p-0"
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Visualizar</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
+                className="flex-1"
                 onClick={() => onEdit(cooperado.id)}
-                className="h-10 w-10 p-0"
               >
-                <Edit className="h-4 w-4" />
+                Editar
               </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Editar</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onDelete(cooperado.id)}
-                className="h-10 w-10 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20"
+                className="flex-1"
+                onClick={() => onAddUnidade(cooperado.id)}
               >
-                <Trash className="h-4 w-4" />
+                + Unidade
               </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Excluir</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-red-600"
+                onClick={() => onDelete(cooperado.id)}
+              >
+                Excluir
+              </Button>
+            </>
+          )}
+        </div>
+      </CardFooter>
+    </Card>
   );
 }

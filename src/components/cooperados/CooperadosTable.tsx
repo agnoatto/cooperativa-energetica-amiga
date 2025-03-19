@@ -1,4 +1,11 @@
 
+/**
+ * Componente de tabela de cooperados
+ * 
+ * Este componente exibe os cooperados em formato de tabela para desktop
+ * ou cards para dispositivos móveis, permitindo a visualização, edição,
+ * exclusão, reativação e adição de unidades beneficiárias.
+ */
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CooperadoMobileCard } from "./table/CooperadoMobileCard";
 import { DesktopTable } from "./table/DesktopTable";
@@ -17,8 +24,10 @@ export function CooperadosTable(props: CooperadoTableProps) {
             unidades={props.unidades}
             onEdit={props.onEdit}
             onDelete={props.onDelete}
+            onReactivate={props.onReactivate}
             onAddUnidade={props.onAddUnidade}
             onViewDetails={props.onViewDetails}
+            statusFilter={props.statusFilter}
           />
         ))}
       </div>
