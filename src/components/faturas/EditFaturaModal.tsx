@@ -71,7 +71,7 @@ export function EditFaturaModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
-        <ModalHeader />
+        <ModalHeader fatura={fatura} />
 
         <Form {...formState}>
           <form onSubmit={formState.handleSubmit(handleSubmit)} className="space-y-4">
