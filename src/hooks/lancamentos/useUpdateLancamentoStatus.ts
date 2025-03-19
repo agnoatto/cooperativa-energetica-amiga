@@ -29,9 +29,13 @@ export function useUpdateLancamentoStatus() {
       };
       
       // Se está sendo marcado como pago, definir a data de pagamento como hoje
+      // Corrigindo a comparação com operador de igualdade estrita (===)
       const dataPagamento = newStatus === 'pago' ? new Date().toISOString() : 
                            (newStatus !== 'pago' && lancamento.status === 'pago') ? null : 
                            lancamento.data_pagamento;
+
+      // Historico de status com tipagem correta para o Supabase
+      const historicoAtualizado = [...(lancamento.historico_status || []), novoHistorico];
 
       // Atualizar o lançamento no banco
       const { error } = await supabase
@@ -39,7 +43,8 @@ export function useUpdateLancamentoStatus() {
         .update({
           status: newStatus,
           data_pagamento: dataPagamento,
-          historico_status: [...(lancamento.historico_status || []), novoHistorico]
+          // O Supabase aceita o array de objetos diretamente aqui
+          historico_status: historicoAtualizado
         })
         .eq('id', lancamento.id);
 

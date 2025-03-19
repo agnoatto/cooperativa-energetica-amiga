@@ -85,7 +85,7 @@ export function StatusTransitionButtons({
             <AlertDialogAction 
               onClick={handleStatusChange} 
               disabled={isUpdating}
-              className={getButtonClassForStatus(statusToChange || 'pendente')}
+              className={getButtonClassForStatus(statusToChange as StatusLancamento)}
             >
               {isUpdating ? (
                 <>
