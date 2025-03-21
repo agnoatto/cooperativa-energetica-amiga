@@ -1,3 +1,4 @@
+
 /**
  * Tipos para lançamentos financeiros
  * 
@@ -44,28 +45,40 @@ export interface LancamentoResponse {
   cooperado?: {
     nome: string;
     documento: string;
+    telefone?: string;
+    email?: string;
+    numero_cadastro?: string;
   } | null;
   investidor?: {
     nome_investidor: string;
     documento: string;
+    telefone?: string;
+    email?: string;
   } | null;
   fatura?: {
     id: string;
     numero_fatura: string;
+    mes?: number;
+    ano?: number;
     unidade_beneficiaria: {
       numero_uc: string;
+      apelido?: string;
+      endereco?: string;
     };
   } | null;
   pagamento_usina?: {
     id: string;
-    valor_total: number;
-    geracao_kwh: number;
+    valor_total?: number;
+    geracao_kwh?: number;
     status: string;
     data_vencimento: string;
     data_pagamento?: string;
+    mes?: number;
+    ano?: number;
     usina?: {
       unidade_usina?: {
         numero_uc: string;
+        apelido?: string;
       } | null;
     } | null;
   } | null;

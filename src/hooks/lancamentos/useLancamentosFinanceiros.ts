@@ -12,7 +12,7 @@ import { fetchLancamentos } from "./queries";
 
 export function useLancamentosFinanceiros(options: UseLancamentosFinanceirosOptions) {
   return useQuery({
-    queryKey: ['lancamentos', options.tipo],
+    queryKey: ['lancamentos', options.tipo, options.status, options.busca, options.dataInicio, options.dataFim],
     queryFn: () => fetchLancamentos(options),
     retry: 2,
     staleTime: 1000 * 60 * 5, // 5 minutos

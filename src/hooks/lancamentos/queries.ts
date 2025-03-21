@@ -13,11 +13,16 @@ import { LancamentoFinanceiro, HistoricoStatus } from "@/types/financeiro";
 
 export async function fetchLancamentos({
   tipo,
+  status,
+  busca,
+  dataInicio,
+  dataFim
 }: UseLancamentosFinanceirosOptions): Promise<LancamentoFinanceiro[]> {
   console.log('Iniciando busca por lançamentos do tipo:', tipo);
+  console.log('Filtros aplicados:', { status, busca, dataInicio, dataFim });
 
   try {
-    // Chamar a função RPC com tipagem correta e parâmetros nomeados
+    // Chamar a função RPC para buscar lançamentos
     const { data, error } = await supabase
       .rpc('get_lancamentos_by_tipo', { p_tipo: tipo });
 
@@ -38,12 +43,11 @@ export async function fetchLancamentos({
       return [];
     }
     
-    // Converter e garantir que o historico_status seja um array de HistoricoStatus
-    return data.map(item => {
-      // Converter o campo historico_status para garantir a compatibilidade com o tipo HistoricoStatus[]
+    // Buscar informações adicionais para cada lançamento
+    const lancamentosEnriquecidos = await Promise.all(data.map(async (item) => {
+      // Converter o campo historico_status
       let historicoStatus: HistoricoStatus[] = [];
       
-      // Verificar se historico_status existe e é um array
       if (item.historico_status && Array.isArray(item.historico_status)) {
         historicoStatus = item.historico_status.map((hist: any) => ({
           data: hist.data || '',
@@ -51,7 +55,6 @@ export async function fetchLancamentos({
           novo_status: hist.novo_status || 'pendente'
         }));
       } else if (item.historico_status) {
-        // Caso seja um objeto JSON ou string, tentar converter
         try {
           const parsedHistorico = typeof item.historico_status === 'string' 
             ? JSON.parse(item.historico_status) 
@@ -69,11 +72,147 @@ export async function fetchLancamentos({
         }
       }
       
-      // Retornar lançamento com o historico_status devidamente tipado
+      // Buscar informações adicionais conforme o tipo de lançamento
+      let dadosAdicionais: Partial<LancamentoFinanceiro> = {};
+      
+      // Se for receita, buscar mais detalhes do cooperado
+      if (item.tipo === 'receita' && item.cooperado_id) {
+        const { data: cooperadoData } = await supabase
+          .from('cooperados')
+          .select('nome, documento, telefone, email, numero_cadastro')
+          .eq('id', item.cooperado_id)
+          .single();
+          
+        if (cooperadoData) {
+          dadosAdicionais.cooperado = cooperadoData;
+        }
+        
+        // Se tiver fatura, buscar detalhes da fatura
+        if (item.fatura_id) {
+          const { data: faturaData } = await supabase
+            .from('faturas')
+            .select(`
+              mes, 
+              ano,
+              unidade_beneficiaria:unidade_beneficiaria_id (
+                numero_uc, 
+                apelido, 
+                endereco
+              )
+            `)
+            .eq('id', item.fatura_id)
+            .single();
+            
+          if (faturaData) {
+            dadosAdicionais.fatura = {
+              ...item.fatura,
+              mes: faturaData.mes,
+              ano: faturaData.ano,
+              unidade_beneficiaria: {
+                ...item.fatura?.unidade_beneficiaria,
+                ...faturaData.unidade_beneficiaria
+              }
+            };
+          }
+        }
+      }
+      
+      // Se for despesa, buscar mais detalhes do investidor
+      if (item.tipo === 'despesa' && item.investidor_id) {
+        const { data: investidorData } = await supabase
+          .from('investidores')
+          .select('nome_investidor, documento, telefone, email')
+          .eq('id', item.investidor_id)
+          .single();
+          
+        if (investidorData) {
+          dadosAdicionais.investidor = investidorData;
+        }
+        
+        // Se tiver pagamento de usina, buscar detalhes
+        if (item.pagamento_usina_id) {
+          const { data: pagamentoData } = await supabase
+            .from('pagamentos_usina')
+            .select(`
+              mes,
+              ano,
+              geracao_kwh,
+              valor_total,
+              usina:usina_id (
+                unidade_usina:unidade_usina_id (
+                  numero_uc,
+                  apelido
+                )
+              )
+            `)
+            .eq('id', item.pagamento_usina_id)
+            .single();
+            
+          if (pagamentoData) {
+            dadosAdicionais.pagamento_usina = {
+              ...item.pagamento_usina,
+              mes: pagamentoData.mes,
+              ano: pagamentoData.ano,
+              geracao_kwh: pagamentoData.geracao_kwh,
+              valor_total: pagamentoData.valor_total,
+              usina: pagamentoData.usina
+            };
+          }
+        }
+      }
+      
+      // Retornar lançamento enriquecido com todas as informações adicionais
       return {
         ...item,
-        historico_status: historicoStatus
+        historico_status: historicoStatus,
+        ...dadosAdicionais
       } as LancamentoFinanceiro;
+    }));
+    
+    // Aplicar filtros adicionais se necessário
+    return lancamentosEnriquecidos.filter(lancamento => {
+      // Filtrar por status se especificado e não for 'todos'
+      if (status && status !== 'todos' && lancamento.status !== status) {
+        return false;
+      }
+      
+      // Filtrar por texto de busca
+      if (busca && busca.trim() !== '') {
+        const termoBusca = busca.toLowerCase().trim();
+        // Buscar em vários campos
+        const descricao = lancamento.descricao?.toLowerCase() || '';
+        const cooperadoNome = lancamento.cooperado?.nome?.toLowerCase() || '';
+        const investidorNome = lancamento.investidor?.nome_investidor?.toLowerCase() || '';
+        const documento = lancamento.cooperado?.documento || lancamento.investidor?.documento || '';
+        const numeroUC = lancamento.fatura?.unidade_beneficiaria?.numero_uc?.toLowerCase() || 
+                       lancamento.pagamento_usina?.usina?.unidade_usina?.numero_uc?.toLowerCase() || '';
+        
+        return descricao.includes(termoBusca) || 
+               cooperadoNome.includes(termoBusca) || 
+               investidorNome.includes(termoBusca) || 
+               documento.includes(termoBusca) ||
+               numeroUC.includes(termoBusca);
+      }
+      
+      // Filtrar por data início
+      if (dataInicio) {
+        const dataInicioObj = new Date(dataInicio);
+        const dataVencimentoObj = new Date(lancamento.data_vencimento);
+        if (dataVencimentoObj < dataInicioObj) {
+          return false;
+        }
+      }
+      
+      // Filtrar por data fim
+      if (dataFim) {
+        const dataFimObj = new Date(dataFim);
+        const dataVencimentoObj = new Date(lancamento.data_vencimento);
+        if (dataVencimentoObj > dataFimObj) {
+          return false;
+        }
+      }
+      
+      return true;
     });
   } catch (error) {
     console.error('Exceção não tratada ao buscar lançamentos:', error);
@@ -85,7 +224,33 @@ export async function fetchLancamentos({
       // Consulta direta mais simples
       const { data, error: fallbackError } = await supabase
         .from('lancamentos_financeiros')
-        .select('*')
+        .select(`
+          *,
+          cooperado:cooperado_id (nome, documento, telefone, email, numero_cadastro),
+          investidor:investidor_id (nome_investidor, documento, telefone, email),
+          fatura:fatura_id (
+            numero_fatura,
+            mes,
+            ano,
+            unidade_beneficiaria:unidade_beneficiaria_id (
+              numero_uc, 
+              apelido, 
+              endereco
+            )
+          ),
+          pagamento_usina:pagamento_usina_id (
+            mes,
+            ano,
+            geracao_kwh,
+            valor_total,
+            usina:usina_id (
+              unidade_usina:unidade_usina_id (
+                numero_uc,
+                apelido
+              )
+            )
+          )
+        `)
         .eq('tipo', tipo)
         .is('deleted_at', null);
         
@@ -95,7 +260,7 @@ export async function fetchLancamentos({
       }
       
       return (data || []).map(item => {
-        // Processamento de historico_status igual ao anterior
+        // Processamento de historico_status
         let historicoStatus: HistoricoStatus[] = [];
         
         if (item.historico_status) {

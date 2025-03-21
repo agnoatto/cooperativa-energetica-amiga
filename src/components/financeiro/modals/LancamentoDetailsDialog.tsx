@@ -18,6 +18,8 @@ import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
 import { formatarMoeda, formatarDocumento } from "@/utils/formatters";
 import { StatusTransitionButtons } from "./StatusTransitionButtons";
 import { HistoricoStatusList } from "./HistoricoStatusList";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Phone, Mail, User, FileText, MapPin, CreditCard } from "lucide-react";
 
 interface LancamentoDetailsDialogProps {
   lancamento: LancamentoFinanceiro | null;
@@ -44,143 +46,286 @@ export function LancamentoDetailsDialog({
     : '-';
   const dataCriacao = format(new Date(lancamento.created_at), 'dd/MM/yyyy', { locale: ptBR });
 
+  // Extrair informações de mês/ano da fatura se disponível
+  const extrairMesAnoFatura = () => {
+    if (lancamento.fatura) {
+      // Tentar extrair o mês e ano do número da fatura
+      const numeroFatura = lancamento.fatura.numero_fatura;
+      const match = numeroFatura.match(/(\d{2})\/(\d{4})/);
+      if (match) {
+        return {
+          mes: match[1],
+          ano: match[2]
+        };
+      }
+    }
+    return null;
+  };
+
+  const mesAnoFatura = extrairMesAnoFatura();
+
+  // Função auxiliar para renderizar item de informação
+  const InfoItem = ({ icon, label, value, className = "" }) => (
+    <div className={`flex items-start space-x-2 ${className}`}>
+      {icon && <span className="text-muted-foreground mt-0.5">{icon}</span>}
+      <div>
+        <p className="text-sm font-medium text-gray-700">{label}</p>
+        <p className="text-sm text-gray-900">{value || "-"}</p>
+      </div>
+    </div>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Detalhes do Lançamento</DialogTitle>
-          <DialogDescription>
-            {isReceita ? 'Conta a Receber' : 'Conta a Pagar'} - {lancamento.descricao}
+          <DialogTitle className="text-xl">Detalhes do Lançamento</DialogTitle>
+          <DialogDescription className="flex items-center gap-2">
+            <span className="font-medium">
+              {isReceita ? 'Conta a Receber' : 'Conta a Pagar'}
+            </span>
+            <span> - </span>
+            <span>{lancamento.descricao}</span>
+            {mesAnoFatura && (
+              <>
+                <span> - </span>
+                <Badge variant="outline" className="ml-2">
+                  Referência: {mesAnoFatura.mes}/{mesAnoFatura.ano}
+                </Badge>
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Informações Gerais</h3>
-              <div className="grid grid-cols-1 gap-3 mt-2">
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Descrição</p>
-                  <p className="text-sm text-gray-900">{lancamento.descricao}</p>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-gray-700">
-                    {isReceita ? 'Cooperado' : 'Investidor'}
-                  </p>
-                  <p className="text-sm text-gray-900">
-                    {isReceita 
-                      ? lancamento.cooperado?.nome 
-                      : lancamento.investidor?.nome_investidor}
-                  </p>
-                </div>
-
-                {isReceita && lancamento.cooperado?.documento && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Documento</p>
-                    <p className="text-sm text-gray-900">
-                      {formatarDocumento(lancamento.cooperado.documento)}
-                    </p>
-                  </div>
-                )}
-
-                {!isReceita && lancamento.investidor?.documento && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Documento</p>
-                    <p className="text-sm text-gray-900">
-                      {formatarDocumento(lancamento.investidor.documento)}
-                    </p>
-                  </div>
+          <div className="space-y-6">
+            <div className="bg-gray-50 p-4 rounded-md">
+              <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-3">
+                <User className="h-4 w-4" />
+                {isReceita ? 'Dados do Cooperado' : 'Dados do Investidor'}
+              </h3>
+              
+              <div className="space-y-3">
+                {isReceita && lancamento.cooperado ? (
+                  <>
+                    <InfoItem 
+                      icon={<User className="h-4 w-4" />}
+                      label="Nome Completo"
+                      value={lancamento.cooperado.nome}
+                    />
+                    
+                    {lancamento.cooperado.documento && (
+                      <InfoItem 
+                        icon={<CreditCard className="h-4 w-4" />}
+                        label="CPF/CNPJ"
+                        value={formatarDocumento(lancamento.cooperado.documento)}
+                      />
+                    )}
+                    
+                    {lancamento.cooperado.telefone && (
+                      <InfoItem 
+                        icon={<Phone className="h-4 w-4" />}
+                        label="Telefone"
+                        value={lancamento.cooperado.telefone}
+                      />
+                    )}
+                    
+                    {lancamento.cooperado.email && (
+                      <InfoItem 
+                        icon={<Mail className="h-4 w-4" />}
+                        label="E-mail"
+                        value={lancamento.cooperado.email}
+                      />
+                    )}
+                    
+                    {lancamento.cooperado.numero_cadastro && (
+                      <InfoItem 
+                        icon={<FileText className="h-4 w-4" />}
+                        label="Número de Cadastro"
+                        value={lancamento.cooperado.numero_cadastro}
+                      />
+                    )}
+                  </>
+                ) : !isReceita && lancamento.investidor ? (
+                  <>
+                    <InfoItem 
+                      icon={<User className="h-4 w-4" />}
+                      label="Nome do Investidor"
+                      value={lancamento.investidor.nome_investidor}
+                    />
+                    
+                    {lancamento.investidor.documento && (
+                      <InfoItem 
+                        icon={<CreditCard className="h-4 w-4" />}
+                        label="CPF/CNPJ"
+                        value={formatarDocumento(lancamento.investidor.documento)}
+                      />
+                    )}
+                    
+                    {lancamento.investidor.telefone && (
+                      <InfoItem 
+                        icon={<Phone className="h-4 w-4" />}
+                        label="Telefone"
+                        value={lancamento.investidor.telefone}
+                      />
+                    )}
+                    
+                    {lancamento.investidor.email && (
+                      <InfoItem 
+                        icon={<Mail className="h-4 w-4" />}
+                        label="E-mail"
+                        value={lancamento.investidor.email}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <p className="text-sm text-gray-500">Dados não disponíveis.</p>
                 )}
               </div>
             </div>
 
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Dados Financeiros</h3>
-              <div className="grid grid-cols-1 gap-3 mt-2">
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Valor</p>
-                  <p className="text-sm text-gray-900 font-semibold">{formatarMoeda(lancamento.valor)}</p>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Vencimento</p>
-                  <p className="text-sm text-gray-900">{dataVencimento}</p>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Pagamento</p>
-                  <p className="text-sm text-gray-900">{dataPagamento}</p>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Status</p>
-                  <div className="mt-1">
-                    <span className={`px-2 py-1 rounded-full text-xs ${getStatusColorClass(lancamento.status)}`}>
+            <div className="bg-gray-50 p-4 rounded-md">
+              <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-3">
+                <Calendar className="h-4 w-4" />
+                Dados Financeiros
+              </h3>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <InfoItem
+                  label="Valor"
+                  value={formatarMoeda(lancamento.valor)}
+                  className="col-span-2"
+                />
+                
+                <InfoItem
+                  label="Data de Criação"
+                  value={dataCriacao}
+                />
+                
+                <InfoItem
+                  label="Vencimento"
+                  value={dataVencimento}
+                />
+                
+                <InfoItem
+                  label="Pagamento"
+                  value={dataPagamento}
+                />
+                
+                <InfoItem
+                  label="Status"
+                  value={
+                    <Badge 
+                      className={`mt-1 ${getStatusColorClass(lancamento.status)}`}>
                       {lancamento.status.charAt(0).toUpperCase() + lancamento.status.slice(1)}
-                    </span>
-                  </div>
-                </div>
+                    </Badge>
+                  }
+                />
               </div>
             </div>
           </div>
 
-          <div className="space-y-4">
-            {(isReceita && lancamento.fatura) || (!isReceita && lancamento.pagamento_usina) ? (
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">
-                  {isReceita ? 'Fatura Relacionada' : 'Pagamento Usina Relacionado'}
+          <div className="space-y-6">
+            {isReceita && lancamento.fatura ? (
+              <div className="bg-gray-50 p-4 rounded-md">
+                <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-3">
+                  <FileText className="h-4 w-4" />
+                  Fatura Relacionada
                 </h3>
-                <div className="grid grid-cols-1 gap-3 mt-2">
-                  {isReceita && lancamento.fatura && (
-                    <>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Número da Fatura</p>
-                        <p className="text-sm text-gray-900">{lancamento.fatura.numero_fatura}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">UC</p>
-                        <p className="text-sm text-gray-900">{lancamento.fatura.unidade_beneficiaria.numero_uc}</p>
-                      </div>
-                    </>
+                
+                <div className="space-y-3">
+                  <InfoItem
+                    label="Número da Fatura"
+                    value={lancamento.fatura.numero_fatura}
+                  />
+                  
+                  <InfoItem
+                    label="Unidade Consumidora"
+                    value={lancamento.fatura.unidade_beneficiaria?.numero_uc}
+                  />
+                  
+                  {lancamento.fatura.unidade_beneficiaria?.apelido && (
+                    <InfoItem
+                      label="Apelido da UC"
+                      value={lancamento.fatura.unidade_beneficiaria.apelido}
+                    />
                   )}
-
-                  {!isReceita && lancamento.pagamento_usina && (
-                    <>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">UC da Usina</p>
-                        <p className="text-sm text-gray-900">
-                          {lancamento.pagamento_usina.usina?.unidade_usina?.numero_uc || '-'}
-                        </p>
-                      </div>
-                      {lancamento.pagamento_usina.geracao_kwh !== undefined && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">Geração (kWh)</p>
-                          <p className="text-sm text-gray-900">{lancamento.pagamento_usina.geracao_kwh}</p>
-                        </div>
-                      )}
-                      {lancamento.pagamento_usina.valor_total !== undefined && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">Valor Total</p>
-                          <p className="text-sm text-gray-900">{formatarMoeda(lancamento.pagamento_usina.valor_total)}</p>
-                        </div>
-                      )}
-                    </>
+                  
+                  {lancamento.fatura.unidade_beneficiaria?.endereco && (
+                    <InfoItem
+                      icon={<MapPin className="h-4 w-4" />}
+                      label="Endereço"
+                      value={lancamento.fatura.unidade_beneficiaria.endereco}
+                    />
+                  )}
+                  
+                  {lancamento.fatura.mes !== undefined && lancamento.fatura.ano !== undefined && (
+                    <InfoItem
+                      icon={<Calendar className="h-4 w-4" />}
+                      label="Referência"
+                      value={`${lancamento.fatura.mes}/${lancamento.fatura.ano}`}
+                    />
+                  )}
+                </div>
+              </div>
+            ) : !isReceita && lancamento.pagamento_usina ? (
+              <div className="bg-gray-50 p-4 rounded-md">
+                <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-3">
+                  <FileText className="h-4 w-4" />
+                  Pagamento de Usina Relacionado
+                </h3>
+                
+                <div className="space-y-3">
+                  {lancamento.pagamento_usina.usina?.unidade_usina?.numero_uc && (
+                    <InfoItem
+                      label="UC da Usina"
+                      value={lancamento.pagamento_usina.usina.unidade_usina.numero_uc}
+                    />
+                  )}
+                  
+                  {lancamento.pagamento_usina.mes !== undefined && lancamento.pagamento_usina.ano !== undefined && (
+                    <InfoItem
+                      icon={<Calendar className="h-4 w-4" />}
+                      label="Referência"
+                      value={`${lancamento.pagamento_usina.mes}/${lancamento.pagamento_usina.ano}`}
+                    />
+                  )}
+                  
+                  {lancamento.pagamento_usina.geracao_kwh !== undefined && (
+                    <InfoItem
+                      label="Geração (kWh)"
+                      value={`${lancamento.pagamento_usina.geracao_kwh} kWh`}
+                    />
+                  )}
+                  
+                  {lancamento.pagamento_usina.valor_total !== undefined && (
+                    <InfoItem
+                      label="Valor Total"
+                      value={formatarMoeda(lancamento.pagamento_usina.valor_total)}
+                    />
                   )}
                 </div>
               </div>
             ) : null}
 
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Observação</h3>
-              <p className="text-sm text-gray-900 mt-2">
-                {lancamento.observacao || "Nenhuma observação cadastrada."}
-              </p>
+            <div className="bg-gray-50 p-4 rounded-md">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Observação</h3>
+              {lancamento.observacao ? (
+                <p className="text-sm text-gray-900 p-2 bg-white rounded border border-gray-100">
+                  {lancamento.observacao}
+                </p>
+              ) : (
+                <p className="text-sm text-gray-500 italic">Nenhuma observação cadastrada.</p>
+              )}
             </div>
 
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Histórico de Status</h3>
-              <HistoricoStatusList historico={lancamento.historico_status} />
+            <div className="bg-gray-50 p-4 rounded-md">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Histórico de Status</h3>
+              {lancamento.historico_status && lancamento.historico_status.length > 0 ? (
+                <HistoricoStatusList historico={lancamento.historico_status} />
+              ) : (
+                <p className="text-sm text-gray-500 italic">Nenhum histórico de status disponível.</p>
+              )}
             </div>
           </div>
         </div>

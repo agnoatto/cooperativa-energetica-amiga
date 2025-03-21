@@ -31,23 +31,35 @@ export interface LancamentoFinanceiro {
   cooperado?: {
     nome: string;
     documento: string;
+    telefone?: string | null;
+    email?: string | null;
+    numero_cadastro?: string | null;
   };
   investidor?: {
     nome_investidor: string;
     documento: string;
+    telefone?: string | null;
+    email?: string | null;
   };
   fatura?: {
     numero_fatura: string;
+    mes?: number;
+    ano?: number;
     unidade_beneficiaria: {
       numero_uc: string;
+      apelido?: string | null;
+      endereco?: string;
     };
   };
   pagamento_usina?: {
-    usina: {
-      unidade_usina: {
+    mes?: number;
+    ano?: number;
+    usina?: {
+      unidade_usina?: {
         numero_uc: string;
-      };
-    };
+        apelido?: string | null;
+      } | null;
+    } | null;
     geracao_kwh?: number;
     valor_total?: number;
   };
