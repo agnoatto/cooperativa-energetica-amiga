@@ -3,7 +3,7 @@
  * Dashboard de Faturas 
  * 
  * Este componente exibe métricas resumidas sobre as faturas do período atual,
- * incluindo o consumo total em kWh e o valor total das faturas.
+ * incluindo o consumo total em kWh e o valor total das assinaturas.
  */
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,9 +23,9 @@ export function FaturasDashboard({ faturas, isLoading, currentDate }: FaturasDas
   // Formatar o mês e ano atual para exibição
   const mesAnoFormatado = format(currentDate, "MMMM 'de' yyyy", { locale: ptBR });
   
-  // Calcular o valor total das faturas
-  const valorTotal = faturas?.reduce((acc, fatura) => 
-    acc + Number(fatura.total_fatura), 0) ?? 0;
+  // Calcular o valor total das assinaturas
+  const valorAssinaturas = faturas?.reduce((acc, fatura) => 
+    acc + Number(fatura.valor_assinatura), 0) ?? 0;
   
   // Calcular o consumo total em kWh
   const consumoTotal = faturas?.reduce((acc, fatura) => 
@@ -70,10 +70,10 @@ export function FaturasDashboard({ faturas, isLoading, currentDate }: FaturasDas
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-1">
-                  Valor Total
+                  Valor de Assinatura
                 </p>
                 <h2 className="text-2xl font-bold">
-                  {formatarMoeda(valorTotal)}
+                  {formatarMoeda(valorAssinaturas)}
                 </h2>
               </div>
               <div className="p-4 bg-green-100 rounded-full">
