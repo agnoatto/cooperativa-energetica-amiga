@@ -1,9 +1,15 @@
 
+/**
+ * Dashboard de Faturas 
+ * 
+ * Este componente exibe métricas resumidas sobre as faturas do período atual,
+ * incluindo o consumo total em kWh e o valor total das faturas.
+ */
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Fatura } from "@/types/fatura";
-import { DollarSign, Zap } from "lucide-react";
-import { formatarMoeda } from "@/utils/formatters";
+import { Zap, DollarSign } from "lucide-react";
+import { formatarMoeda, formatarKwh } from "@/utils/formatters";
 
 interface FaturasDashboardProps {
   faturas: Fatura[] | undefined;
@@ -11,21 +17,17 @@ interface FaturasDashboardProps {
 }
 
 export function FaturasDashboard({ faturas, isLoading }: FaturasDashboardProps) {
-  const valorTotalAssinaturas = faturas?.reduce((acc, fatura) => acc + Number(fatura.valor_assinatura), 0) ?? 0;
-  const consumoTotalKwh = faturas?.reduce((acc, fatura) => acc + Number(fatura.consumo_kwh), 0) ?? 0;
-  const economiaTotal = faturas?.reduce((acc, fatura) => acc + Number(fatura.valor_desconto), 0) ?? 0;
-
-  const formatarKwh = (valor: number) => {
-    return valor.toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  };
+  // Calcular o valor total das faturas
+  const valorTotal = faturas?.reduce((acc, fatura) => 
+    acc + Number(fatura.total_fatura), 0) ?? 0;
+  
+  // Calcular o consumo total em kWh
+  const consumoTotal = faturas?.reduce((acc, fatura) => 
+    acc + Number(fatura.consumo_kwh), 0) ?? 0;
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Skeleton className="h-32" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <Skeleton className="h-32" />
         <Skeleton className="h-32" />
       </div>
@@ -33,25 +35,7 @@ export function FaturasDashboard({ faturas, isLoading }: FaturasDashboardProps) 
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <Card className="hover:shadow-lg transition-shadow duration-200">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground mb-1">
-                Valor Total das Assinaturas
-              </p>
-              <h2 className="text-2xl font-bold">
-                {formatarMoeda(valorTotalAssinaturas)}
-              </h2>
-            </div>
-            <div className="p-4 bg-green-100 rounded-full">
-              <DollarSign className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
       <Card className="hover:shadow-lg transition-shadow duration-200">
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
@@ -60,7 +44,7 @@ export function FaturasDashboard({ faturas, isLoading }: FaturasDashboardProps) 
                 Consumo Total
               </p>
               <h2 className="text-2xl font-bold">
-                {formatarKwh(consumoTotalKwh)} kWh
+                {formatarKwh(consumoTotal)} kWh
               </h2>
             </div>
             <div className="p-4 bg-blue-100 rounded-full">
@@ -75,14 +59,14 @@ export function FaturasDashboard({ faturas, isLoading }: FaturasDashboardProps) 
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-1">
-                Economia Total
+                Valor Total
               </p>
               <h2 className="text-2xl font-bold">
-                {formatarMoeda(economiaTotal)}
+                {formatarMoeda(valorTotal)}
               </h2>
             </div>
-            <div className="p-4 bg-yellow-100 rounded-full">
-              <DollarSign className="h-6 w-6 text-yellow-600" />
+            <div className="p-4 bg-green-100 rounded-full">
+              <DollarSign className="h-6 w-6 text-green-600" />
             </div>
           </div>
         </CardContent>
