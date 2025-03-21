@@ -93,7 +93,6 @@ export async function fetchLancamentos({
             .from('faturas')
             .select(`
               id,
-              numero_fatura:id,
               mes, 
               ano,
               unidade_beneficiaria:unidade_beneficiaria_id (
@@ -106,7 +105,7 @@ export async function fetchLancamentos({
             .single();
             
           if (faturaData) {
-            // Formatar número da fatura (usando id como referência temporária)
+            // Formatar número da fatura (usando mes/ano como referência)
             const numeroFatura = faturaData.mes && faturaData.ano 
               ? `${faturaData.mes.toString().padStart(2, '0')}/${faturaData.ano}`
               : faturaData.id;
@@ -116,10 +115,13 @@ export async function fetchLancamentos({
               numero_fatura: numeroFatura,
               mes: faturaData.mes,
               ano: faturaData.ano,
-              unidade_beneficiaria: {
-                numero_uc: faturaData.unidade_beneficiaria?.numero_uc || '',
-                apelido: faturaData.unidade_beneficiaria?.apelido || null,
-                endereco: faturaData.unidade_beneficiaria?.endereco || ''
+              unidade_beneficiaria: faturaData.unidade_beneficiaria ? {
+                numero_uc: faturaData.unidade_beneficiaria.numero_uc || '',
+                apelido: faturaData.unidade_beneficiaria.apelido || null,
+                endereco: faturaData.unidade_beneficiaria.endereco || ''
+              } : {
+                numero_uc: '',
+                endereco: ''
               }
             };
           }
@@ -246,7 +248,6 @@ export async function fetchLancamentos({
           investidor:investidor_id (nome_investidor, documento, telefone, email),
           fatura:fatura_id (
             id,
-            numero_fatura:id,
             mes,
             ano,
             unidade_beneficiaria:unidade_beneficiaria_id (
@@ -303,31 +304,71 @@ export async function fetchLancamentos({
         }
         
         // Se tiver fatura, ajustar o número da fatura
-        let faturaObj = item.fatura;
-        if (faturaObj) {
-          const numeroFatura = faturaObj.mes && faturaObj.ano 
-            ? `${faturaObj.mes.toString().padStart(2, '0')}/${faturaObj.ano}`
-            : faturaObj.id;
+        let faturaObj = null;
+        if (item.fatura) {
+          const numeroFatura = item.fatura.mes && item.fatura.ano 
+            ? `${item.fatura.mes.toString().padStart(2, '0')}/${item.fatura.ano}`
+            : item.fatura.id;
           
           faturaObj = {
-            ...faturaObj,
-            numero_fatura: numeroFatura
+            ...item.fatura,
+            numero_fatura: numeroFatura,
+            unidade_beneficiaria: item.fatura.unidade_beneficiaria || {
+              numero_uc: '',
+              endereco: ''
+            }
           };
         }
         
         return {
           ...item,
           historico_status: historicoStatus,
-          fatura: faturaObj
-        } as unknown as LancamentoFinanceiro;
+          fatura: faturaObj,
+          cooperado: item.cooperado || null,
+          investidor: item.investidor || null,
+          pagamento_usina: item.pagamento_usina || null
+        } as LancamentoFinanceiro;
       }).filter(lancamento => {
         // Aplicar os mesmos filtros do método principal
         if (status && status !== 'todos' && lancamento.status !== status) {
           return false;
         }
         
-        // Outros filtros
-        // ... restante do código de filtro
+        // Filtrar por texto de busca
+        if (busca && busca.trim() !== '') {
+          const termoBusca = busca.toLowerCase().trim();
+          // Buscar em vários campos
+          const descricao = lancamento.descricao?.toLowerCase() || '';
+          const cooperadoNome = lancamento.cooperado?.nome?.toLowerCase() || '';
+          const investidorNome = lancamento.investidor?.nome_investidor?.toLowerCase() || '';
+          const documento = lancamento.cooperado?.documento || lancamento.investidor?.documento || '';
+          const numeroUC = lancamento.fatura?.unidade_beneficiaria?.numero_uc?.toLowerCase() || 
+                         lancamento.pagamento_usina?.usina?.unidade_usina?.numero_uc?.toLowerCase() || '';
+          
+          return descricao.includes(termoBusca) || 
+                 cooperadoNome.includes(termoBusca) || 
+                 investidorNome.includes(termoBusca) || 
+                 documento.includes(termoBusca) ||
+                 numeroUC.includes(termoBusca);
+        }
+        
+        // Filtrar por data início
+        if (dataInicio) {
+          const dataInicioObj = new Date(dataInicio);
+          const dataVencimentoObj = new Date(lancamento.data_vencimento);
+          if (dataVencimentoObj < dataInicioObj) {
+            return false;
+          }
+        }
+        
+        // Filtrar por data fim
+        if (dataFim) {
+          const dataFimObj = new Date(dataFim);
+          const dataVencimentoObj = new Date(lancamento.data_vencimento);
+          if (dataVencimentoObj > dataFimObj) {
+            return false;
+          }
+        }
         
         return true;
       });
