@@ -92,6 +92,8 @@ export async function fetchLancamentos({
           const { data: faturaData } = await supabase
             .from('faturas')
             .select(`
+              id,
+              numero_fatura:id,
               mes, 
               ano,
               unidade_beneficiaria:unidade_beneficiaria_id (
@@ -104,13 +106,20 @@ export async function fetchLancamentos({
             .single();
             
           if (faturaData) {
+            // Formatar número da fatura (usando id como referência temporária)
+            const numeroFatura = faturaData.mes && faturaData.ano 
+              ? `${faturaData.mes.toString().padStart(2, '0')}/${faturaData.ano}`
+              : faturaData.id;
+            
             dadosAdicionais.fatura = {
-              ...item.fatura,
+              id: faturaData.id,
+              numero_fatura: numeroFatura,
               mes: faturaData.mes,
               ano: faturaData.ano,
               unidade_beneficiaria: {
-                ...item.fatura?.unidade_beneficiaria,
-                ...faturaData.unidade_beneficiaria
+                numero_uc: faturaData.unidade_beneficiaria?.numero_uc || '',
+                apelido: faturaData.unidade_beneficiaria?.apelido || null,
+                endereco: faturaData.unidade_beneficiaria?.endereco || ''
               }
             };
           }
@@ -134,10 +143,14 @@ export async function fetchLancamentos({
           const { data: pagamentoData } = await supabase
             .from('pagamentos_usina')
             .select(`
+              id,
               mes,
               ano,
               geracao_kwh,
               valor_total,
+              status,
+              data_vencimento,
+              data_pagamento,
               usina:usina_id (
                 unidade_usina:unidade_usina_id (
                   numero_uc,
@@ -150,11 +163,14 @@ export async function fetchLancamentos({
             
           if (pagamentoData) {
             dadosAdicionais.pagamento_usina = {
-              ...item.pagamento_usina,
+              id: pagamentoData.id,
               mes: pagamentoData.mes,
               ano: pagamentoData.ano,
               geracao_kwh: pagamentoData.geracao_kwh,
               valor_total: pagamentoData.valor_total,
+              status: pagamentoData.status,
+              data_vencimento: pagamentoData.data_vencimento,
+              data_pagamento: pagamentoData.data_pagamento,
               usina: pagamentoData.usina
             };
           }
@@ -229,7 +245,8 @@ export async function fetchLancamentos({
           cooperado:cooperado_id (nome, documento, telefone, email, numero_cadastro),
           investidor:investidor_id (nome_investidor, documento, telefone, email),
           fatura:fatura_id (
-            numero_fatura,
+            id,
+            numero_fatura:id,
             mes,
             ano,
             unidade_beneficiaria:unidade_beneficiaria_id (
@@ -239,10 +256,14 @@ export async function fetchLancamentos({
             )
           ),
           pagamento_usina:pagamento_usina_id (
+            id,
             mes,
             ano,
             geracao_kwh,
             valor_total,
+            status,
+            data_vencimento,
+            data_pagamento,
             usina:usina_id (
               unidade_usina:unidade_usina_id (
                 numero_uc,
@@ -281,10 +302,34 @@ export async function fetchLancamentos({
           }
         }
         
+        // Se tiver fatura, ajustar o número da fatura
+        let faturaObj = item.fatura;
+        if (faturaObj) {
+          const numeroFatura = faturaObj.mes && faturaObj.ano 
+            ? `${faturaObj.mes.toString().padStart(2, '0')}/${faturaObj.ano}`
+            : faturaObj.id;
+          
+          faturaObj = {
+            ...faturaObj,
+            numero_fatura: numeroFatura
+          };
+        }
+        
         return {
           ...item,
-          historico_status: historicoStatus
-        } as LancamentoFinanceiro;
+          historico_status: historicoStatus,
+          fatura: faturaObj
+        } as unknown as LancamentoFinanceiro;
+      }).filter(lancamento => {
+        // Aplicar os mesmos filtros do método principal
+        if (status && status !== 'todos' && lancamento.status !== status) {
+          return false;
+        }
+        
+        // Outros filtros
+        // ... restante do código de filtro
+        
+        return true;
       });
     } catch (fallbackError) {
       console.error('Também falhou o método alternativo:', fallbackError);

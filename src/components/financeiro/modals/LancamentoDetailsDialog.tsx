@@ -19,7 +19,7 @@ import { formatarMoeda, formatarDocumento } from "@/utils/formatters";
 import { StatusTransitionButtons } from "./StatusTransitionButtons";
 import { HistoricoStatusList } from "./HistoricoStatusList";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Phone, Mail, User, FileText, MapPin, CreditCard } from "lucide-react";
+import { Calendar, Phone, Mail, User, FileText, MapPin, CreditCard, DollarSign, Clock } from "lucide-react";
 
 interface LancamentoDetailsDialogProps {
   lancamento: LancamentoFinanceiro | null;
@@ -27,6 +27,13 @@ interface LancamentoDetailsDialogProps {
   onClose: () => void;
   onUpdateStatus: (lancamento: LancamentoFinanceiro, newStatus: StatusLancamento) => Promise<void>;
 }
+
+type InfoItemProps = {
+  icon: React.ReactNode;
+  label: string;
+  value: React.ReactNode;
+  className?: string;
+};
 
 export function LancamentoDetailsDialog({
   lancamento,
@@ -65,7 +72,7 @@ export function LancamentoDetailsDialog({
   const mesAnoFatura = extrairMesAnoFatura();
 
   // Função auxiliar para renderizar item de informação
-  const InfoItem = ({ icon, label, value, className = "" }) => (
+  const InfoItem = ({ icon, label, value, className = "" }: InfoItemProps) => (
     <div className={`flex items-start space-x-2 ${className}`}>
       {icon && <span className="text-muted-foreground mt-0.5">{icon}</span>}
       <div>
@@ -192,27 +199,32 @@ export function LancamentoDetailsDialog({
               
               <div className="grid grid-cols-2 gap-3">
                 <InfoItem
+                  icon={<DollarSign className="h-4 w-4" />}
                   label="Valor"
                   value={formatarMoeda(lancamento.valor)}
                   className="col-span-2"
                 />
                 
                 <InfoItem
+                  icon={<Clock className="h-4 w-4" />}
                   label="Data de Criação"
                   value={dataCriacao}
                 />
                 
                 <InfoItem
+                  icon={<Calendar className="h-4 w-4" />}
                   label="Vencimento"
                   value={dataVencimento}
                 />
                 
                 <InfoItem
+                  icon={<Calendar className="h-4 w-4" />}
                   label="Pagamento"
                   value={dataPagamento}
                 />
                 
                 <InfoItem
+                  icon={<FileText className="h-4 w-4" />}
                   label="Status"
                   value={
                     <Badge 
@@ -235,17 +247,20 @@ export function LancamentoDetailsDialog({
                 
                 <div className="space-y-3">
                   <InfoItem
+                    icon={<FileText className="h-4 w-4" />}
                     label="Número da Fatura"
                     value={lancamento.fatura.numero_fatura}
                   />
                   
                   <InfoItem
+                    icon={<CreditCard className="h-4 w-4" />}
                     label="Unidade Consumidora"
                     value={lancamento.fatura.unidade_beneficiaria?.numero_uc}
                   />
                   
                   {lancamento.fatura.unidade_beneficiaria?.apelido && (
                     <InfoItem
+                      icon={<User className="h-4 w-4" />}
                       label="Apelido da UC"
                       value={lancamento.fatura.unidade_beneficiaria.apelido}
                     />
@@ -278,6 +293,7 @@ export function LancamentoDetailsDialog({
                 <div className="space-y-3">
                   {lancamento.pagamento_usina.usina?.unidade_usina?.numero_uc && (
                     <InfoItem
+                      icon={<CreditCard className="h-4 w-4" />}
                       label="UC da Usina"
                       value={lancamento.pagamento_usina.usina.unidade_usina.numero_uc}
                     />
@@ -293,6 +309,7 @@ export function LancamentoDetailsDialog({
                   
                   {lancamento.pagamento_usina.geracao_kwh !== undefined && (
                     <InfoItem
+                      icon={<FileText className="h-4 w-4" />}
                       label="Geração (kWh)"
                       value={`${lancamento.pagamento_usina.geracao_kwh} kWh`}
                     />
@@ -300,6 +317,7 @@ export function LancamentoDetailsDialog({
                   
                   {lancamento.pagamento_usina.valor_total !== undefined && (
                     <InfoItem
+                      icon={<DollarSign className="h-4 w-4" />}
                       label="Valor Total"
                       value={formatarMoeda(lancamento.pagamento_usina.valor_total)}
                     />

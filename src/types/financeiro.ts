@@ -42,6 +42,7 @@ export interface LancamentoFinanceiro {
     email?: string | null;
   };
   fatura?: {
+    id?: string;
     numero_fatura: string;
     mes?: number;
     ano?: number;
@@ -52,16 +53,20 @@ export interface LancamentoFinanceiro {
     };
   };
   pagamento_usina?: {
+    id?: string;
     mes?: number;
     ano?: number;
+    geracao_kwh?: number;
+    valor_total?: number;
+    status?: string;
+    data_vencimento?: string;
+    data_pagamento?: string;
     usina?: {
       unidade_usina?: {
         numero_uc: string;
         apelido?: string | null;
       } | null;
     } | null;
-    geracao_kwh?: number;
-    valor_total?: number;
   };
 }
 
