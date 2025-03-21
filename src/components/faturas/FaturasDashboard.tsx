@@ -10,13 +10,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Fatura } from "@/types/fatura";
 import { Zap, DollarSign } from "lucide-react";
 import { formatarMoeda, formatarKwh } from "@/utils/formatters";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface FaturasDashboardProps {
   faturas: Fatura[] | undefined;
   isLoading: boolean;
+  currentDate: Date;
 }
 
-export function FaturasDashboard({ faturas, isLoading }: FaturasDashboardProps) {
+export function FaturasDashboard({ faturas, isLoading, currentDate }: FaturasDashboardProps) {
+  // Formatar o mês e ano atual para exibição
+  const mesAnoFormatado = format(currentDate, "MMMM 'de' yyyy", { locale: ptBR });
+  
   // Calcular o valor total das faturas
   const valorTotal = faturas?.reduce((acc, fatura) => 
     acc + Number(fatura.total_fatura), 0) ?? 0;
@@ -35,42 +41,48 @@ export function FaturasDashboard({ faturas, isLoading }: FaturasDashboardProps) 
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <Card className="hover:shadow-lg transition-shadow duration-200">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground mb-1">
-                Consumo Total
-              </p>
-              <h2 className="text-2xl font-bold">
-                {formatarKwh(consumoTotal)} kWh
-              </h2>
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold text-center">
+        Resumo de Faturas - {mesAnoFormatado}
+      </h2>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <Card className="hover:shadow-lg transition-shadow duration-200">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">
+                  Consumo Total
+                </p>
+                <h2 className="text-2xl font-bold">
+                  {formatarKwh(consumoTotal)} kWh
+                </h2>
+              </div>
+              <div className="p-4 bg-blue-100 rounded-full">
+                <Zap className="h-6 w-6 text-blue-600" />
+              </div>
             </div>
-            <div className="p-4 bg-blue-100 rounded-full">
-              <Zap className="h-6 w-6 text-blue-600" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Card className="hover:shadow-lg transition-shadow duration-200">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground mb-1">
-                Valor Total
-              </p>
-              <h2 className="text-2xl font-bold">
-                {formatarMoeda(valorTotal)}
-              </h2>
+        <Card className="hover:shadow-lg transition-shadow duration-200">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">
+                  Valor Total
+                </p>
+                <h2 className="text-2xl font-bold">
+                  {formatarMoeda(valorTotal)}
+                </h2>
+              </div>
+              <div className="p-4 bg-green-100 rounded-full">
+                <DollarSign className="h-6 w-6 text-green-600" />
+              </div>
             </div>
-            <div className="p-4 bg-green-100 rounded-full">
-              <DollarSign className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -24,6 +24,7 @@ export default function Faturas() {
       <FaturasDashboard 
         faturas={faturas} 
         isLoading={isLoading} 
+        currentDate={currentDate}
       />
       
       <FaturasContainer />
