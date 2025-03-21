@@ -4,7 +4,8 @@
  * 
  * Este componente exibe as informações de uma fatura em formato de card,
  * otimizado para visualização em dispositivos móveis. A data de próxima leitura
- * é exibida conforme programado no mês anterior.
+ * é exibida conforme programado no mês anterior. Inclui informações detalhadas
+ * do cooperado e unidade beneficiária.
  */
 import { useState } from "react";
 import { Fatura, FaturaStatus } from "@/types/fatura";
@@ -22,7 +23,10 @@ import {
   User, 
   Zap, 
   DollarSign,
-  CalendarClock 
+  CalendarClock,
+  MapPin,
+  Phone,
+  Mail
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusTransitionButtons } from "../../StatusTransitionButtons";
@@ -43,6 +47,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { FaturaActionsMenu } from "../FaturaActionsMenu";
+import { formatarDocumento } from "@/utils/formatters";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface FaturaMobileCardProps {
   fatura: Fatura;
@@ -64,6 +74,7 @@ export function FaturaMobileCard({
   onShowPaymentConfirmation
 }: FaturaMobileCardProps) {
   const [expandActions, setExpandActions] = useState(false);
+  const [expandDetails, setExpandDetails] = useState(false);
 
   // Formatação de valores
   const formatCurrency = (value: number) => {
@@ -73,12 +84,18 @@ export function FaturaMobileCard({
     }).format(value);
   };
 
+  const cooperado = fatura.unidade_beneficiaria.cooperado;
+  const unidade = fatura.unidade_beneficiaria;
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="bg-gray-50 py-3 px-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <span className="text-lg font-medium">UC {fatura.unidade_beneficiaria.numero_uc}</span>
+            {unidade.apelido && (
+              <span className="ml-2 text-sm text-muted-foreground">({unidade.apelido})</span>
+            )}
           </div>
           <FaturaStatusBadge fatura={fatura} />
         </div>
@@ -88,8 +105,49 @@ export function FaturaMobileCard({
         <div className="grid grid-cols-1 gap-3">
           <div className="flex items-center">
             <User className="h-4 w-4 text-gray-500 mr-2" />
-            <span className="text-sm font-medium">{fatura.unidade_beneficiaria.cooperado.nome}</span>
+            <span className="text-sm font-medium">{cooperado.nome}</span>
           </div>
+          
+          {cooperado.documento && (
+            <div className="flex items-center ml-6 text-xs text-gray-600">
+              <span>Documento: {formatarDocumento(cooperado.documento)}</span>
+            </div>
+          )}
+          
+          <Collapsible open={expandDetails} onOpenChange={setExpandDetails} className="w-full">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="p-0 h-auto text-xs text-primary ml-6">
+                {expandDetails ? "Ver menos detalhes" : "Ver mais detalhes"}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="ml-6 space-y-2 mt-2">
+              {cooperado.telefone && (
+                <div className="flex items-center text-xs">
+                  <Phone className="h-3 w-3 text-gray-500 mr-2" />
+                  <span>{cooperado.telefone}</span>
+                </div>
+              )}
+              
+              {cooperado.email && (
+                <div className="flex items-center text-xs">
+                  <Mail className="h-3 w-3 text-gray-500 mr-2" />
+                  <span>{cooperado.email}</span>
+                </div>
+              )}
+              
+              <div className="flex items-center text-xs">
+                <MapPin className="h-3 w-3 text-gray-500 mr-2" />
+                <span>{unidade.endereco}</span>
+              </div>
+              
+              <div className="flex items-center text-xs">
+                <span className="text-gray-500 mr-2">Desconto:</span>
+                <span>{unidade.percentual_desconto}%</span>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+          
+          <Separator className="my-1" />
           
           <div className="flex items-center">
             <Zap className="h-4 w-4 text-gray-500 mr-2" />

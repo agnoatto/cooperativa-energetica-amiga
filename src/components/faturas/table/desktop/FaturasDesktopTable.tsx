@@ -3,7 +3,8 @@
  * Tabela de faturas para desktop
  * 
  * Este componente exibe as faturas em formato de tabela otimizado
- * para visualização em dispositivos desktop.
+ * para visualização em dispositivos desktop. Inclui informações
+ * completas de cooperados e unidades beneficiárias.
  */
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import {
@@ -56,7 +57,9 @@ export function FaturasDesktopTable({
             <TableHead className="py-1.5 px-3 text-sm text-right">Vencimento</TableHead>
             <TableHead className="py-1.5 px-3 text-sm text-right">Status</TableHead>
             <TableHead className="py-1.5 px-3 text-sm text-center">Fatura Concessionária</TableHead>
-            <TableHead className="py-1.5 px-3 text-sm w-10 text-center">Ações</TableHead>
+            <TableHead className="py-1.5 px-3 text-sm text-center">Próxima Leitura</TableHead>
+            <TableHead className="py-1.5 px-3 text-sm text-center">Ações</TableHead>
+            <TableHead className="py-1.5 px-3 text-sm w-10"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

@@ -5,13 +5,14 @@
  * Este componente exibe uma linha na tabela de faturas com os dados
  * de uma fatura e as ações disponíveis. A data de próxima leitura
  * mostra a leitura programada que foi cadastrada no mês anterior.
+ * Inclui mais informações sobre o cooperado e a unidade beneficiária.
  */
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { FaturaStatusBadge } from "../FaturaStatusBadge";
 import { useState } from "react";
 import { FaturaActionsMenu } from "../FaturaActionsMenu";
-import { FileText, Calendar } from "lucide-react";
+import { FileText, Calendar, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PdfPreview } from "../../upload/PdfPreview";
 import { toast } from "sonner";
@@ -30,6 +31,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { formatarDocumento } from "@/utils/formatters";
 
 interface FaturaDesktopRowProps {
   fatura: Fatura;
@@ -51,6 +53,7 @@ export function FaturaDesktopRow({
   onShowPaymentConfirmation
 }: FaturaDesktopRowProps) {
   const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [showCooperadoInfo, setShowCooperadoInfo] = useState(false);
 
   // Formatação de valores
   const formatCurrency = (value: number) => {
@@ -71,12 +74,48 @@ export function FaturaDesktopRow({
     setShowPdfPreview(true);
   };
 
+  // Formato de exibição do cliente - nome (documento)
+  const clienteDisplay = fatura.unidade_beneficiaria.cooperado.documento ? 
+    `${fatura.unidade_beneficiaria.cooperado.nome} (${formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)})` : 
+    fatura.unidade_beneficiaria.cooperado.nome;
+
   return (
     <>
       <TableRow key={fatura.id} className="h-9 hover:bg-gray-50">
         <TableCell className="py-1.5 px-3 text-sm">{fatura.unidade_beneficiaria.numero_uc}</TableCell>
         <TableCell className="py-1.5 px-3 text-sm font-medium truncate max-w-[180px]">
-          {fatura.unidade_beneficiaria.cooperado.nome}
+          <div className="flex items-center space-x-1">
+            <span className="truncate">{clienteDisplay}</span>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => setShowCooperadoInfo(!showCooperadoInfo)}>
+                    <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="w-80">
+                  <div className="space-y-2">
+                    <p className="font-medium">{fatura.unidade_beneficiaria.cooperado.nome}</p>
+                    {fatura.unidade_beneficiaria.cooperado.documento && (
+                      <p className="text-sm">Documento: {formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)}</p>
+                    )}
+                    {fatura.unidade_beneficiaria.cooperado.telefone && (
+                      <p className="text-sm">Telefone: {fatura.unidade_beneficiaria.cooperado.telefone}</p>
+                    )}
+                    {fatura.unidade_beneficiaria.cooperado.email && (
+                      <p className="text-sm">Email: {fatura.unidade_beneficiaria.cooperado.email}</p>
+                    )}
+                    <p className="text-sm">Unidade: {fatura.unidade_beneficiaria.numero_uc}</p>
+                    {fatura.unidade_beneficiaria.apelido && (
+                      <p className="text-sm">Apelido: {fatura.unidade_beneficiaria.apelido}</p>
+                    )}
+                    <p className="text-sm">Endereço: {fatura.unidade_beneficiaria.endereco}</p>
+                    <p className="text-xs text-muted-foreground">Desconto: {fatura.unidade_beneficiaria.percentual_desconto}%</p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </TableCell>
         <TableCell className="py-1.5 px-3 text-sm text-right">
           {fatura.consumo_kwh || 0} kWh

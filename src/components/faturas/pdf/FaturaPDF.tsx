@@ -1,8 +1,10 @@
+
 /**
  * Componente principal para geração do PDF da fatura
  * 
  * Organiza e compõe todas as seções do documento PDF da fatura,
  * usando componentes menores para melhor organização e manutenção.
+ * Inclui todas as informações relevantes do cooperado e unidade beneficiária.
  */
 import React from 'react';
 import { Document, Page, View } from '@react-pdf/renderer';
@@ -60,6 +62,10 @@ export const FaturaPDF: React.FC<FaturaPDFProps> = ({ fatura }) => {
           nome={fatura.unidade_beneficiaria.cooperado.nome}
           documento={fatura.unidade_beneficiaria.cooperado.documento}
           endereco={fatura.unidade_beneficiaria.endereco}
+          telefone={fatura.unidade_beneficiaria.cooperado.telefone}
+          email={fatura.unidade_beneficiaria.cooperado.email}
+          numero_uc={fatura.unidade_beneficiaria.numero_uc}
+          apelido={fatura.unidade_beneficiaria.apelido}
         />
 
         {/* Informações Destacadas */}

@@ -1,4 +1,12 @@
 
+/**
+ * Hook para buscar faturas do período selecionado
+ * 
+ * Este hook gerencia a consulta de faturas no banco de dados,
+ * incluindo informações completas do cooperado, unidade beneficiária
+ * e histórico de economia, otimizando a experiência do usuário com
+ * dados contextuais relevantes.
+ */
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -15,7 +23,7 @@ export const useFetchFaturas = (currentDate: Date) => {
   return useQuery({
     queryKey: ['faturas', mes, ano],
     queryFn: async () => {
-      console.log('Fetching faturas for:', currentDate);
+      console.log('Buscando faturas para:', currentDate);
       console.log('Buscando datas de próxima leitura do mês anterior:', mesAnterior, anoAnterior);
       
       // Calcular a data limite para os últimos 12 meses
@@ -70,7 +78,7 @@ export const useFetchFaturas = (currentDate: Date) => {
 
       console.log('Mapa de datas de próxima leitura:', Object.fromEntries(mapaLeituras));
 
-      // Buscar faturas do mês atual
+      // Buscar faturas do mês atual com informações completas
       const { data, error } = await supabase
         .from("faturas")
         .select(`
@@ -86,6 +94,7 @@ export const useFetchFaturas = (currentDate: Date) => {
           iluminacao_publica,
           outros_valores,
           valor_desconto,
+          economia_acumulada,
           saldo_energia_kwh,
           observacao,
           data_envio,
@@ -106,9 +115,29 @@ export const useFetchFaturas = (currentDate: Date) => {
             apelido,
             endereco,
             percentual_desconto,
+            cidade,
+            uf,
+            cep,
+            logradouro,
+            numero,
+            complemento,
+            bairro,
+            data_entrada,
+            data_saida,
+            consumo_kwh,
+            possui_geracao_propria,
+            potencia_instalada,
             cooperado:cooperado_id (
+              id,
               nome,
-              documento
+              documento,
+              tipo_pessoa,
+              telefone,
+              email,
+              responsavel_nome,
+              responsavel_cpf,
+              responsavel_telefone,
+              numero_cadastro
             )
           )
         `)
