@@ -1,36 +1,39 @@
 
 import { useLancamentosFinanceiros } from "@/hooks/lancamentos/useLancamentosFinanceiros";
-import { FilterBar } from "@/components/shared/FilterBar";
 import { StatusLancamento } from "@/types/financeiro";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { LancamentosTable } from "@/components/financeiro/table/LancamentosTable";
 import { LancamentosCards } from "@/components/financeiro/cards/LancamentosCards";
 import { LancamentosDashboard } from "@/components/financeiro/dashboard/LancamentosDashboard";
-import { 
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue 
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { FiltrosLancamento } from "@/components/financeiro/FiltrosLancamento";
 
+/**
+ * Página de Contas a Pagar
+ * 
+ * Exibe todos os lançamentos financeiros do tipo despesa
+ * com filtros avançados de ERP para facilitar a gestão financeira
+ */
 export default function ContasPagar() {
   const [status, setStatus] = useState<StatusLancamento | 'todos'>('todos');
   const [busca, setBusca] = useState('');
+  const [dataInicio, setDataInicio] = useState('');
+  const [dataFim, setDataFim] = useState('');
   const isMobile = useIsMobile();
 
   const { data: lancamentos, isLoading, refetch } = useLancamentosFinanceiros({
     tipo: 'despesa',
     status,
     busca,
+    dataInicio,
+    dataFim
   });
 
   const handleLimparFiltros = () => {
     setStatus('todos');
     setBusca('');
+    setDataInicio('');
+    setDataFim('');
   };
 
   return (
@@ -41,33 +44,17 @@ export default function ContasPagar() {
 
       <LancamentosDashboard lancamentos={lancamentos} />
 
-      <FilterBar
+      <FiltrosLancamento 
+        status={status}
+        dataInicio={dataInicio}
+        dataFim={dataFim}
         busca={busca}
+        onStatusChange={setStatus}
+        onDataInicioChange={setDataInicio}
+        onDataFimChange={setDataFim}
         onBuscaChange={setBusca}
         onLimparFiltros={handleLimparFiltros}
-        placeholder="Buscar por descrição..."
-      >
-        <div className="w-full sm:w-48">
-          <Label htmlFor="status">Status</Label>
-          <Select
-            value={status}
-            onValueChange={(value) => setStatus(value as StatusLancamento | 'todos')}
-          >
-            <SelectTrigger id="status">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="todos">Todos</SelectItem>
-                <SelectItem value="pendente">Pendente</SelectItem>
-                <SelectItem value="pago">Pago</SelectItem>
-                <SelectItem value="atrasado">Atrasado</SelectItem>
-                <SelectItem value="cancelado">Cancelado</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-      </FilterBar>
+      />
 
       {isMobile ? (
         <LancamentosCards
