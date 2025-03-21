@@ -87,7 +87,7 @@ export async function fetchLancamentos({
           dadosAdicionais.cooperado = cooperadoData;
         }
         
-        // Se tiver fatura, buscar detalhes da fatura
+        // Se tiver fatura, buscar detalhes da fatura separadamente (não via join)
         if (item.fatura_id) {
           const { data: faturaData } = await supabase
             .from('faturas')
@@ -95,16 +95,19 @@ export async function fetchLancamentos({
               id,
               mes, 
               ano,
-              unidade_beneficiaria:unidade_beneficiaria_id (
-                numero_uc, 
-                apelido, 
-                endereco
-              )
+              unidade_beneficiaria_id
             `)
             .eq('id', item.fatura_id)
             .single();
             
           if (faturaData) {
+            // Agora buscar a unidade beneficiária separadamente
+            const { data: unidadeData } = await supabase
+              .from('unidades_beneficiarias')
+              .select('numero_uc, apelido, endereco')
+              .eq('id', faturaData.unidade_beneficiaria_id)
+              .single();
+            
             // Formatar número da fatura (usando mes/ano como referência)
             const numeroFatura = faturaData.mes && faturaData.ano 
               ? `${faturaData.mes.toString().padStart(2, '0')}/${faturaData.ano}`
@@ -115,10 +118,10 @@ export async function fetchLancamentos({
               numero_fatura: numeroFatura,
               mes: faturaData.mes,
               ano: faturaData.ano,
-              unidade_beneficiaria: faturaData.unidade_beneficiaria ? {
-                numero_uc: faturaData.unidade_beneficiaria.numero_uc || '',
-                apelido: faturaData.unidade_beneficiaria.apelido || null,
-                endereco: faturaData.unidade_beneficiaria.endereco || ''
+              unidade_beneficiaria: unidadeData ? {
+                numero_uc: unidadeData.numero_uc || '',
+                apelido: unidadeData.apelido || null,
+                endereco: unidadeData.endereco || ''
               } : {
                 numero_uc: '',
                 endereco: ''
@@ -140,7 +143,7 @@ export async function fetchLancamentos({
           dadosAdicionais.investidor = investidorData;
         }
         
-        // Se tiver pagamento de usina, buscar detalhes
+        // Se tiver pagamento de usina, buscar detalhes separadamente
         if (item.pagamento_usina_id) {
           const { data: pagamentoData } = await supabase
             .from('pagamentos_usina')
@@ -153,17 +156,39 @@ export async function fetchLancamentos({
               status,
               data_vencimento,
               data_pagamento,
-              usina:usina_id (
-                unidade_usina:unidade_usina_id (
-                  numero_uc,
-                  apelido
-                )
-              )
+              usina_id
             `)
             .eq('id', item.pagamento_usina_id)
             .single();
             
           if (pagamentoData) {
+            // Buscar informações da usina separadamente
+            let usinaInfo = null;
+            
+            if (pagamentoData.usina_id) {
+              const { data: usinaData } = await supabase
+                .from('usinas')
+                .select(`
+                  unidade_usina_id
+                `)
+                .eq('id', pagamentoData.usina_id)
+                .single();
+                
+              if (usinaData && usinaData.unidade_usina_id) {
+                const { data: unidadeUsinaData } = await supabase
+                  .from('unidades_usina')
+                  .select('numero_uc, apelido')
+                  .eq('id', usinaData.unidade_usina_id)
+                  .single();
+                  
+                if (unidadeUsinaData) {
+                  usinaInfo = {
+                    unidade_usina: unidadeUsinaData
+                  };
+                }
+              }
+            }
+            
             dadosAdicionais.pagamento_usina = {
               id: pagamentoData.id,
               mes: pagamentoData.mes,
@@ -173,7 +198,7 @@ export async function fetchLancamentos({
               status: pagamentoData.status,
               data_vencimento: pagamentoData.data_vencimento,
               data_pagamento: pagamentoData.data_pagamento,
-              usina: pagamentoData.usina
+              usina: usinaInfo
             };
           }
         }
@@ -239,40 +264,10 @@ export async function fetchLancamentos({
     try {
       console.log('Tentando método alternativo de busca...');
       
-      // Consulta direta mais simples
+      // Consulta direta mais simples evitando joins complexos
       const { data, error: fallbackError } = await supabase
         .from('lancamentos_financeiros')
-        .select(`
-          *,
-          cooperado:cooperado_id (nome, documento, telefone, email, numero_cadastro),
-          investidor:investidor_id (nome_investidor, documento, telefone, email),
-          fatura:fatura_id (
-            id,
-            mes,
-            ano,
-            unidade_beneficiaria:unidade_beneficiaria_id (
-              numero_uc, 
-              apelido, 
-              endereco
-            )
-          ),
-          pagamento_usina:pagamento_usina_id (
-            id,
-            mes,
-            ano,
-            geracao_kwh,
-            valor_total,
-            status,
-            data_vencimento,
-            data_pagamento,
-            usina:usina_id (
-              unidade_usina:unidade_usina_id (
-                numero_uc,
-                apelido
-              )
-            )
-          )
-        `)
+        .select('*')
         .eq('tipo', tipo)
         .is('deleted_at', null);
         
@@ -281,10 +276,10 @@ export async function fetchLancamentos({
         return [];
       }
       
-      return (data || []).map(item => {
-        // Processamento de historico_status
+      // Buscar relacionamentos manualmente para cada item
+      const lancamentosProcessados = await Promise.all((data || []).map(async (item) => {
+        // Processar histórico_status
         let historicoStatus: HistoricoStatus[] = [];
-        
         if (item.historico_status) {
           try {
             const parsedHistorico = typeof item.historico_status === 'string' 
@@ -303,33 +298,137 @@ export async function fetchLancamentos({
           }
         }
         
-        // Se tiver fatura, ajustar o número da fatura
-        let faturaObj = null;
-        if (item.fatura) {
-          const numeroFatura = item.fatura.mes && item.fatura.ano 
-            ? `${item.fatura.mes.toString().padStart(2, '0')}/${item.fatura.ano}`
-            : item.fatura.id;
-          
-          faturaObj = {
-            ...item.fatura,
-            numero_fatura: numeroFatura,
-            unidade_beneficiaria: item.fatura.unidade_beneficiaria || {
-              numero_uc: '',
-              endereco: ''
-            }
-          };
-        }
-        
-        return {
+        // Objeto padrão para o retorno
+        const lancamentoProcessado: LancamentoFinanceiro = {
           ...item,
           historico_status: historicoStatus,
-          fatura: faturaObj,
-          cooperado: item.cooperado || null,
-          investidor: item.investidor || null,
-          pagamento_usina: item.pagamento_usina || null
-        } as LancamentoFinanceiro;
-      }).filter(lancamento => {
-        // Aplicar os mesmos filtros do método principal
+          cooperado: null,
+          investidor: null,
+          fatura: null,
+          pagamento_usina: null
+        };
+        
+        // Buscar cooperado se existir
+        if (item.cooperado_id) {
+          const { data: cooperadoData } = await supabase
+            .from('cooperados')
+            .select('nome, documento, telefone, email, numero_cadastro')
+            .eq('id', item.cooperado_id)
+            .single();
+            
+          if (cooperadoData) {
+            lancamentoProcessado.cooperado = cooperadoData;
+          }
+        }
+        
+        // Buscar investidor se existir
+        if (item.investidor_id) {
+          const { data: investidorData } = await supabase
+            .from('investidores')
+            .select('nome_investidor, documento, telefone, email')
+            .eq('id', item.investidor_id)
+            .single();
+            
+          if (investidorData) {
+            lancamentoProcessado.investidor = investidorData;
+          }
+        }
+        
+        // Buscar fatura se existir
+        if (item.fatura_id) {
+          const { data: faturaData } = await supabase
+            .from('faturas')
+            .select('id, mes, ano, unidade_beneficiaria_id')
+            .eq('id', item.fatura_id)
+            .single();
+            
+          if (faturaData) {
+            // Buscar unidade beneficiária
+            const { data: unidadeData } = await supabase
+              .from('unidades_beneficiarias')
+              .select('numero_uc, apelido, endereco')
+              .eq('id', faturaData.unidade_beneficiaria_id)
+              .single();
+              
+            // Formatar número da fatura
+            const numeroFatura = faturaData.mes && faturaData.ano 
+              ? `${faturaData.mes.toString().padStart(2, '0')}/${faturaData.ano}`
+              : faturaData.id;
+              
+            lancamentoProcessado.fatura = {
+              id: faturaData.id,
+              numero_fatura: numeroFatura,
+              mes: faturaData.mes,
+              ano: faturaData.ano,
+              unidade_beneficiaria: unidadeData ? {
+                numero_uc: unidadeData.numero_uc || '',
+                apelido: unidadeData.apelido || null,
+                endereco: unidadeData.endereco || ''
+              } : {
+                numero_uc: '',
+                endereco: ''
+              }
+            };
+          }
+        }
+        
+        // Buscar pagamento de usina se existir
+        if (item.pagamento_usina_id) {
+          const { data: pagamentoData } = await supabase
+            .from('pagamentos_usina')
+            .select(`
+              id, mes, ano, geracao_kwh, valor_total, status,
+              data_vencimento, data_pagamento, usina_id
+            `)
+            .eq('id', item.pagamento_usina_id)
+            .single();
+            
+          if (pagamentoData) {
+            // Buscar usina e unidade de usina
+            let usinaInfo = null;
+            
+            if (pagamentoData.usina_id) {
+              const { data: usinaData } = await supabase
+                .from('usinas')
+                .select('unidade_usina_id')
+                .eq('id', pagamentoData.usina_id)
+                .single();
+                
+              if (usinaData && usinaData.unidade_usina_id) {
+                const { data: unidadeUsinaData } = await supabase
+                  .from('unidades_usina')
+                  .select('numero_uc, apelido')
+                  .eq('id', usinaData.unidade_usina_id)
+                  .single();
+                  
+                if (unidadeUsinaData) {
+                  usinaInfo = {
+                    unidade_usina: unidadeUsinaData
+                  };
+                }
+              }
+            }
+            
+            lancamentoProcessado.pagamento_usina = {
+              id: pagamentoData.id,
+              mes: pagamentoData.mes,
+              ano: pagamentoData.ano,
+              geracao_kwh: pagamentoData.geracao_kwh,
+              valor_total: pagamentoData.valor_total,
+              status: pagamentoData.status,
+              data_vencimento: pagamentoData.data_vencimento,
+              data_pagamento: pagamentoData.data_pagamento,
+              usina: usinaInfo
+            };
+          }
+        }
+        
+        return lancamentoProcessado;
+      }));
+      
+      // Aplicar filtros
+      return lancamentosProcessados.filter(lancamento => {
+        // Filtrar por status se especificado
         if (status && status !== 'todos' && lancamento.status !== status) {
           return false;
         }
@@ -337,7 +436,6 @@ export async function fetchLancamentos({
         // Filtrar por texto de busca
         if (busca && busca.trim() !== '') {
           const termoBusca = busca.toLowerCase().trim();
-          // Buscar em vários campos
           const descricao = lancamento.descricao?.toLowerCase() || '';
           const cooperadoNome = lancamento.cooperado?.nome?.toLowerCase() || '';
           const investidorNome = lancamento.investidor?.nome_investidor?.toLowerCase() || '';
