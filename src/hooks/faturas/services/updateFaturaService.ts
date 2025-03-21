@@ -177,9 +177,29 @@ async function getFaturaCompleta(id: string, updatedFatura?: any): Promise<Fatur
         apelido,
         endereco,
         percentual_desconto,
+        cidade,
+        uf,
+        cep,
+        logradouro,
+        numero,
+        complemento,
+        bairro,
+        data_entrada,
+        data_saida,
+        consumo_kwh,
+        possui_geracao_propria,
+        potencia_instalada,
         cooperado:cooperado_id (
+          id,
           nome,
-          documento
+          documento,
+          tipo_pessoa,
+          telefone,
+          email,
+          responsavel_nome,
+          responsavel_cpf,
+          responsavel_telefone,
+          numero_cadastro
         )
       )
     `)
@@ -243,9 +263,29 @@ async function construirFaturaComUnidade(updatedFatura: any): Promise<Fatura> {
       apelido,
       endereco,
       percentual_desconto,
+      cidade,
+      uf,
+      cep,
+      logradouro,
+      numero,
+      complemento,
+      bairro,
+      data_entrada,
+      data_saida,
+      consumo_kwh,
+      possui_geracao_propria,
+      potencia_instalada,
       cooperado:cooperado_id (
+        id,
         nome,
-        documento
+        documento,
+        tipo_pessoa,
+        telefone,
+        email,
+        responsavel_nome,
+        responsavel_cpf,
+        responsavel_telefone,
+        numero_cadastro
       )
     `)
     .eq("id", updatedFatura.unidade_beneficiaria_id)

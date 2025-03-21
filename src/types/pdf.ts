@@ -26,8 +26,9 @@ export type PdfFaturaData = Pick<
     cooperado: {
       nome: string;
       documento: string | null;
+      telefone?: string | null;
+      email?: string | null;
     };
   };
   historico_faturas: HistoricoFatura[];
 };
-
