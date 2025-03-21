@@ -12,8 +12,12 @@ import { FaturasDashboard } from "@/components/faturas/FaturasDashboard";
 import { useFetchFaturas } from "@/hooks/faturas/useFetchFaturas";
 
 export default function Faturas() {
-  // Usa o hook para obter o mês atual selecionado
-  const { currentDate } = useMonthSelection();
+  // Usa o hook para obter o mês atual selecionado e os manipuladores
+  const { 
+    currentDate, 
+    handlePreviousMonth, 
+    handleNextMonth 
+  } = useMonthSelection();
   
   // Buscar faturas para o dashboard
   const { data: faturas, isLoading } = useFetchFaturas(currentDate);
@@ -27,7 +31,11 @@ export default function Faturas() {
         currentDate={currentDate}
       />
       
-      <FaturasContainer />
+      <FaturasContainer 
+        currentDate={currentDate}
+        onPreviousMonth={handlePreviousMonth}
+        onNextMonth={handleNextMonth}
+      />
     </div>
   );
 }

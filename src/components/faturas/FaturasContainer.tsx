@@ -10,18 +10,21 @@ import { MonthSelector } from "./MonthSelector";
 import { FaturasTable } from "./FaturasTable";
 import { FaturasHeader } from "./FaturasHeader";
 import { useFaturas } from "@/hooks/useFaturas";
-import { useMonthSelection } from "@/hooks/useMonthSelection";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { PaymentConfirmationModal } from "./PaymentConfirmationModal";
 import { UpdateFaturaInput } from "@/hooks/faturas/types/updateFatura";
 
-export function FaturasContainer() {
-  const { 
-    selectedDate, 
-    handlePreviousMonth, 
-    handleNextMonth 
-  } = useMonthSelection();
-  
+interface FaturasContainerProps {
+  currentDate: Date;
+  onPreviousMonth: () => void;
+  onNextMonth: () => void;
+}
+
+export function FaturasContainer({ 
+  currentDate, 
+  onPreviousMonth, 
+  onNextMonth 
+}: FaturasContainerProps) {
   const { 
     faturas, 
     isLoading, 
@@ -30,8 +33,8 @@ export function FaturasContainer() {
     deleteFatura,
     updateFaturaStatus,
     updateFatura,
-    refetch // Extrair a função de refetch do hook useFaturas
-  } = useFaturas(selectedDate);
+    refetch
+  } = useFaturas(currentDate);
   
   const [faturaToConfirmPayment, setFaturaToConfirmPayment] = useState<Fatura | null>(null);
 
@@ -48,7 +51,6 @@ export function FaturasContainer() {
   };
 
   const handleUpdateFatura = async (data: UpdateFaturaInput) => {
-    // Agora estamos retornando o resultado da função updateFatura
     return await updateFatura(data);
   };
 
@@ -76,9 +78,9 @@ export function FaturasContainer() {
       />
       
       <MonthSelector
-        currentDate={selectedDate}
-        onPreviousMonth={handlePreviousMonth}
-        onNextMonth={handleNextMonth}
+        currentDate={currentDate}
+        onPreviousMonth={onPreviousMonth}
+        onNextMonth={onNextMonth}
       />
       
       <FaturasTable
@@ -87,7 +89,7 @@ export function FaturasContainer() {
         onDeleteFatura={handleDeleteFatura}
         onUpdateStatus={handleUpdateFaturaStatus}
         onUpdateFatura={handleUpdateFatura}
-        refetchFaturas={refetch} // Passar a função de refetch para a tabela
+        refetchFaturas={refetch}
       />
 
       {faturaToConfirmPayment && (
