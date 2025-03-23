@@ -19,7 +19,7 @@ import { LancamentosDashboard } from "@/components/financeiro/dashboard/Lancamen
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { FiltrosLancamento } from "@/components/financeiro/FiltrosLancamento";
-import { AlertCircle, RefreshCw, Info, RotateCw, AlertTriangle } from "lucide-react";
+import { AlertCircle, RefreshCw, Info, RotateCw, AlertTriangle, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useSincronizarLancamentos } from "@/hooks/lancamentos/useSincronizarLancamentos";
@@ -32,6 +32,7 @@ export default function ContasReceber() {
   const [dataFim, setDataFim] = useState('');
   const [tentativas, setTentativas] = useState(0);
   const isMobile = useIsMobile();
+  const [mostrarProblemaRLS, setMostrarProblemaRLS] = useState(false);
 
   const { data: lancamentos, isLoading, error, refetch } = useLancamentosFinanceiros({
     tipo: 'receita',
@@ -52,6 +53,13 @@ export default function ContasReceber() {
       }
     );
   }, []);
+
+  // Verificar se o erro contém informação sobre recursão infinita
+  useEffect(() => {
+    if (erro && erro.message.includes('infinite recursion')) {
+      setMostrarProblemaRLS(true);
+    }
+  }, [erro]);
 
   // Exibir notificação quando houver lançamentos com valor zero
   useEffect(() => {
@@ -153,6 +161,18 @@ export default function ContasReceber() {
           (status: enviada, reenviada, atrasada, paga, finalizada).
         </AlertDescription>
       </Alert>
+
+      {mostrarProblemaRLS && (
+        <Alert variant="destructive" className="bg-amber-50 border-amber-200 text-amber-700">
+          <Database className="h-4 w-4" />
+          <AlertTitle>Problema no banco de dados detectado</AlertTitle>
+          <AlertDescription>
+            Foi detectado um problema nas políticas de segurança (RLS) na tabela "user_roles" do banco de dados. 
+            Esta é uma configuração incorreta do Supabase que causa recursão infinita. 
+            Entre em contato com o administrador para corrigir este problema.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <LancamentosDashboard lancamentos={lancamentos} />
 

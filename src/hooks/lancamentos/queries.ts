@@ -24,8 +24,10 @@ import { aplicarFiltros } from "./services/filtros/filtrosLancamento";
  */
 export async function fetchLancamentos(options: UseLancamentosFinanceirosOptions): Promise<LancamentoFinanceiro[]> {
   try {
-    // Tentar buscar via procedimento armazenado
-    const { data, error } = await buscarLancamentosViaProcedure(options);
+    // Devido ao erro com user_roles, vamos usar diretamente a consulta mais simples
+    // para evitar recursão infinita nas políticas de segurança
+    console.log('Usando método de consulta direta para evitar problemas de recursão...');
+    const { data, error } = await buscarLancamentosViaConsultaDireta(options);
 
     if (error) {
       console.error('Erro ao buscar lançamentos:', error.message);
@@ -58,28 +60,16 @@ export async function fetchLancamentos(options: UseLancamentosFinanceirosOptions
       
   } catch (error) {
     console.error('Exceção não tratada ao buscar lançamentos:', error);
-    
-    // Tenta um fallback direto caso a função RPC falhe
+    // Em caso de outro erro, tente uma consulta ainda mais simples
     try {
-      // Buscar lançamentos via consulta direta como fallback
-      const { data, error: fallbackError } = await buscarLancamentosViaConsultaDireta(options);
-        
-      if (fallbackError) {
-        console.error('Erro no método alternativo:', fallbackError);
-        return [];
-      }
+      console.error('Tentando método de fallback simplificado...');
+      const { data } = await supabase
+        .from('lancamentos_financeiros')
+        .select('*')
+        .eq('tipo', options.tipo)
+        .is('deleted_at', null);
       
-      // Processar cada lançamento para adicionar dados relacionados
-      const lancamentosProcessados = await Promise.all(
-        (data || []).map(item => processarLancamento({ item, tipo: options.tipo }))
-      );
-      
-      // Aplicar filtros e remover nulos
-      return lancamentosProcessados
-        .filter(lancamento => lancamento !== null)
-        .filter(lancamento => 
-          aplicarFiltros(lancamento as LancamentoFinanceiro, options.status, options.busca)
-        ) as LancamentoFinanceiro[];
+      return (data || []) as LancamentoFinanceiro[];
         
     } catch (fallbackError) {
       console.error('Também falhou o método alternativo:', fallbackError);
@@ -87,3 +77,6 @@ export async function fetchLancamentos(options: UseLancamentosFinanceirosOptions
     }
   }
 }
+
+// Importar o supabase aqui para o fallback
+import { supabase } from "@/integrations/supabase/client";
