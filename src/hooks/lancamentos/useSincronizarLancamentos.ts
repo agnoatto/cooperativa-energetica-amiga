@@ -39,19 +39,90 @@ export function useSincronizarLancamentos() {
     setErro(null);
 
     try {
-      // Chamar a função do banco de dados para executar a sincronização
+      // Chamar a função rpc para sincronizar lançamentos manualmente 
+      // (sem usar a função do banco de dados que está com erro)
       const { data, error } = await supabase
-        .rpc('executar_sincronizacao_lancamentos');
+        .from('faturas')
+        .select('id, valor_assinatura, data_vencimento, unidade_beneficiaria_id')
+        .in('status', ['enviada', 'reenviada', 'atrasada', 'paga', 'finalizada'])
+        .is('deleted_at', null);
 
       if (error) {
         throw error;
       }
 
-      // Processar o resultado - convertendo para o tipo correto
-      const resultadoTipado = data as unknown as ResultadoSincronizacao;
-      setResultado(resultadoTipado);
-      
-      return resultadoTipado;
+      // Para cada fatura, verificar se já existe um lançamento correspondente
+      let totalSincronizado = 0;
+      const detalhes: string[] = [];
+
+      for (const fatura of data || []) {
+        if (!fatura.valor_assinatura || fatura.valor_assinatura <= 0) {
+          continue; // Ignorar faturas com valor zero ou nulo
+        }
+
+        // Verificar se já existe lançamento para esta fatura
+        const { data: lancamentosExistentes, error: erroConsulta } = await supabase
+          .from('lancamentos_financeiros')
+          .select('id')
+          .eq('fatura_id', fatura.id)
+          .eq('tipo', 'receita')
+          .is('deleted_at', null);
+
+        if (erroConsulta) {
+          console.error('Erro ao verificar lançamento existente:', erroConsulta);
+          continue;
+        }
+
+        // Se não existir lançamento, criar um novo
+        if (!lancamentosExistentes || lancamentosExistentes.length === 0) {
+          // Buscar cooperado para esta unidade beneficiária
+          const { data: unidadeBeneficiaria } = await supabase
+            .from('unidades_beneficiarias')
+            .select('cooperado_id, apelido')
+            .eq('id', fatura.unidade_beneficiaria_id)
+            .single();
+
+          if (!unidadeBeneficiaria) continue;
+
+          // Criar o lançamento
+          const { error: erroInsercao } = await supabase
+            .from('lancamentos_financeiros')
+            .insert({
+              tipo: 'receita',
+              status: 'pendente',
+              descricao: `Fatura ${unidadeBeneficiaria.apelido || 'Unidade'} - ${fatura.id.slice(0, 8)}`,
+              valor: fatura.valor_assinatura,
+              data_vencimento: fatura.data_vencimento,
+              cooperado_id: unidadeBeneficiaria.cooperado_id,
+              fatura_id: fatura.id,
+              historico_status: [
+                {
+                  status: 'pendente',
+                  data: new Date().toISOString(),
+                  status_anterior: null
+                }
+              ]
+            });
+
+          if (erroInsercao) {
+            console.error('Erro ao criar lançamento:', erroInsercao);
+            detalhes.push(`Erro ao criar lançamento para fatura ${fatura.id}: ${erroInsercao.message}`);
+          } else {
+            totalSincronizado++;
+            detalhes.push(`Lançamento criado para fatura ${fatura.id}`);
+          }
+        }
+      }
+
+      // Criar o objeto de resultado manualmente
+      const resultadoManual: ResultadoSincronizacao = {
+        total_sincronizado: totalSincronizado,
+        data_execucao: new Date().toISOString(),
+        detalhes: detalhes
+      };
+
+      setResultado(resultadoManual);
+      return resultadoManual;
     } catch (error) {
       console.error('[useSincronizarLancamentos] Erro ao sincronizar lançamentos:', error);
       
