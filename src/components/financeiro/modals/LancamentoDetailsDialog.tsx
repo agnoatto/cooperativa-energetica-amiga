@@ -60,6 +60,20 @@ export function LancamentoDetailsDialog({
       : lancamento.investidor?.nome_investidor;
   };
 
+  // Wrapper para converter a função de retorno boolean para void
+  const handleUpdateStatus = async (
+    lanc: LancamentoFinanceiro, 
+    newStatus: StatusLancamento,
+    options?: { 
+      valorPago?: number;
+      valorJuros?: number;
+      valorDesconto?: number;
+      observacao?: string;
+    }
+  ) => {
+    await onUpdateStatus(lanc, newStatus);
+  };
+
   // Informações sobre a origem do lançamento
   let origemInfo = null;
   if (lancamento.fatura) {
@@ -106,6 +120,12 @@ export function LancamentoDetailsDialog({
       </div>
     );
   }
+
+  // Handler para o sucesso do registro de pagamento
+  const handlePaymentSuccess = () => {
+    setShowRegistrarPagamento(false);
+    onClose();
+  };
 
   return (
     <>
@@ -188,7 +208,7 @@ export function LancamentoDetailsDialog({
             <div className="space-y-2">
               <StatusTransitionButtons 
                 lancamento={lancamento} 
-                onUpdateStatus={onUpdateStatus}
+                onUpdateStatus={handleUpdateStatus}
                 onRegistrarPagamento={() => setShowRegistrarPagamento(true)}
               />
             </div>
@@ -197,13 +217,13 @@ export function LancamentoDetailsDialog({
       </Dialog>
 
       <RegistrarPagamentoModal
+        lancamento={lancamento}
         isOpen={showRegistrarPagamento}
         onClose={() => setShowRegistrarPagamento(false)}
-        lancamento={lancamento}
-        onSuccess={() => {
-          setShowRegistrarPagamento(false);
-          onClose();
+        onConfirm={async (valorPago, valorJuros, valorDesconto, dataPagamento, observacao) => {
+          await onUpdateStatus(lancamento, 'pago');
         }}
+        onSuccess={handlePaymentSuccess}
       />
     </>
   );

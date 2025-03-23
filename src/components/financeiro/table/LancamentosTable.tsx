@@ -47,11 +47,13 @@ export function LancamentosTable({ lancamentos, isLoading, tipo, refetch }: Lanc
     return tipo === 'receita' ? 'Cooperado' : 'Investidor';
   };
 
+  // Função que atualiza o status e retorna boolean para compatibilidade
   const handleUpdateStatus = async (lancamento: LancamentoFinanceiro, newStatus: StatusLancamento) => {
     const success = await updateLancamentoStatus(lancamento, newStatus);
     if (success && refetch) {
       refetch();
     }
+    return success;
   };
 
   const handleViewDetails = (lancamento: LancamentoFinanceiro) => {

@@ -67,6 +67,7 @@ export interface LancamentoResponse {
     numero_fatura: string;
     mes?: number;
     ano?: number;
+    data_vencimento: string; // Adicionando data_vencimento ao tipo fatura
     unidade_beneficiaria: {
       numero_uc: string;
       apelido?: string;

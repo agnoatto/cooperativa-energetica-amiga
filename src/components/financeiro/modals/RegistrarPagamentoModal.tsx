@@ -1,4 +1,3 @@
-
 /**
  * Modal para registrar pagamentos de lançamentos financeiros
  * 
@@ -32,6 +31,7 @@ interface RegistrarPagamentoModalProps {
     dataPagamento: string,
     observacao: string
   ) => Promise<void>;
+  onSuccess?: () => void; // Adicionando onSuccess como prop opcional
 }
 
 export function RegistrarPagamentoModal({
@@ -39,6 +39,7 @@ export function RegistrarPagamentoModal({
   isOpen,
   onClose,
   onConfirm,
+  onSuccess,
 }: RegistrarPagamentoModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [valorPago, setValorPago] = useState("");
@@ -71,6 +72,10 @@ export function RegistrarPagamentoModal({
         dataPagamento,
         observacao
       );
+      
+      if (onSuccess) {
+        onSuccess(); // Chamando onSuccess se fornecido
+      }
       
       onClose();
     } catch (error) {
