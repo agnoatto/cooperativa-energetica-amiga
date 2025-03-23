@@ -86,7 +86,7 @@ export default function ContasReceber() {
       <LancamentosDashboard lancamentos={lancamentos} />
 
       {lancamentos && lancamentos.length > 0 && lancamentos.every(l => l.valor === 0) && (
-        <Alert variant="warning">
+        <Alert variant="destructive" className="bg-amber-50 border-amber-200 text-amber-600">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Valores zerados detectados</AlertTitle>
           <AlertDescription>
