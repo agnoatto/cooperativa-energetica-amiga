@@ -19,7 +19,7 @@ import { formatarMoeda, formatarDocumento } from "@/utils/formatters";
 import { StatusTransitionButtons } from "./StatusTransitionButtons";
 import { HistoricoStatusList } from "./HistoricoStatusList";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Phone, Mail, User, FileText, MapPin, CreditCard, DollarSign, Clock } from "lucide-react";
+import { Calendar, Phone, Mail, User, FileText, MapPin, CreditCard, DollarSign, Clock, TrendingUp, TrendingDown } from "lucide-react";
 
 interface LancamentoDetailsDialogProps {
   lancamento: LancamentoFinanceiro | null;
@@ -200,10 +200,37 @@ export function LancamentoDetailsDialog({
               <div className="grid grid-cols-2 gap-3">
                 <InfoItem
                   icon={<DollarSign className="h-4 w-4" />}
-                  label="Valor"
-                  value={formatarMoeda(lancamento.valor)}
+                  label="Valor Original"
+                  value={formatarMoeda(lancamento.valor_original || lancamento.valor)}
                   className="col-span-2"
                 />
+                
+                {lancamento.status === 'pago' && lancamento.valor_pago && (
+                  <>
+                    <InfoItem
+                      icon={<DollarSign className="h-4 w-4 text-green-600" />}
+                      label="Valor Pago"
+                      value={formatarMoeda(lancamento.valor_pago)}
+                      className="col-span-2"
+                    />
+                    
+                    {lancamento.valor_juros && lancamento.valor_juros > 0 && (
+                      <InfoItem
+                        icon={<TrendingUp className="h-4 w-4 text-red-600" />}
+                        label="Juros"
+                        value={formatarMoeda(lancamento.valor_juros)}
+                      />
+                    )}
+                    
+                    {lancamento.valor_desconto && lancamento.valor_desconto > 0 && (
+                      <InfoItem
+                        icon={<TrendingDown className="h-4 w-4 text-green-600" />}
+                        label="Desconto"
+                        value={formatarMoeda(lancamento.valor_desconto)}
+                      />
+                    )}
+                  </>
+                )}
                 
                 <InfoItem
                   icon={<Clock className="h-4 w-4" />}

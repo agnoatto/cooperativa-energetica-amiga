@@ -697,6 +697,10 @@ export type Database = {
           tipo: Database["public"]["Enums"]["tipo_lancamento"]
           updated_at: string
           valor: number
+          valor_desconto: number | null
+          valor_juros: number | null
+          valor_original: number | null
+          valor_pago: number | null
         }
         Insert: {
           comprovante_nome?: string | null
@@ -719,6 +723,10 @@ export type Database = {
           tipo: Database["public"]["Enums"]["tipo_lancamento"]
           updated_at?: string
           valor: number
+          valor_desconto?: number | null
+          valor_juros?: number | null
+          valor_original?: number | null
+          valor_pago?: number | null
         }
         Update: {
           comprovante_nome?: string | null
@@ -741,6 +749,10 @@ export type Database = {
           tipo?: Database["public"]["Enums"]["tipo_lancamento"]
           updated_at?: string
           valor?: number
+          valor_desconto?: number | null
+          valor_juros?: number | null
+          valor_original?: number | null
+          valor_pago?: number | null
         }
         Relationships: [
           {
@@ -1734,6 +1746,10 @@ export type Database = {
           tipo: Database["public"]["Enums"]["tipo_lancamento"]
           updated_at: string
           valor: number
+          valor_desconto: number | null
+          valor_juros: number | null
+          valor_original: number | null
+          valor_pago: number | null
         }[]
       }
       get_unidade_beneficiaria_template: {
@@ -1780,6 +1796,17 @@ export type Database = {
           "": unknown
         }
         Returns: unknown
+      }
+      registrar_pagamento_lancamento: {
+        Args: {
+          p_lancamento_id: string
+          p_valor_pago: number
+          p_valor_juros?: number
+          p_valor_desconto?: number
+          p_data_pagamento?: string
+          p_observacao?: string
+        }
+        Returns: Json
       }
       reset_default_templates: {
         Args: {

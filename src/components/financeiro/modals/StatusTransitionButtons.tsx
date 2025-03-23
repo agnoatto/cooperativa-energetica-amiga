@@ -4,16 +4,27 @@
  * 
  * Este componente renderiza os botões de ação para alteração de status
  * de lançamentos financeiros (contas a pagar/receber) baseado no status atual.
+ * Inclui botão para registrar pagamento com valores específicos.
  */
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
-import { Loader2 } from "lucide-react";
+import { Loader2, DollarSign } from "lucide-react";
+import { RegistrarPagamentoModal } from "./RegistrarPagamentoModal";
 
 interface StatusTransitionButtonsProps {
   lancamento: LancamentoFinanceiro;
-  onUpdateStatus: (lancamento: LancamentoFinanceiro, newStatus: StatusLancamento) => Promise<void>;
+  onUpdateStatus: (
+    lancamento: LancamentoFinanceiro, 
+    newStatus: StatusLancamento, 
+    options?: { 
+      valorPago?: number;
+      valorJuros?: number;
+      valorDesconto?: number;
+      observacao?: string;
+    }
+  ) => Promise<void>;
 }
 
 export function StatusTransitionButtons({
@@ -23,6 +34,7 @@ export function StatusTransitionButtons({
   const [isUpdating, setIsUpdating] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [statusToChange, setStatusToChange] = useState<StatusLancamento | null>(null);
+  const [showPagamentoModal, setShowPagamentoModal] = useState(false);
 
   // Obter os próximos status possíveis com base no status atual
   const availableStatusTransitions = getAvailableStatusTransitions(lancamento.status);
@@ -41,7 +53,34 @@ export function StatusTransitionButtons({
 
   const handleStatusClick = (status: StatusLancamento) => {
     setStatusToChange(status);
-    setShowConfirmation(true);
+    
+    // Se o status for "pago", mostrar modal de pagamento
+    if (status === 'pago') {
+      setShowPagamentoModal(true);
+    } else {
+      setShowConfirmation(true);
+    }
+  };
+
+  const handleRegistrarPagamento = async (
+    valorPago: number,
+    valorJuros: number,
+    valorDesconto: number,
+    dataPagamento: string,
+    observacao: string
+  ) => {
+    setIsUpdating(true);
+    try {
+      await onUpdateStatus(lancamento, 'pago', {
+        valorPago,
+        valorJuros,
+        valorDesconto,
+        observacao
+      });
+    } finally {
+      setIsUpdating(false);
+      setShowPagamentoModal(false);
+    }
   };
 
   if (availableStatusTransitions.length === 0) {
@@ -51,6 +90,19 @@ export function StatusTransitionButtons({
   return (
     <>
       <div className="flex flex-wrap gap-2">
+        {lancamento.status !== 'pago' && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleStatusClick('pago')}
+            className="text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-200 flex items-center gap-1"
+            disabled={isUpdating}
+          >
+            <DollarSign className="h-4 w-4" />
+            Registrar Pagamento
+          </Button>
+        )}
+        
         {availableStatusTransitions.map((status) => (
           <Button
             key={status.value}
@@ -99,6 +151,13 @@ export function StatusTransitionButtons({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <RegistrarPagamentoModal
+        lancamento={lancamento}
+        isOpen={showPagamentoModal}
+        onClose={() => setShowPagamentoModal(false)}
+        onConfirm={handleRegistrarPagamento}
+      />
     </>
   );
 }
@@ -107,13 +166,11 @@ function getAvailableStatusTransitions(currentStatus: StatusLancamento) {
   switch (currentStatus) {
     case 'pendente':
       return [
-        { value: 'pago' as StatusLancamento, label: 'Marcar como Pago', className: 'text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-200' },
         { value: 'atrasado' as StatusLancamento, label: 'Marcar como Atrasado', className: 'text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200' },
         { value: 'cancelado' as StatusLancamento, label: 'Cancelar', className: 'text-gray-600 hover:bg-gray-50 hover:text-gray-700 hover:border-gray-200' }
       ];
     case 'atrasado':
       return [
-        { value: 'pago' as StatusLancamento, label: 'Marcar como Pago', className: 'text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-200' },
         { value: 'pendente' as StatusLancamento, label: 'Marcar como Pendente', className: 'text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200' },
         { value: 'cancelado' as StatusLancamento, label: 'Cancelar', className: 'text-gray-600 hover:bg-gray-50 hover:text-gray-700 hover:border-gray-200' }
       ];

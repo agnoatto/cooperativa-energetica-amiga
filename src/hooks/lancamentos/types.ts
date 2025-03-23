@@ -20,6 +20,9 @@ export interface HistoricoStatus {
   data: string;
   status_anterior: StatusLancamento;
   novo_status: StatusLancamento;
+  valor_pago?: number;
+  valor_juros?: number;
+  valor_desconto?: number;
 }
 
 export interface LancamentoResponse {
@@ -28,6 +31,10 @@ export interface LancamentoResponse {
   status: StatusLancamento;
   descricao: string;
   valor: number;
+  valor_original: number;
+  valor_pago?: number | null;
+  valor_juros?: number;
+  valor_desconto?: number;
   data_vencimento: string;
   data_pagamento?: string;
   observacao?: string;
