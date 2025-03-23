@@ -15,6 +15,7 @@ import {
 } from "./repositories/lancamentosRepository";
 import { processarLancamento } from "./services/processadores/processadorLancamento";
 import { aplicarFiltros } from "./services/filtros/filtrosLancamento";
+import { converterHistoricoStatus } from "./core/historicoStatusUtils";
 
 /**
  * Busca lançamentos financeiros com filtros
@@ -46,12 +47,26 @@ export async function fetchLancamentos(options: UseLancamentosFinanceirosOptions
       return [];
     }
     
-    // Processar cada lançamento para adicionar dados relacionados
+    // Processar cada lançamento para adicionar dados relacionados e converter o historico_status
     const lancamentosProcessados = await Promise.all(
-      data.map(item => processarLancamento({ item, tipo: options.tipo }))
+      data.map(async (item) => {
+        // Converter o histórico_status para o formato correto antes de processar
+        // Esta etapa garante que o histórico seja do tipo HistoricoStatus[]
+        const historicoFormatado = converterHistoricoStatus(item.historico_status);
+        const itemComHistoricoFormatado = {
+          ...item,
+          historico_status: historicoFormatado
+        };
+        
+        // Agora podemos processar o item com o histórico já formatado
+        return await processarLancamento({ 
+          item: itemComHistoricoFormatado, 
+          tipo: options.tipo 
+        });
+      })
     );
     
-    // Aplicar filtros e remover nulos
+    // Aplicar filtros e remover nulos, fazendo um cast para o tipo correto
     return lancamentosProcessados
       .filter(lancamento => lancamento !== null)
       .filter(lancamento => 
@@ -69,7 +84,15 @@ export async function fetchLancamentos(options: UseLancamentosFinanceirosOptions
         .eq('tipo', options.tipo)
         .is('deleted_at', null);
       
-      return (data || []) as LancamentoFinanceiro[];
+      if (!data || data.length === 0) {
+        return [];
+      }
+      
+      // Converter o histórico_status de cada item antes de retornar
+      return data.map(item => ({
+        ...item,
+        historico_status: converterHistoricoStatus(item.historico_status)
+      })) as LancamentoFinanceiro[];
         
     } catch (fallbackError) {
       console.error('Também falhou o método alternativo:', fallbackError);
