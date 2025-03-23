@@ -59,10 +59,17 @@ export function useSincronizarLancamentos() {
       console.log('[useSincronizarLancamentos] Sincronização via função do banco concluída:', resultadoFuncao);
       
       // Converter resultado para o formato esperado
+      // Precisamos fazer type casting adequado pois o retorno é um JSON
+      const resultado = resultadoFuncao as {
+        total_sincronizado: number;
+        data_execucao: string;
+        detalhes: string[];
+      };
+      
       const resultadoFinal: ResultadoSincronizacao = {
-        total_sincronizado: resultadoFuncao.total_sincronizado || 0,
-        data_execucao: resultadoFuncao.data_execucao || new Date().toISOString(),
-        detalhes: resultadoFuncao.detalhes || []
+        total_sincronizado: resultado.total_sincronizado || 0,
+        data_execucao: resultado.data_execucao || new Date().toISOString(),
+        detalhes: resultado.detalhes || []
       };
       
       setResultado(resultadoFinal);
