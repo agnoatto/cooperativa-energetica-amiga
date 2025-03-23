@@ -1680,6 +1680,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      executar_sincronizacao_lancamentos: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_all_calculo_fatura_templates: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1829,6 +1833,13 @@ export type Database = {
           "": string
         }
         Returns: string[]
+      }
+      sincronizar_lancamentos_faturas: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          faturas_sincronizadas: number
+          detalhes: string[]
+        }[]
       }
       update_calculo_fatura_template: {
         Args: {
