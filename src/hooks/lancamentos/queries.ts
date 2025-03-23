@@ -1,4 +1,3 @@
-
 /**
  * Consultas para lançamentos financeiros
  * 
@@ -126,7 +125,8 @@ export async function fetchLancamentos({
                 id,
                 mes, 
                 ano,
-                unidade_beneficiaria_id
+                unidade_beneficiaria_id,
+                data_vencimento
               `)
               .eq('id', item.fatura_id)
               .single();
@@ -149,6 +149,7 @@ export async function fetchLancamentos({
                 numero_fatura: numeroFatura,
                 mes: faturaData.mes,
                 ano: faturaData.ano,
+                data_vencimento: faturaData.data_vencimento,
                 unidade_beneficiaria: unidadeData ? {
                   numero_uc: unidadeData.numero_uc || '',
                   apelido: unidadeData.apelido || null,
@@ -364,7 +365,7 @@ export async function fetchLancamentos({
           if (item.fatura_id) {
             const { data: faturaData } = await supabase
               .from('faturas')
-              .select('id, mes, ano, unidade_beneficiaria_id')
+              .select('id, mes, ano, unidade_beneficiaria_id, data_vencimento')
               .eq('id', item.fatura_id)
               .single();
               
@@ -386,6 +387,7 @@ export async function fetchLancamentos({
                 numero_fatura: numeroFatura,
                 mes: faturaData.mes,
                 ano: faturaData.ano,
+                data_vencimento: faturaData.data_vencimento,
                 unidade_beneficiaria: unidadeData ? {
                   numero_uc: unidadeData.numero_uc || '',
                   apelido: unidadeData.apelido || null,

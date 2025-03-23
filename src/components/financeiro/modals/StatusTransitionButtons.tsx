@@ -25,11 +25,13 @@ interface StatusTransitionButtonsProps {
       observacao?: string;
     }
   ) => Promise<void>;
+  onRegistrarPagamento?: () => void; // Adicionada esta prop para permitir controle externo do modal
 }
 
 export function StatusTransitionButtons({
   lancamento,
-  onUpdateStatus
+  onUpdateStatus,
+  onRegistrarPagamento // Adicionado o parâmetro para aceitar a prop
 }: StatusTransitionButtonsProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -56,7 +58,12 @@ export function StatusTransitionButtons({
     
     // Se o status for "pago", mostrar modal de pagamento
     if (status === 'pago') {
-      setShowPagamentoModal(true);
+      // Se houver um handler externo para abrir o modal de pagamento, use-o
+      if (onRegistrarPagamento) {
+        onRegistrarPagamento();
+      } else {
+        setShowPagamentoModal(true);
+      }
     } else {
       setShowConfirmation(true);
     }
@@ -152,12 +159,15 @@ export function StatusTransitionButtons({
         </AlertDialogContent>
       </AlertDialog>
 
-      <RegistrarPagamentoModal
-        lancamento={lancamento}
-        isOpen={showPagamentoModal}
-        onClose={() => setShowPagamentoModal(false)}
-        onConfirm={handleRegistrarPagamento}
-      />
+      {/* Renderizar modal de registro de pagamento apenas se não estiver sendo controlado externamente */}
+      {!onRegistrarPagamento && (
+        <RegistrarPagamentoModal
+          lancamento={lancamento}
+          isOpen={showPagamentoModal}
+          onClose={() => setShowPagamentoModal(false)}
+          onConfirm={handleRegistrarPagamento}
+        />
+      )}
     </>
   );
 }
