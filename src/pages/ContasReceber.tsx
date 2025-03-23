@@ -94,7 +94,7 @@ export default function ContasReceber() {
         </Button>
       </div>
 
-      <Alert variant="info" className="bg-blue-50 border-blue-200 text-blue-800">
+      <Alert className="bg-blue-50 border-blue-200 text-blue-800">
         <Info className="h-4 w-4" />
         <AlertTitle>Informação</AlertTitle>
         <AlertDescription>
