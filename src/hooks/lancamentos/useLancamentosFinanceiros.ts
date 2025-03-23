@@ -36,30 +36,33 @@ export function useLancamentosFinanceiros(options: UseLancamentosFinanceirosOpti
     refetchOnMount: true, // Recarregar ao montar o componente
     meta: {
       errorMessage: `Erro ao carregar lançamentos do tipo ${options.tipo}`
-    },
-    // Utilizando a propriedade correta para lidar com sucesso/erro na v5 do React Query
-    onSuccess: (data) => {
-      console.log(`[useLancamentosFinanceiros] Consulta concluída. Resultados: ${data?.length || 0}`);
-    },
-    onError: (error) => {
-      // Incrementar contador de tentativas para fins de debugging
-      setTentativasErro(prev => prev + 1);
-      
-      // Exibir mensagem de erro para o usuário
-      toast({
-        variant: "destructive",
-        title: "Erro ao carregar lançamentos",
-        description: error instanceof Error 
-          ? error.message 
-          : "Ocorreu um erro desconhecido. Tente novamente mais tarde.",
-      });
-      
-      // Logar o erro no console com informações de contexto
-      console.error(`[useLancamentosFinanceiros] Erro na tentativa ${tentativasErro + 1}:`, error);
-      console.error('Opções de consulta:', JSON.stringify(options));
-      console.error('[useLancamentosFinanceiros] Query falhou:', error);
     }
   });
+
+  // Lidar com erros de consulta
+  if (query.error && query.fetchStatus !== 'fetching') {
+    // Incrementar contador de tentativas para fins de debugging
+    setTentativasErro(prev => prev + 1);
+    
+    // Exibir mensagem de erro para o usuário
+    toast({
+      variant: "destructive",
+      title: "Erro ao carregar lançamentos",
+      description: query.error instanceof Error 
+        ? query.error.message 
+        : "Ocorreu um erro desconhecido. Tente novamente mais tarde.",
+    });
+    
+    // Logar o erro no console com informações de contexto
+    console.error(`[useLancamentosFinanceiros] Erro na tentativa ${tentativasErro + 1}:`, query.error);
+    console.error('Opções de consulta:', JSON.stringify(options));
+    console.error('[useLancamentosFinanceiros] Query falhou:', query.error);
+  }
+
+  // Log de sucesso quando os dados são carregados
+  if (query.data && query.isSuccess) {
+    console.log(`[useLancamentosFinanceiros] Consulta concluída. Resultados: ${query.data?.length || 0}`);
+  }
 
   return {
     ...query,
