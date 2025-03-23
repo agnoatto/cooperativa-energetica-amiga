@@ -105,6 +105,7 @@ export default function ContasReceber() {
   };
 
   const handleSincronizar = async () => {
+    toast.info("Iniciando sincronização de lançamentos...");
     await sincronizar();
   };
 

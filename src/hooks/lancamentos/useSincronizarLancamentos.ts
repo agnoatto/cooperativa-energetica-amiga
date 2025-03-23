@@ -41,6 +41,59 @@ export function useSincronizarLancamentos() {
     setErro(null);
 
     try {
+      console.log('[useSincronizarLancamentos] Iniciando sincronização...');
+      
+      // Primeiro tentar usar a função do banco de dados (mais eficiente)
+      const { data: resultadoFuncao, error: erroFuncao } = await supabase
+        .rpc('executar_sincronizacao_lancamentos');
+      
+      if (erroFuncao) {
+        console.warn('[useSincronizarLancamentos] Erro ao usar função do banco:', erroFuncao);
+        console.log('[useSincronizarLancamentos] Tentando método alternativo via JS...');
+        
+        // Se a função do banco falhar, tenta o método JS
+        return await sincronizarViaJS();
+      }
+      
+      // Se chegou aqui, a função do banco funcionou
+      console.log('[useSincronizarLancamentos] Sincronização via função do banco concluída:', resultadoFuncao);
+      
+      // Converter resultado para o formato esperado
+      const resultadoFinal: ResultadoSincronizacao = {
+        total_sincronizado: resultadoFuncao.total_sincronizado || 0,
+        data_execucao: resultadoFuncao.data_execucao || new Date().toISOString(),
+        detalhes: resultadoFuncao.detalhes || []
+      };
+      
+      setResultado(resultadoFinal);
+      return resultadoFinal;
+    } catch (error) {
+      console.error('[useSincronizarLancamentos] Erro crítico ao sincronizar:', error);
+      
+      // Em caso de erro, tenta o método JS
+      try {
+        return await sincronizarViaJS();
+      } catch (jsError) {
+        setErro(jsError instanceof Error ? jsError : new Error('Erro desconhecido ao sincronizar lançamentos'));
+        
+        toast({
+          variant: "destructive",
+          title: "Erro ao sincronizar lançamentos",
+          description: jsError instanceof Error 
+            ? jsError.message 
+            : "Ocorreu um erro desconhecido ao sincronizar lançamentos.",
+        });
+        
+        return null;
+      }
+    } finally {
+      setIsSincronizando(false);
+    }
+  };
+
+  // Método alternativo de sincronização via JavaScript
+  const sincronizarViaJS = async (): Promise<ResultadoSincronizacao | null> => {
+    try {
       // Buscar faturas que precisam de lançamentos
       // Apenas faturas com status que já foram enviadas aos clientes
       const { data: faturas, error: errorFaturas } = await supabase
@@ -168,7 +221,7 @@ export function useSincronizarLancamentos() {
       setResultado(resultadoFinal);
       return resultadoFinal;
     } catch (error) {
-      console.error('[useSincronizarLancamentos] Erro ao sincronizar lançamentos:', error);
+      console.error('[useSincronizarLancamentos] Erro ao sincronizar lançamentos via JS:', error);
       
       setErro(error instanceof Error ? error : new Error('Erro desconhecido ao sincronizar lançamentos'));
       
@@ -181,8 +234,6 @@ export function useSincronizarLancamentos() {
       });
       
       return null;
-    } finally {
-      setIsSincronizando(false);
     }
   };
 

@@ -1841,6 +1841,13 @@ export type Database = {
           detalhes: string[]
         }[]
       }
+      sincronizar_lancamentos_faturas_existentes: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          faturas_sincronizadas: number
+          detalhes: string[]
+        }[]
+      }
       update_calculo_fatura_template: {
         Args: {
           template_id: string
