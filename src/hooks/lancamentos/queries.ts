@@ -1,3 +1,4 @@
+
 /**
  * Consultas para lançamentos financeiros
  * 
@@ -37,11 +38,13 @@ export async function fetchLancamentos({
     // Aplicar filtros de data diretamente na query se estiverem disponíveis
     if (dataInicio) {
       const dataInicioFormatada = new Date(dataInicio).toISOString();
+      // Nota: Não filtramos mais por data_vencimento do lançamento, pois usaremos a da fatura
       query = query.gte('data_vencimento', dataInicioFormatada);
     }
     
     if (dataFim) {
       const dataFimFormatada = new Date(dataFim).toISOString();
+      // Nota: Não filtramos mais por data_vencimento do lançamento, pois usaremos a da fatura
       query = query.lte('data_vencimento', dataFimFormatada);
     }
     
@@ -126,7 +129,9 @@ export async function fetchLancamentos({
                 mes, 
                 ano,
                 unidade_beneficiaria_id,
-                data_vencimento
+                data_vencimento,
+                valor_assinatura,
+                valor_adicional
               `)
               .eq('id', item.fatura_id)
               .single();
@@ -160,6 +165,12 @@ export async function fetchLancamentos({
                   endereco: ''
                 }
               };
+              
+              // Atualizar o valor do lançamento com base na fatura (fonte primária)
+              // Isso garante que o valor exibido seja sempre consistente com a fatura
+              const valorFatura = (faturaData.valor_assinatura || 0) + (faturaData.valor_adicional || 0);
+              lancamento.valor = valorFatura;
+              lancamento.valor_original = valorFatura;
             }
           }
         }
@@ -233,6 +244,12 @@ export async function fetchLancamentos({
                 data_pagamento: pagamentoData.data_pagamento,
                 usina: usinaInfo
               };
+              
+              // Atualizar o valor do lançamento com base no pagamento da usina (fonte primária)
+              if (pagamentoData.valor_total) {
+                lancamento.valor = pagamentoData.valor_total;
+                lancamento.valor_original = pagamentoData.valor_total;
+              }
             }
           }
         }
@@ -287,11 +304,13 @@ export async function fetchLancamentos({
       // Aplicar filtros de data diretamente na query
       if (dataInicio) {
         const dataInicioFormatada = new Date(dataInicio).toISOString();
+        // Nota: Não filtramos mais por data_vencimento do lançamento, pois usaremos a da fatura
         query = query.gte('data_vencimento', dataInicioFormatada);
       }
       
       if (dataFim) {
         const dataFimFormatada = new Date(dataFim).toISOString();
+        // Nota: Não filtramos mais por data_vencimento do lançamento, pois usaremos a da fatura
         query = query.lte('data_vencimento', dataFimFormatada);
       }
       
@@ -365,7 +384,7 @@ export async function fetchLancamentos({
           if (item.fatura_id) {
             const { data: faturaData } = await supabase
               .from('faturas')
-              .select('id, mes, ano, unidade_beneficiaria_id, data_vencimento')
+              .select('id, mes, ano, unidade_beneficiaria_id, data_vencimento, valor_assinatura, valor_adicional')
               .eq('id', item.fatura_id)
               .single();
               
@@ -398,6 +417,11 @@ export async function fetchLancamentos({
                   endereco: ''
                 }
               };
+              
+              // Atualizar o valor do lançamento com base na fatura (fonte primária)
+              const valorFatura = (faturaData.valor_assinatura || 0) + (faturaData.valor_adicional || 0);
+              lancamentoProcessado.valor = valorFatura;
+              lancamentoProcessado.valor_original = valorFatura;
             }
           }
           
@@ -449,6 +473,12 @@ export async function fetchLancamentos({
                 data_pagamento: pagamentoData.data_pagamento,
                 usina: usinaInfo
               };
+              
+              // Atualizar o valor do lançamento com base no pagamento da usina (fonte primária)
+              if (pagamentoData.valor_total) {
+                lancamentoProcessado.valor = pagamentoData.valor_total;
+                lancamentoProcessado.valor_original = pagamentoData.valor_total;
+              }
             }
           }
         } catch (e) {

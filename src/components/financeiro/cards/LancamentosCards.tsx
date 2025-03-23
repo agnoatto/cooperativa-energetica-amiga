@@ -28,16 +28,15 @@ export function LancamentosCards({ lancamentos, isLoading, tipo, refetch }: Lanc
   const [selectedLancamento, setSelectedLancamento] = useState<LancamentoFinanceiro | null>(null);
   const { updateLancamentoStatus } = useUpdateLancamentoStatus();
 
-  // Função para obter a data de vencimento mais atualizada
+  // Função para obter a data de vencimento da fonte primária (fatura ou pagamento usina)
   const getDataVencimento = (lancamento: LancamentoFinanceiro) => {
-    // Prioriza a data da fatura/pagamento_usina sobre a data do lançamento
     if (tipo === 'receita' && lancamento.fatura?.data_vencimento) {
       return new Date(lancamento.fatura.data_vencimento);
     } else if (tipo === 'despesa' && lancamento.pagamento_usina?.data_vencimento) {
       return new Date(lancamento.pagamento_usina.data_vencimento);
     }
     
-    // Fallback para a data do lançamento
+    // Fallback para a data do lançamento (apenas como último recurso)
     return new Date(lancamento.data_vencimento);
   };
 
