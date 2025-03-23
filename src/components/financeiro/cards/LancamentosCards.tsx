@@ -1,8 +1,16 @@
 
+/**
+ * Cards de lançamentos financeiros para visualização mobile
+ * 
+ * Este componente exibe os lançamentos financeiros em formato de cards
+ * otimizados para dispositivos móveis. A data de vencimento é obtida
+ * diretamente da fatura ou pagamento quando disponível.
+ */
 import { format } from "date-fns";
-import { Eye, FileText } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
+import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Eye, Calendar, User, DollarSign } from "lucide-react";
 import { formatarMoeda } from "@/utils/formatters";
 import { getStatusColor } from "../utils/status";
 import { useState } from "react";
@@ -20,11 +28,17 @@ export function LancamentosCards({ lancamentos, isLoading, tipo, refetch }: Lanc
   const [selectedLancamento, setSelectedLancamento] = useState<LancamentoFinanceiro | null>(null);
   const { updateLancamentoStatus } = useUpdateLancamentoStatus();
 
-  const getNomeEntidade = (lancamento: LancamentoFinanceiro) => {
-    if (tipo === 'receita') {
-      return lancamento.cooperado?.nome;
+  // Função para obter a data de vencimento mais atualizada
+  const getDataVencimento = (lancamento: LancamentoFinanceiro) => {
+    // Prioriza a data da fatura/pagamento_usina sobre a data do lançamento
+    if (tipo === 'receita' && lancamento.fatura?.data_vencimento) {
+      return new Date(lancamento.fatura.data_vencimento);
+    } else if (tipo === 'despesa' && lancamento.pagamento_usina?.data_vencimento) {
+      return new Date(lancamento.pagamento_usina.data_vencimento);
     }
-    return lancamento.investidor?.nome_investidor;
+    
+    // Fallback para a data do lançamento
+    return new Date(lancamento.data_vencimento);
   };
 
   const handleUpdateStatus = async (lancamento: LancamentoFinanceiro, newStatus: StatusLancamento) => {
@@ -34,71 +48,88 @@ export function LancamentosCards({ lancamentos, isLoading, tipo, refetch }: Lanc
     }
   };
 
-  const handleViewDetails = (lancamento: LancamentoFinanceiro) => {
-    setSelectedLancamento(lancamento);
-  };
-
   if (isLoading) {
-    return <div className="text-center py-4">Carregando...</div>;
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
-  if (!lancamentos?.length) {
-    return <div className="text-center py-4">Nenhum lançamento encontrado</div>;
+  if (!lancamentos || lancamentos.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center text-gray-500">
+          Nenhum lançamento encontrado
+        </CardContent>
+      </Card>
+    );
   }
+
+  const getNomeEntidade = (lancamento: LancamentoFinanceiro) => {
+    if (tipo === 'receita') {
+      return lancamento.cooperado?.nome;
+    }
+    return lancamento.investidor?.nome_investidor;
+  };
 
   return (
     <>
       <div className="space-y-4">
         {lancamentos.map((lancamento) => (
-          <div
-            key={lancamento.id}
-            className="bg-white rounded-lg shadow-sm border p-4 space-y-4"
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-medium">{lancamento.descricao}</h3>
-                <p className="text-sm text-gray-500">
-                  {getNomeEntidade(lancamento)}
-                </p>
+          <Card key={lancamento.id}>
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-center">
+                <h3 className="font-medium text-gray-900 truncate">
+                  {lancamento.descricao}
+                </h3>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
+                    lancamento.status
+                  )}`}
+                >
+                  {lancamento.status.charAt(0).toUpperCase() +
+                    lancamento.status.slice(1)}
+                </span>
               </div>
-              <div className={`px-2 py-1 rounded-full text-xs ${getStatusColor(lancamento.status)}`}>
-                {lancamento.status.charAt(0).toUpperCase() + lancamento.status.slice(1)}
+            </CardHeader>
+            <CardContent className="py-2">
+              <div className="space-y-2">
+                <div className="flex items-center text-sm">
+                  <User className="h-4 w-4 text-gray-500 mr-2" />
+                  <span className="text-gray-700">{getNomeEntidade(lancamento)}</span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <Calendar className="h-4 w-4 text-gray-500 mr-2" />
+                  <span className="text-gray-700">
+                    {format(getDataVencimento(lancamento), "dd/MM/yyyy")}
+                  </span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <DollarSign className="h-4 w-4 text-gray-500 mr-2" />
+                  <span className="text-gray-700">{formatarMoeda(lancamento.valor)}</span>
+                </div>
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div>
-                <span className="text-gray-500">Vencimento:</span>
-                <br />
-                {format(new Date(lancamento.data_vencimento), "dd/MM/yyyy")}
-              </div>
-              <div>
-                <span className="text-gray-500">Valor:</span>
-                <br />
-                {formatarMoeda(lancamento.valor)}
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2">
+            </CardContent>
+            <CardFooter className="pt-2">
               <Button
                 variant="outline"
-                size="sm"
-                className="h-8 w-8"
-                onClick={() => handleViewDetails(lancamento)}
+                className="w-full"
+                onClick={() => setSelectedLancamento(lancamento)}
               >
-                <Eye className="h-4 w-4" />
+                <Eye className="h-4 w-4 mr-2" />
+                Ver detalhes
               </Button>
-              {(tipo === 'receita' ? lancamento.fatura : lancamento.pagamento_usina) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-8"
-                >
-                  <FileText className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
+            </CardFooter>
+          </Card>
         ))}
       </div>
 

@@ -1,4 +1,12 @@
 
+/**
+ * Tabela de lançamentos financeiros
+ * 
+ * Este componente exibe os lançamentos financeiros de receitas ou despesas
+ * em formato de tabela, com opções para gerenciamento e visualização
+ * de detalhes. A data de vencimento é exibida diretamente da fatura ou
+ * do registro de pagamento quando disponível.
+ */
 import { format } from "date-fns";
 import { Eye, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -50,6 +58,19 @@ export function LancamentosTable({ lancamentos, isLoading, tipo, refetch }: Lanc
     setSelectedLancamento(lancamento);
   };
 
+  // Função para obter a data de vencimento mais atualizada
+  const getDataVencimento = (lancamento: LancamentoFinanceiro) => {
+    // Prioriza a data da fatura/pagamento_usina sobre a data do lançamento
+    if (tipo === 'receita' && lancamento.fatura?.data_vencimento) {
+      return new Date(lancamento.fatura.data_vencimento);
+    } else if (tipo === 'despesa' && lancamento.pagamento_usina?.data_vencimento) {
+      return new Date(lancamento.pagamento_usina.data_vencimento);
+    }
+    
+    // Fallback para a data do lançamento
+    return new Date(lancamento.data_vencimento);
+  };
+
   return (
     <>
       <div className="bg-white rounded-lg border">
@@ -83,7 +104,7 @@ export function LancamentosTable({ lancamentos, isLoading, tipo, refetch }: Lanc
                   <TableCell>{lancamento.descricao}</TableCell>
                   <TableCell>{getNomeEntidade(lancamento)}</TableCell>
                   <TableCell>
-                    {format(new Date(lancamento.data_vencimento), "dd/MM/yyyy")}
+                    {format(getDataVencimento(lancamento), "dd/MM/yyyy")}
                   </TableCell>
                   <TableCell>{formatarMoeda(lancamento.valor)}</TableCell>
                   <TableCell>

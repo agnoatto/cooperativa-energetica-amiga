@@ -1,403 +1,210 @@
 
 /**
- * Modal para visualização detalhada de lançamentos financeiros
+ * Diálogo de detalhes do lançamento financeiro
  * 
- * Este componente exibe todos os detalhes de um lançamento financeiro (contas a pagar/receber)
- * incluindo valores, datas, histórico de status e informações relacionadas.
+ * Exibe informações detalhadas sobre o lançamento, com opções
+ * para atualizar seu status. A data de vencimento é obtida
+ * diretamente da fatura ou pagamento quando disponível.
  */
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription 
-} from "@/components/ui/dialog";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
-import { formatarMoeda, formatarDocumento } from "@/utils/formatters";
+import { format } from "date-fns";
 import { StatusTransitionButtons } from "./StatusTransitionButtons";
+import { ptBR } from "date-fns/locale";
+import { formatarMoeda } from "@/utils/formatters";
+import { CalendarIcon, BanknoteIcon, FileTextIcon, UserCircle } from "lucide-react";
 import { HistoricoStatusList } from "./HistoricoStatusList";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, Phone, Mail, User, FileText, MapPin, CreditCard, DollarSign, Clock, TrendingUp, TrendingDown } from "lucide-react";
+import { RegistrarPagamentoModal } from "./RegistrarPagamentoModal";
+import { useState } from "react";
 
 interface LancamentoDetailsDialogProps {
   lancamento: LancamentoFinanceiro | null;
   isOpen: boolean;
   onClose: () => void;
-  onUpdateStatus: (lancamento: LancamentoFinanceiro, newStatus: StatusLancamento) => Promise<void>;
+  onUpdateStatus: (lancamento: LancamentoFinanceiro, newStatus: StatusLancamento) => Promise<boolean>;
 }
-
-type InfoItemProps = {
-  icon: React.ReactNode;
-  label: string;
-  value: React.ReactNode;
-  className?: string;
-};
 
 export function LancamentoDetailsDialog({
   lancamento,
   isOpen,
   onClose,
-  onUpdateStatus
+  onUpdateStatus,
 }: LancamentoDetailsDialogProps) {
+  const [showRegistrarPagamento, setShowRegistrarPagamento] = useState(false);
+  
   if (!lancamento) return null;
 
-  // Determinar se é receita ou despesa para mostrar informações relevantes
-  const isReceita = lancamento.tipo === 'receita';
-  
-  // Formatar datas
-  const dataVencimento = format(new Date(lancamento.data_vencimento), 'dd/MM/yyyy', { locale: ptBR });
-  const dataPagamento = lancamento.data_pagamento 
-    ? format(new Date(lancamento.data_pagamento), 'dd/MM/yyyy', { locale: ptBR })
-    : '-';
-  const dataCriacao = format(new Date(lancamento.created_at), 'dd/MM/yyyy', { locale: ptBR });
-
-  // Extrair informações de mês/ano da fatura se disponível
-  const extrairMesAnoFatura = () => {
-    if (lancamento.fatura) {
-      // Tentar extrair o mês e ano do número da fatura
-      const numeroFatura = lancamento.fatura.numero_fatura;
-      const match = numeroFatura.match(/(\d{2})\/(\d{4})/);
-      if (match) {
-        return {
-          mes: match[1],
-          ano: match[2]
-        };
-      }
+  // Função para obter a data de vencimento mais atualizada
+  const getDataVencimento = () => {
+    // Prioriza a data da fatura/pagamento_usina sobre a data do lançamento
+    if (lancamento.fatura?.data_vencimento) {
+      return new Date(lancamento.fatura.data_vencimento);
+    } else if (lancamento.pagamento_usina?.data_vencimento) {
+      return new Date(lancamento.pagamento_usina.data_vencimento);
     }
-    return null;
+    
+    // Fallback para a data do lançamento
+    return new Date(lancamento.data_vencimento);
   };
 
-  const mesAnoFatura = extrairMesAnoFatura();
+  // Formatar a data de pagamento se existir
+  const dataPagamentoFormatada = lancamento.data_pagamento
+    ? format(new Date(lancamento.data_pagamento), "dd/MM/yyyy", { locale: ptBR })
+    : "Não realizado";
 
-  // Função auxiliar para renderizar item de informação
-  const InfoItem = ({ icon, label, value, className = "" }: InfoItemProps) => (
-    <div className={`flex items-start space-x-2 ${className}`}>
-      {icon && <span className="text-muted-foreground mt-0.5">{icon}</span>}
-      <div>
-        <p className="text-sm font-medium text-gray-700">{label}</p>
-        <p className="text-sm text-gray-900">{value || "-"}</p>
+  // Informações da entidade (cooperado ou investidor)
+  const getNomeEntidade = () => {
+    return lancamento.tipo === 'receita'
+      ? lancamento.cooperado?.nome
+      : lancamento.investidor?.nome_investidor;
+  };
+
+  // Informações sobre a origem do lançamento
+  let origemInfo = null;
+  if (lancamento.fatura) {
+    origemInfo = (
+      <div className="mt-4 p-3 bg-blue-50 rounded-md text-sm">
+        <div className="font-medium text-blue-800 mb-1">Fatura</div>
+        <div className="text-blue-700">
+          Número: {lancamento.fatura.numero_fatura}
+        </div>
+        <div className="text-blue-700">
+          UC: {lancamento.fatura.unidade_beneficiaria.numero_uc}
+          {lancamento.fatura.unidade_beneficiaria.apelido && 
+            ` (${lancamento.fatura.unidade_beneficiaria.apelido})`}
+        </div>
+        {lancamento.fatura.mes && lancamento.fatura.ano && (
+          <div className="text-blue-700">
+            Período: {lancamento.fatura.mes}/{lancamento.fatura.ano}
+          </div>
+        )}
       </div>
-    </div>
-  );
+    );
+  } else if (lancamento.pagamento_usina) {
+    const pu = lancamento.pagamento_usina;
+    origemInfo = (
+      <div className="mt-4 p-3 bg-amber-50 rounded-md text-sm">
+        <div className="font-medium text-amber-800 mb-1">Pagamento de Usina</div>
+        {pu.mes && pu.ano && (
+          <div className="text-amber-700">
+            Período: {pu.mes}/{pu.ano}
+          </div>
+        )}
+        {pu.usina?.unidade_usina && (
+          <div className="text-amber-700">
+            UC: {pu.usina.unidade_usina.numero_uc}
+            {pu.usina.unidade_usina.apelido && 
+              ` (${pu.usina.unidade_usina.apelido})`}
+          </div>
+        )}
+        {pu.geracao_kwh && (
+          <div className="text-amber-700">
+            Geração: {pu.geracao_kwh} kWh
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl">Detalhes do Lançamento</DialogTitle>
-          <DialogDescription className="flex items-center gap-2">
-            <span className="font-medium">
-              {isReceita ? 'Conta a Receber' : 'Conta a Pagar'}
-            </span>
-            <span> - </span>
-            <span>{lancamento.descricao}</span>
-            {mesAnoFatura && (
-              <>
-                <span> - </span>
-                <Badge variant="outline" className="ml-2">
-                  Referência: {mesAnoFatura.mes}/{mesAnoFatura.ano}
-                </Badge>
-              </>
+    <>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Lançamento</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div>
+              <h3 className="font-medium text-lg">{lancamento.descricao}</h3>
+              <div className="text-sm text-gray-500">
+                Criado em {format(new Date(lancamento.created_at), "dd/MM/yyyy", { locale: ptBR })}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <div className="text-sm text-gray-500">Tipo</div>
+                <div className="font-medium">
+                  {lancamento.tipo === "receita" ? "Receita" : "Despesa"}
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-sm text-gray-500">Status</div>
+                <div className="font-medium">
+                  {lancamento.status.charAt(0).toUpperCase() + lancamento.status.slice(1)}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-gray-700">
+              <UserCircle className="h-4 w-4 text-gray-500" />
+              <span>{getNomeEntidade()}</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-gray-700">
+              <CalendarIcon className="h-4 w-4 text-gray-500" />
+              <span>Vencimento: {format(getDataVencimento(), "dd/MM/yyyy", { locale: ptBR })}</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-gray-700">
+              <BanknoteIcon className="h-4 w-4 text-gray-500" />
+              <span>Valor: {formatarMoeda(lancamento.valor)}</span>
+            </div>
+
+            {lancamento.valor_pago !== null && lancamento.status === 'pago' && (
+              <div className="flex items-center gap-2 text-green-700">
+                <BanknoteIcon className="h-4 w-4 text-green-500" />
+                <span>Valor pago: {formatarMoeda(lancamento.valor_pago)}</span>
+              </div>
             )}
-          </DialogDescription>
-        </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-          <div className="space-y-6">
-            <div className="bg-gray-50 p-4 rounded-md">
-              <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-3">
-                <User className="h-4 w-4" />
-                {isReceita ? 'Dados do Cooperado' : 'Dados do Investidor'}
-              </h3>
-              
-              <div className="space-y-3">
-                {isReceita && lancamento.cooperado ? (
-                  <>
-                    <InfoItem 
-                      icon={<User className="h-4 w-4" />}
-                      label="Nome Completo"
-                      value={lancamento.cooperado.nome}
-                    />
-                    
-                    {lancamento.cooperado.documento && (
-                      <InfoItem 
-                        icon={<CreditCard className="h-4 w-4" />}
-                        label="CPF/CNPJ"
-                        value={formatarDocumento(lancamento.cooperado.documento)}
-                      />
-                    )}
-                    
-                    {lancamento.cooperado.telefone && (
-                      <InfoItem 
-                        icon={<Phone className="h-4 w-4" />}
-                        label="Telefone"
-                        value={lancamento.cooperado.telefone}
-                      />
-                    )}
-                    
-                    {lancamento.cooperado.email && (
-                      <InfoItem 
-                        icon={<Mail className="h-4 w-4" />}
-                        label="E-mail"
-                        value={lancamento.cooperado.email}
-                      />
-                    )}
-                    
-                    {lancamento.cooperado.numero_cadastro && (
-                      <InfoItem 
-                        icon={<FileText className="h-4 w-4" />}
-                        label="Número de Cadastro"
-                        value={lancamento.cooperado.numero_cadastro}
-                      />
-                    )}
-                  </>
-                ) : !isReceita && lancamento.investidor ? (
-                  <>
-                    <InfoItem 
-                      icon={<User className="h-4 w-4" />}
-                      label="Nome do Investidor"
-                      value={lancamento.investidor.nome_investidor}
-                    />
-                    
-                    {lancamento.investidor.documento && (
-                      <InfoItem 
-                        icon={<CreditCard className="h-4 w-4" />}
-                        label="CPF/CNPJ"
-                        value={formatarDocumento(lancamento.investidor.documento)}
-                      />
-                    )}
-                    
-                    {lancamento.investidor.telefone && (
-                      <InfoItem 
-                        icon={<Phone className="h-4 w-4" />}
-                        label="Telefone"
-                        value={lancamento.investidor.telefone}
-                      />
-                    )}
-                    
-                    {lancamento.investidor.email && (
-                      <InfoItem 
-                        icon={<Mail className="h-4 w-4" />}
-                        label="E-mail"
-                        value={lancamento.investidor.email}
-                      />
-                    )}
-                  </>
-                ) : (
-                  <p className="text-sm text-gray-500">Dados não disponíveis.</p>
-                )}
+            {lancamento.data_pagamento && (
+              <div className="flex items-center gap-2 text-gray-700">
+                <CalendarIcon className="h-4 w-4 text-gray-500" />
+                <span>Data pagamento: {dataPagamentoFormatada}</span>
               </div>
+            )}
+
+            {lancamento.observacao && (
+              <div className="flex items-start gap-2 text-gray-700">
+                <FileTextIcon className="h-4 w-4 text-gray-500 mt-1" />
+                <span>Observação: {lancamento.observacao}</span>
+              </div>
+            )}
+
+            {origemInfo}
+
+            <Separator className="my-3" />
+
+            <div>
+              <h4 className="font-medium mb-2">Histórico de Status</h4>
+              <HistoricoStatusList historico={lancamento.historico_status} />
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-md">
-              <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-3">
-                <Calendar className="h-4 w-4" />
-                Dados Financeiros
-              </h3>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <InfoItem
-                  icon={<DollarSign className="h-4 w-4" />}
-                  label="Valor Original"
-                  value={formatarMoeda(lancamento.valor_original || lancamento.valor)}
-                  className="col-span-2"
-                />
-                
-                {lancamento.status === 'pago' && lancamento.valor_pago && (
-                  <>
-                    <InfoItem
-                      icon={<DollarSign className="h-4 w-4 text-green-600" />}
-                      label="Valor Pago"
-                      value={formatarMoeda(lancamento.valor_pago)}
-                      className="col-span-2"
-                    />
-                    
-                    {lancamento.valor_juros && lancamento.valor_juros > 0 && (
-                      <InfoItem
-                        icon={<TrendingUp className="h-4 w-4 text-red-600" />}
-                        label="Juros"
-                        value={formatarMoeda(lancamento.valor_juros)}
-                      />
-                    )}
-                    
-                    {lancamento.valor_desconto && lancamento.valor_desconto > 0 && (
-                      <InfoItem
-                        icon={<TrendingDown className="h-4 w-4 text-green-600" />}
-                        label="Desconto"
-                        value={formatarMoeda(lancamento.valor_desconto)}
-                      />
-                    )}
-                  </>
-                )}
-                
-                <InfoItem
-                  icon={<Clock className="h-4 w-4" />}
-                  label="Data de Criação"
-                  value={dataCriacao}
-                />
-                
-                <InfoItem
-                  icon={<Calendar className="h-4 w-4" />}
-                  label="Vencimento"
-                  value={dataVencimento}
-                />
-                
-                <InfoItem
-                  icon={<Calendar className="h-4 w-4" />}
-                  label="Pagamento"
-                  value={dataPagamento}
-                />
-                
-                <InfoItem
-                  icon={<FileText className="h-4 w-4" />}
-                  label="Status"
-                  value={
-                    <Badge 
-                      className={`mt-1 ${getStatusColorClass(lancamento.status)}`}>
-                      {lancamento.status.charAt(0).toUpperCase() + lancamento.status.slice(1)}
-                    </Badge>
-                  }
-                />
-              </div>
+            <Separator className="my-3" />
+
+            <div className="space-y-2">
+              <StatusTransitionButtons 
+                lancamento={lancamento} 
+                onUpdateStatus={onUpdateStatus}
+                onRegistrarPagamento={() => setShowRegistrarPagamento(true)}
+              />
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
 
-          <div className="space-y-6">
-            {isReceita && lancamento.fatura ? (
-              <div className="bg-gray-50 p-4 rounded-md">
-                <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-3">
-                  <FileText className="h-4 w-4" />
-                  Fatura Relacionada
-                </h3>
-                
-                <div className="space-y-3">
-                  <InfoItem
-                    icon={<FileText className="h-4 w-4" />}
-                    label="Número da Fatura"
-                    value={lancamento.fatura.numero_fatura}
-                  />
-                  
-                  <InfoItem
-                    icon={<CreditCard className="h-4 w-4" />}
-                    label="Unidade Consumidora"
-                    value={lancamento.fatura.unidade_beneficiaria?.numero_uc}
-                  />
-                  
-                  {lancamento.fatura.unidade_beneficiaria?.apelido && (
-                    <InfoItem
-                      icon={<User className="h-4 w-4" />}
-                      label="Apelido da UC"
-                      value={lancamento.fatura.unidade_beneficiaria.apelido}
-                    />
-                  )}
-                  
-                  {lancamento.fatura.unidade_beneficiaria?.endereco && (
-                    <InfoItem
-                      icon={<MapPin className="h-4 w-4" />}
-                      label="Endereço"
-                      value={lancamento.fatura.unidade_beneficiaria.endereco}
-                    />
-                  )}
-                  
-                  {lancamento.fatura.mes !== undefined && lancamento.fatura.ano !== undefined && (
-                    <InfoItem
-                      icon={<Calendar className="h-4 w-4" />}
-                      label="Referência"
-                      value={`${lancamento.fatura.mes}/${lancamento.fatura.ano}`}
-                    />
-                  )}
-                </div>
-              </div>
-            ) : !isReceita && lancamento.pagamento_usina ? (
-              <div className="bg-gray-50 p-4 rounded-md">
-                <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-3">
-                  <FileText className="h-4 w-4" />
-                  Pagamento de Usina Relacionado
-                </h3>
-                
-                <div className="space-y-3">
-                  {lancamento.pagamento_usina.usina?.unidade_usina?.numero_uc && (
-                    <InfoItem
-                      icon={<CreditCard className="h-4 w-4" />}
-                      label="UC da Usina"
-                      value={lancamento.pagamento_usina.usina.unidade_usina.numero_uc}
-                    />
-                  )}
-                  
-                  {lancamento.pagamento_usina.mes !== undefined && lancamento.pagamento_usina.ano !== undefined && (
-                    <InfoItem
-                      icon={<Calendar className="h-4 w-4" />}
-                      label="Referência"
-                      value={`${lancamento.pagamento_usina.mes}/${lancamento.pagamento_usina.ano}`}
-                    />
-                  )}
-                  
-                  {lancamento.pagamento_usina.geracao_kwh !== undefined && (
-                    <InfoItem
-                      icon={<FileText className="h-4 w-4" />}
-                      label="Geração (kWh)"
-                      value={`${lancamento.pagamento_usina.geracao_kwh} kWh`}
-                    />
-                  )}
-                  
-                  {lancamento.pagamento_usina.valor_total !== undefined && (
-                    <InfoItem
-                      icon={<DollarSign className="h-4 w-4" />}
-                      label="Valor Total"
-                      value={formatarMoeda(lancamento.pagamento_usina.valor_total)}
-                    />
-                  )}
-                </div>
-              </div>
-            ) : null}
-
-            <div className="bg-gray-50 p-4 rounded-md">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Observação</h3>
-              {lancamento.observacao ? (
-                <p className="text-sm text-gray-900 p-2 bg-white rounded border border-gray-100">
-                  {lancamento.observacao}
-                </p>
-              ) : (
-                <p className="text-sm text-gray-500 italic">Nenhuma observação cadastrada.</p>
-              )}
-            </div>
-
-            <div className="bg-gray-50 p-4 rounded-md">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Histórico de Status</h3>
-              {lancamento.historico_status && lancamento.historico_status.length > 0 ? (
-                <HistoricoStatusList historico={lancamento.historico_status} />
-              ) : (
-                <p className="text-sm text-gray-500 italic">Nenhum histórico de status disponível.</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6 border-t pt-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Alterar Status</h3>
-          <StatusTransitionButtons 
-            lancamento={lancamento}
-            onUpdateStatus={onUpdateStatus}
-          />
-        </div>
-      </DialogContent>
-    </Dialog>
+      <RegistrarPagamentoModal
+        isOpen={showRegistrarPagamento}
+        onClose={() => setShowRegistrarPagamento(false)}
+        lancamento={lancamento}
+        onSuccess={() => {
+          setShowRegistrarPagamento(false);
+          onClose();
+        }}
+      />
+    </>
   );
-}
-
-function getStatusColorClass(status: StatusLancamento): string {
-  switch (status) {
-    case 'pendente':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'pago':
-      return 'bg-green-100 text-green-800';
-    case 'atrasado':
-      return 'bg-red-100 text-red-800';
-    case 'cancelado':
-      return 'bg-gray-100 text-gray-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
 }
