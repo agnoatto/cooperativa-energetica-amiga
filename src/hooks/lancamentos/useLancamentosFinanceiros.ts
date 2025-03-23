@@ -34,33 +34,31 @@ export function useLancamentosFinanceiros(options: UseLancamentosFinanceirosOpti
     staleTime: 1000 * 60 * 5, // Considerar dados "frescos" por 5 minutos
     refetchOnWindowFocus: true, // Recarregar ao focar a janela
     refetchOnMount: true, // Recarregar ao montar o componente
-    meta: {
-      errorMessage: `Erro ao carregar lançamentos do tipo ${options.tipo}`
-    },
-    onError: (error) => {
-      // Incrementar contador de tentativas para fins de debugging
-      setTentativasErro(prev => prev + 1);
-      
-      // Exibir mensagem de erro para o usuário
-      toast({
-        variant: "destructive",
-        title: "Erro ao carregar lançamentos",
-        description: error instanceof Error 
-          ? error.message 
-          : "Ocorreu um erro desconhecido. Tente novamente mais tarde.",
-      });
-      
-      // Logar o erro no console com informações de contexto
-      console.error(`[useLancamentosFinanceiros] Erro na tentativa ${tentativasErro + 1}:`, error);
-      console.error('Opções de consulta:', JSON.stringify(options));
-    },
     onSettled: (data, error) => {
       // Log de sucesso ou falha para debugging
       if (error) {
+        // Incrementar contador de tentativas para fins de debugging
+        setTentativasErro(prev => prev + 1);
+        
+        // Exibir mensagem de erro para o usuário
+        toast({
+          variant: "destructive",
+          title: "Erro ao carregar lançamentos",
+          description: error instanceof Error 
+            ? error.message 
+            : "Ocorreu um erro desconhecido. Tente novamente mais tarde.",
+        });
+        
+        // Logar o erro no console com informações de contexto
+        console.error(`[useLancamentosFinanceiros] Erro na tentativa ${tentativasErro + 1}:`, error);
+        console.error('Opções de consulta:', JSON.stringify(options));
         console.error('[useLancamentosFinanceiros] Query falhou:', error);
       } else {
         console.log(`[useLancamentosFinanceiros] Consulta concluída. Resultados: ${data?.length || 0}`);
       }
+    },
+    meta: {
+      errorMessage: `Erro ao carregar lançamentos do tipo ${options.tipo}`
     }
   });
 
@@ -70,3 +68,4 @@ export function useLancamentosFinanceiros(options: UseLancamentosFinanceirosOpti
     resetarTentativas: () => setTentativasErro(0)
   };
 }
+
