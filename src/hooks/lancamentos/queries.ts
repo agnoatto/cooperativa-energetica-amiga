@@ -38,13 +38,11 @@ export async function fetchLancamentos({
     // Aplicar filtros de data diretamente na query se estiverem disponíveis
     if (dataInicio) {
       const dataInicioFormatada = new Date(dataInicio).toISOString();
-      // Nota: Não filtramos mais por data_vencimento do lançamento, pois usaremos a da fatura
       query = query.gte('data_vencimento', dataInicioFormatada);
     }
     
     if (dataFim) {
       const dataFimFormatada = new Date(dataFim).toISOString();
-      // Nota: Não filtramos mais por data_vencimento do lançamento, pois usaremos a da fatura
       query = query.lte('data_vencimento', dataFimFormatada);
     }
     
@@ -131,12 +129,21 @@ export async function fetchLancamentos({
                 unidade_beneficiaria_id,
                 data_vencimento,
                 valor_assinatura,
-                valor_adicional
+                valor_adicional,
+                status
               `)
               .eq('id', item.fatura_id)
               .single();
               
             if (faturaData) {
+              // Verificar se a fatura já foi enviada para o cliente
+              // Se o tipo for receita, exibir apenas faturas que já foram enviadas
+              if (tipo === 'receita' && 
+                 !['enviada', 'reenviada', 'atrasada', 'paga', 'finalizada'].includes(faturaData.status)) {
+                // Pular este lançamento, pois a fatura ainda não foi enviada
+                return null;
+              }
+              
               // Agora buscar a unidade beneficiária separadamente
               const { data: unidadeData } = await supabase
                 .from('unidades_beneficiarias')
@@ -166,11 +173,12 @@ export async function fetchLancamentos({
                 }
               };
               
-              // Atualizar o valor do lançamento com base na fatura (fonte primária)
+              // Atualizar o valor e a data de vencimento do lançamento com base na fatura (fonte primária)
               // Isso garante que o valor exibido seja sempre consistente com a fatura
               const valorFatura = (faturaData.valor_assinatura || 0) + (faturaData.valor_adicional || 0);
               lancamento.valor = valorFatura;
               lancamento.valor_original = valorFatura;
+              lancamento.data_vencimento = faturaData.data_vencimento;
             }
           }
         }
@@ -245,10 +253,13 @@ export async function fetchLancamentos({
                 usina: usinaInfo
               };
               
-              // Atualizar o valor do lançamento com base no pagamento da usina (fonte primária)
+              // Atualizar o valor e a data de vencimento do lançamento com base no pagamento da usina (fonte primária)
               if (pagamentoData.valor_total) {
                 lancamento.valor = pagamentoData.valor_total;
                 lancamento.valor_original = pagamentoData.valor_total;
+              }
+              if (pagamentoData.data_vencimento) {
+                lancamento.data_vencimento = pagamentoData.data_vencimento;
               }
             }
           }
@@ -260,8 +271,10 @@ export async function fetchLancamentos({
       return lancamento as LancamentoFinanceiro;
     }));
     
-    // Aplicar filtros adicionais se necessário
+    // Filtrar lançamentos nulos (que tiveram faturas não enviadas) e aplicar filtros adicionais
     return lancamentosEnriquecidos.filter(lancamento => {
+      if (!lancamento) return false; // Pular lançamentos nulos (faturas não enviadas)
+      
       // Filtrar por status se especificado e não for 'todos'
       if (status && status !== 'todos' && lancamento.status !== status) {
         return false;
@@ -304,13 +317,11 @@ export async function fetchLancamentos({
       // Aplicar filtros de data diretamente na query
       if (dataInicio) {
         const dataInicioFormatada = new Date(dataInicio).toISOString();
-        // Nota: Não filtramos mais por data_vencimento do lançamento, pois usaremos a da fatura
         query = query.gte('data_vencimento', dataInicioFormatada);
       }
       
       if (dataFim) {
         const dataFimFormatada = new Date(dataFim).toISOString();
-        // Nota: Não filtramos mais por data_vencimento do lançamento, pois usaremos a da fatura
         query = query.lte('data_vencimento', dataFimFormatada);
       }
       
@@ -384,11 +395,19 @@ export async function fetchLancamentos({
           if (item.fatura_id) {
             const { data: faturaData } = await supabase
               .from('faturas')
-              .select('id, mes, ano, unidade_beneficiaria_id, data_vencimento, valor_assinatura, valor_adicional')
+              .select('id, mes, ano, unidade_beneficiaria_id, data_vencimento, valor_assinatura, valor_adicional, status')
               .eq('id', item.fatura_id)
               .single();
               
             if (faturaData) {
+              // Verificar se a fatura já foi enviada para o cliente
+              // Se o tipo for receita, exibir apenas faturas que já foram enviadas
+              if (tipo === 'receita' && 
+                 !['enviada', 'reenviada', 'atrasada', 'paga', 'finalizada'].includes(faturaData.status)) {
+                // Pular este lançamento, pois a fatura ainda não foi enviada
+                return null;
+              }
+              
               // Buscar unidade beneficiária
               const { data: unidadeData } = await supabase
                 .from('unidades_beneficiarias')
@@ -422,6 +441,7 @@ export async function fetchLancamentos({
               const valorFatura = (faturaData.valor_assinatura || 0) + (faturaData.valor_adicional || 0);
               lancamentoProcessado.valor = valorFatura;
               lancamentoProcessado.valor_original = valorFatura;
+              lancamentoProcessado.data_vencimento = faturaData.data_vencimento;
             }
           }
           
@@ -479,6 +499,9 @@ export async function fetchLancamentos({
                 lancamentoProcessado.valor = pagamentoData.valor_total;
                 lancamentoProcessado.valor_original = pagamentoData.valor_total;
               }
+              if (pagamentoData.data_vencimento) {
+                lancamentoProcessado.data_vencimento = pagamentoData.data_vencimento;
+              }
             }
           }
         } catch (e) {
@@ -488,8 +511,10 @@ export async function fetchLancamentos({
         return lancamentoProcessado;
       }));
       
-      // Aplicar filtros
+      // Filtrar lançamentos nulos (que tiveram faturas não enviadas) e aplicar filtros adicionais
       return lancamentosProcessados.filter(lancamento => {
+        if (!lancamento) return false; // Pular lançamentos nulos (faturas não enviadas)
+        
         // Filtrar por status se especificado
         if (status && status !== 'todos' && lancamento.status !== status) {
           return false;

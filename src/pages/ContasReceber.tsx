@@ -5,7 +5,8 @@
  * Esta página exibe todos os lançamentos financeiros do tipo receita
  * com filtragem avançada e dashboard para visualização de métricas.
  * Os lançamentos são gerados automaticamente a partir das faturas,
- * usando o valor_assinatura como base.
+ * usando o valor_assinatura como base e apenas mostra faturas que já
+ * foram enviadas para os clientes (status enviada, reenviada, atrasada, paga).
  */
 
 import { useLancamentosFinanceiros } from "@/hooks/lancamentos/useLancamentosFinanceiros";
@@ -17,7 +18,7 @@ import { LancamentosDashboard } from "@/components/financeiro/dashboard/Lancamen
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { FiltrosLancamento } from "@/components/financeiro/FiltrosLancamento";
-import { AlertCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, RefreshCw, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -36,6 +37,16 @@ export default function ContasReceber() {
     dataInicio,
     dataFim
   });
+
+  useEffect(() => {
+    // Exibir notificação informando que só estamos exibindo lançamentos de faturas enviadas
+    toast.info(
+      "Contas a Receber", 
+      { 
+        description: "Esta página exibe apenas lançamentos de faturas que já foram enviadas aos clientes."
+      }
+    );
+  }, []);
 
   // Exibir notificação quando houver lançamentos com valor zero
   useEffect(() => {
@@ -82,6 +93,15 @@ export default function ContasReceber() {
           Atualizar
         </Button>
       </div>
+
+      <Alert variant="info" className="bg-blue-50 border-blue-200 text-blue-800">
+        <Info className="h-4 w-4" />
+        <AlertTitle>Informação</AlertTitle>
+        <AlertDescription>
+          Esta página mostra apenas os lançamentos relacionados a faturas que já foram enviadas aos clientes 
+          (status: enviada, reenviada, atrasada, paga, finalizada).
+        </AlertDescription>
+      </Alert>
 
       <LancamentosDashboard lancamentos={lancamentos} />
 
