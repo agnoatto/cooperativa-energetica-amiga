@@ -1,4 +1,3 @@
-
 /**
  * Página de Contas a Receber
  * 
@@ -19,7 +18,7 @@ import { LancamentosDashboard } from "@/components/financeiro/dashboard/Lancamen
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { FiltrosLancamento } from "@/components/financeiro/FiltrosLancamento";
-import { AlertCircle, RefreshCw, Info, Sync } from "lucide-react";
+import { AlertCircle, RefreshCw, Info, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useSincronizarLancamentos } from "@/hooks/lancamentos/useSincronizarLancamentos";
@@ -122,7 +121,7 @@ export default function ContasReceber() {
             onClick={handleSincronizar}
             disabled={isSincronizando}
           >
-            <Sync className={`h-4 w-4 mr-2 ${isSincronizando ? 'animate-spin' : ''}`} />
+            <RotateCw className={`h-4 w-4 mr-2 ${isSincronizando ? 'animate-spin' : ''}`} />
             Sincronizar
           </Button>
           

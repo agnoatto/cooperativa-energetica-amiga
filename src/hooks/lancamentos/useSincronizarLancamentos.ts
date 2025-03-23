@@ -22,7 +22,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
-interface ResultadoSincronizacao {
+export interface ResultadoSincronizacao {
   total_sincronizado: number;
   data_execucao: string;
   detalhes: string[];
@@ -47,10 +47,11 @@ export function useSincronizarLancamentos() {
         throw error;
       }
 
-      // Processar o resultado
-      setResultado(data as ResultadoSincronizacao);
+      // Processar o resultado - convertendo para o tipo correto
+      const resultadoTipado = data as unknown as ResultadoSincronizacao;
+      setResultado(resultadoTipado);
       
-      return data;
+      return resultadoTipado;
     } catch (error) {
       console.error('[useSincronizarLancamentos] Erro ao sincronizar lançamentos:', error);
       
