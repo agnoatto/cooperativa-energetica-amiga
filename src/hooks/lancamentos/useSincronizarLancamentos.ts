@@ -21,6 +21,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { StatusLancamento, TipoLancamento } from "@/types/financeiro";
 
 export interface ResultadoSincronizacao {
   total_sincronizado: number;
@@ -112,7 +113,7 @@ export function useSincronizarLancamentos() {
         }
 
         // Determinar status do lançamento com base no status da fatura
-        let statusLancamento = 'pendente';
+        let statusLancamento: StatusLancamento = 'pendente';
         let valorPago = null;
         
         if (fatura.status === 'paga') {
@@ -129,7 +130,7 @@ export function useSincronizarLancamentos() {
         const { error: erroInsercao } = await supabase
           .from('lancamentos_financeiros')
           .insert({
-            tipo: 'receita',
+            tipo: 'receita' as TipoLancamento,
             status: statusLancamento,
             descricao: descricao,
             valor: fatura.valor_assinatura,
