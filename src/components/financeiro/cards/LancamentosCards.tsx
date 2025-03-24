@@ -1,137 +1,195 @@
 
 /**
  * Cards de lançamentos financeiros para visualização mobile
- * 
- * Este componente exibe os lançamentos financeiros em formato de cards
- * otimizados para dispositivos móveis. A data de vencimento é obtida
- * diretamente da fatura ou pagamento quando disponível. O status "atrasado"
- * é determinado automaticamente com base na data de vencimento.
+ *
+ * Este componente exibe os lançamentos financeiros em formato de cartões,
+ * otimizado para dispositivos móveis. Inclui informações como mês de referência,
+ * valor, status e ações.
  */
-import { format } from "date-fns";
-import { LancamentoFinanceiro } from "@/types/financeiro";
-import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Eye, Calendar, User, DollarSign } from "lucide-react";
+import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
 import { formatarMoeda } from "@/utils/formatters";
-import { getStatusColor } from "../utils/status";
-import { useState } from "react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { CheckCircle2, Eye, MoreVertical, XCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import { LancamentoDetailsDialog } from "../modals/LancamentoDetailsDialog";
-import { StatusTransitionButtons } from "../StatusTransitionButtons";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { getStatusColor } from "../utils/status";
 
 interface LancamentosCardsProps {
-  lancamentos?: LancamentoFinanceiro[];
+  lancamentos: LancamentoFinanceiro[] | undefined;
   isLoading: boolean;
-  tipo: 'receita' | 'despesa';
+  tipo: "receita" | "despesa";
   refetch?: () => void;
 }
 
-export function LancamentosCards({ lancamentos, isLoading, tipo, refetch }: LancamentosCardsProps) {
+export function LancamentosCards({
+  lancamentos,
+  isLoading,
+  tipo,
+  refetch,
+}: LancamentosCardsProps) {
   const [selectedLancamento, setSelectedLancamento] = useState<LancamentoFinanceiro | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
 
-  // Função para obter a data de vencimento da fonte primária (fatura ou pagamento usina)
-  const getDataVencimento = (lancamento: LancamentoFinanceiro) => {
-    if (tipo === 'receita' && lancamento.fatura?.data_vencimento) {
-      return new Date(lancamento.fatura.data_vencimento);
-    } else if (tipo === 'despesa' && lancamento.pagamento_usina?.data_vencimento) {
-      return new Date(lancamento.pagamento_usina.data_vencimento);
-    }
-    
-    // Fallback para a data do lançamento (apenas como último recurso)
-    return new Date(lancamento.data_vencimento);
+  const handleViewDetails = (lancamento: LancamentoFinanceiro) => {
+    setSelectedLancamento(lancamento);
+    setShowDetails(true);
   };
 
-  const handleAfterStatusChange = () => {
-    if (refetch) {
-      refetch();
-    }
+  const handleCloseDetails = () => {
+    setShowDetails(false);
     setSelectedLancamento(null);
+  };
+
+  // Função para obter o mês de referência formatado
+  const getMesReferencia = (lancamento: LancamentoFinanceiro) => {
+    if (lancamento.fatura?.mes && lancamento.fatura?.ano) {
+      return format(new Date(lancamento.fatura.ano, lancamento.fatura.mes - 1), "MMMM/yyyy", { locale: ptBR });
+    } else if (lancamento.pagamento_usina?.mes && lancamento.pagamento_usina?.ano) {
+      return format(new Date(lancamento.pagamento_usina.ano, lancamento.pagamento_usina.mes - 1), "MMMM/yyyy", { locale: ptBR });
+    }
+    return lancamento.descricao;
+  };
+
+  // Função para obter ID/número que identifica o lançamento
+  const getIdentificador = (lancamento: LancamentoFinanceiro) => {
+    if (lancamento.fatura?.numero_fatura) {
+      return lancamento.fatura.numero_fatura;
+    } else if (lancamento.pagamento_usina?.id) {
+      return `PG-${lancamento.pagamento_usina.id.substring(0, 6)}`;
+    }
+    return lancamento.id.substring(0, 7);
+  };
+
+  // Formatar a descrição conforme o mês de referência
+  const formatarDescricao = (lancamento: LancamentoFinanceiro) => {
+    const mesReferencia = getMesReferencia(lancamento);
+    const identificador = getIdentificador(lancamento);
+    
+    // Se é o mesmo que a descrição, significa que não tem mês de referência
+    if (mesReferencia === lancamento.descricao) {
+      return lancamento.descricao;
+    }
+    
+    return `${mesReferencia} - ${identificador}`;
+  };
+
+  // Determinar o rótulo do contato (cooperado ou investidor)
+  const getLabelContato = () => {
+    return tipo === 'receita' ? 'Cooperado' : 'Investidor';
+  };
+
+  // Obter o nome do contato (cooperado ou investidor)
+  const getNomeContato = (lancamento: LancamentoFinanceiro) => {
+    if (tipo === 'receita') {
+      return lancamento.cooperado?.nome || '-';
+    } else {
+      return lancamento.investidor?.nome_investidor || '-';
+    }
   };
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="space-y-3">
+        {[...Array(5)].map((_, i) => (
+          <Card key={i}>
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            </CardContent>
+            <CardFooter className="p-4 pt-0 flex justify-end">
+              <Skeleton className="h-8 w-8 rounded-full" />
+            </CardFooter>
+          </Card>
+        ))}
       </div>
     );
   }
 
   if (!lancamentos || lancamentos.length === 0) {
     return (
-      <Card>
-        <CardContent className="p-6 text-center text-gray-500">
-          Nenhum lançamento encontrado
-        </CardContent>
-      </Card>
+      <div className="flex flex-col items-center justify-center p-8 text-center border rounded-lg border-dashed">
+        <h3 className="text-lg font-semibold">Nenhum lançamento encontrado</h3>
+        <p className="text-sm text-gray-500">
+          Não existem lançamentos cadastrados para os filtros selecionados.
+        </p>
+      </div>
     );
   }
 
-  const getNomeEntidade = (lancamento: LancamentoFinanceiro) => {
-    if (tipo === 'receita') {
-      return lancamento.cooperado?.nome;
-    }
-    return lancamento.investidor?.nome_investidor;
-  };
-
   return (
     <>
-      <div className="space-y-4">
-        {lancamentos?.map((lancamento) => (
+      <div className="space-y-3">
+        {lancamentos.map((lancamento) => (
           <Card key={lancamento.id}>
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-center">
-                <h3 className="font-medium text-gray-900 truncate">
-                  {lancamento.descricao}
-                </h3>
-                <span
-                  className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
-                    lancamento.status
-                  )}`}
-                >
-                  {lancamento.status.charAt(0).toUpperCase() +
-                    lancamento.status.slice(1)}
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent className="py-2">
-              <div className="space-y-2">
-                <div className="flex items-center text-sm">
-                  <User className="h-4 w-4 text-gray-500 mr-2" />
-                  <span className="text-gray-700">{getNomeEntidade(lancamento)}</span>
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <h3 className="font-medium">{formatarDescricao(lancamento)}</h3>
+                  <Badge
+                    variant="outline"
+                    className={`${getStatusColor(
+                      lancamento.status as StatusLancamento
+                    )}`}
+                  >
+                    {lancamento.status.charAt(0).toUpperCase() +
+                      lancamento.status.slice(1)}
+                  </Badge>
                 </div>
-                <div className="flex items-center text-sm">
-                  <Calendar className="h-4 w-4 text-gray-500 mr-2" />
-                  <span className="text-gray-700">
-                    {format(getDataVencimento(lancamento), "dd/MM/yyyy")}
-                  </span>
-                </div>
-                <div className="flex items-center text-sm">
-                  <DollarSign className="h-4 w-4 text-gray-500 mr-2" />
-                  <span className="text-gray-700">{formatarMoeda(lancamento.valor)}</span>
+                <div className="text-sm text-gray-600">
+                  <div>
+                    <strong>{getLabelContato()}:</strong> {getNomeContato(lancamento)}
+                  </div>
+                  <div>
+                    <strong>Vencimento:</strong>{" "}
+                    {format(new Date(lancamento.data_vencimento), "dd/MM/yyyy")}
+                  </div>
+                  <div>
+                    <strong>Valor:</strong> {formatarMoeda(lancamento.valor)}
+                  </div>
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="pt-2 flex flex-col space-y-3">
-              <StatusTransitionButtons 
-                lancamento={lancamento}
-                onAfterStatusChange={handleAfterStatusChange}
-                className="w-full justify-center"
-              />
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => setSelectedLancamento(lancamento)}
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                Ver detalhes
-              </Button>
+            <CardFooter className="p-4 pt-0 flex justify-end">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <MoreVertical className="h-5 w-5" />
+                    <span className="sr-only">Mais opções</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleViewDetails(lancamento)}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    Ver detalhes
+                  </DropdownMenuItem>
+                  {lancamento.status === 'pendente' && (
+                    <DropdownMenuItem>
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Marcar como pago
+                    </DropdownMenuItem>
+                  )}
+                  {lancamento.status === 'pendente' && (
+                    <DropdownMenuItem>
+                      <XCircle className="mr-2 h-4 w-4" />
+                      Cancelar
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </CardFooter>
           </Card>
         ))}
@@ -139,9 +197,9 @@ export function LancamentosCards({ lancamentos, isLoading, tipo, refetch }: Lanc
 
       <LancamentoDetailsDialog
         lancamento={selectedLancamento}
-        isOpen={!!selectedLancamento}
-        onClose={() => setSelectedLancamento(null)}
-        onAfterStatusChange={handleAfterStatusChange}
+        isOpen={showDetails}
+        onClose={handleCloseDetails}
+        onAfterStatusChange={refetch}
       />
     </>
   );
