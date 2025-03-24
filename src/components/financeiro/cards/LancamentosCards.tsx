@@ -7,7 +7,7 @@
  * diretamente da fatura ou pagamento quando disponível.
  */
 import { format } from "date-fns";
-import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
+import { LancamentoFinanceiro } from "@/types/financeiro";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Eye, Calendar, User, DollarSign } from "lucide-react";
@@ -15,7 +15,7 @@ import { formatarMoeda } from "@/utils/formatters";
 import { getStatusColor } from "../utils/status";
 import { useState } from "react";
 import { LancamentoDetailsDialog } from "../modals/LancamentoDetailsDialog";
-import { useUpdateLancamentoStatus } from "@/hooks/lancamentos/useUpdateLancamentoStatus";
+import { StatusTransitionButtons } from "../StatusTransitionButtons";
 
 interface LancamentosCardsProps {
   lancamentos?: LancamentoFinanceiro[];
@@ -26,7 +26,6 @@ interface LancamentosCardsProps {
 
 export function LancamentosCards({ lancamentos, isLoading, tipo, refetch }: LancamentosCardsProps) {
   const [selectedLancamento, setSelectedLancamento] = useState<LancamentoFinanceiro | null>(null);
-  const { updateLancamentoStatus } = useUpdateLancamentoStatus();
 
   // Função para obter a data de vencimento da fonte primária (fatura ou pagamento usina)
   const getDataVencimento = (lancamento: LancamentoFinanceiro) => {
@@ -40,13 +39,11 @@ export function LancamentosCards({ lancamentos, isLoading, tipo, refetch }: Lanc
     return new Date(lancamento.data_vencimento);
   };
 
-  // Função que atualiza o status e retorna boolean para compatibilidade
-  const handleUpdateStatus = async (lancamento: LancamentoFinanceiro, newStatus: StatusLancamento) => {
-    const success = await updateLancamentoStatus(lancamento, newStatus);
-    if (success && refetch) {
+  const handleAfterStatusChange = () => {
+    if (refetch) {
       refetch();
     }
-    return success;
+    setSelectedLancamento(null);
   };
 
   if (isLoading) {
@@ -120,7 +117,12 @@ export function LancamentosCards({ lancamentos, isLoading, tipo, refetch }: Lanc
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="pt-2">
+            <CardFooter className="pt-2 flex flex-col space-y-3">
+              <StatusTransitionButtons 
+                lancamento={lancamento}
+                onAfterStatusChange={handleAfterStatusChange}
+                className="w-full justify-center"
+              />
               <Button
                 variant="outline"
                 className="w-full"
@@ -138,7 +140,7 @@ export function LancamentosCards({ lancamentos, isLoading, tipo, refetch }: Lanc
         lancamento={selectedLancamento}
         isOpen={!!selectedLancamento}
         onClose={() => setSelectedLancamento(null)}
-        onUpdateStatus={handleUpdateStatus}
+        onAfterStatusChange={handleAfterStatusChange}
       />
     </>
   );

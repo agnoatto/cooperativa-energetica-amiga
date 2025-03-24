@@ -8,6 +8,7 @@
  * do registro de pagamento quando disponível.
  */
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Eye, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,7 +24,7 @@ import { formatarMoeda } from "@/utils/formatters";
 import { getStatusColor } from "../utils/status";
 import { useState } from "react";
 import { LancamentoDetailsDialog } from "../modals/LancamentoDetailsDialog";
-import { useUpdateLancamentoStatus } from "@/hooks/lancamentos/useUpdateLancamentoStatus";
+import { StatusTransitionButtons } from "../StatusTransitionButtons";
 
 interface LancamentosTableProps {
   lancamentos?: LancamentoFinanceiro[];
@@ -34,7 +35,6 @@ interface LancamentosTableProps {
 
 export function LancamentosTable({ lancamentos, isLoading, tipo, refetch }: LancamentosTableProps) {
   const [selectedLancamento, setSelectedLancamento] = useState<LancamentoFinanceiro | null>(null);
-  const { updateLancamentoStatus } = useUpdateLancamentoStatus();
 
   const getNomeEntidade = (lancamento: LancamentoFinanceiro) => {
     if (tipo === 'receita') {
@@ -45,15 +45,6 @@ export function LancamentosTable({ lancamentos, isLoading, tipo, refetch }: Lanc
 
   const getLabelEntidade = () => {
     return tipo === 'receita' ? 'Cooperado' : 'Investidor';
-  };
-
-  // Função que atualiza o status e retorna boolean para compatibilidade
-  const handleUpdateStatus = async (lancamento: LancamentoFinanceiro, newStatus: StatusLancamento) => {
-    const success = await updateLancamentoStatus(lancamento, newStatus);
-    if (success && refetch) {
-      refetch();
-    }
-    return success;
   };
 
   const handleViewDetails = (lancamento: LancamentoFinanceiro) => {
@@ -72,6 +63,13 @@ export function LancamentosTable({ lancamentos, isLoading, tipo, refetch }: Lanc
     return new Date(lancamento.data_vencimento);
   };
 
+  const handleAfterStatusChange = () => {
+    if (refetch) {
+      refetch();
+    }
+    setSelectedLancamento(null);
+  };
+
   return (
     <>
       <div className="bg-white rounded-lg border">
@@ -83,19 +81,20 @@ export function LancamentosTable({ lancamentos, isLoading, tipo, refetch }: Lanc
               <TableHead>Vencimento</TableHead>
               <TableHead>Valor</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+              <TableHead>Ações</TableHead>
+              <TableHead className="text-right">Detalhes</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center">
+                <TableCell colSpan={7} className="text-center">
                   Carregando...
                 </TableCell>
               </TableRow>
             ) : lancamentos?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center">
+                <TableCell colSpan={7} className="text-center">
                   Nenhum lançamento encontrado
                 </TableCell>
               </TableRow>
@@ -105,13 +104,19 @@ export function LancamentosTable({ lancamentos, isLoading, tipo, refetch }: Lanc
                   <TableCell>{lancamento.descricao}</TableCell>
                   <TableCell>{getNomeEntidade(lancamento)}</TableCell>
                   <TableCell>
-                    {format(getDataVencimento(lancamento), "dd/MM/yyyy")}
+                    {format(getDataVencimento(lancamento), "dd/MM/yyyy", { locale: ptBR })}
                   </TableCell>
                   <TableCell>{formatarMoeda(lancamento.valor)}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(lancamento.status)}`}>
                       {lancamento.status.charAt(0).toUpperCase() + lancamento.status.slice(1)}
                     </span>
+                  </TableCell>
+                  <TableCell>
+                    <StatusTransitionButtons 
+                      lancamento={lancamento}
+                      onAfterStatusChange={handleAfterStatusChange}
+                    />
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
@@ -143,7 +148,7 @@ export function LancamentosTable({ lancamentos, isLoading, tipo, refetch }: Lanc
         lancamento={selectedLancamento}
         isOpen={!!selectedLancamento}
         onClose={() => setSelectedLancamento(null)}
-        onUpdateStatus={handleUpdateStatus}
+        onAfterStatusChange={handleAfterStatusChange}
       />
     </>
   );

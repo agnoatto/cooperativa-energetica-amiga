@@ -8,31 +8,32 @@
  */
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
+import { LancamentoFinanceiro } from "@/types/financeiro";
 import { format } from "date-fns";
-import { StatusTransitionButtons } from "./StatusTransitionButtons";
 import { ptBR } from "date-fns/locale";
+import { StatusTransitionButtons } from "../StatusTransitionButtons";
 import { formatarMoeda } from "@/utils/formatters";
 import { CalendarIcon, BanknoteIcon, FileTextIcon, UserCircle } from "lucide-react";
 import { HistoricoStatusList } from "./HistoricoStatusList";
-import { RegistrarPagamentoModal } from "./RegistrarPagamentoModal";
+import { Button } from "@/components/ui/button";
+import { RegistrarPagamentoDialog } from "./RegistrarPagamentoDialog";
 import { useState } from "react";
 
 interface LancamentoDetailsDialogProps {
   lancamento: LancamentoFinanceiro | null;
   isOpen: boolean;
   onClose: () => void;
-  onUpdateStatus: (lancamento: LancamentoFinanceiro, newStatus: StatusLancamento) => Promise<boolean>;
+  onAfterStatusChange?: () => void;
 }
 
 export function LancamentoDetailsDialog({
   lancamento,
   isOpen,
   onClose,
-  onUpdateStatus,
+  onAfterStatusChange,
 }: LancamentoDetailsDialogProps) {
   const [showRegistrarPagamento, setShowRegistrarPagamento] = useState(false);
-  
+
   if (!lancamento) return null;
 
   // Função para obter a data de vencimento mais atualizada
@@ -60,18 +61,12 @@ export function LancamentoDetailsDialog({
       : lancamento.investidor?.nome_investidor;
   };
 
-  // Wrapper para converter a função de retorno boolean para void
-  const handleUpdateStatus = async (
-    lanc: LancamentoFinanceiro, 
-    newStatus: StatusLancamento,
-    options?: { 
-      valorPago?: number;
-      valorJuros?: number;
-      valorDesconto?: number;
-      observacao?: string;
+  const handlePagamentoSuccess = () => {
+    setShowRegistrarPagamento(false);
+    if (onAfterStatusChange) {
+      onAfterStatusChange();
     }
-  ) => {
-    await onUpdateStatus(lanc, newStatus);
+    onClose();
   };
 
   // Informações sobre a origem do lançamento
@@ -81,11 +76,11 @@ export function LancamentoDetailsDialog({
       <div className="mt-4 p-3 bg-blue-50 rounded-md text-sm">
         <div className="font-medium text-blue-800 mb-1">Fatura</div>
         <div className="text-blue-700">
-          Número: {lancamento.fatura.numero_fatura}
+          Número: {lancamento.fatura.numero_fatura || 'N/A'}
         </div>
         <div className="text-blue-700">
-          UC: {lancamento.fatura.unidade_beneficiaria.numero_uc}
-          {lancamento.fatura.unidade_beneficiaria.apelido && 
+          UC: {lancamento.fatura.unidade_beneficiaria?.numero_uc || 'N/A'}
+          {lancamento.fatura.unidade_beneficiaria?.apelido && 
             ` (${lancamento.fatura.unidade_beneficiaria.apelido})`}
         </div>
         {lancamento.fatura.mes && lancamento.fatura.ano && (
@@ -120,12 +115,6 @@ export function LancamentoDetailsDialog({
       </div>
     );
   }
-
-  // Handler para o sucesso do registro de pagamento
-  const handlePaymentSuccess = () => {
-    setShowRegistrarPagamento(false);
-    onClose();
-  };
 
   return (
     <>
@@ -205,25 +194,35 @@ export function LancamentoDetailsDialog({
 
             <Separator className="my-3" />
 
-            <div className="space-y-2">
-              <StatusTransitionButtons 
-                lancamento={lancamento} 
-                onUpdateStatus={handleUpdateStatus}
-                onRegistrarPagamento={() => setShowRegistrarPagamento(true)}
-              />
+            <div className="space-y-3">
+              {lancamento.status !== 'pago' && (
+                <Button 
+                  onClick={() => setShowRegistrarPagamento(true)}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <BanknoteIcon className="h-4 w-4 mr-2" />
+                  Registrar Pagamento
+                </Button>
+              )}
+              
+              <div className="space-y-2">
+                <div className="text-sm font-medium">Alterar Status:</div>
+                <StatusTransitionButtons 
+                  lancamento={lancamento} 
+                  onAfterStatusChange={onAfterStatusChange}
+                  className="flex-wrap justify-center"
+                />
+              </div>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      <RegistrarPagamentoModal
+      <RegistrarPagamentoDialog
         lancamento={lancamento}
         isOpen={showRegistrarPagamento}
         onClose={() => setShowRegistrarPagamento(false)}
-        onConfirm={async (valorPago, valorJuros, valorDesconto, dataPagamento, observacao) => {
-          await onUpdateStatus(lancamento, 'pago');
-        }}
-        onSuccess={handlePaymentSuccess}
+        onSuccess={handlePagamentoSuccess}
       />
     </>
   );
