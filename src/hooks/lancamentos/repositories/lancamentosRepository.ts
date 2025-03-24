@@ -24,27 +24,21 @@ export async function buscarLancamentosViaProcedure(options: UseLancamentosFinan
     dataFim: options.dataFim 
   });
   
-  try {
-    // Chamar a função RPC para buscar lançamentos
-    let query = supabase.rpc('get_lancamentos_by_tipo', { p_tipo: options.tipo });
-    
-    // Aplicar filtros de data diretamente na query se estiverem disponíveis
-    if (options.dataInicio) {
-      const dataInicioFormatada = new Date(options.dataInicio).toISOString();
-      query = query.gte('data_vencimento', dataInicioFormatada);
-    }
-    
-    if (options.dataFim) {
-      const dataFimFormatada = new Date(options.dataFim).toISOString();
-      query = query.lte('data_vencimento', dataFimFormatada);
-    }
-    
-    return await query;
-  } catch (error) {
-    console.error('Erro ao executar RPC get_lancamentos_by_tipo:', error);
-    // Em caso de erro, vamos tentar uma consulta mais simples que evite o problema de recursão
-    return await buscarLancamentosViaConsultaDireta(options);
+  // Chamar a função RPC para buscar lançamentos
+  let query = supabase.rpc('get_lancamentos_by_tipo', { p_tipo: options.tipo });
+  
+  // Aplicar filtros de data diretamente na query se estiverem disponíveis
+  if (options.dataInicio) {
+    const dataInicioFormatada = new Date(options.dataInicio).toISOString();
+    query = query.gte('data_vencimento', dataInicioFormatada);
   }
+  
+  if (options.dataFim) {
+    const dataFimFormatada = new Date(options.dataFim).toISOString();
+    query = query.lte('data_vencimento', dataFimFormatada);
+  }
+  
+  return await query;
 }
 
 /**
@@ -59,22 +53,7 @@ export async function buscarLancamentosViaConsultaDireta(options: UseLancamentos
   // Consulta direta mais simples evitando joins complexos
   let query = supabase
     .from('lancamentos_financeiros')
-    .select(`
-      *,
-      fatura:fatura_id (
-        id,
-        unidade_beneficiaria:unidade_beneficiaria_id (
-          numero_uc,
-          apelido
-        )
-      ),
-      cooperado:cooperado_id (
-        nome,
-        documento,
-        telefone,
-        email
-      )
-    `)
+    .select('*')
     .eq('tipo', options.tipo)
     .is('deleted_at', null);
     
@@ -87,21 +66,6 @@ export async function buscarLancamentosViaConsultaDireta(options: UseLancamentos
   if (options.dataFim) {
     const dataFimFormatada = new Date(options.dataFim).toISOString();
     query = query.lte('data_vencimento', dataFimFormatada);
-  }
-  
-  // Aplicar filtro de status se não for 'todos'
-  if (options.status !== 'todos') {
-    query = query.eq('status', options.status);
-  }
-  
-  // Se houver busca, aplicar filtro nos campos relevantes
-  if (options.busca && options.busca.trim() !== '') {
-    query = query.or(`
-      descricao.ilike.%${options.busca}%,
-      fatura.unidade_beneficiaria.numero_uc.ilike.%${options.busca}%,
-      fatura.unidade_beneficiaria.apelido.ilike.%${options.busca}%,
-      cooperado.nome.ilike.%${options.busca}%
-    `);
   }
   
   return await query;

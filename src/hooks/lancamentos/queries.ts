@@ -15,7 +15,6 @@ import {
 } from "./repositories/lancamentosRepository";
 import { processarLancamento } from "./services/processadores/processadorLancamento";
 import { aplicarFiltros } from "./services/filtros/filtrosLancamento";
-import { converterHistoricoStatus } from "./core/historicoStatusUtils";
 
 /**
  * Busca lançamentos financeiros com filtros
@@ -25,10 +24,8 @@ import { converterHistoricoStatus } from "./core/historicoStatusUtils";
  */
 export async function fetchLancamentos(options: UseLancamentosFinanceirosOptions): Promise<LancamentoFinanceiro[]> {
   try {
-    // Devido ao erro com user_roles, vamos usar diretamente a consulta mais simples
-    // para evitar recursão infinita nas políticas de segurança
-    console.log('Usando método de consulta direta para evitar problemas de recursão...');
-    const { data, error } = await buscarLancamentosViaConsultaDireta(options);
+    // Tentar buscar via procedimento armazenado
+    const { data, error } = await buscarLancamentosViaProcedure(options);
 
     if (error) {
       console.error('Erro ao buscar lançamentos:', error.message);
@@ -47,26 +44,12 @@ export async function fetchLancamentos(options: UseLancamentosFinanceirosOptions
       return [];
     }
     
-    // Processar cada lançamento para adicionar dados relacionados e converter o historico_status
+    // Processar cada lançamento para adicionar dados relacionados
     const lancamentosProcessados = await Promise.all(
-      data.map(async (item) => {
-        // Converter o histórico_status para o formato correto antes de processar
-        // Esta etapa garante que o histórico seja do tipo HistoricoStatus[]
-        const historicoFormatado = converterHistoricoStatus(item.historico_status);
-        const itemComHistoricoFormatado = {
-          ...item,
-          historico_status: historicoFormatado
-        };
-        
-        // Agora podemos processar o item com o histórico já formatado
-        return await processarLancamento({ 
-          item: itemComHistoricoFormatado, 
-          tipo: options.tipo 
-        });
-      })
+      data.map(item => processarLancamento({ item, tipo: options.tipo }))
     );
     
-    // Aplicar filtros e remover nulos, fazendo um cast para o tipo correto
+    // Aplicar filtros e remover nulos
     return lancamentosProcessados
       .filter(lancamento => lancamento !== null)
       .filter(lancamento => 
@@ -75,24 +58,28 @@ export async function fetchLancamentos(options: UseLancamentosFinanceirosOptions
       
   } catch (error) {
     console.error('Exceção não tratada ao buscar lançamentos:', error);
-    // Em caso de outro erro, tente uma consulta ainda mais simples
+    
+    // Tenta um fallback direto caso a função RPC falhe
     try {
-      console.error('Tentando método de fallback simplificado...');
-      const { data } = await supabase
-        .from('lancamentos_financeiros')
-        .select('*')
-        .eq('tipo', options.tipo)
-        .is('deleted_at', null);
-      
-      if (!data || data.length === 0) {
+      // Buscar lançamentos via consulta direta como fallback
+      const { data, error: fallbackError } = await buscarLancamentosViaConsultaDireta(options);
+        
+      if (fallbackError) {
+        console.error('Erro no método alternativo:', fallbackError);
         return [];
       }
       
-      // Converter o histórico_status de cada item antes de retornar
-      return data.map(item => ({
-        ...item,
-        historico_status: converterHistoricoStatus(item.historico_status)
-      })) as LancamentoFinanceiro[];
+      // Processar cada lançamento para adicionar dados relacionados
+      const lancamentosProcessados = await Promise.all(
+        (data || []).map(item => processarLancamento({ item, tipo: options.tipo }))
+      );
+      
+      // Aplicar filtros e remover nulos
+      return lancamentosProcessados
+        .filter(lancamento => lancamento !== null)
+        .filter(lancamento => 
+          aplicarFiltros(lancamento as LancamentoFinanceiro, options.status, options.busca)
+        ) as LancamentoFinanceiro[];
         
     } catch (fallbackError) {
       console.error('Também falhou o método alternativo:', fallbackError);
@@ -100,6 +87,3 @@ export async function fetchLancamentos(options: UseLancamentosFinanceirosOptions
     }
   }
 }
-
-// Importar o supabase aqui para o fallback
-import { supabase } from "@/integrations/supabase/client";

@@ -19,11 +19,10 @@ import { LancamentosDashboard } from "@/components/financeiro/dashboard/Lancamen
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { FiltrosLancamento } from "@/components/financeiro/FiltrosLancamento";
-import { AlertCircle, RefreshCw, Info, RotateCw, AlertTriangle, Database } from "lucide-react";
+import { AlertCircle, RefreshCw, Info, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useSincronizarLancamentos } from "@/hooks/lancamentos/useSincronizarLancamentos";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ContasReceber() {
   const [status, setStatus] = useState<StatusLancamento | 'todos'>('todos');
@@ -32,7 +31,6 @@ export default function ContasReceber() {
   const [dataFim, setDataFim] = useState('');
   const [tentativas, setTentativas] = useState(0);
   const isMobile = useIsMobile();
-  const [mostrarProblemaRLS, setMostrarProblemaRLS] = useState(false);
 
   const { data: lancamentos, isLoading, error, refetch } = useLancamentosFinanceiros({
     tipo: 'receita',
@@ -42,7 +40,7 @@ export default function ContasReceber() {
     dataFim
   });
 
-  const { sincronizar, isSincronizando, resultado, erro } = useSincronizarLancamentos();
+  const { sincronizar, isSincronizando, resultado } = useSincronizarLancamentos();
 
   useEffect(() => {
     // Exibir notificação informando que só estamos exibindo lançamentos de faturas enviadas
@@ -53,13 +51,6 @@ export default function ContasReceber() {
       }
     );
   }, []);
-
-  // Verificar se o erro contém informação sobre recursão infinita
-  useEffect(() => {
-    if (erro && erro.message.includes('infinite recursion')) {
-      setMostrarProblemaRLS(true);
-    }
-  }, [erro]);
 
   // Exibir notificação quando houver lançamentos com valor zero
   useEffect(() => {
@@ -115,12 +106,7 @@ export default function ContasReceber() {
 
   const handleSincronizar = async () => {
     toast.info("Iniciando sincronização de lançamentos...");
-    const result = await sincronizar();
-    
-    if (result && result.total_sincronizado > 0) {
-      toast.success(`${result.total_sincronizado} lançamentos criados com sucesso!`);
-      refetch();
-    }
+    await sincronizar();
   };
 
   return (
@@ -132,13 +118,13 @@ export default function ContasReceber() {
         
         <div className="flex space-x-2">
           <Button 
-            variant="default" 
+            variant="outline" 
             size="sm" 
             onClick={handleSincronizar}
             disabled={isSincronizando}
           >
             <RotateCw className={`h-4 w-4 mr-2 ${isSincronizando ? 'animate-spin' : ''}`} />
-            Sincronizar Lançamentos
+            Sincronizar
           </Button>
           
           <Button 
@@ -162,91 +148,46 @@ export default function ContasReceber() {
         </AlertDescription>
       </Alert>
 
-      {mostrarProblemaRLS && (
-        <Alert variant="destructive" className="bg-amber-50 border-amber-200 text-amber-700">
-          <Database className="h-4 w-4" />
-          <AlertTitle>Problema no banco de dados detectado</AlertTitle>
-          <AlertDescription>
-            Foi detectado um problema nas políticas de segurança (RLS) na tabela "user_roles" do banco de dados. 
-            Esta é uma configuração incorreta do Supabase que causa recursão infinita. 
-            Entre em contato com o administrador para corrigir este problema.
-          </AlertDescription>
-        </Alert>
-      )}
-
       <LancamentosDashboard lancamentos={lancamentos} />
 
-      {erro && (
-        <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-600">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Erro ao sincronizar lançamentos</AlertTitle>
+      {lancamentos && lancamentos.length > 0 && lancamentos.every(l => l.valor === 0) && (
+        <Alert variant="destructive" className="bg-amber-50 border-amber-200 text-amber-600">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Valores zerados detectados</AlertTitle>
           <AlertDescription>
-            Ocorreu um erro durante a sincronização: {erro.message}
+            Todos os lançamentos têm valor zero. Verifique se as faturas correspondentes têm valor de assinatura preenchido.
+            Se você acabou de corrigir o problema com as funções do banco de dados, pode demorar um pouco para que os valores
+            sejam atualizados. Você pode gerar novas faturas para testar a correção.
           </AlertDescription>
         </Alert>
       )}
 
-      {resultado && resultado.detalhes && resultado.detalhes.length > 0 && (
-        <Tabs defaultValue="lancamentos">
-          <TabsList>
-            <TabsTrigger value="lancamentos">Lançamentos</TabsTrigger>
-            <TabsTrigger value="detalhes">Detalhes de Sincronização</TabsTrigger>
-          </TabsList>
-          <TabsContent value="lancamentos">
-            {/* Conteúdo normal da página */}
-            {lancamentos && lancamentos.length > 0 && lancamentos.every(l => l.valor === 0) && (
-              <Alert variant="destructive" className="bg-amber-50 border-amber-200 text-amber-600">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Valores zerados detectados</AlertTitle>
-                <AlertDescription>
-                  Todos os lançamentos têm valor zero. Verifique se as faturas correspondentes têm valor de assinatura preenchido.
-                  Se você acabou de corrigir o problema com as funções do banco de dados, pode demorar um pouco para que os valores
-                  sejam atualizados. Você pode gerar novas faturas para testar a correção.
-                </AlertDescription>
-              </Alert>
-            )}
+      <FiltrosLancamento 
+        status={status}
+        dataInicio={dataInicio}
+        dataFim={dataFim}
+        busca={busca}
+        onStatusChange={setStatus}
+        onDataInicioChange={setDataInicio}
+        onDataFimChange={setDataFim}
+        onBuscaChange={setBusca}
+        onLimparFiltros={handleLimparFiltros}
+      />
 
-            <FiltrosLancamento 
-              status={status}
-              dataInicio={dataInicio}
-              dataFim={dataFim}
-              busca={busca}
-              onStatusChange={setStatus}
-              onDataInicioChange={setDataInicio}
-              onDataFimChange={setDataFim}
-              onBuscaChange={setBusca}
-              onLimparFiltros={handleLimparFiltros}
-            />
-
-            {isMobile ? (
-              <LancamentosCards
-                lancamentos={lancamentos}
-                isLoading={isLoading}
-                tipo="receita"
-                refetch={refetch}
-              />
-            ) : (
-              <LancamentosTable
-                lancamentos={lancamentos}
-                isLoading={isLoading}
-                tipo="receita"
-                refetch={refetch}
-              />
-            )}
-          </TabsContent>
-          <TabsContent value="detalhes">
-            <div className="p-4 border rounded-md bg-slate-50">
-              <h3 className="font-medium mb-2">Detalhes da sincronização ({resultado.total_sincronizado} lançamentos)</h3>
-              <div className="space-y-1 max-h-[400px] overflow-y-auto text-sm font-mono p-2 bg-slate-100 rounded">
-                {resultado.detalhes.map((detalhe, index) => (
-                  <p key={index} className={detalhe.includes('Erro') ? 'text-red-600' : ''}>
-                    {detalhe}
-                  </p>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+      {isMobile ? (
+        <LancamentosCards
+          lancamentos={lancamentos}
+          isLoading={isLoading}
+          tipo="receita"
+          refetch={refetch}
+        />
+      ) : (
+        <LancamentosTable
+          lancamentos={lancamentos}
+          isLoading={isLoading}
+          tipo="receita"
+          refetch={refetch}
+        />
       )}
 
       {error && (
