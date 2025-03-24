@@ -34,7 +34,7 @@ export function LancamentoDetailsDialog({
   onAfterStatusChange,
 }: LancamentoDetailsDialogProps) {
   const [showRegistrarPagamento, setShowRegistrarPagamento] = useState(false);
-  const { updateLancamentoStatus } = useUpdateLancamentoStatus();
+  const { updateLancamentoStatus, registrarPagamento } = useUpdateLancamentoStatus();
 
   if (!lancamento) return null;
 
@@ -84,7 +84,7 @@ export function LancamentoDetailsDialog({
     let success = false;
 
     if (options && newStatus === 'pago') {
-      success = await updateLancamentoStatus.registrarPagamento(
+      success = await registrarPagamento(
         lanc,
         options.valorPago || lanc.valor,
         options.valorJuros || 0,
