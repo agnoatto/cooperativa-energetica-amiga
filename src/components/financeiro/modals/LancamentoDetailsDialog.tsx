@@ -5,6 +5,7 @@
  * Exibe informações detalhadas sobre o lançamento, com opções
  * para atualizar seu status. A data de vencimento é obtida
  * diretamente da fatura ou pagamento quando disponível.
+ * Agora inclui o mês de referência para melhor identificação.
  */
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
@@ -63,6 +64,25 @@ export function LancamentoDetailsDialog({
       : lancamento.investidor?.nome_investidor;
   };
 
+  // Obter o mês de referência quando disponível
+  const getMesReferencia = () => {
+    if (lancamento.fatura?.mes && lancamento.fatura?.ano) {
+      return format(new Date(lancamento.fatura.ano, lancamento.fatura.mes - 1), "MMMM/yyyy", { locale: ptBR });
+    } else if (lancamento.pagamento_usina?.mes && lancamento.pagamento_usina?.ano) {
+      return format(new Date(lancamento.pagamento_usina.ano, lancamento.pagamento_usina.mes - 1), "MMMM/yyyy", { locale: ptBR });
+    }
+    return null;
+  };
+
+  // Obter título com mês de referência se disponível
+  const getTituloComReferencia = () => {
+    const mesReferencia = getMesReferencia();
+    if (mesReferencia) {
+      return `${lancamento.descricao} - Ref: ${mesReferencia}`;
+    }
+    return lancamento.descricao;
+  };
+
   const handlePagamentoSuccess = () => {
     setShowRegistrarPagamento(false);
     if (onAfterStatusChange) {
@@ -118,7 +138,7 @@ export function LancamentoDetailsDialog({
         </div>
         {lancamento.fatura.mes && lancamento.fatura.ano && (
           <div className="text-blue-700">
-            Período: {lancamento.fatura.mes}/{lancamento.fatura.ano}
+            Período: {format(new Date(lancamento.fatura.ano, lancamento.fatura.mes - 1), 'MMMM/yyyy', { locale: ptBR })}
           </div>
         )}
       </div>
@@ -130,7 +150,7 @@ export function LancamentoDetailsDialog({
         <div className="font-medium text-amber-800 mb-1">Pagamento de Usina</div>
         {pu.mes && pu.ano && (
           <div className="text-amber-700">
-            Período: {pu.mes}/{pu.ano}
+            Período: {format(new Date(pu.ano, pu.mes - 1), 'MMMM/yyyy', { locale: ptBR })}
           </div>
         )}
         {pu.usina?.unidade_usina && (
@@ -159,7 +179,7 @@ export function LancamentoDetailsDialog({
 
           <div className="space-y-3">
             <div>
-              <h3 className="font-medium text-lg">{lancamento.descricao}</h3>
+              <h3 className="font-medium text-lg">{getTituloComReferencia()}</h3>
               <div className="text-sm text-gray-500">
                 Criado em {format(new Date(lancamento.created_at), "dd/MM/yyyy", { locale: ptBR })}
               </div>
