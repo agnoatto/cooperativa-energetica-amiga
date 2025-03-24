@@ -27,13 +27,17 @@ export function getAvailableStatusTransitions(currentStatus: StatusLancamento): 
           value: 'pago', 
           label: 'Marcar como Pago', 
           className: 'text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-200',
-          icon: <CheckCircle2 className="h-3.5 w-3.5" />
+          icon: (
+            <CheckCircle2 className="h-3.5 w-3.5" />
+          )
         },
         { 
           value: 'cancelado', 
           label: 'Cancelar', 
           className: 'text-gray-600 hover:bg-gray-50 hover:text-gray-700 hover:border-gray-200',
-          icon: <XCircle className="h-3.5 w-3.5" />
+          icon: (
+            <XCircle className="h-3.5 w-3.5" />
+          )
         }
       ];
     case 'atrasado':
@@ -42,19 +46,25 @@ export function getAvailableStatusTransitions(currentStatus: StatusLancamento): 
           value: 'pago', 
           label: 'Marcar como Pago', 
           className: 'text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-200',
-          icon: <CheckCircle2 className="h-3.5 w-3.5" />
+          icon: (
+            <CheckCircle2 className="h-3.5 w-3.5" />
+          )
         },
         { 
           value: 'pendente', 
           label: 'Marcar como Pendente', 
           className: 'text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200',
-          icon: <RotateCcw className="h-3.5 w-3.5" />
+          icon: (
+            <RotateCcw className="h-3.5 w-3.5" />
+          )
         },
         { 
           value: 'cancelado', 
           label: 'Cancelar', 
           className: 'text-gray-600 hover:bg-gray-50 hover:text-gray-700 hover:border-gray-200',
-          icon: <XCircle className="h-3.5 w-3.5" />
+          icon: (
+            <XCircle className="h-3.5 w-3.5" />
+          )
         }
       ];
     case 'pago':
@@ -63,7 +73,9 @@ export function getAvailableStatusTransitions(currentStatus: StatusLancamento): 
           value: 'pendente', 
           label: 'Marcar como Pendente', 
           className: 'text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200',
-          icon: <RotateCcw className="h-3.5 w-3.5" />
+          icon: (
+            <RotateCcw className="h-3.5 w-3.5" />
+          )
         }
       ];
     case 'cancelado':
@@ -72,7 +84,9 @@ export function getAvailableStatusTransitions(currentStatus: StatusLancamento): 
           value: 'pendente', 
           label: 'Reativar', 
           className: 'text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200',
-          icon: <RotateCcw className="h-3.5 w-3.5" />
+          icon: (
+            <RotateCcw className="h-3.5 w-3.5" />
+          )
         }
       ];
     default:
