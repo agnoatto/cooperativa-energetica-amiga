@@ -15,6 +15,7 @@ import {
 } from "./repositories/lancamentosRepository";
 import { processarLancamento } from "./services/processadores/processadorLancamento";
 import { aplicarFiltros } from "./services/filtros/filtrosLancamento";
+import { converterHistoricoStatus } from "./core/historicoStatusUtils";
 
 /**
  * Busca lançamentos financeiros com filtros
@@ -46,7 +47,14 @@ export async function fetchLancamentos(options: UseLancamentosFinanceirosOptions
     
     // Processar cada lançamento para adicionar dados relacionados
     const lancamentosProcessados = await Promise.all(
-      data.map(item => processarLancamento({ item, tipo: options.tipo }))
+      data.map(item => {
+        // Converter o historico_status para o tipo esperado antes de processar
+        const itemComHistoricoConvertido = {
+          ...item,
+          historico_status: converterHistoricoStatus(item.historico_status)
+        };
+        return processarLancamento({ item: itemComHistoricoConvertido, tipo: options.tipo });
+      })
     );
     
     // Aplicar filtros e remover nulos
@@ -71,7 +79,14 @@ export async function fetchLancamentos(options: UseLancamentosFinanceirosOptions
       
       // Processar cada lançamento para adicionar dados relacionados
       const lancamentosProcessados = await Promise.all(
-        (data || []).map(item => processarLancamento({ item, tipo: options.tipo }))
+        (data || []).map(item => {
+          // Converter o historico_status para o tipo esperado antes de processar
+          const itemComHistoricoConvertido = {
+            ...item,
+            historico_status: converterHistoricoStatus(item.historico_status)
+          };
+          return processarLancamento({ item: itemComHistoricoConvertido, tipo: options.tipo });
+        })
       );
       
       // Aplicar filtros e remover nulos

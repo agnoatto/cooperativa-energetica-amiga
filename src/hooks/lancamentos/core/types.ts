@@ -1,21 +1,25 @@
 
 /**
- * Tipos básicos para os serviços de lançamentos financeiros
+ * Tipos comuns usados em múltiplos módulos de lançamentos financeiros
  * 
- * Este arquivo contém tipos utilizados pelos serviços de consulta
- * e enriquecimento de lançamentos financeiros
+ * Este arquivo contém definições de tipos reutilizáveis para processamento
+ * de lançamentos, enriquecimento de dados e manipulação de filtros.
  */
 
-import { HistoricoStatus, LancamentoFinanceiro } from "@/types/financeiro";
+import { LancamentoFinanceiro, TipoLancamento } from "@/types/financeiro";
 
+/**
+ * Parâmetros para processamento de lançamentos
+ */
+export interface ProcessamentoLancamentoParams {
+  item: any;
+  tipo: TipoLancamento;
+}
+
+/**
+ * Parâmetros para funções de enriquecimento
+ */
 export interface EnriquecimentoParams {
   lancamento: Partial<LancamentoFinanceiro>;
   item: any;
 }
-
-export interface ProcessamentoLancamentoParams {
-  item: any;
-  tipo: 'receita' | 'despesa';
-}
-
-export type ConversorHistoricoStatus = (historico: any) => HistoricoStatus[];

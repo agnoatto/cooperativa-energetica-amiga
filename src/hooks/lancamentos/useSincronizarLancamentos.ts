@@ -112,11 +112,14 @@ export function useSincronizarLancamentos() {
           unidade_beneficiaria_id,
           status,
           data_pagamento,
-          valor_adicional
+          valor_adicional,
+          created_at
         `)
-        .in('status', ['enviada', 'reenviada', 'atrasada', 'paga', 'finalizada']);
+        .in('status', ['enviada', 'reenviada', 'atrasada', 'paga', 'finalizada'])
+        .order('id', { ascending: true });
 
       if (errorFaturas) {
+        console.error('Erro ao buscar faturas:', errorFaturas);
         throw new Error(`Erro ao buscar faturas: ${errorFaturas.message}`);
       }
 
@@ -184,7 +187,9 @@ export function useSincronizarLancamentos() {
         }
 
         // Criar descrição para o lançamento
-        const descricao = `Fatura ${unidadeBeneficiaria.apelido || unidadeBeneficiaria.numero_uc || 'Unidade'} - ${fatura.id.slice(0, 8)}`;
+        const descricao = unidadeBeneficiaria.apelido 
+          ? `Fatura ${unidadeBeneficiaria.apelido} - ${fatura.id.slice(0, 8)}`
+          : `Fatura UC ${unidadeBeneficiaria.numero_uc} - ${fatura.id.slice(0, 8)}`;
 
         // Criar o lançamento financeiro
         const { error: erroInsercao } = await supabase
@@ -200,6 +205,7 @@ export function useSincronizarLancamentos() {
             data_pagamento: fatura.data_pagamento,
             cooperado_id: unidadeBeneficiaria.cooperado_id,
             fatura_id: fatura.id,
+            created_at: fatura.created_at,
             historico_status: [
               {
                 data: new Date().toISOString(),

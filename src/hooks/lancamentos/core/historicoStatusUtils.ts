@@ -1,51 +1,49 @@
 
 /**
- * Utilitários para processamento do histórico de status de lançamentos
+ * Utilidades para manipulação de histórico de status
  * 
- * Este arquivo contém funções auxiliares para conversão e tratamento
- * do histórico de status dos lançamentos financeiros
+ * Este arquivo contém funções para converter e manipular o histórico
+ * de status dos lançamentos financeiros, garantindo a compatibilidade
+ * de tipos entre o Supabase e a aplicação.
  */
 
 import { HistoricoStatus } from "@/types/financeiro";
 
 /**
- * Converte o histórico de status de um lançamento no formato padrão
+ * Converte o histórico de status do formato JSON para o formato tipado
  * 
- * @param historico O histórico de status a ser convertido
- * @returns Array de histórico de status formatado
+ * @param historicoJson Histórico no formato JSON (como retornado pelo Supabase)
+ * @returns Array tipado de HistoricoStatus
  */
-export function converterHistoricoStatus(historico: any): HistoricoStatus[] {
-  // Se não houver histórico, retornar array vazio
-  if (!historico) {
+export function converterHistoricoStatus(historicoJson: any): HistoricoStatus[] {
+  // Se for nulo ou undefined, retornar array vazio
+  if (!historicoJson) {
     return [];
   }
   
-  // Se já for um array, mapear para o formato correto
-  if (Array.isArray(historico)) {
-    return historico.map((hist: any) => ({
-      data: hist.data || '',
-      status_anterior: hist.status_anterior || 'pendente',
-      novo_status: hist.novo_status || 'pendente'
-    }));
-  } 
-  
-  // Se for string, tentar converter de JSON
-  try {
-    const parsedHistorico = typeof historico === 'string' 
-      ? JSON.parse(historico) 
-      : historico;
-    
-    if (Array.isArray(parsedHistorico)) {
-      return parsedHistorico.map((hist: any) => ({
-        data: hist.data || '',
-        status_anterior: hist.status_anterior || 'pendente',
-        novo_status: hist.novo_status || 'pendente'
-      }));
+  // Se for string, tentar fazer o parse
+  if (typeof historicoJson === 'string') {
+    try {
+      historicoJson = JSON.parse(historicoJson);
+    } catch (e) {
+      console.error('Erro ao fazer parse do histórico de status:', e);
+      return [];
     }
-  } catch (e) {
-    console.error('Erro ao converter historico_status:', e);
   }
   
-  // Retornar array vazio em caso de falha
+  // Se for array, mapear para o formato esperado
+  if (Array.isArray(historicoJson)) {
+    return historicoJson.map(item => ({
+      data: item.data || new Date().toISOString(),
+      status_anterior: item.status_anterior || null,
+      novo_status: item.novo_status || 'pendente',
+      valor_pago: item.valor_pago,
+      valor_juros: item.valor_juros,
+      valor_desconto: item.valor_desconto
+    }));
+  }
+  
+  // Se não for nenhum dos formatos esperados, retornar array vazio
+  console.warn('Formato inesperado de histórico de status:', historicoJson);
   return [];
 }
