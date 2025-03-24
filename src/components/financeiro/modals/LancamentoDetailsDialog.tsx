@@ -8,16 +8,17 @@
  */
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { LancamentoFinanceiro } from "@/types/financeiro";
+import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { StatusTransitionButtons } from "../StatusTransitionButtons";
 import { formatarMoeda } from "@/utils/formatters";
 import { CalendarIcon, BanknoteIcon, FileTextIcon, UserCircle } from "lucide-react";
 import { HistoricoStatusList } from "./HistoricoStatusList";
 import { Button } from "@/components/ui/button";
 import { RegistrarPagamentoDialog } from "./RegistrarPagamentoDialog";
 import { useState } from "react";
+import { useUpdateLancamentoStatus } from "@/hooks/lancamentos/useUpdateLancamentoStatus";
+import { StatusTransitionButtons } from "./StatusTransitionButtons";
 
 interface LancamentoDetailsDialogProps {
   lancamento: LancamentoFinanceiro | null;
@@ -33,6 +34,7 @@ export function LancamentoDetailsDialog({
   onAfterStatusChange,
 }: LancamentoDetailsDialogProps) {
   const [showRegistrarPagamento, setShowRegistrarPagamento] = useState(false);
+  const { updateLancamentoStatus } = useUpdateLancamentoStatus();
 
   if (!lancamento) return null;
 
@@ -67,6 +69,37 @@ export function LancamentoDetailsDialog({
       onAfterStatusChange();
     }
     onClose();
+  };
+
+  const handleUpdateStatus = async (
+    lanc: LancamentoFinanceiro, 
+    newStatus: StatusLancamento, 
+    options?: { 
+      valorPago?: number;
+      valorJuros?: number;
+      valorDesconto?: number;
+      observacao?: string;
+    }
+  ) => {
+    let success = false;
+
+    if (options && newStatus === 'pago') {
+      success = await updateLancamentoStatus.registrarPagamento(
+        lanc,
+        options.valorPago || lanc.valor,
+        options.valorJuros || 0,
+        options.valorDesconto || 0,
+        new Date().toISOString(),
+        options.observacao
+      );
+    } else {
+      success = await updateLancamentoStatus(lanc, newStatus);
+    }
+
+    if (success && onAfterStatusChange) {
+      onAfterStatusChange();
+      onClose();
+    }
   };
 
   // Informações sobre a origem do lançamento
@@ -209,8 +242,8 @@ export function LancamentoDetailsDialog({
                 <div className="text-sm font-medium">Alterar Status:</div>
                 <StatusTransitionButtons 
                   lancamento={lancamento} 
-                  onAfterStatusChange={onAfterStatusChange}
-                  className="flex-wrap justify-center"
+                  onUpdateStatus={handleUpdateStatus}
+                  onRegistrarPagamento={() => setShowRegistrarPagamento(true)}
                 />
               </div>
             </div>

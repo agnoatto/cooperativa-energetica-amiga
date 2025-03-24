@@ -9,10 +9,11 @@
  */
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
-import { Loader2, DollarSign } from "lucide-react";
 import { RegistrarPagamentoModal } from "./RegistrarPagamentoModal";
+import { ModalStatusConfirmationDialog } from "./confirmation/ModalStatusConfirmationDialog";
+import { RegistrarPagamentoButton } from "./buttons/RegistrarPagamentoButton";
+import { getAvailableStatusTransitions } from "../utils/statusTransition";
 
 interface StatusTransitionButtonsProps {
   lancamento: LancamentoFinanceiro;
@@ -26,13 +27,13 @@ interface StatusTransitionButtonsProps {
       observacao?: string;
     }
   ) => Promise<void>;
-  onRegistrarPagamento?: () => void; // Adicionada esta prop para permitir controle externo do modal
+  onRegistrarPagamento?: () => void; // Para permitir controle externo do modal
 }
 
 export function StatusTransitionButtons({
   lancamento,
   onUpdateStatus,
-  onRegistrarPagamento // Adicionado o parâmetro para aceitar a prop
+  onRegistrarPagamento
 }: StatusTransitionButtonsProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -99,16 +100,10 @@ export function StatusTransitionButtons({
     <>
       <div className="flex flex-wrap gap-2">
         {lancamento.status !== 'pago' && (
-          <Button
-            variant="outline"
-            size="sm"
+          <RegistrarPagamentoButton 
             onClick={() => handleStatusClick('pago')}
-            className="text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-200 flex items-center gap-1"
             disabled={isUpdating}
-          >
-            <DollarSign className="h-4 w-4" />
-            Registrar Pagamento
-          </Button>
+          />
         )}
         
         {availableStatusTransitions.map((status) => (
@@ -120,45 +115,20 @@ export function StatusTransitionButtons({
             className={status.className}
             disabled={isUpdating}
           >
-            {status.label}
+            {status.icon}
+            <span className="ml-1">{status.label}</span>
           </Button>
         ))}
       </div>
 
-      <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar alteração de status</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja alterar o status de "{lancamento.status}" para "
-              {statusToChange}"?
-              {statusToChange === 'pago' && (
-                <>
-                  <br/><br/>
-                  <strong>Atenção:</strong> Esta ação irá registrar a data de pagamento como hoje.
-                </>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isUpdating}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleStatusChange} 
-              disabled={isUpdating}
-              className={getButtonClassForStatus(statusToChange as StatusLancamento)}
-            >
-              {isUpdating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processando...
-                </>
-              ) : (
-                "Confirmar"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ModalStatusConfirmationDialog
+        isOpen={showConfirmation}
+        onOpenChange={setShowConfirmation}
+        currentStatus={lancamento.status}
+        newStatus={statusToChange}
+        onConfirm={handleStatusChange}
+        isProcessing={isUpdating}
+      />
 
       {/* Renderizar modal de registro de pagamento apenas se não estiver sendo controlado externamente */}
       {!onRegistrarPagamento && (
@@ -171,43 +141,4 @@ export function StatusTransitionButtons({
       )}
     </>
   );
-}
-
-function getAvailableStatusTransitions(currentStatus: StatusLancamento) {
-  switch (currentStatus) {
-    case 'pendente':
-      return [
-        { value: 'cancelado' as StatusLancamento, label: 'Cancelar', className: 'text-gray-600 hover:bg-gray-50 hover:text-gray-700 hover:border-gray-200' }
-      ];
-    case 'atrasado':
-      return [
-        { value: 'pendente' as StatusLancamento, label: 'Marcar como Pendente', className: 'text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200' },
-        { value: 'cancelado' as StatusLancamento, label: 'Cancelar', className: 'text-gray-600 hover:bg-gray-50 hover:text-gray-700 hover:border-gray-200' }
-      ];
-    case 'pago':
-      return [
-        { value: 'pendente' as StatusLancamento, label: 'Marcar como Pendente', className: 'text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200' }
-      ];
-    case 'cancelado':
-      return [
-        { value: 'pendente' as StatusLancamento, label: 'Reativar', className: 'text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200' }
-      ];
-    default:
-      return [];
-  }
-}
-
-function getButtonClassForStatus(status: StatusLancamento): string {
-  switch (status) {
-    case 'pendente':
-      return 'bg-yellow-600 text-white hover:bg-yellow-700';
-    case 'pago':
-      return 'bg-green-600 text-white hover:bg-green-700';
-    case 'atrasado':
-      return 'bg-red-600 text-white hover:bg-red-700';
-    case 'cancelado':
-      return 'bg-gray-600 text-white hover:bg-gray-700';
-    default:
-      return '';
-  }
 }
