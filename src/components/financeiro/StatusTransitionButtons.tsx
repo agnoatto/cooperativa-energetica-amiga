@@ -4,13 +4,14 @@
  * 
  * Este componente renderiza botões que permitem a transição entre diferentes status
  * de lançamentos financeiros (contas a receber/pagar), seguindo o fluxo definido
- * para cada tipo de transição.
+ * para cada tipo de transição. A opção de marcar como atrasado foi removida, pois
+ * esse status é determinado automaticamente pela data de vencimento.
  */
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
-import { Loader2, CheckCircle2, AlertCircle, RotateCcw, XCircle } from "lucide-react";
+import { Loader2, CheckCircle2, RotateCcw, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useUpdateLancamentoStatus } from "@/hooks/lancamentos/useUpdateLancamentoStatus";
@@ -134,12 +135,6 @@ function getAvailableStatusTransitions(currentStatus: StatusLancamento) {
           label: 'Marcar como Pago', 
           className: 'text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-200',
           icon: <CheckCircle2 className="h-3.5 w-3.5" />
-        },
-        { 
-          value: 'atrasado' as StatusLancamento, 
-          label: 'Marcar como Atrasado', 
-          className: 'text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200',
-          icon: <AlertCircle className="h-3.5 w-3.5" />
         },
         { 
           value: 'cancelado' as StatusLancamento, 

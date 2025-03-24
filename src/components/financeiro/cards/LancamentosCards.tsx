@@ -4,7 +4,8 @@
  * 
  * Este componente exibe os lançamentos financeiros em formato de cards
  * otimizados para dispositivos móveis. A data de vencimento é obtida
- * diretamente da fatura ou pagamento quando disponível.
+ * diretamente da fatura ou pagamento quando disponível. O status "atrasado"
+ * é determinado automaticamente com base na data de vencimento.
  */
 import { format } from "date-fns";
 import { LancamentoFinanceiro } from "@/types/financeiro";
@@ -82,7 +83,7 @@ export function LancamentosCards({ lancamentos, isLoading, tipo, refetch }: Lanc
   return (
     <>
       <div className="space-y-4">
-        {lancamentos.map((lancamento) => (
+        {lancamentos?.map((lancamento) => (
           <Card key={lancamento.id}>
             <CardHeader className="pb-2">
               <div className="flex justify-between items-center">

@@ -1,11 +1,11 @@
-
 /**
  * Tabela de lançamentos financeiros
  * 
  * Este componente exibe os lançamentos financeiros de receitas ou despesas
  * em formato de tabela, com opções para gerenciamento e visualização
  * de detalhes. A data de vencimento é exibida diretamente da fatura ou
- * do registro de pagamento quando disponível.
+ * do registro de pagamento quando disponível. O status "atrasado" é
+ * determinado automaticamente com base na data de vencimento.
  */
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -51,7 +51,6 @@ export function LancamentosTable({ lancamentos, isLoading, tipo, refetch }: Lanc
     setSelectedLancamento(lancamento);
   };
 
-  // Função para obter a data de vencimento da fonte primária (fatura ou pagamento usina)
   const getDataVencimento = (lancamento: LancamentoFinanceiro) => {
     if (tipo === 'receita' && lancamento.fatura?.data_vencimento) {
       return new Date(lancamento.fatura.data_vencimento);
@@ -59,7 +58,6 @@ export function LancamentosTable({ lancamentos, isLoading, tipo, refetch }: Lanc
       return new Date(lancamento.pagamento_usina.data_vencimento);
     }
     
-    // Fallback para a data do lançamento (apenas como último recurso)
     return new Date(lancamento.data_vencimento);
   };
 

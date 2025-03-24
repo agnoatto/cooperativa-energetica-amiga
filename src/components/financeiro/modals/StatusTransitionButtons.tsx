@@ -5,6 +5,7 @@
  * Este componente renderiza os botões de ação para alteração de status
  * de lançamentos financeiros (contas a pagar/receber) baseado no status atual.
  * Inclui botão para registrar pagamento com valores específicos.
+ * O status "atrasado" é determinado automaticamente com base na data de vencimento.
  */
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -176,7 +177,6 @@ function getAvailableStatusTransitions(currentStatus: StatusLancamento) {
   switch (currentStatus) {
     case 'pendente':
       return [
-        { value: 'atrasado' as StatusLancamento, label: 'Marcar como Atrasado', className: 'text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200' },
         { value: 'cancelado' as StatusLancamento, label: 'Cancelar', className: 'text-gray-600 hover:bg-gray-50 hover:text-gray-700 hover:border-gray-200' }
       ];
     case 'atrasado':
