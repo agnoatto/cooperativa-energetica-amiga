@@ -12,7 +12,7 @@ import { useState } from "react";
 import { LancamentoDetailsDialog } from "../modals/LancamentoDetailsDialog";
 import { Table, TableBody } from "@/components/ui/table";
 import { ptBR } from "date-fns/locale";
-import { TableHeader } from "./components/TableHeader";
+import { LancamentosTableHeader } from "./components/TableHeader";
 import { TableRow } from "./components/TableRow";
 import { LoadingTableState } from "./components/LoadingTableState";
 import { EmptyTableState } from "./components/EmptyTableState";
@@ -55,7 +55,7 @@ export function LancamentosTable({
     <>
       <div className="rounded-md border">
         <Table>
-          <TableHeader tipo={tipo} />
+          <LancamentosTableHeader tipo={tipo} />
           <TableBody>
             {lancamentos.map((lancamento) => (
               <TableRow 
