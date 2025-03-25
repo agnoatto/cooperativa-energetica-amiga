@@ -4,6 +4,7 @@ import 'jspdf-autotable';
 import { PagamentoData } from '@/components/pagamentos/types/pagamento';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { truncateForPdf } from './pdfUtils';
 
 export async function generateBoletimPdf(pagamento: PagamentoData) {
   const doc = new jsPDF();
@@ -44,7 +45,7 @@ export async function generateBoletimPdf(pagamento: PagamentoData) {
 
   // Observações
   doc.text('Observações:', 14, 94);
-  const observacao = pagamento.observacao || 'Nenhuma observação.';
+  const observacao = truncateForPdf(pagamento.observacao || 'Nenhuma observação.', 400);
   const lineHeight = 6;
   let y = 100;
   const maxWidth = 180;
@@ -57,7 +58,7 @@ export async function generateBoletimPdf(pagamento: PagamentoData) {
 
   // Observações de Pagamento
   doc.text('Observações de Pagamento:', 14, y + 10);
-  const observacaoPagamento = pagamento.observacao_pagamento || 'Nenhuma observação de pagamento.';
+  const observacaoPagamento = truncateForPdf(pagamento.observacao_pagamento || 'Nenhuma observação de pagamento.', 250);
   y += 16;
   const observacoesPagamento = doc.splitTextToSize(observacaoPagamento, maxWidth);
   observacoesPagamento.forEach(obs => {

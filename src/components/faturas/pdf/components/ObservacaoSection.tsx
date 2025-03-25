@@ -2,7 +2,8 @@
 /**
  * Componente para exibição de observações no PDF da fatura
  * 
- * Exibe as observações relacionadas à fatura, quando existirem
+ * Exibe as observações relacionadas à fatura, quando existirem.
+ * Limita o número de caracteres para garantir que o PDF permanece em uma página.
  */
 import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
@@ -10,10 +11,21 @@ import { COLORS, FONTS } from '@/components/pdf/theme';
 
 interface ObservacaoSectionProps {
   observacao: string | null;
+  // Limite aproximado de caracteres para manter o PDF em uma página
+  // baseado em testes com fonte padrão e espaço disponível
+  maxChars?: number;
 }
 
-export const ObservacaoSection: React.FC<ObservacaoSectionProps> = ({ observacao }) => {
+export const ObservacaoSection: React.FC<ObservacaoSectionProps> = ({ 
+  observacao, 
+  maxChars = 500 // Valor estimado para manter em uma página
+}) => {
   if (!observacao) return null;
+  
+  // Truncar o texto se ele ultrapassar o limite máximo
+  const textoExibido = observacao.length > maxChars 
+    ? `${observacao.slice(0, maxChars)}...` 
+    : observacao;
   
   return (
     <View style={{ 
@@ -33,7 +45,7 @@ export const ObservacaoSection: React.FC<ObservacaoSectionProps> = ({ observacao
       }}>
         Observações da Fatura
       </Text>
-      <Text style={{ fontSize: FONTS.NORMAL }}>{observacao}</Text>
+      <Text style={{ fontSize: FONTS.NORMAL }}>{textoExibido}</Text>
     </View>
   );
 };

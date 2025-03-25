@@ -4,6 +4,7 @@ import { View, Text } from '@react-pdf/renderer';
 import { styles } from '../theme';
 import { formatarMoeda } from '@/utils/formatters';
 import { PagamentoData } from '@/components/pagamentos/types/pagamento';
+import { truncateForPdf } from '@/utils/pdfUtils';
 
 interface BoletimSectionsProps {
   pagamento: PagamentoData;
@@ -48,6 +49,8 @@ export const ValoresCalculadosSection: React.FC<BoletimSectionsProps> = ({ pagam
 export const ObservacoesSection: React.FC<BoletimSectionsProps> = ({ pagamento }) => (
   <View style={styles.section}>
     <Text style={styles.sectionTitle}>Observações</Text>
-    <Text style={styles.text}>{pagamento.observacao || 'Nenhuma observação.'}</Text>
+    <Text style={styles.text}>
+      {truncateForPdf(pagamento.observacao || 'Nenhuma observação.', 350)}
+    </Text>
   </View>
 );
