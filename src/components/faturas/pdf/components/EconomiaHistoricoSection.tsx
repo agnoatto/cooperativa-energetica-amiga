@@ -1,16 +1,18 @@
 
 /**
- * Componente para exibição do histórico de economia no PDF da fatura
+ * Componente para exibição do histórico e economia na fatura PDF
  * 
- * Exibe o consumo mensal e o histórico de economias dos últimos meses
+ * Exibe informações sobre economia do mês atual e acumulada,
+ * além de um histórico de economias anteriores em formato tabular.
+ * Espaçamento reduzido para melhor aproveitamento de layout.
  */
 import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
-import { styles, COLORS, FONTS } from '@/components/pdf/theme';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { styles } from '@/components/pdf/theme';
 import { formatarMoeda } from '@/utils/formatters';
 import { HistoricoFatura } from '@/types/fatura';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface EconomiaHistoricoSectionProps {
   consumoKwh: number;
@@ -24,50 +26,89 @@ export const EconomiaHistoricoSection: React.FC<EconomiaHistoricoSectionProps> =
   valorDesconto,
   economiaAcumulada,
   historicoFiltrado
-}) => (
-  <View style={{ flex: 1, marginRight: 20, borderRight: 1, borderColor: COLORS.GRAY, paddingRight: 20 }}>
-    <Text style={{ marginBottom: 10, fontSize: FONTS.SUBTITLE }}>Consumo do mês</Text>
-    <Text style={{ 
-      fontSize: FONTS.HEADER,
-      marginBottom: 20,
-      color: COLORS.PRIMARY,
-      fontWeight: 'bold'
-    }}>{consumoKwh} kWh</Text>
-    
-    <Text style={{ marginBottom: 5 }}>Neste mês você economizou:</Text>
-    <View style={styles.highlightBox}>
-      <Text style={styles.highlightValue}>{formatarMoeda(valorDesconto)}</Text>
-    </View>
-    
-    <Text style={{ marginBottom: 5, marginTop: 10 }}>Até agora já economizou:</Text>
-    <View style={styles.highlightBox}>
-      <Text style={styles.highlightValue}>{formatarMoeda(economiaAcumulada)}</Text>
-    </View>
-
-    {/* Histórico de Economia - Ajustado para o mesmo tamanho do "Cálculo da Economia" */}
-    <View style={{ marginTop: 20 }}>
-      <Text style={[styles.sectionHeader, { 
-        fontSize: FONTS.SUBTITLE, 
-        marginBottom: 15
-      }]}>
-        Histórico de Economia
-      </Text>
-      <View style={styles.table}>
-        <View style={styles.tableHeader}>
-          <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Mês</Text>
-          <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Consumo</Text>
-          <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Economia</Text>
+}) => {
+  return (
+    <View style={{ width: '50%', paddingRight: 5 }}>
+      {/* Consumo do mês */}
+      <View>
+        <Text style={{ fontSize: 12, fontWeight: 'bold', marginBottom: 2 }}>
+          Consumo do mês
+        </Text>
+        <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 5 }}>
+          {consumoKwh} kWh
+        </Text>
+      </View>
+      
+      {/* Economia do mês - com espaçamento reduzido */}
+      <View style={{ marginBottom: 3 }}>
+        <Text style={{ fontSize: 10, marginBottom: 2 }}>
+          Neste mês você economizou:
+        </Text>
+        <View style={{ 
+          backgroundColor: '#f2fce2', 
+          padding: 8, 
+          borderRadius: 4,
+          marginBottom: 5 
+        }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>
+            {formatarMoeda(valorDesconto)}
+          </Text>
         </View>
-        {historicoFiltrado.map((hist) => (
-          <View key={`${hist.mes}-${hist.ano}`} style={styles.tableRow}>
-            <Text style={styles.tableCell}>
-              {format(new Date(hist.ano, hist.mes - 1), 'MMM/yy', { locale: ptBR })}
-            </Text>
-            <Text style={styles.tableCell}>{hist.consumo_kwh} kWh</Text>
-            <Text style={styles.tableCellRight}>{formatarMoeda(hist.valor_desconto)}</Text>
-          </View>
-        ))}
+      </View>
+      
+      {/* Economia acumulada - com espaçamento reduzido */}
+      <View style={{ marginBottom: 5 }}>
+        <Text style={{ fontSize: 10, marginBottom: 2 }}>
+          Até agora já economizou:
+        </Text>
+        <View style={{ 
+          backgroundColor: '#f2fce2', 
+          padding: 8, 
+          borderRadius: 4,
+          marginBottom: 5
+        }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>
+            {formatarMoeda(economiaAcumulada)}
+          </Text>
+        </View>
+      </View>
+      
+      {/* Tabela de histórico */}
+      <View>
+        <View style={{ 
+          backgroundColor: '#1a1f2c', 
+          padding: 5 
+        }}>
+          <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>
+            Histórico de Economia
+          </Text>
+        </View>
+        
+        <View style={{ flexDirection: 'row', paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: '#ddd' }}>
+          <Text style={{ flex: 1, fontSize: 10, fontWeight: 'bold' }}>Mês</Text>
+          <Text style={{ flex: 1, fontSize: 10, fontWeight: 'bold' }}>Consumo</Text>
+          <Text style={{ flex: 1, fontSize: 10, fontWeight: 'bold', textAlign: 'right' }}>Economia</Text>
+        </View>
+        
+        {historicoFiltrado.map((hist, index) => {
+          const mesAno = format(new Date(hist.ano, hist.mes - 1), 'MMM/yy', { locale: ptBR });
+          
+          return (
+            <View key={index} style={{ 
+              flexDirection: 'row', 
+              paddingVertical: 5,
+              borderBottomWidth: 1,
+              borderBottomColor: '#ddd'
+            }}>
+              <Text style={{ flex: 1, fontSize: 9 }}>{mesAno}</Text>
+              <Text style={{ flex: 1, fontSize: 9 }}>{hist.consumo_kwh} kWh</Text>
+              <Text style={{ flex: 1, fontSize: 9, textAlign: 'right' }}>
+                {formatarMoeda(hist.valor_desconto)}
+              </Text>
+            </View>
+          );
+        })}
       </View>
     </View>
-  </View>
-);
+  );
+};

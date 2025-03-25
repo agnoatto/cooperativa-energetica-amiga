@@ -3,11 +3,13 @@
  * Componente para exibição de observações no PDF da fatura
  * 
  * Exibe as observações relacionadas à fatura, quando existirem.
- * Limita o número de caracteres para garantir que o PDF permanece em uma página.
+ * Limita o número de caracteres para garantir que o PDF permanece em uma página
+ * e evita sobreposição com outros elementos do documento.
  */
 import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { COLORS, FONTS } from '@/components/pdf/theme';
+import { truncateForPdf } from '@/utils/pdfUtils';
 
 interface ObservacaoSectionProps {
   observacao: string | null;
@@ -22,15 +24,13 @@ export const ObservacaoSection: React.FC<ObservacaoSectionProps> = ({
 }) => {
   if (!observacao) return null;
   
-  // Truncar o texto se ele ultrapassar o limite máximo
-  const textoExibido = observacao.length > maxChars 
-    ? `${observacao.slice(0, maxChars)}...` 
-    : observacao;
+  // Usar a utilidade de truncagem para garantir tamanho adequado
+  const textoExibido = truncateForPdf(observacao, maxChars);
   
   return (
     <View style={{ 
       marginTop: 15, 
-      marginBottom: 80, // Aumentado o espaço para evitar sobreposição com o rodapé
+      marginBottom: 100, // Aumentado o espaço para evitar sobreposição com o rodapé
       padding: 10, 
       borderWidth: 1, 
       borderColor: COLORS.GRAY, 
@@ -40,7 +40,7 @@ export const ObservacaoSection: React.FC<ObservacaoSectionProps> = ({
         fontSize: FONTS.SUBTITLE, 
         marginBottom: 5,
         fontWeight: 'bold',
-        textAlign: 'left', // Alterado para alinhar à esquerda
+        textAlign: 'left',
         color: COLORS.BLACK
       }}>
         Observações da Fatura
