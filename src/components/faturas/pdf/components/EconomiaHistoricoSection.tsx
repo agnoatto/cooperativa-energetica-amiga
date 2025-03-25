@@ -34,21 +34,21 @@ export const EconomiaHistoricoSection: React.FC<EconomiaHistoricoSectionProps> =
         <Text style={{ fontSize: 12, fontWeight: 'bold', marginBottom: 2 }}>
           Consumo do mês
         </Text>
-        <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 5 }}>
+        <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 3 }}>
           {consumoKwh} kWh
         </Text>
       </View>
       
       {/* Economia do mês - com espaçamento reduzido */}
-      <View style={{ marginBottom: 3 }}>
-        <Text style={{ fontSize: 10, marginBottom: 2 }}>
+      <View style={{ marginBottom: 2 }}>
+        <Text style={{ fontSize: 10, marginBottom: 1 }}>
           Neste mês você economizou:
         </Text>
         <View style={{ 
           backgroundColor: '#f2fce2', 
-          padding: 8, 
+          padding: 6, 
           borderRadius: 4,
-          marginBottom: 5 
+          marginBottom: 3 
         }}>
           <Text style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>
             {formatarMoeda(valorDesconto)}
@@ -57,15 +57,15 @@ export const EconomiaHistoricoSection: React.FC<EconomiaHistoricoSectionProps> =
       </View>
       
       {/* Economia acumulada - com espaçamento reduzido */}
-      <View style={{ marginBottom: 5 }}>
-        <Text style={{ fontSize: 10, marginBottom: 2 }}>
+      <View style={{ marginBottom: 3 }}>
+        <Text style={{ fontSize: 10, marginBottom: 1 }}>
           Até agora já economizou:
         </Text>
         <View style={{ 
           backgroundColor: '#f2fce2', 
-          padding: 8, 
+          padding: 6, 
           borderRadius: 4,
-          marginBottom: 5
+          marginBottom: 3
         }}>
           <Text style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>
             {formatarMoeda(economiaAcumulada)}
@@ -84,7 +84,7 @@ export const EconomiaHistoricoSection: React.FC<EconomiaHistoricoSectionProps> =
           </Text>
         </View>
         
-        <View style={{ flexDirection: 'row', paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: '#ddd' }}>
+        <View style={{ flexDirection: 'row', paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: '#ddd' }}>
           <Text style={{ flex: 1, fontSize: 10, fontWeight: 'bold' }}>Mês</Text>
           <Text style={{ flex: 1, fontSize: 10, fontWeight: 'bold' }}>Consumo</Text>
           <Text style={{ flex: 1, fontSize: 10, fontWeight: 'bold', textAlign: 'right' }}>Economia</Text>
@@ -96,7 +96,7 @@ export const EconomiaHistoricoSection: React.FC<EconomiaHistoricoSectionProps> =
           return (
             <View key={index} style={{ 
               flexDirection: 'row', 
-              paddingVertical: 5,
+              paddingVertical: 3,
               borderBottomWidth: 1,
               borderBottomColor: '#ddd'
             }}>

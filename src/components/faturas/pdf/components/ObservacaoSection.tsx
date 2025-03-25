@@ -29,16 +29,16 @@ export const ObservacaoSection: React.FC<ObservacaoSectionProps> = ({
   
   return (
     <View style={{ 
-      marginTop: 15, 
-      marginBottom: 100, // Aumentado o espaço para evitar sobreposição com o rodapé
-      padding: 10, 
+      marginTop: 8, 
+      marginBottom: 25,  // Reduzido para aproximar do rodapé
+      padding: 8, 
       borderWidth: 1, 
       borderColor: COLORS.GRAY, 
       borderRadius: 4 
     }}>
       <Text style={{ 
         fontSize: FONTS.SUBTITLE, 
-        marginBottom: 5,
+        marginBottom: 3,
         fontWeight: 'bold',
         textAlign: 'left',
         color: COLORS.BLACK
