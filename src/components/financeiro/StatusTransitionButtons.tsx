@@ -40,6 +40,7 @@ export function StatusTransitionButtons({
     
     setIsUpdating(true);
     try {
+      // Removendo a passagem automática de observação, preservando a observação existente
       const success = await updateLancamentoStatus(lancamento, statusToChange);
       
       if (success) {

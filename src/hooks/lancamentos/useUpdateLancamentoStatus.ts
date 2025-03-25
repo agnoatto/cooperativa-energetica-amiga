@@ -38,7 +38,9 @@ export function useUpdateLancamentoStatus() {
         novo_status: newStatus,
         ...(valorPago !== undefined && { valor_pago: valorPago }),
         ...(valorJuros > 0 && { valor_juros: valorJuros }),
-        ...(valorDesconto > 0 && { valor_desconto: valorDesconto })
+        ...(valorDesconto > 0 && { valor_desconto: valorDesconto }),
+        // Adicionamos comentário no histórico, não na observação principal
+        observacao: `Status alterado de ${lancamento.status} para ${newStatus}`
       };
       
       // Configurar a data de pagamento
@@ -83,9 +85,11 @@ export function useUpdateLancamentoStatus() {
         }
       }
 
+      // Só atualizar a observação principal se uma nova foi explicitamente fornecida
       if (observacao) {
         updateData.observacao = observacao;
       }
+      // Não modificar a observação existente se nenhuma nova for fornecida
 
       // Atualizar o lançamento no banco
       const { error } = await supabase
