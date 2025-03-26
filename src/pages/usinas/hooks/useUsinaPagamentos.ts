@@ -16,6 +16,7 @@ export interface PagamentoUsina {
   status: string;
   data_vencimento: string;
   data_pagamento?: string;
+  observacao?: string;
 }
 
 export function useUsinaPagamentos(usinaId?: string) {

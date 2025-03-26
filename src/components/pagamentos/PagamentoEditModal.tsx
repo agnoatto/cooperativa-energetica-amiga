@@ -21,6 +21,7 @@ import { GeracaoValoresSection } from "./modal/GeracaoValoresSection";
 import { DatasSection } from "./modal/DatasSection";
 import { FormButtons } from "./modal/FormButtons";
 import { ArquivoContaSection } from "./modal/ArquivoContaSection";
+import { ObservacaoSection } from "./modal/ObservacaoSection";
 
 interface PagamentoEditModalProps {
   pagamento: PagamentoData | null;
@@ -40,6 +41,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
   const [dataVencimentoConcessionaria, setDataVencimentoConcessionaria] = useState<Date | undefined>();
   const [dataEmissao, setDataEmissao] = useState<Date | undefined>();
   const [dataVencimento, setDataVencimento] = useState<Date | undefined>();
+  const [observacao, setObservacao] = useState<string>("");
   
   // Estado para o arquivo da conta de energia
   const [arquivoContaNome, setArquivoContaNome] = useState<string | null>(null);
@@ -59,6 +61,7 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
       setTusdFioB(pagamento.tusd_fio_b);
       setValorTusdFioB(pagamento.valor_tusd_fio_b);
       setValorConcessionaria(pagamento.valor_concessionaria);
+      setObservacao(pagamento.observacao || "");
       
       // Calcular valor bruto
       const calculoValorBruto = pagamento.geracao_kwh * (pagamento.usina?.valor_kwh || 0);
@@ -140,7 +143,8 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
         arquivo_conta_energia_nome: arquivoContaNome,
         arquivo_conta_energia_path: arquivoContaPath,
         arquivo_conta_energia_tipo: arquivoContaTipo,
-        arquivo_conta_energia_tamanho: arquivoContaTamanho
+        arquivo_conta_energia_tamanho: arquivoContaTamanho,
+        observacao: observacao
       };
       
       console.log("[PagamentoEditModal] Salvando dados:", dadosAtualizados);
@@ -188,6 +192,14 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
                 dataEmissao={dataEmissao}
                 setDataEmissao={setDataEmissao}
                 dataVencimento={dataVencimento}
+              />
+            </div>
+            
+            {/* Seção de Observações */}
+            <div className="col-span-2">
+              <ObservacaoSection 
+                observacao={observacao}
+                setObservacao={setObservacao}
               />
             </div>
             

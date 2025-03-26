@@ -23,6 +23,7 @@ interface PagamentoUpdateData {
   arquivo_conta_energia_path: string | null;
   arquivo_conta_energia_tipo: string | null;
   arquivo_conta_energia_tamanho: number | null;
+  observacao: string | null;
 }
 
 export const usePagamentoForm = () => {
@@ -54,7 +55,9 @@ export const usePagamentoForm = () => {
         p_arquivo_conta_energia_nome: dados.arquivo_conta_energia_nome,
         p_arquivo_conta_energia_path: dados.arquivo_conta_energia_path,
         p_arquivo_conta_energia_tipo: dados.arquivo_conta_energia_tipo,
-        p_arquivo_conta_energia_tamanho: dados.arquivo_conta_energia_tamanho
+        p_arquivo_conta_energia_tamanho: dados.arquivo_conta_energia_tamanho,
+        // Incluímos a observação
+        p_observacao: dados.observacao
       });
         
       if (error) {
