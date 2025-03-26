@@ -42,9 +42,9 @@ export function PagamentosTable({
   }
 
   return (
-    <div className="rounded-md border border-gray-200 overflow-hidden">
-      <div className="overflow-x-auto">
-        <Table className="w-full [&_th]:bg-gray-50 [&_th]:font-medium [&_th]:text-gray-700 [&_th]:h-9 [&_tr]:border-b [&_tr]:border-gray-200">
+    <div className="rounded-md border border-gray-200 w-full overflow-hidden">
+      <div className="w-full overflow-x-auto">
+        <Table className="w-full min-w-[900px] [&_th]:bg-gray-50 [&_th]:font-medium [&_th]:text-gray-700 [&_th]:h-9 [&_tr]:border-b [&_tr]:border-gray-200">
           <TableHeader className="[&_tr]:border-b [&_tr]:border-gray-200">
             <TableRow className="h-9">
               <TableHead className="py-1.5 px-3 text-sm whitespace-nowrap">UC</TableHead>

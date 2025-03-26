@@ -46,9 +46,9 @@ export function FaturasDesktopTable({
   };
 
   return (
-    <div className="rounded-md border border-gray-200 overflow-hidden">
-      <div className="overflow-x-auto">
-        <Table className="w-full [&_th]:bg-gray-50 [&_th]:font-medium [&_th]:text-gray-700 [&_th]:h-9 [&_tr]:border-b [&_tr]:border-gray-200">
+    <div className="rounded-md border border-gray-200 overflow-hidden w-full">
+      <div className="w-full overflow-x-auto">
+        <Table className="w-full min-w-[1100px] [&_th]:bg-gray-50 [&_th]:font-medium [&_th]:text-gray-700 [&_th]:h-9 [&_tr]:border-b [&_tr]:border-gray-200">
           <TableHeader className="[&_tr]:border-b [&_tr]:border-gray-200">
             <TableRow className="h-9">
               <TableHead className="py-1.5 px-3 text-sm whitespace-nowrap">UC</TableHead>
@@ -59,8 +59,8 @@ export function FaturasDesktopTable({
               <TableHead className="py-1.5 px-3 text-sm text-right whitespace-nowrap">Status</TableHead>
               <TableHead className="py-1.5 px-3 text-sm text-center whitespace-nowrap">Fatura Concessionária</TableHead>
               <TableHead className="py-1.5 px-3 text-sm text-center whitespace-nowrap">Próxima Leitura</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm text-center whitespace-nowrap">Ações</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm w-10"></TableHead>
+              <TableHead className="py-1.5 px-3 text-sm text-center whitespace-nowrap sticky right-0 bg-gray-50">Ações</TableHead>
+              <TableHead className="py-1.5 px-3 text-sm w-10 sticky right-0 bg-gray-50"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

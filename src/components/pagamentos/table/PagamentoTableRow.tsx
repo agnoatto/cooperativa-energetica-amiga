@@ -99,7 +99,7 @@ export function PagamentoTableRow({
           )}
         </div>
       </TableCell>
-      <TableCell className="py-1.5 px-3 text-sm text-right sticky right-0 bg-white">
+      <TableCell className="py-1.5 px-3 text-sm text-right sticky right-0 bg-white whitespace-nowrap">
         <div className="flex items-center justify-end space-x-1">
           <Button
             variant="ghost"

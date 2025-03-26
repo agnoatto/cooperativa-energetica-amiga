@@ -48,9 +48,9 @@ export function UsinaPagamentosTable({ pagamentos, isLoading }: UsinaPagamentosT
   }
 
   return (
-    <div className="rounded-md border overflow-hidden">
-      <div className="overflow-x-auto">
-        <Table>
+    <div className="rounded-md border overflow-hidden w-full">
+      <div className="w-full overflow-x-auto">
+        <Table className="w-full min-w-[700px]">
           <TableHeader>
             <TableRow>
               <TableHead className="whitespace-nowrap">Período</TableHead>
