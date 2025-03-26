@@ -36,7 +36,7 @@ export function UnidadeUsinaForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {unidadeId ? "Editar" : "Nova"} Unidade da Usina
@@ -72,4 +72,3 @@ export function UnidadeUsinaForm({
     </Dialog>
   );
 }
-

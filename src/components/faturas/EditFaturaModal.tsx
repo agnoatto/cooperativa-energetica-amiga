@@ -83,7 +83,7 @@ export function EditFaturaModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-h-[85vh] overflow-y-auto">
         <ModalHeader fatura={fatura} />
 
         {isReadOnly && (
