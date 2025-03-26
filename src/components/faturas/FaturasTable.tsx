@@ -132,6 +132,7 @@ export function FaturasTable({
           onSave={handleUpdateFatura}
           isProcessing={isUpdating}
           refetchFaturas={refetchFaturas}
+          onUpdateStatus={onUpdateStatus}
         />
       )}
       

@@ -1,30 +1,25 @@
 
 /**
- * Seção para edição de valores de desconto e assinatura
- *
- * Este componente permite visualizar e editar os valores de desconto e assinatura
- * nas faturas, incluindo um botão para calcular automaticamente estes valores.
+ * Seção de desconto e assinatura no formulário de edição de faturas
+ * 
+ * Exibe e permite editar/calcular os valores de desconto e assinatura da fatura.
+ * Implementa o modo somente leitura quando a fatura está em status que não permite edição.
  */
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { CurrencyInput } from "@/components/faturas/CurrencyInput";
-import { UseFormReturn } from "react-hook-form";
+import { useState, useEffect } from "react";
+import { FormItem, FormLabel } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Calculator } from "lucide-react";
+import { CurrencyInput } from "@/components/ui/currency-input";
 
 interface DescontoAssinaturaSectionProps {
-  formState: UseFormReturn<any>;
+  formState: any;
   localValorDesconto: number;
   setLocalValorDesconto: (value: number) => void;
   localValorAssinatura: number;
   setLocalValorAssinatura: (value: number) => void;
   isCalculating: boolean;
   onCalcularClick: () => void;
+  readOnly?: boolean;
 }
 
 export function DescontoAssinaturaSection({
@@ -35,57 +30,79 @@ export function DescontoAssinaturaSection({
   setLocalValorAssinatura,
   isCalculating,
   onCalcularClick,
+  readOnly = false
 }: DescontoAssinaturaSectionProps) {
-  return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <FormField
-            control={formState.control}
-            name="valor_desconto"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Valor do Desconto</FormLabel>
-                <FormControl>
-                  <CurrencyInput
-                    placeholder="Valor do desconto"
-                    value={localValorDesconto}
-                    onValueChange={setLocalValorDesconto}
-                    disabled
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+  const [displayValorDesconto, setDisplayValorDesconto] = useState<string>(
+    localValorDesconto.toFixed(2).replace('.', ',')
+  );
+  const [displayValorAssinatura, setDisplayValorAssinatura] = useState<string>(
+    localValorAssinatura.toFixed(2).replace('.', ',')
+  );
 
-        <div>
-          <FormField
-            control={formState.control}
-            name="valor_assinatura"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Valor da Assinatura</FormLabel>
-                <FormControl>
-                  <CurrencyInput
-                    placeholder="Valor da assinatura"
-                    value={localValorAssinatura}
-                    onValueChange={setLocalValorAssinatura}
-                    disabled
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+  // Atualizar exibições quando os valores locais mudarem
+  useEffect(() => {
+    setDisplayValorDesconto(localValorDesconto.toFixed(2).replace('.', ','));
+  }, [localValorDesconto]);
+
+  useEffect(() => {
+    setDisplayValorAssinatura(localValorAssinatura.toFixed(2).replace('.', ','));
+  }, [localValorAssinatura]);
+
+  // Função para converter string formatada para número
+  const parseValue = (value: string): number => {
+    if (!value) return 0;
+    const cleanValue = value.replace(/\./g, '').trim();
+    return parseFloat(cleanValue.replace(',', '.'));
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium">Desconto e Assinatura</h3>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCalcularClick}
+          disabled={isCalculating || readOnly}
+        >
+          {isCalculating ? "Calculando..." : (
+            <>
+              <Calculator className="mr-2 h-4 w-4" />
+              Calcular
+            </>
+          )}
+        </Button>
       </div>
 
-      <Button type="button" onClick={onCalcularClick} disabled={isCalculating}>
-        {isCalculating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Calcular
-      </Button>
-    </>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Valor Desconto */}
+        <FormItem>
+          <FormLabel>Valor Desconto</FormLabel>
+          <CurrencyInput
+            value={displayValorDesconto}
+            onValueChange={(value) => {
+              setDisplayValorDesconto(value);
+              setLocalValorDesconto(parseValue(value));
+            }}
+            placeholder="0,00"
+            disabled={readOnly}
+          />
+        </FormItem>
+
+        {/* Valor Assinatura */}
+        <FormItem>
+          <FormLabel>Valor Assinatura</FormLabel>
+          <CurrencyInput
+            value={displayValorAssinatura}
+            onValueChange={(value) => {
+              setDisplayValorAssinatura(value);
+              setLocalValorAssinatura(parseValue(value));
+            }}
+            placeholder="0,00"
+            disabled={readOnly}
+          />
+        </FormItem>
+      </div>
+    </div>
   );
 }

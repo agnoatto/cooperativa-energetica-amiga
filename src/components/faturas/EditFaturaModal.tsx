@@ -5,6 +5,9 @@
  * Este componente permite a edição completa de uma fatura, incluindo valores,
  * datas, arquivos e outras informações relacionadas. Utiliza hooks e componentes
  * menores para organizar a lógica e interface do usuário.
+ * 
+ * Implementa restrição de edição para faturas que já foram enviadas, permitindo
+ * alterações apenas após mudar o status para "corrigida".
  */
 import {
   Dialog,
@@ -20,6 +23,10 @@ import { ArquivoSection } from "./edit/ArquivoSection";
 import { ActionButtons } from "./edit/ActionButtons";
 import { ModalHeader } from "./edit/ModalHeader";
 import { convertLocalToUTC } from "@/utils/dateFormatters";
+import { StatusTransitionButtons } from "./StatusTransitionButtons";
+import { FaturaStatus } from "@/types/fatura";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface EditFaturaModalProps {
   fatura: any;
@@ -28,6 +35,7 @@ interface EditFaturaModalProps {
   onSave: (data: any) => Promise<void>;
   isProcessing: boolean;
   refetchFaturas?: () => void;
+  onUpdateStatus?: (fatura: any, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
 }
 
 export function EditFaturaModal({
@@ -36,7 +44,8 @@ export function EditFaturaModal({
   onClose,
   onSave,
   isProcessing,
-  refetchFaturas
+  refetchFaturas,
+  onUpdateStatus
 }: EditFaturaModalProps) {
   // Usar o hook personalizado para gerenciar o estado e a lógica
   const {
@@ -68,15 +77,42 @@ export function EditFaturaModal({
     onClose();
   }, refetchFaturas);
 
+  // Verificar se a fatura está em um estado que não permite edição
+  const statusBloqueados: FaturaStatus[] = ['enviada', 'reenviada', 'atrasada', 'paga', 'finalizada'];
+  const isReadOnly = statusBloqueados.includes(fatura.status as FaturaStatus);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <ModalHeader fatura={fatura} />
 
+        {isReadOnly && (
+          <Alert className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Esta fatura não pode ser editada pois já foi enviada ao cliente. 
+              Para realizar alterações, primeiro marque-a como "Corrigida".
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {isReadOnly && onUpdateStatus && (
+          <div className="mb-4">
+            <StatusTransitionButtons 
+              fatura={fatura}
+              onUpdateStatus={onUpdateStatus}
+              size="sm"
+              direction="row"
+              className="justify-center"
+            />
+          </div>
+        )}
+
         <Form {...formState}>
           <form onSubmit={formState.handleSubmit(handleSubmit)} className="space-y-4">
             <BasicInfoSection 
               formState={formState} 
+              readOnly={isReadOnly}
             />
             
             <FaturaValoresSection 
@@ -89,6 +125,7 @@ export function EditFaturaModal({
               setLocalIluminacaoPublica={setLocalIluminacaoPublica}
               localOutrosValores={localOutrosValores}
               setLocalOutrosValores={setLocalOutrosValores}
+              readOnly={isReadOnly}
             />
             
             <DescontoAssinaturaSection 
@@ -99,9 +136,10 @@ export function EditFaturaModal({
               setLocalValorAssinatura={setLocalValorAssinatura}
               isCalculating={isCalculating}
               onCalcularClick={handleCalcularClick}
+              readOnly={isReadOnly}
             />
             
-            <ObservacaoSection formState={formState} />
+            <ObservacaoSection formState={formState} readOnly={isReadOnly} />
             
             <ArquivoSection 
               faturaId={fatura.id}
@@ -111,11 +149,14 @@ export function EditFaturaModal({
               arquivoTamanho={arquivoInfo.tamanho}
               onFileChange={handleFileChange}
               refetchFaturas={refetchFaturas}
+              readOnly={isReadOnly}
             />
             
             <ActionButtons 
               onClose={onClose} 
               isProcessing={isProcessing} 
+              disabled={isReadOnly}
+              disabledMessage="Altere o status para 'Corrigida' para habilitar a edição"
             />
           </form>
         </Form>

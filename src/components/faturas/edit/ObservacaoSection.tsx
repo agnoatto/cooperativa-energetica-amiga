@@ -1,69 +1,76 @@
 
 /**
- * Componente para edição de observações da fatura
+ * Seção de observação no formulário de edição de faturas
  * 
- * Este componente fornece um campo de texto grande para inserção
- * de observações relacionadas à fatura que serão exibidas no PDF.
- * Inclui contador de caracteres para garantir que o texto não exceda
- * o limite e mantenha o PDF em uma única página.
+ * Exibe e permite editar a observação da fatura, com contador de caracteres
+ * e limite para evitar problemas no PDF. 
+ * Implementa o modo somente leitura quando a fatura está em status que não permite edição.
  */
+import { useState, useEffect } from "react";
 import {
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
-  FormMessage,
-  FormDescription,
+  FormMessage
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { UseFormReturn } from "react-hook-form";
-import { useState, useEffect } from "react";
-
-// Limite máximo de caracteres para manter o PDF em uma página
-const MAX_CHARS = 500;
 
 interface ObservacaoSectionProps {
-  formState: UseFormReturn<any>;
+  formState: any;
+  readOnly?: boolean;
 }
 
-export function ObservacaoSection({ formState }: ObservacaoSectionProps) {
+export function ObservacaoSection({ formState, readOnly = false }: ObservacaoSectionProps) {
+  // Limite de caracteres para a observação
+  const maxChars = 500;
   const [charCount, setCharCount] = useState(0);
   
-  // Atualiza o contador quando o campo de observação muda
+  // Atualizar contador ao montar o componente
   useEffect(() => {
-    const observacao = formState.watch("observacao") || "";
-    setCharCount(observacao.length);
-  }, [formState.watch("observacao")]);
+    const value = formState.getValues("observacao") || "";
+    setCharCount(value.length);
+  }, [formState]);
 
   return (
-    <FormField
-      control={formState.control}
-      name="observacao"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Observações da Fatura</FormLabel>
-          <FormControl>
-            <Textarea 
-              placeholder="Adicione aqui observações importantes que aparecerão no PDF da fatura"
-              className="min-h-[100px]"
-              maxLength={MAX_CHARS}
-              {...field}
-              onChange={(e) => {
-                if (e.target.value.length <= MAX_CHARS) {
-                  field.onChange(e);
-                  setCharCount(e.target.value.length);
-                }
-              }}
-            />
-          </FormControl>
-          <FormDescription className="flex justify-end">
-            <span className={charCount >= MAX_CHARS * 0.9 ? "text-amber-600 font-medium" : ""}>
-              {charCount}/{MAX_CHARS} caracteres
-            </span>
-          </FormDescription>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium">Observação</h3>
+      <FormField
+        control={formState.control}
+        name="observacao"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Observação da Fatura</FormLabel>
+            <FormControl>
+              <div className="relative">
+                <Textarea
+                  {...field}
+                  placeholder="Adicione informações relevantes sobre a fatura..."
+                  className="resize-none min-h-[100px]"
+                  maxLength={maxChars}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    setCharCount(e.target.value.length);
+                  }}
+                  disabled={readOnly}
+                />
+                <div 
+                  className={`text-xs absolute right-2 bottom-2 ${
+                    charCount > maxChars * 0.8 
+                      ? charCount > maxChars * 0.9 
+                        ? "text-red-500" 
+                        : "text-amber-500"
+                      : "text-gray-400"
+                  }`}
+                >
+                  {charCount}/{maxChars}
+                </div>
+              </div>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
   );
 }
