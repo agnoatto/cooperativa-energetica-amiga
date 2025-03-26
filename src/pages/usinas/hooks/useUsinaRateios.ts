@@ -4,6 +4,8 @@
  * 
  * Este hook faz a consulta dos rateios associados a uma usina e retorna
  * os dados enriquecidos com informações das unidades beneficiárias.
+ * Permite gerenciar a distribuição dos créditos de energia entre diferentes
+ * unidades consumidoras.
  */
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

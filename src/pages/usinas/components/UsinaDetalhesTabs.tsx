@@ -92,7 +92,11 @@ export function UsinaDetalheTabs({
       </TabsContent>
       
       <TabsContent value="rateios">
-        <UsinaRateiosTable rateios={rateios} isLoading={isLoading} />
+        <UsinaRateiosTable 
+          rateios={rateios} 
+          isLoading={isLoading} 
+          usinaId={usina.id}
+        />
       </TabsContent>
     </Tabs>
   );
