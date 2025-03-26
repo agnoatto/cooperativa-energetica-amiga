@@ -1,58 +1,122 @@
 
 /**
- * Grupo de botões para transição de status de faturas
+ * Botões para transição de status de faturas
  * 
- * Este componente renderiza todos os botões de transição de status
- * disponíveis para uma fatura de acordo com seu status atual.
+ * Este componente renderiza botões que permitem a transição entre diferentes status
+ * de faturas, seguindo o fluxo definido para cada tipo de transição.
+ * Adicionadas opções de personalização para tamanho, direção e classes CSS.
  */
-import React from "react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import { StatusTransitionButton } from "./StatusTransitionButton";
-import { getNextAllowedStatuses } from "@/hooks/faturas/utils/statusTransitions";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+// Adicionando tipagem para as novas props
 interface StatusTransitionButtonsProps {
   fatura: Fatura;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
-  size?: "sm" | "default" | "lg";
-  direction?: "row" | "column";
-  className?: string;
+  size?: "default" | "sm" | "lg" | "icon"; // Tamanhos do botão
+  direction?: "row" | "column"; // Direção do flex
+  className?: string; // Classes adicionais
 }
 
 export function StatusTransitionButtons({
   fatura,
   onUpdateStatus,
   size = "default",
-  direction = "row",
+  direction = "row", 
   className
 }: StatusTransitionButtonsProps) {
-  const currentStatus = fatura.status;
-  const nextStatuses = getNextAllowedStatuses(currentStatus);
-  
-  // Status especial "paga" é tratado em outro local (PaymentConfirmationModal)
-  const filteredStatuses = nextStatuses.filter(status => status !== "paga");
-  
-  if (filteredStatuses.length === 0) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Determinar quais status estão disponíveis para transição com base no status atual
+  const availableTransitions = getAvailableTransitions(fatura.status);
+
+  const handleUpdateStatus = async (newStatus: FaturaStatus) => {
+    setIsLoading(true);
+    try {
+      await onUpdateStatus(fatura, newStatus);
+      toast.success(`Status atualizado para ${newStatus}`);
+    } catch (error) {
+      console.error("Erro ao atualizar status:", error);
+      toast.error("Erro ao atualizar status da fatura");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Se não houver transições disponíveis, não renderizar nada
+  if (availableTransitions.length === 0) {
     return null;
   }
 
   return (
-    <div 
-      className={cn(
-        direction === "row" ? "flex flex-row flex-wrap gap-2" : "flex flex-col gap-2",
-        className
-      )}
-    >
-      {filteredStatuses.map((status) => (
-        <StatusTransitionButton
-          key={status}
-          targetStatus={status}
-          currentStatus={currentStatus}
-          onUpdateStatus={() => onUpdateStatus(fatura, status, `Status alterado de ${currentStatus} para ${status}`)}
+    <div className={cn(
+      "flex gap-2", 
+      direction === "column" ? "flex-col" : "flex-row flex-wrap",
+      className
+    )}>
+      {availableTransitions.map((transition) => (
+        <Button
+          key={transition.status}
+          variant="outline"
           size={size}
-          className={direction === "column" ? "w-full" : ""}
-        />
+          onClick={() => handleUpdateStatus(transition.status)}
+          disabled={isLoading}
+          className={transition.className}
+        >
+          {transition.icon}
+          <span>{transition.label}</span>
+        </Button>
       ))}
     </div>
   );
+}
+
+// Função auxiliar para obter transições disponíveis com base no status atual
+function getAvailableTransitions(currentStatus: FaturaStatus) {
+  const transitions: {
+    status: FaturaStatus;
+    label: string;
+    className?: string;
+    icon?: React.ReactNode;
+  }[] = [];
+
+  // Lógica para determinar transições baseadas no status atual
+  // Aqui você pode adicionar as transições específicas com suas classes e ícones
+  
+  // Exemplo simples:
+  if (currentStatus === 'pendente') {
+    transitions.push({
+      status: 'enviada',
+      label: 'Enviar',
+      className: 'text-blue-600 hover:bg-blue-50'
+    });
+  } else if (currentStatus === 'enviada' || currentStatus === 'reenviada' || currentStatus === 'atrasada') {
+    transitions.push({
+      status: 'paga',
+      label: 'Confirmar Pagamento',
+      className: 'text-green-600 hover:bg-green-50'
+    });
+    transitions.push({
+      status: 'corrigida',
+      label: 'Marcar Correção',
+      className: 'text-amber-600 hover:bg-amber-50'
+    });
+  } else if (currentStatus === 'corrigida') {
+    transitions.push({
+      status: 'reenviada',
+      label: 'Reenviar',
+      className: 'text-purple-600 hover:bg-purple-50'
+    });
+  } else if (currentStatus === 'paga') {
+    transitions.push({
+      status: 'finalizada',
+      label: 'Finalizar',
+      className: 'text-gray-600 hover:bg-gray-50'
+    });
+  }
+
+  return transitions;
 }
