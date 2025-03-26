@@ -37,21 +37,32 @@ interface UnidadeBeneficiaria {
   };
 }
 
-// Definindo o schema para cada unidade no rateio
-const unidadeRateioSchema = z.object({
-  unidade_beneficiaria_id: z.string().uuid({
-    message: "Selecione uma unidade beneficiária"
-  }),
-  percentual: z.coerce.number()
-    .min(0.01, "Percentual deve ser maior que zero")
-    .max(100, "Percentual não pode exceder 100%")
-});
+// Simplificando as definições de esquema e tipos para evitar problemas de recursão
+// Tipo básico para unidade no rateio
+interface UnidadeRateio {
+  unidade_beneficiaria_id: string;
+  percentual: number;
+}
 
-// Definindo o schema do formulário completo
+// Tipo básico para o formulário
+interface RateioForm {
+  usina_id: string;
+  data_inicio: string;
+  unidades: UnidadeRateio[];
+}
+
+// Esquema Zod simplificado
 const rateioSchema = z.object({
-  usina_id: z.string().uuid(),
+  usina_id: z.string(),
   data_inicio: z.string().min(1, "Data de início é obrigatória"),
-  unidades: z.array(unidadeRateioSchema).min(1, "Adicione pelo menos uma unidade beneficiária")
+  unidades: z.array(
+    z.object({
+      unidade_beneficiaria_id: z.string().min(1, "Selecione uma unidade beneficiária"),
+      percentual: z.coerce.number()
+        .min(0.01, "Percentual deve ser maior que zero")
+        .max(100, "Percentual não pode exceder 100%")
+    })
+  ).min(1, "Adicione pelo menos uma unidade beneficiária")
 }).refine(data => {
   const totalPercentual = data.unidades.reduce((sum, item) => sum + item.percentual, 0);
   return totalPercentual <= 100;
@@ -60,18 +71,13 @@ const rateioSchema = z.object({
   path: ["unidades"]
 });
 
-// Definindo o tipo a partir do schema
-type RateioFormValues = z.infer<typeof rateioSchema>;
-// Definindo explicitamente o tipo para uma unidade no rateio
-type UnidadeRateioValues = z.infer<typeof unidadeRateioSchema>;
-
 export function UsinaRateioForm({ open, onOpenChange, usinaId, rateioId }: UsinaRateioFormProps) {
   const queryClient = useQueryClient();
   const [totalPercentual, setTotalPercentual] = useState(0);
   const [unidadesSelecionadas, setUnidadesSelecionadas] = useState<string[]>([]);
 
   // Inicializando o formulário com valores simples
-  const form = useForm<RateioFormValues>({
+  const form = useForm<RateioForm>({
     resolver: zodResolver(rateioSchema),
     defaultValues: {
       usina_id: usinaId,
@@ -115,7 +121,7 @@ export function UsinaRateioForm({ open, onOpenChange, usinaId, rateioId }: Usina
   });
 
   const criarRateioMutation = useMutation({
-    mutationFn: async (values: RateioFormValues) => {
+    mutationFn: async (values: RateioForm) => {
       // 1. Se existir rateio ativo, finaliza ele primeiro
       if (rateiosAtivos && rateiosAtivos.length > 0) {
         const dataFim = new Date(values.data_inicio);
@@ -192,7 +198,7 @@ export function UsinaRateioForm({ open, onOpenChange, usinaId, rateioId }: Usina
       }));
   };
 
-  const handleSubmit = (values: RateioFormValues) => {
+  const handleSubmit = (values: RateioForm) => {
     criarRateioMutation.mutate(values);
   };
 
