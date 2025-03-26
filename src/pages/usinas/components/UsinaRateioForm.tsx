@@ -37,15 +37,26 @@ interface UnidadeBeneficiaria {
   };
 }
 
+// Definindo um tipo simples para a unidade de rateio
+type UnidadeRateio = {
+  unidade_beneficiaria_id: string;
+  percentual: number;
+};
+
+// Definindo o schema do Zod de forma mais simples
 const rateioSchema = z.object({
   usina_id: z.string().uuid(),
   data_inicio: z.string().min(1, "Data de início é obrigatória"),
-  unidades: z.array(z.object({
-    unidade_beneficiaria_id: z.string().uuid({
-      message: "Selecione uma unidade beneficiária"
-    }),
-    percentual: z.coerce.number().min(0.01, "Percentual deve ser maior que zero").max(100, "Percentual não pode exceder 100%")
-  })).min(1, "Adicione pelo menos uma unidade beneficiária")
+  unidades: z.array(
+    z.object({
+      unidade_beneficiaria_id: z.string().uuid({
+        message: "Selecione uma unidade beneficiária"
+      }),
+      percentual: z.coerce.number()
+        .min(0.01, "Percentual deve ser maior que zero")
+        .max(100, "Percentual não pode exceder 100%")
+    })
+  ).min(1, "Adicione pelo menos uma unidade beneficiária")
 }).refine(data => {
   const totalPercentual = data.unidades.reduce((sum, item) => sum + item.percentual, 0);
   return totalPercentual <= 100;
@@ -54,6 +65,7 @@ const rateioSchema = z.object({
   path: ["unidades"]
 });
 
+// Usando um type alias direto do schema do Zod
 type RateioFormValues = z.infer<typeof rateioSchema>;
 
 export function UsinaRateioForm({ open, onOpenChange, usinaId, rateioId }: UsinaRateioFormProps) {
@@ -61,6 +73,7 @@ export function UsinaRateioForm({ open, onOpenChange, usinaId, rateioId }: Usina
   const [totalPercentual, setTotalPercentual] = useState(0);
   const [unidadesSelecionadas, setUnidadesSelecionadas] = useState<string[]>([]);
 
+  // Inicializando o formulário com valores simples
   const form = useForm<RateioFormValues>({
     resolver: zodResolver(rateioSchema),
     defaultValues: {
