@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useUsinaById } from "./hooks/useUsinaById";
 import { useUsinaPagamentos } from "./hooks/useUsinaPagamentos";
 import { useUsinaPrevisoes } from "./hooks/useUsinaPrevisoes";
+import { useUsinaRateios } from "./hooks/useUsinaRateios";
 import { UsinaForm } from "@/components/usinas/UsinaForm";
 import { UsinaDetalheTabs } from "./components/UsinaDetalhesTabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,6 +39,11 @@ const UsinaDetalhe = () => {
     data: previsoes, 
     isLoading: isLoadingPrevisoes 
   } = useUsinaPrevisoes(usinaId);
+  
+  const {
+    data: rateios,
+    isLoading: isLoadingRateios
+  } = useUsinaRateios(usinaId);
 
   const handleVoltar = () => {
     navigate("/usinas");
@@ -67,7 +73,7 @@ const UsinaDetalhe = () => {
     );
   }
 
-  const isLoading = isLoadingUsina || isLoadingPagamentos || isLoadingPrevisoes;
+  const isLoading = isLoadingUsina || isLoadingPagamentos || isLoadingPrevisoes || isLoadingRateios;
 
   return (
     <div className="space-y-6 p-4">
@@ -99,6 +105,7 @@ const UsinaDetalhe = () => {
             usina={usina} 
             pagamentos={pagamentos} 
             previsoes={previsoes}
+            rateios={rateios}
             isLoading={isLoading}
           />
         </>

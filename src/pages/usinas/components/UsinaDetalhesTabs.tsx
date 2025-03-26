@@ -1,6 +1,6 @@
 
 // Este componente exibe as abas na página de detalhes de uma usina
-// Permite navegar entre informações gerais, pagamentos e previsões
+// Permite navegar entre informações gerais, pagamentos, previsões e rateios
 
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,13 +12,16 @@ import { UsinaDadosPagamento } from "./UsinaDadosPagamento";
 import { UsinaDadosUnidade } from "./UsinaDadosUnidade";
 import { UsinaPagamentosTable } from "./UsinaPagamentosTable";
 import { UsinaPrevisaoGeracao } from "./UsinaPrevisaoGeracao";
+import { UsinaRateiosTable } from "./UsinaRateiosTable";
 import { PagamentoUsina } from "../hooks/useUsinaPagamentos";
 import { PrevisaoUsina } from "../hooks/useUsinaPrevisoes";
+import { Rateio } from "../hooks/useUsinaRateios";
 
 interface UsinaDetalheTabsProps {
   usina: UsinaData;
   pagamentos?: PagamentoUsina[];
   previsoes?: PrevisaoUsina[];
+  rateios?: Rateio[];
   isLoading: boolean;
 }
 
@@ -26,6 +29,7 @@ export function UsinaDetalheTabs({
   usina, 
   pagamentos, 
   previsoes,
+  rateios,
   isLoading 
 }: UsinaDetalheTabsProps) {
   return (
@@ -34,6 +38,7 @@ export function UsinaDetalheTabs({
         <TabsTrigger value="geral">Informações Gerais</TabsTrigger>
         <TabsTrigger value="pagamentos">Pagamentos</TabsTrigger>
         <TabsTrigger value="previsoes">Previsão de Geração</TabsTrigger>
+        <TabsTrigger value="rateios">Rateios</TabsTrigger>
       </TabsList>
       
       <TabsContent value="geral" className="space-y-6">
@@ -84,6 +89,10 @@ export function UsinaDetalheTabs({
       
       <TabsContent value="previsoes">
         <UsinaPrevisaoGeracao previsoes={previsoes} isLoading={isLoading} />
+      </TabsContent>
+      
+      <TabsContent value="rateios">
+        <UsinaRateiosTable rateios={rateios} isLoading={isLoading} />
       </TabsContent>
     </Tabs>
   );
