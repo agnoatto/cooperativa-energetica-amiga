@@ -39,8 +39,9 @@ interface FaturaDesktopRowProps {
   onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
-  onViewPdf: (fatura: Fatura) => void;
   onShowPaymentConfirmation: (fatura: Fatura) => void;
+  // A propriedade onViewPdf é opcional agora
+  onViewPdf?: (fatura: Fatura) => void;
 }
 
 export function FaturaDesktopRow({
@@ -49,8 +50,9 @@ export function FaturaDesktopRow({
   onEdit,
   onDelete,
   onUpdateStatus,
-  onViewPdf,
-  onShowPaymentConfirmation
+  onShowPaymentConfirmation,
+  // Definimos um valor padrão para onViewPdf usando uma função vazia
+  onViewPdf = () => {}
 }: FaturaDesktopRowProps) {
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [showCooperadoInfo, setShowCooperadoInfo] = useState(false);
@@ -207,3 +209,4 @@ export function FaturaDesktopRow({
     </>
   );
 }
+
