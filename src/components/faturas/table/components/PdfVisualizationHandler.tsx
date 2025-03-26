@@ -8,8 +8,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { pdf } from "@react-pdf/renderer";
-import { FaturaPDF } from "../pdf/FaturaPDF";
-import { PdfPreview } from "../upload/PdfPreview";
+import { FaturaPDF } from "@/components/faturas/pdf/FaturaPDF";
+import { PdfPreview } from "@/components/faturas/upload/PdfPreview";
 import { Fatura } from "@/types/fatura";
 
 interface PdfVisualizationHandlerProps {
