@@ -1,6 +1,7 @@
 
 // Este componente apresenta a tabela de pagamentos da usina
 // Exibe histórico de pagamentos com status e valores
+// Utiliza ScrollArea para garantir uma experiência de scroll horizontal suave
 
 import React from "react";
 import { 
@@ -11,6 +12,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatarMoeda } from "@/utils/formatters";
 import { PagamentoUsina } from "../hooks/useUsinaPagamentos";
@@ -48,41 +50,47 @@ export function UsinaPagamentosTable({ pagamentos, isLoading }: UsinaPagamentosT
   }
 
   return (
-    <div className="rounded-md border overflow-hidden w-full">
-      <div className="w-full overflow-x-auto">
-        <Table className="w-full min-w-[700px]">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="whitespace-nowrap">Período</TableHead>
-              <TableHead className="whitespace-nowrap">Geração (kWh)</TableHead>
-              <TableHead className="whitespace-nowrap">Valor</TableHead>
-              <TableHead className="whitespace-nowrap">Vencimento</TableHead>
-              <TableHead className="whitespace-nowrap">Status</TableHead>
-              <TableHead className="whitespace-nowrap">Observação</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pagamentos.map((pagamento) => (
-              <TableRow key={pagamento.id}>
-                <TableCell className="whitespace-nowrap">
-                  {getNomeMes(pagamento.mes)}/{pagamento.ano}
-                </TableCell>
-                <TableCell className="whitespace-nowrap">{pagamento.geracao_kwh?.toFixed(2) || '0.00'}</TableCell>
-                <TableCell className="whitespace-nowrap">{formatarMoeda(pagamento.valor_total)}</TableCell>
-                <TableCell className="whitespace-nowrap">
-                  {pagamento.data_vencimento && format(new Date(pagamento.data_vencimento), 'dd/MM/yyyy')}
-                </TableCell>
-                <TableCell className="whitespace-nowrap">
-                  <PagamentoBadge status={pagamento.status} />
-                </TableCell>
-                <TableCell className="max-w-[200px] truncate">
-                  {pagamento.observacao || '-'}
-                </TableCell>
+    <div className="border rounded-md shadow-sm overflow-hidden">
+      <ScrollArea className="h-[calc(100vh-450px)] w-full">
+        <div className="relative w-full">
+          <Table className="w-full min-w-[800px] table-fixed">
+            <TableHeader className="bg-gray-50 sticky top-0 z-10">
+              <TableRow className="border-b border-gray-200">
+                <TableHead className="w-[100px] py-3 px-4 text-sm font-medium text-gray-700">Período</TableHead>
+                <TableHead className="w-[120px] py-3 px-4 text-sm font-medium text-gray-700">Geração (kWh)</TableHead>
+                <TableHead className="w-[120px] py-3 px-4 text-sm font-medium text-gray-700">Valor</TableHead>
+                <TableHead className="w-[120px] py-3 px-4 text-sm font-medium text-gray-700">Vencimento</TableHead>
+                <TableHead className="w-[100px] py-3 px-4 text-sm font-medium text-gray-700">Status</TableHead>
+                <TableHead className="w-[240px] py-3 px-4 text-sm font-medium text-gray-700">Observação</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {pagamentos.map((pagamento) => (
+                <TableRow key={pagamento.id} className="border-b border-gray-200 hover:bg-gray-50/70 transition-colors">
+                  <TableCell className="py-3 px-4 text-sm">
+                    {getNomeMes(pagamento.mes)}/{pagamento.ano}
+                  </TableCell>
+                  <TableCell className="py-3 px-4 text-sm">
+                    {pagamento.geracao_kwh?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0,00'}
+                  </TableCell>
+                  <TableCell className="py-3 px-4 text-sm">{formatarMoeda(pagamento.valor_total)}</TableCell>
+                  <TableCell className="py-3 px-4 text-sm">
+                    {pagamento.data_vencimento && format(new Date(pagamento.data_vencimento), 'dd/MM/yyyy')}
+                  </TableCell>
+                  <TableCell className="py-3 px-4 text-sm">
+                    <PagamentoBadge status={pagamento.status} />
+                  </TableCell>
+                  <TableCell className="py-3 px-4 text-sm">
+                    <div className="max-w-[220px] truncate">
+                      {pagamento.observacao || '-'}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </ScrollArea>
     </div>
   );
 }

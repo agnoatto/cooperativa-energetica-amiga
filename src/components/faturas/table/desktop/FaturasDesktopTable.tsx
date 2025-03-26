@@ -1,21 +1,22 @@
 
 /**
- * Tabela de faturas para desktop
+ * Componente de tabela desktop para faturas
  * 
- * Este componente exibe as faturas em formato de tabela otimizado
- * para visualização em dispositivos desktop. Inclui informações
- * completas de cooperados e unidades beneficiárias.
+ * Implementa uma tabela responsiva com scroll horizontal controlado
+ * utilizando ScrollArea para garantir uma experiência profissional.
  */
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+import { 
+  Table, 
+  TableBody, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
 } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { FaturaDesktopRow } from "./FaturaDesktopRow";
+import { useMemo } from "react";
+import { FaturasTableHeader } from "../FaturasTableHeader";
 
 interface FaturasDesktopTableProps {
   faturas: Fatura[];
@@ -34,51 +35,50 @@ export function FaturasDesktopTable({
   onUpdateStatus,
   onShowPaymentConfirmation
 }: FaturasDesktopTableProps) {
-  // Função para visualizar PDF da fatura
-  const handleViewPdf = (fatura: Fatura) => {
-    // Verificamos se existe um arquivo de fatura
-    if (!fatura.arquivo_concessionaria_path) {
-      return;
-    }
-    
-    // Esta função apenas passa o evento para o componente que exibe o PDF
-    // A lógica de exibição está implementada no FaturaDesktopRow
-  };
+  const sortedFaturas = useMemo(() => {
+    return [...faturas].sort((a, b) => {
+      // Faturas não pagas primeiro
+      if (a.status !== 'paga' && b.status === 'paga') return -1;
+      if (a.status === 'paga' && b.status !== 'paga') return 1;
+      
+      // Depois por data de vencimento (mais próximas primeiro)
+      return new Date(a.data_vencimento).getTime() - new Date(b.data_vencimento).getTime();
+    });
+  }, [faturas]);
 
   return (
-    <div className="rounded-md border border-gray-200 overflow-hidden w-full">
-      <div className="w-full overflow-x-auto">
-        <Table className="w-full min-w-[1100px] [&_th]:bg-gray-50 [&_th]:font-medium [&_th]:text-gray-700 [&_th]:h-9 [&_tr]:border-b [&_tr]:border-gray-200">
-          <TableHeader className="[&_tr]:border-b [&_tr]:border-gray-200">
-            <TableRow className="h-9">
-              <TableHead className="py-1.5 px-3 text-sm whitespace-nowrap">UC</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm whitespace-nowrap">Cooperado</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm text-right whitespace-nowrap">Consumo</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm text-right whitespace-nowrap">Valor</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm text-right whitespace-nowrap">Vencimento</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm text-right whitespace-nowrap">Status</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm text-center whitespace-nowrap">Fatura Concessionária</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm text-center whitespace-nowrap">Próxima Leitura</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm text-center whitespace-nowrap sticky right-0 bg-gray-50">Ações</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm w-10 sticky right-0 bg-gray-50"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {faturas.map((fatura) => (
-              <FaturaDesktopRow
-                key={fatura.id}
-                fatura={fatura}
-                onViewDetails={onViewDetails}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onUpdateStatus={onUpdateStatus}
-                onViewPdf={handleViewPdf}
-                onShowPaymentConfirmation={onShowPaymentConfirmation}
-              />
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+    <div className="border rounded-md shadow-sm overflow-hidden">
+      <ScrollArea className="h-[calc(100vh-360px)] w-full">
+        <div className="relative w-full">
+          <Table className="w-full min-w-[1200px] table-fixed">
+            <TableHeader className="bg-gray-50 sticky top-0 z-10">
+              <TableRow className="border-b border-gray-200">
+                <TableHead className="w-[120px] py-3 px-4 text-sm font-medium text-gray-700">UC</TableHead>
+                <TableHead className="w-[200px] py-3 px-4 text-sm font-medium text-gray-700">Cooperado</TableHead>
+                <TableHead className="w-[120px] py-3 px-4 text-sm font-medium text-gray-700 text-right">Valor</TableHead>
+                <TableHead className="w-[120px] py-3 px-4 text-sm font-medium text-gray-700 text-right">Vencimento</TableHead>
+                <TableHead className="w-[120px] py-3 px-4 text-sm font-medium text-gray-700 text-right">Status</TableHead>
+                <TableHead className="w-[150px] py-3 px-4 text-sm font-medium text-gray-700 text-center">Fatura Concessionária</TableHead>
+                <TableHead className="w-[150px] py-3 px-4 text-sm font-medium text-gray-700 text-center">Próxima Leitura</TableHead>
+                <TableHead className="w-[120px] py-3 px-4 text-sm font-medium text-gray-700 text-center sticky right-0 bg-gray-50 shadow-[-8px_0_16px_-6px_rgba(0,0,0,0.05)]">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedFaturas.map((fatura) => (
+                <FaturaDesktopRow
+                  key={fatura.id}
+                  fatura={fatura}
+                  onViewDetails={onViewDetails}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  onUpdateStatus={onUpdateStatus}
+                  onShowPaymentConfirmation={onShowPaymentConfirmation}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </ScrollArea>
     </div>
   );
 }

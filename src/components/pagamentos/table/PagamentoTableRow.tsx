@@ -73,19 +73,19 @@ export function PagamentoTableRow({
   };
 
   return (
-    <TableRow className="h-9 hover:bg-gray-50">
-      <TableCell className="py-1.5 px-3 text-sm whitespace-nowrap">{pagamento.usina?.unidade_usina?.numero_uc}</TableCell>
-      <TableCell className="py-1.5 px-3 text-sm font-medium truncate max-w-[180px]">{pagamento.usina?.investidor?.nome_investidor}</TableCell>
-      <TableCell className="py-1.5 px-3 text-sm text-right whitespace-nowrap">{pagamento.geracao_kwh}</TableCell>
-      <TableCell className="py-1.5 px-3 text-sm text-right whitespace-nowrap">
+    <TableRow className="border-b border-gray-200 hover:bg-gray-50/70 transition-colors">
+      <TableCell className="py-3 px-4 text-sm">{pagamento.usina?.unidade_usina?.numero_uc}</TableCell>
+      <TableCell className="py-3 px-4 text-sm font-medium truncate max-w-[180px]">{pagamento.usina?.investidor?.nome_investidor}</TableCell>
+      <TableCell className="py-3 px-4 text-sm text-right">{pagamento.geracao_kwh.toLocaleString('pt-BR')}</TableCell>
+      <TableCell className="py-3 px-4 text-sm text-right">
         {formatarMoeda(pagamento.valor_concessionaria)}
       </TableCell>
-      <TableCell className="py-1.5 px-3 text-sm text-right whitespace-nowrap">{formatarMoeda(valorEfetivo)}</TableCell>
-      <TableCell className="py-1.5 px-3 text-sm text-right whitespace-nowrap">{formattedVencimento}</TableCell>
-      <TableCell className="py-1.5 px-3 text-sm text-right whitespace-nowrap">
+      <TableCell className="py-3 px-4 text-sm text-right">{formatarMoeda(valorEfetivo)}</TableCell>
+      <TableCell className="py-3 px-4 text-sm text-right">{formattedVencimento}</TableCell>
+      <TableCell className="py-3 px-4 text-sm text-right">
         <StatusBadge status={pagamento.status} />
       </TableCell>
-      <TableCell className="py-1.5 px-3 text-sm text-center whitespace-nowrap">
+      <TableCell className="py-3 px-4 text-sm text-center">
         <div className="flex items-center justify-center">
           {showFileActions ? (
             <FileActions
@@ -99,13 +99,13 @@ export function PagamentoTableRow({
           )}
         </div>
       </TableCell>
-      <TableCell className="py-1.5 px-3 text-sm text-right sticky right-0 bg-white whitespace-nowrap">
-        <div className="flex items-center justify-end space-x-1">
+      <TableCell className="py-3 px-4 text-sm text-right sticky right-0 bg-white shadow-[-8px_0_16px_-6px_rgba(0,0,0,0.05)]">
+        <div className="flex items-center justify-end space-x-2">
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7"
-            onClick={() => setShowBoletimPreview(true)}
+            className="h-8 w-8 hover:bg-gray-100"
+            onClick={() => onViewDetails(pagamento)}
             title="Visualizar boletim"
           >
             <Eye className="h-4 w-4 text-gray-600" />
@@ -115,7 +115,7 @@ export function PagamentoTableRow({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7"
+              className="h-8 w-8 hover:bg-gray-100"
               onClick={handleSendClick}
               title="Enviar boletim"
               disabled={isUpdating}
@@ -127,7 +127,7 @@ export function PagamentoTableRow({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7"
+            className="h-8 w-8 hover:bg-gray-100"
             onClick={() => onEdit(pagamento)}
             title="Editar"
           >
@@ -137,7 +137,7 @@ export function PagamentoTableRow({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7"
+            className="h-8 w-8 hover:bg-gray-100"
             onClick={() => onDelete(pagamento)}
             title="Excluir"
           >

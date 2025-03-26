@@ -4,6 +4,8 @@
  * 
  * Este componente exibe a lista de faturas e gerencia as interações
  * como visualizar detalhes, editar, excluir e atualizar status.
+ * 
+ * Utiliza ScrollArea para garantir uma experiência de scroll horizontal suave.
  */
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { useState } from "react";

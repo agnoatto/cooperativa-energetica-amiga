@@ -4,6 +4,9 @@
  * 
  * Esta tabela exibe todos os pagamentos com informações como unidade consumidora,
  * investidor, valores e opções de ações como visualizar detalhes e editar.
+ * 
+ * A tabela utiliza ScrollArea para garantir uma experiência de scroll horizontal
+ * suave e profissional em dispositivos com telas menores.
  */
 import React from "react";
 import {
@@ -13,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { PagamentoTableRow } from "./table/PagamentoTableRow";
 import { PagamentosLoadingState } from "./table/PagamentosLoadingState";
 import { PagamentosEmptyState } from "./table/PagamentosEmptyState";
@@ -42,35 +46,37 @@ export function PagamentosTable({
   }
 
   return (
-    <div className="rounded-md border border-gray-200 w-full overflow-hidden">
-      <div className="w-full overflow-x-auto">
-        <Table className="w-full min-w-[900px] [&_th]:bg-gray-50 [&_th]:font-medium [&_th]:text-gray-700 [&_th]:h-9 [&_tr]:border-b [&_tr]:border-gray-200">
-          <TableHeader className="[&_tr]:border-b [&_tr]:border-gray-200">
-            <TableRow className="h-9">
-              <TableHead className="py-1.5 px-3 text-sm whitespace-nowrap">UC</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm whitespace-nowrap">Investidor</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm text-right whitespace-nowrap">Geração (kWh)</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm text-right whitespace-nowrap">Valor Concess.</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm text-right whitespace-nowrap">Valor Total</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm text-right whitespace-nowrap">Vencimento</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm text-right whitespace-nowrap">Status</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm text-center whitespace-nowrap">Conta</TableHead>
-              <TableHead className="py-1.5 px-3 text-sm text-right sticky right-0 bg-gray-50 whitespace-nowrap">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pagamentos.map((pagamento) => (
-              <PagamentoTableRow
-                key={pagamento.id}
-                pagamento={pagamento}
-                onEdit={onEditPagamento}
-                onDelete={onDeletePagamento}
-                onViewDetails={onViewDetails}
-              />
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+    <div className="border border-gray-200 rounded-md shadow-sm">
+      <ScrollArea className="h-[calc(100vh-360px)] w-full rounded-md">
+        <div className="relative w-full">
+          <Table className="w-full min-w-[1200px] table-fixed">
+            <TableHeader className="bg-gray-50 sticky top-0 z-10">
+              <TableRow className="border-b border-gray-200">
+                <TableHead className="w-[120px] py-3 px-4 text-sm font-medium text-gray-700">UC</TableHead>
+                <TableHead className="w-[200px] py-3 px-4 text-sm font-medium text-gray-700">Investidor</TableHead>
+                <TableHead className="w-[120px] py-3 px-4 text-sm font-medium text-gray-700 text-right">Geração (kWh)</TableHead>
+                <TableHead className="w-[150px] py-3 px-4 text-sm font-medium text-gray-700 text-right">Valor Concess.</TableHead>
+                <TableHead className="w-[150px] py-3 px-4 text-sm font-medium text-gray-700 text-right">Valor Total</TableHead>
+                <TableHead className="w-[120px] py-3 px-4 text-sm font-medium text-gray-700 text-right">Vencimento</TableHead>
+                <TableHead className="w-[100px] py-3 px-4 text-sm font-medium text-gray-700 text-right">Status</TableHead>
+                <TableHead className="w-[120px] py-3 px-4 text-sm font-medium text-gray-700 text-center">Conta</TableHead>
+                <TableHead className="w-[140px] py-3 px-4 text-sm font-medium text-gray-700 text-right sticky right-0 bg-gray-50 shadow-[-8px_0_16px_-6px_rgba(0,0,0,0.05)]">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pagamentos.map((pagamento) => (
+                <PagamentoTableRow
+                  key={pagamento.id}
+                  pagamento={pagamento}
+                  onEdit={onEditPagamento}
+                  onDelete={onDeletePagamento}
+                  onViewDetails={onViewDetails}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </ScrollArea>
     </div>
   );
 }
