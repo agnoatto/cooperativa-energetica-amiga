@@ -74,18 +74,18 @@ export function PagamentoTableRow({
 
   return (
     <TableRow className="h-9 hover:bg-gray-50">
-      <TableCell className="py-1.5 px-3 text-sm">{pagamento.usina?.unidade_usina?.numero_uc}</TableCell>
+      <TableCell className="py-1.5 px-3 text-sm whitespace-nowrap">{pagamento.usina?.unidade_usina?.numero_uc}</TableCell>
       <TableCell className="py-1.5 px-3 text-sm font-medium truncate max-w-[180px]">{pagamento.usina?.investidor?.nome_investidor}</TableCell>
-      <TableCell className="py-1.5 px-3 text-sm text-right">{pagamento.geracao_kwh}</TableCell>
-      <TableCell className="py-1.5 px-3 text-sm text-right">
+      <TableCell className="py-1.5 px-3 text-sm text-right whitespace-nowrap">{pagamento.geracao_kwh}</TableCell>
+      <TableCell className="py-1.5 px-3 text-sm text-right whitespace-nowrap">
         {formatarMoeda(pagamento.valor_concessionaria)}
       </TableCell>
-      <TableCell className="py-1.5 px-3 text-sm text-right">{formatarMoeda(valorEfetivo)}</TableCell>
-      <TableCell className="py-1.5 px-3 text-sm text-right">{formattedVencimento}</TableCell>
-      <TableCell className="py-1.5 px-3 text-sm text-right">
+      <TableCell className="py-1.5 px-3 text-sm text-right whitespace-nowrap">{formatarMoeda(valorEfetivo)}</TableCell>
+      <TableCell className="py-1.5 px-3 text-sm text-right whitespace-nowrap">{formattedVencimento}</TableCell>
+      <TableCell className="py-1.5 px-3 text-sm text-right whitespace-nowrap">
         <StatusBadge status={pagamento.status} />
       </TableCell>
-      <TableCell className="py-1.5 px-3 text-sm text-center">
+      <TableCell className="py-1.5 px-3 text-sm text-center whitespace-nowrap">
         <div className="flex items-center justify-center">
           {showFileActions ? (
             <FileActions
@@ -99,7 +99,7 @@ export function PagamentoTableRow({
           )}
         </div>
       </TableCell>
-      <TableCell className="py-1.5 px-3 text-sm text-right">
+      <TableCell className="py-1.5 px-3 text-sm text-right sticky right-0 bg-white">
         <div className="flex items-center justify-end space-x-1">
           <Button
             variant="ghost"

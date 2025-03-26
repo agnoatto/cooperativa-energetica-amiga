@@ -48,35 +48,41 @@ export function UsinaPagamentosTable({ pagamentos, isLoading }: UsinaPagamentosT
   }
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Período</TableHead>
-            <TableHead>Geração (kWh)</TableHead>
-            <TableHead>Valor</TableHead>
-            <TableHead>Vencimento</TableHead>
-            <TableHead>Status</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {pagamentos.map((pagamento) => (
-            <TableRow key={pagamento.id}>
-              <TableCell>
-                {getNomeMes(pagamento.mes)}/{pagamento.ano}
-              </TableCell>
-              <TableCell>{pagamento.geracao_kwh?.toFixed(2) || '0.00'}</TableCell>
-              <TableCell>{formatarMoeda(pagamento.valor_total)}</TableCell>
-              <TableCell>
-                {pagamento.data_vencimento && format(new Date(pagamento.data_vencimento), 'dd/MM/yyyy')}
-              </TableCell>
-              <TableCell>
-                <PagamentoBadge status={pagamento.status} />
-              </TableCell>
+    <div className="rounded-md border overflow-hidden">
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="whitespace-nowrap">Período</TableHead>
+              <TableHead className="whitespace-nowrap">Geração (kWh)</TableHead>
+              <TableHead className="whitespace-nowrap">Valor</TableHead>
+              <TableHead className="whitespace-nowrap">Vencimento</TableHead>
+              <TableHead className="whitespace-nowrap">Status</TableHead>
+              <TableHead className="whitespace-nowrap">Observação</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {pagamentos.map((pagamento) => (
+              <TableRow key={pagamento.id}>
+                <TableCell className="whitespace-nowrap">
+                  {getNomeMes(pagamento.mes)}/{pagamento.ano}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">{pagamento.geracao_kwh?.toFixed(2) || '0.00'}</TableCell>
+                <TableCell className="whitespace-nowrap">{formatarMoeda(pagamento.valor_total)}</TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {pagamento.data_vencimento && format(new Date(pagamento.data_vencimento), 'dd/MM/yyyy')}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  <PagamentoBadge status={pagamento.status} />
+                </TableCell>
+                <TableCell className="max-w-[200px] truncate">
+                  {pagamento.observacao || '-'}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

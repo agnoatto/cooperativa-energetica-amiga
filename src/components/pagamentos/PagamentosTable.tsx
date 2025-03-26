@@ -43,32 +43,34 @@ export function PagamentosTable({
 
   return (
     <div className="rounded-md border border-gray-200 overflow-hidden">
-      <Table className="w-full [&_th]:bg-gray-50 [&_th]:font-medium [&_th]:text-gray-700 [&_th]:h-9 [&_tr]:border-b [&_tr]:border-gray-200">
-        <TableHeader className="[&_tr]:border-b [&_tr]:border-gray-200">
-          <TableRow className="h-9">
-            <TableHead className="py-1.5 px-3 text-sm">UC</TableHead>
-            <TableHead className="py-1.5 px-3 text-sm">Investidor</TableHead>
-            <TableHead className="py-1.5 px-3 text-sm text-right">Geração (kWh)</TableHead>
-            <TableHead className="py-1.5 px-3 text-sm text-right">Valor Concess.</TableHead>
-            <TableHead className="py-1.5 px-3 text-sm text-right">Valor Total</TableHead>
-            <TableHead className="py-1.5 px-3 text-sm text-right">Vencimento</TableHead>
-            <TableHead className="py-1.5 px-3 text-sm text-right">Status</TableHead>
-            <TableHead className="py-1.5 px-3 text-sm text-center">Conta</TableHead>
-            <TableHead className="py-1.5 px-3 text-sm text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {pagamentos.map((pagamento) => (
-            <PagamentoTableRow
-              key={pagamento.id}
-              pagamento={pagamento}
-              onEdit={onEditPagamento}
-              onDelete={onDeletePagamento}
-              onViewDetails={onViewDetails}
-            />
-          ))}
-        </TableBody>
-      </Table>
+      <div className="overflow-x-auto">
+        <Table className="w-full [&_th]:bg-gray-50 [&_th]:font-medium [&_th]:text-gray-700 [&_th]:h-9 [&_tr]:border-b [&_tr]:border-gray-200">
+          <TableHeader className="[&_tr]:border-b [&_tr]:border-gray-200">
+            <TableRow className="h-9">
+              <TableHead className="py-1.5 px-3 text-sm whitespace-nowrap">UC</TableHead>
+              <TableHead className="py-1.5 px-3 text-sm whitespace-nowrap">Investidor</TableHead>
+              <TableHead className="py-1.5 px-3 text-sm text-right whitespace-nowrap">Geração (kWh)</TableHead>
+              <TableHead className="py-1.5 px-3 text-sm text-right whitespace-nowrap">Valor Concess.</TableHead>
+              <TableHead className="py-1.5 px-3 text-sm text-right whitespace-nowrap">Valor Total</TableHead>
+              <TableHead className="py-1.5 px-3 text-sm text-right whitespace-nowrap">Vencimento</TableHead>
+              <TableHead className="py-1.5 px-3 text-sm text-right whitespace-nowrap">Status</TableHead>
+              <TableHead className="py-1.5 px-3 text-sm text-center whitespace-nowrap">Conta</TableHead>
+              <TableHead className="py-1.5 px-3 text-sm text-right sticky right-0 bg-gray-50 whitespace-nowrap">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {pagamentos.map((pagamento) => (
+              <PagamentoTableRow
+                key={pagamento.id}
+                pagamento={pagamento}
+                onEdit={onEditPagamento}
+                onDelete={onDeletePagamento}
+                onViewDetails={onViewDetails}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
