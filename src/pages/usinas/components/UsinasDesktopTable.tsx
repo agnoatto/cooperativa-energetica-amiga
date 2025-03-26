@@ -1,21 +1,25 @@
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+// Este componente foi atualizado para permitir cliques nas linhas
+// Ao clicar em uma usina, o usuário é redirecionado para a página de detalhes
+
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Edit, Trash } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash, CheckCircle2, XCircle } from "lucide-react";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
 import { formatarMoeda } from "@/utils/formatters";
 import { UsinaData } from "../types";
-import { formatDateToPtBR } from "@/utils/dateFormatters";
-import { Badge } from "@/components/ui/badge";
 
 interface UsinasDesktopTableProps {
-  usinas: UsinaData[] | null;
+  usinas?: UsinaData[];
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   colunasVisiveis: string[];
@@ -24,16 +28,21 @@ interface UsinasDesktopTableProps {
 export function UsinasDesktopTable({ 
   usinas, 
   onEdit, 
-  onDelete,
-  colunasVisiveis,
+  onDelete, 
+  colunasVisiveis 
 }: UsinasDesktopTableProps) {
-  const todasColunas = {
-    investidor: "Investidor",
-    unidade: "Unidade",
-    valor_kwh: "Valor do kWh",
-    status: "Status",
-    potencia: "Potência Instalada",
-    data_inicio: "Data de Início",
+  const navigate = useNavigate();
+
+  if (!usinas || usinas.length === 0) {
+    return (
+      <div className="text-center py-8 px-4 border rounded-lg">
+        <p className="text-gray-500">Nenhuma usina encontrada</p>
+      </div>
+    );
+  }
+  
+  const handleRowClick = (usinaId: string) => {
+    navigate(`/usinas/${usinaId}`);
   };
 
   return (
@@ -41,39 +50,50 @@ export function UsinasDesktopTable({
       <Table>
         <TableHeader>
           <TableRow>
-            {Object.entries(todasColunas).map(([key, label]) => (
-              colunasVisiveis.includes(key) && (
-                <TableHead key={key}>{label}</TableHead>
-              )
-            ))}
+            {colunasVisiveis.includes('investidor') && (
+              <TableHead>Investidor</TableHead>
+            )}
+            {colunasVisiveis.includes('unidade') && (
+              <TableHead>Unidade (UC)</TableHead>
+            )}
+            {colunasVisiveis.includes('valor_kwh') && (
+              <TableHead>Valor kWh</TableHead>
+            )}
+            {colunasVisiveis.includes('status') && (
+              <TableHead>Status</TableHead>
+            )}
+            {colunasVisiveis.includes('potencia') && (
+              <TableHead>Potência Instalada</TableHead>
+            )}
+            {colunasVisiveis.includes('data_inicio') && (
+              <TableHead>Data de Início</TableHead>
+            )}
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {usinas?.map((usina) => (
-            <TableRow key={usina.id}>
+          {usinas.map((usina) => (
+            <TableRow 
+              key={usina.id} 
+              className="cursor-pointer hover:bg-muted/50"
+              onClick={() => handleRowClick(usina.id)}
+            >
               {colunasVisiveis.includes('investidor') && (
-                <TableCell>{usina.investidor?.nome_investidor}</TableCell>
+                <TableCell>{usina.investidor?.nome_investidor || '-'}</TableCell>
               )}
               {colunasVisiveis.includes('unidade') && (
-                <TableCell>{usina.unidade?.numero_uc}</TableCell>
+                <TableCell>{usina.unidade?.numero_uc || '-'}</TableCell>
               )}
               {colunasVisiveis.includes('valor_kwh') && (
                 <TableCell>{formatarMoeda(usina.valor_kwh)}</TableCell>
               )}
               {colunasVisiveis.includes('status') && (
                 <TableCell>
-                  <Badge 
-                    variant={usina.status === 'active' ? 'default' : 'secondary'}
-                    className="gap-1"
-                  >
-                    {usina.status === 'active' ? (
-                      <CheckCircle2 className="h-3 w-3" />
-                    ) : (
-                      <XCircle className="h-3 w-3" />
-                    )}
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    usina.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                  }`}>
                     {usina.status === 'active' ? 'Ativa' : 'Inativa'}
-                  </Badge>
+                  </span>
                 </TableCell>
               )}
               {colunasVisiveis.includes('potencia') && (
@@ -83,36 +103,34 @@ export function UsinasDesktopTable({
               )}
               {colunasVisiveis.includes('data_inicio') && (
                 <TableCell>
-                  {usina.data_inicio ? formatDateToPtBR(usina.data_inicio) : '-'}
+                  {usina.data_inicio 
+                    ? format(new Date(usina.data_inicio), 'dd/MM/yyyy', { locale: ptBR }) 
+                    : '-'
+                  }
                 </TableCell>
               )}
-              <TableCell className="text-right space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  onClick={() => onEdit(usina.id)}
-                  className="h-8 w-8"
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  onClick={() => onDelete(usina.id)}
-                  className="h-8 w-8"
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => onEdit(usina.id)}
+                    className="h-8 w-8"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => onDelete(usina.id)}
+                    className="h-8 w-8"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
-          {(!usinas || usinas.length === 0) && (
-            <TableRow>
-              <TableCell colSpan={7} className="text-center h-24">
-                Nenhuma usina encontrada
-              </TableCell>
-            </TableRow>
-          )}
         </TableBody>
       </Table>
     </div>

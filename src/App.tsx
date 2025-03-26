@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import Pagamentos from "./pages/Pagamentos";
 import UnidadesUsina from "./pages/UnidadesUsina";
 import Usinas from "./pages/Usinas";
+import UsinaDetalhe from "./pages/usinas/UsinaDetalhe";
 import Investidores from "./pages/Investidores";
 import Configuracoes from "./pages/Configuracoes";
 import ContasPagar from "./pages/ContasPagar";
@@ -100,6 +101,14 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <Usinas />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/usinas/:usinaId"
+              element={
+                <ProtectedRoute>
+                  <UsinaDetalhe />
                 </ProtectedRoute>
               }
             />
