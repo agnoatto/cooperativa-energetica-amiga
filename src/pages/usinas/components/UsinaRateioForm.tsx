@@ -37,26 +37,21 @@ interface UnidadeBeneficiaria {
   };
 }
 
-// Definindo um tipo simples para a unidade de rateio
-type UnidadeRateio = {
-  unidade_beneficiaria_id: string;
-  percentual: number;
-};
+// Definindo o schema para cada unidade no rateio
+const unidadeRateioSchema = z.object({
+  unidade_beneficiaria_id: z.string().uuid({
+    message: "Selecione uma unidade beneficiária"
+  }),
+  percentual: z.coerce.number()
+    .min(0.01, "Percentual deve ser maior que zero")
+    .max(100, "Percentual não pode exceder 100%")
+});
 
-// Definindo o schema do Zod de forma mais simples
+// Definindo o schema do formulário completo
 const rateioSchema = z.object({
   usina_id: z.string().uuid(),
   data_inicio: z.string().min(1, "Data de início é obrigatória"),
-  unidades: z.array(
-    z.object({
-      unidade_beneficiaria_id: z.string().uuid({
-        message: "Selecione uma unidade beneficiária"
-      }),
-      percentual: z.coerce.number()
-        .min(0.01, "Percentual deve ser maior que zero")
-        .max(100, "Percentual não pode exceder 100%")
-    })
-  ).min(1, "Adicione pelo menos uma unidade beneficiária")
+  unidades: z.array(unidadeRateioSchema).min(1, "Adicione pelo menos uma unidade beneficiária")
 }).refine(data => {
   const totalPercentual = data.unidades.reduce((sum, item) => sum + item.percentual, 0);
   return totalPercentual <= 100;
@@ -65,8 +60,10 @@ const rateioSchema = z.object({
   path: ["unidades"]
 });
 
-// Usando um type alias direto do schema do Zod
+// Definindo o tipo a partir do schema
 type RateioFormValues = z.infer<typeof rateioSchema>;
+// Definindo explicitamente o tipo para uma unidade no rateio
+type UnidadeRateioValues = z.infer<typeof unidadeRateioSchema>;
 
 export function UsinaRateioForm({ open, onOpenChange, usinaId, rateioId }: UsinaRateioFormProps) {
   const queryClient = useQueryClient();
