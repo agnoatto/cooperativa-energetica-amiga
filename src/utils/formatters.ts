@@ -1,38 +1,50 @@
 
-export const formatarDocumento = (doc: string, tipo_pessoa?: 'PF' | 'PJ') => {
-  if (!doc) return '-';
-  const numero = doc.replace(/\D/g, '');
-  
-  // Se o tipo_pessoa for explicitamente fornecido, usamos ele para determinar o formato
-  if (tipo_pessoa === 'PF' || (tipo_pessoa === undefined && numero.length === 11)) {
-    return numero.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/g, '$1.$2.$3-$4');
-  }
-  
-  return numero.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/g, '$1.$2.$3/$4-$5');
-};
+/**
+ * Funções utilitárias para formatação de dados
+ * 
+ * Este módulo contém funções para formatar diferentes tipos de dados,
+ * como valores monetários, datas, documentos e tamanhos de arquivo.
+ */
 
-export const formatarTelefone = (telefone: string) => {
-  if (!telefone) return '-';
-  const numero = telefone.replace(/\D/g, '');
-  if (numero.length === 11) {
-    return numero.replace(/(\d{2})(\d{5})(\d{4})/g, '($1) $2-$3');
-  }
-  return numero.replace(/(\d{2})(\d{4})(\d{4})/g, '($1) $2-$3');
-};
-
-export const formatarMoeda = (valor: number) => {
-  return valor.toLocaleString('pt-BR', {
+/**
+ * Formata um número em formato monetário brasileiro (R$)
+ */
+export function formatMoney(value: number): string {
+  return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
-  });
-};
+  }).format(value);
+}
 
-// Alias para manter compatibilidade com o nome usado em alguns componentes
-export const formatCurrency = formatarMoeda;
+/**
+ * Formata o tamanho de um arquivo em KB, MB ou GB
+ */
+export function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
 
-export const formatarKwh = (valor: number) => {
-  return valor?.toLocaleString('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }) ?? '0,00';
-};
+/**
+ * Formata um documento (CPF/CNPJ) com a máscara apropriada
+ */
+export function formatarDocumento(documento: string): string {
+  // Remover caracteres não numéricos
+  const apenasNumeros = documento.replace(/\D/g, '');
+  
+  // Formatar CPF: 000.000.000-00
+  if (apenasNumeros.length === 11) {
+    return apenasNumeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  } 
+  // Formatar CNPJ: 00.000.000/0000-00
+  else if (apenasNumeros.length === 14) {
+    return apenasNumeros.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+  }
+  
+  // Retornar sem formatação caso não seja CPF nem CNPJ
+  return documento;
+}
