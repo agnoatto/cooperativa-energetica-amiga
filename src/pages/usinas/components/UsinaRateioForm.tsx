@@ -37,20 +37,19 @@ interface UnidadeBeneficiaria {
   };
 }
 
-// Definição simplificada de tipo para unidade no rateio
+// Definição explícita de tipos sem depender do esquema Zod
 interface UnidadeRateio {
   unidade_beneficiaria_id: string;
   percentual: number;
 }
 
-// Definição simplificada de tipo para o formulário
 interface RateioFormValues {
   usina_id: string;
   data_inicio: string;
   unidades: UnidadeRateio[];
 }
 
-// Esquema Zod para validação sem depender de referências circulares
+// Esquemas Zod independentes para validação
 const unidadeSchema = z.object({
   unidade_beneficiaria_id: z.string().min(1, "Selecione uma unidade beneficiária"),
   percentual: z.coerce.number()
@@ -75,7 +74,7 @@ export function UsinaRateioForm({ open, onOpenChange, usinaId, rateioId }: Usina
   const [totalPercentual, setTotalPercentual] = useState(0);
   const [unidadesSelecionadas, setUnidadesSelecionadas] = useState<string[]>([]);
 
-  // Inicializando o formulário com valores simples
+  // Inicializando o formulário com tipos explicitamente definidos
   const form = useForm<RateioFormValues>({
     resolver: zodResolver(rateioSchema),
     defaultValues: {
