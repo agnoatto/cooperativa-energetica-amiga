@@ -9,10 +9,10 @@ import React from "react";
 import { FormField, FormItem, FormLabel, FormMessage, FormControl } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Trash2, Loader2 } from "lucide-react";
+import { Trash2, Loader2, Info } from "lucide-react";
 import { ReactSelectField } from "@/components/ui/react-select";
-import { SimpleSelect } from "@/components/ui/simple-select";
 import { UseFormReturn } from "react-hook-form";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface UnidadeRateioFormProps {
   form: UseFormReturn<any>;
@@ -38,14 +38,32 @@ export function UnidadeRateioForm({
         name={`unidades.${index}.unidade_beneficiaria_id`}
         render={({ field }) => (
           <FormItem className="flex-1">
-            <ReactSelectField
-              form={form}
-              name={`unidades.${index}.unidade_beneficiaria_id`}
-              label="Unidade Beneficiária"
-              options={options}
-              isLoading={isLoading}
-              placeholder="Selecione uma unidade"
-            />
+            <div className="flex items-center gap-2">
+              <ReactSelectField
+                form={form}
+                name={`unidades.${index}.unidade_beneficiaria_id`}
+                label="Unidade Beneficiária"
+                options={options}
+                isLoading={isLoading}
+                placeholder={isLoading ? "Carregando unidades..." : "Selecione uma unidade"}
+                noOptionsMessage={() => 
+                  isLoading ? "Carregando unidades..." : 
+                  options.length === 0 ? "Nenhuma unidade disponível" : "Nenhuma opção encontrada"
+                }
+              />
+              {options.length === 0 && !isLoading && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-amber-500" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Não há unidades beneficiárias disponíveis</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
           </FormItem>
         )}
       />

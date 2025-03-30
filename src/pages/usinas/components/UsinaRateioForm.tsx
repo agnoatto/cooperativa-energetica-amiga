@@ -6,16 +6,17 @@
  * distribuindo percentuais entre unidades beneficiárias selecionadas.
  * Rateios com data de início já definida não podem ser editados.
  */
-import React from "react";
+import React, { useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormMessage, FormControl } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, AlertCircle } from "lucide-react";
 import { useUsinaRateioForm } from "../hooks/useUsinaRateioForm";
 import { UnidadeRateioForm } from "./rateio/UnidadeRateioForm";
 import { TotalPercentualIndicator } from "./rateio/TotalPercentualIndicator";
 import { RateioAtivoAviso } from "./rateio/RateioAtivoAviso";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface UsinaRateioFormProps {
   open: boolean;
@@ -37,8 +38,15 @@ export function UsinaRateioForm({ open, onOpenChange, usinaId, rateioId }: Usina
     removerUnidade,
     unidadesBeneficiarias
   } = useUsinaRateioForm({ usinaId, onOpenChange });
+  
+  useEffect(() => {
+    console.log("Estado atual das unidades beneficiárias:", {
+      carregando: isLoadingUnidades,
+      quantidade: unidadesBeneficiarias?.length || 0
+    });
+  }, [isLoadingUnidades, unidadesBeneficiarias]);
 
-  console.log("Unidades beneficiárias carregadas:", unidadesBeneficiarias?.length || 0);
+  const hasNoUnidades = !isLoadingUnidades && (!unidadesBeneficiarias || unidadesBeneficiarias.length === 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -71,6 +79,16 @@ export function UsinaRateioForm({ open, onOpenChange, usinaId, rateioId }: Usina
 
               {rateiosAtivos && rateiosAtivos.length > 0 && (
                 <RateioAtivoAviso />
+              )}
+              
+              {hasNoUnidades && (
+                <Alert variant="warning" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Nenhuma unidade beneficiária cadastrada</AlertTitle>
+                  <AlertDescription>
+                    Cadastre unidades beneficiárias para poder criar rateios.
+                  </AlertDescription>
+                </Alert>
               )}
 
               {isLoadingUnidades ? (
@@ -106,7 +124,7 @@ export function UsinaRateioForm({ open, onOpenChange, usinaId, rateioId }: Usina
                 disabled={
                   isLoadingUnidades || 
                   isPending || 
-                  !unidadesBeneficiarias?.length || 
+                  hasNoUnidades ||
                   form.getValues().unidades.map(u => u.unidade_beneficiaria_id).filter(Boolean).length >= (unidadesBeneficiarias?.length || 0)
                 }
               >
@@ -124,7 +142,7 @@ export function UsinaRateioForm({ open, onOpenChange, usinaId, rateioId }: Usina
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isPending || isLoadingUnidades}>
+              <Button type="submit" disabled={isPending || isLoadingUnidades || hasNoUnidades}>
                 {isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" /> 

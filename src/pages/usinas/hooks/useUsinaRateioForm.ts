@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { rateioKeys } from "../hooks/useUsinaRateios";
 
-// Definição de tipos para o formulário (sem usar inferência do Zod)
+// Definição de tipos para o formulário
 export interface UnidadeRateio {
   unidade_beneficiaria_id: string;
   percentual: number;
@@ -35,7 +35,7 @@ export interface UnidadeBeneficiaria {
   };
 }
 
-// Esquemas Zod independentes para validação
+// Esquemas Zod para validação
 const unidadeSchema = z.object({
   unidade_beneficiaria_id: z.string().min(1, "Selecione uma unidade beneficiária"),
   percentual: z.coerce.number()
@@ -65,7 +65,7 @@ export function useUsinaRateioForm({ usinaId, onOpenChange }: UseUsinaRateioForm
   const [totalPercentual, setTotalPercentual] = useState(0);
   const [unidadesSelecionadas, setUnidadesSelecionadas] = useState<string[]>([]);
 
-  // Uso explícito do tipo RateioFormValues para resolver o problema de tipagem
+  // Uso explícito do tipo para resolver o problema de tipagem
   const form = useForm<RateioFormValues>({
     resolver: zodResolver(rateioSchema),
     defaultValues: {
