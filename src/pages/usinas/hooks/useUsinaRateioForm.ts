@@ -65,7 +65,7 @@ export function useUsinaRateioForm({ usinaId, onOpenChange }: UseUsinaRateioForm
   const [totalPercentual, setTotalPercentual] = useState(0);
   const [unidadesSelecionadas, setUnidadesSelecionadas] = useState<string[]>([]);
 
-  // Inicialização do formulário usando os tipos explícitos
+  // Inicialização do formulário com tipo explicitamente definido
   const form = useForm<RateioFormValues>({
     resolver: zodResolver(rateioSchema),
     defaultValues: {
