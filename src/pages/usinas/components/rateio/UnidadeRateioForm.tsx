@@ -55,7 +55,7 @@ export function UnidadeRateioForm({
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-amber-500" />
+                      <Info className="h-4 w-4 text-amber-500 mt-7" />
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>Não há unidades beneficiárias disponíveis</p>
@@ -64,6 +64,7 @@ export function UnidadeRateioForm({
                 </TooltipProvider>
               )}
             </div>
+            <FormMessage />
           </FormItem>
         )}
       />

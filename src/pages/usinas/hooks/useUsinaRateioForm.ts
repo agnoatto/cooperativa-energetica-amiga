@@ -12,7 +12,7 @@ import { z } from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { rateioKeys } from "../hooks/useUsinaRateios";
+import { rateioKeys } from "./useUsinaRateios";
 
 // Definição de tipos para o formulário
 export interface UnidadeRateio {
@@ -80,22 +80,29 @@ export function useUsinaRateioForm({ usinaId, onOpenChange }: UseUsinaRateioForm
     queryKey: ['unidades-beneficiarias'],
     queryFn: async () => {
       console.log('Buscando unidades beneficiárias');
-      const { data, error } = await supabase
-        .from('unidades_beneficiarias')
-        .select(`
-          id,
-          numero_uc,
-          apelido,
-          cooperado:cooperado_id(nome)
-        `)
-        .eq('deleted_at', null);
-
-      if (error) {
-        console.error('Erro ao buscar unidades beneficiárias:', error);
-        throw error;
+      try {
+        const { data, error } = await supabase
+          .from('unidades_beneficiarias')
+          .select(`
+            id,
+            numero_uc,
+            apelido,
+            cooperado:cooperado_id(nome)
+          `)
+          .is('deleted_at', null);  // Removido o erro de filtro, buscando apenas unidades não deletadas
+  
+        if (error) {
+          console.error('Erro ao buscar unidades beneficiárias:', error);
+          throw error;
+        }
+        
+        console.log('Unidades beneficiárias encontradas:', data?.length || 0);
+        console.log('Dados recebidos:', data);
+        return data as UnidadeBeneficiaria[];
+      } catch (err) {
+        console.error('Exceção ao buscar unidades beneficiárias:', err);
+        return [] as UnidadeBeneficiaria[];
       }
-      console.log('Unidades beneficiárias encontradas:', data?.length || 0);
-      return data as UnidadeBeneficiaria[];
     }
   });
 
@@ -181,7 +188,7 @@ export function useUsinaRateioForm({ usinaId, onOpenChange }: UseUsinaRateioForm
 
   // Filtra unidades já selecionadas para não mostrar na lista novamente
   const getUnidadesOptions = (currentIndex: number) => {
-    if (!unidadesBeneficiarias) {
+    if (!unidadesBeneficiarias || unidadesBeneficiarias.length === 0) {
       console.log('Unidades beneficiárias não disponíveis');
       return [];
     }
