@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormMessage, FormControl } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { useUsinaRateioForm } from "../hooks/useUsinaRateioForm";
 import { UnidadeRateioForm } from "./rateio/UnidadeRateioForm";
 import { TotalPercentualIndicator } from "./rateio/TotalPercentualIndicator";
@@ -30,12 +30,15 @@ export function UsinaRateioForm({ open, onOpenChange, usinaId, rateioId }: Usina
     totalPercentual,
     rateiosAtivos,
     isPending,
+    isLoadingUnidades,
     getUnidadesOptions,
     handleSubmit,
     adicionarUnidade,
     removerUnidade,
     unidadesBeneficiarias
   } = useUsinaRateioForm({ usinaId, onOpenChange });
+
+  console.log("Unidades beneficiárias carregadas:", unidadesBeneficiarias?.length || 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -70,16 +73,26 @@ export function UsinaRateioForm({ open, onOpenChange, usinaId, rateioId }: Usina
                 <RateioAtivoAviso />
               )}
 
-              {form.getValues().unidades.map((_, index) => (
-                <UnidadeRateioForm
-                  key={index}
-                  form={form}
-                  index={index}
-                  options={getUnidadesOptions(index)}
-                  isDisabled={form.getValues().unidades.length === 1}
-                  onRemove={() => removerUnidade(index)}
-                />
-              ))}
+              {isLoadingUnidades ? (
+                <div className="flex items-center justify-center py-4 text-muted-foreground">
+                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  <span>Carregando unidades beneficiárias...</span>
+                </div>
+              ) : (
+                <>
+                  {form.getValues().unidades.map((_, index) => (
+                    <UnidadeRateioForm
+                      key={index}
+                      form={form}
+                      index={index}
+                      options={getUnidadesOptions(index)}
+                      isLoading={isLoadingUnidades}
+                      isDisabled={form.getValues().unidades.length === 1}
+                      onRemove={() => removerUnidade(index)}
+                    />
+                  ))}
+                </>
+              )}
               
               {form.formState.errors.unidades && typeof form.formState.errors.unidades.message === 'string' && (
                 <div className="text-red-500 text-sm">{form.formState.errors.unidades.message}</div>
@@ -90,7 +103,12 @@ export function UsinaRateioForm({ open, onOpenChange, usinaId, rateioId }: Usina
                 variant="outline"
                 size="sm"
                 onClick={adicionarUnidade}
-                disabled={form.getValues().unidades.map(u => u.unidade_beneficiaria_id).filter(Boolean).length >= (unidadesBeneficiarias?.length || 0)}
+                disabled={
+                  isLoadingUnidades || 
+                  isPending || 
+                  !unidadesBeneficiarias?.length || 
+                  form.getValues().unidades.map(u => u.unidade_beneficiaria_id).filter(Boolean).length >= (unidadesBeneficiarias?.length || 0)
+                }
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Adicionar Unidade
@@ -102,11 +120,17 @@ export function UsinaRateioForm({ open, onOpenChange, usinaId, rateioId }: Usina
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={isPending}
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isPending}>
-                {isPending ? "Salvando..." : "Salvar Rateio"}
+              <Button type="submit" disabled={isPending || isLoadingUnidades}>
+                {isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" /> 
+                    Salvando...
+                  </>
+                ) : "Salvar Rateio"}
               </Button>
             </DialogFooter>
           </form>

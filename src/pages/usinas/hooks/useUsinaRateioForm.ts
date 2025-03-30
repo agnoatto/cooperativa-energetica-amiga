@@ -65,7 +65,7 @@ export function useUsinaRateioForm({ usinaId, onOpenChange }: UseUsinaRateioForm
   const [totalPercentual, setTotalPercentual] = useState(0);
   const [unidadesSelecionadas, setUnidadesSelecionadas] = useState<string[]>([]);
 
-  // Inicialização do formulário com tipo explicitamente definido
+  // Uso explícito do tipo RateioFormValues para resolver o problema de tipagem
   const form = useForm<RateioFormValues>({
     resolver: zodResolver(rateioSchema),
     defaultValues: {
@@ -79,6 +79,7 @@ export function useUsinaRateioForm({ usinaId, onOpenChange }: UseUsinaRateioForm
   const { data: unidadesBeneficiarias, isLoading: isLoadingUnidades } = useQuery({
     queryKey: ['unidades-beneficiarias'],
     queryFn: async () => {
+      console.log('Buscando unidades beneficiárias');
       const { data, error } = await supabase
         .from('unidades_beneficiarias')
         .select(`
@@ -89,7 +90,11 @@ export function useUsinaRateioForm({ usinaId, onOpenChange }: UseUsinaRateioForm
         `)
         .eq('deleted_at', null);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar unidades beneficiárias:', error);
+        throw error;
+      }
+      console.log('Unidades beneficiárias encontradas:', data?.length || 0);
       return data as UnidadeBeneficiaria[];
     }
   });
@@ -176,9 +181,12 @@ export function useUsinaRateioForm({ usinaId, onOpenChange }: UseUsinaRateioForm
 
   // Filtra unidades já selecionadas para não mostrar na lista novamente
   const getUnidadesOptions = (currentIndex: number) => {
-    if (!unidadesBeneficiarias) return [];
+    if (!unidadesBeneficiarias) {
+      console.log('Unidades beneficiárias não disponíveis');
+      return [];
+    }
     
-    return unidadesBeneficiarias
+    const options = unidadesBeneficiarias
       .filter(unidade => {
         const currentValue = form.getValues().unidades[currentIndex]?.unidade_beneficiaria_id;
         return !unidadesSelecionadas.includes(unidade.id) || unidade.id === currentValue;
@@ -187,9 +195,13 @@ export function useUsinaRateioForm({ usinaId, onOpenChange }: UseUsinaRateioForm
         value: unidade.id,
         label: `${unidade.apelido || unidade.numero_uc} - ${unidade.cooperado?.nome || 'Sem cooperado'}`
       }));
+    
+    console.log(`Opções disponíveis para o índice ${currentIndex}:`, options.length);
+    return options;
   };
 
   const handleSubmit = (values: RateioFormValues) => {
+    console.log('Enviando formulário de rateio:', values);
     criarRateioMutation.mutate(values);
   };
 

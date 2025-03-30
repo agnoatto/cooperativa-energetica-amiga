@@ -9,16 +9,17 @@ import React from "react";
 import { FormField, FormItem, FormLabel, FormMessage, FormControl } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 import { ReactSelectField } from "@/components/ui/react-select";
+import { SimpleSelect } from "@/components/ui/simple-select";
 import { UseFormReturn } from "react-hook-form";
-import { UnidadeRateio } from "../../hooks/useUsinaRateioForm";
 
 interface UnidadeRateioFormProps {
   form: UseFormReturn<any>;
   index: number;
   options: { value: string; label: string }[];
   isDisabled: boolean;
+  isLoading?: boolean;
   onRemove: () => void;
 }
 
@@ -27,6 +28,7 @@ export function UnidadeRateioForm({
   index,
   options,
   isDisabled,
+  isLoading = false,
   onRemove
 }: UnidadeRateioFormProps) {
   return (
@@ -41,7 +43,7 @@ export function UnidadeRateioForm({
               name={`unidades.${index}.unidade_beneficiaria_id`}
               label="Unidade Beneficiária"
               options={options}
-              isLoading={false}
+              isLoading={isLoading}
               placeholder="Selecione uma unidade"
             />
           </FormItem>
