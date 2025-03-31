@@ -5,7 +5,7 @@
  * Exibe os dados de um pagamento específico na tabela e fornece
  * botões de ação como visualizar, editar, excluir e enviar.
  */
-import { Send, Eye, Pencil, Trash } from "lucide-react";
+import { Send, Eye, Pencil, Trash, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { PagamentoData } from "../types/pagamento";
@@ -106,9 +106,19 @@ export function PagamentoTableRow({
             size="icon"
             className="h-8 w-8 hover:bg-gray-100"
             onClick={() => onViewDetails(pagamento)}
-            title="Visualizar boletim"
+            title="Visualizar detalhes"
           >
             <Eye className="h-4 w-4 text-gray-600" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 hover:bg-gray-100"
+            onClick={() => setShowBoletimPreview(true)}
+            title="Visualizar boletim"
+          >
+            <FileText className="h-4 w-4 text-gray-600" />
           </Button>
 
           {pagamento.status === 'pendente' && (
