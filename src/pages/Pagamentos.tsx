@@ -5,7 +5,7 @@
  * Esta página permite visualizar, editar e gerenciar todos os pagamentos
  * relacionados às usinas, incluindo geração de energia, valores e datas.
  */
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MonthSelector } from "@/components/MonthSelector";

@@ -1,4 +1,12 @@
 
+/**
+ * Componente para exibição do perfil do usuário na barra lateral
+ * 
+ * Este componente renderiza as informações básicas do usuário logado
+ * na parte superior da barra lateral, incluindo sua foto de perfil (avatar)
+ * e nome.
+ */
+import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from "@/lib/utils";
 

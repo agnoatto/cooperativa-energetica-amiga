@@ -1,5 +1,12 @@
 
-import { useState } from "react";
+/**
+ * Componente para upload e gerenciamento de avatar do usuário
+ * 
+ * Este componente permite ao usuário fazer upload de uma nova imagem
+ * de perfil, exibindo a imagem atual e oferecendo uma interface para
+ * selecionar uma nova.
+ */
+import React, { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
