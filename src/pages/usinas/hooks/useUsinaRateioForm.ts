@@ -89,7 +89,7 @@ export function useUsinaRateioForm({ usinaId, onOpenChange }: UseUsinaRateioForm
             apelido,
             cooperado:cooperado_id(nome)
           `)
-          .is('deleted_at', null);  // Removido o erro de filtro, buscando apenas unidades não deletadas
+          .is('data_saida', null);  // Filtrar unidades ativas (não deletadas)
   
         if (error) {
           console.error('Erro ao buscar unidades beneficiárias:', error);
