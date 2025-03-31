@@ -6,7 +6,7 @@
  * incluindo a seleção de mês, listagem, edição e alteração de status.
  */
 import { useState } from "react";
-import { MonthSelector } from "./MonthSelector";
+import { MonthSelector } from "@/components/MonthSelector";
 import { FaturasTable } from "./FaturasTable";
 import { FaturasHeader } from "./FaturasHeader";
 import { useFaturas } from "@/hooks/useFaturas";
@@ -81,6 +81,7 @@ export function FaturasContainer({
         currentDate={currentDate}
         onPreviousMonth={onPreviousMonth}
         onNextMonth={onNextMonth}
+        className="bg-white rounded-lg shadow-sm border"
       />
       
       <FaturasTable

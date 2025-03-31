@@ -1,4 +1,11 @@
 
+/**
+ * Hook para gerenciar a seleção de meses
+ * 
+ * Este hook encapsula a lógica de navegação entre meses, permitindo
+ * avançar ou retroceder meses, além de selecionar meses e anos específicos.
+ * Fornece logs detalhados para depuração e datas formatadas para UI.
+ */
 import { useState } from "react";
 
 export const useMonthSelection = () => {
@@ -15,9 +22,8 @@ export const useMonthSelection = () => {
 
   // Cria uma nova data com o mês e ano desejados
   const createNewDate = (year: number, month: number): Date => {
-    const newDate = new Date();
-    newDate.setFullYear(year);
-    newDate.setMonth(month);
+    // Criamos uma nova data no dia 15 para evitar problemas com dias inválidos em meses diferentes
+    const newDate = new Date(year, month, 15, 12, 0, 0);
     return newDate;
   };
 
