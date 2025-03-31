@@ -7,7 +7,7 @@
  * exibindo o mês atual formatado em português.
  */
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -42,29 +42,30 @@ export function MonthSelector({
   };
 
   return (
-    <div className={`flex items-center justify-center py-4 sm:py-6 ${className}`}>
-      <div className="flex items-center gap-3 sm:gap-4">
+    <div className={`flex items-center justify-center ${className}`}>
+      <div className="flex items-center gap-3 sm:gap-4 bg-white rounded-lg border px-3 py-2">
         <Button
-          variant="outline"
-          size={isMobile ? "icon" : "default"}
+          variant="ghost"
+          size={isMobile ? "icon" : "sm"}
           onClick={handlePreviousMonth}
-          className="h-10 w-10 sm:h-9 sm:w-9"
+          className="h-8 w-8"
           aria-label="Mês anterior"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
         
-        <div className="min-w-[140px] text-center">
-          <span className="text-base sm:text-lg font-medium">
+        <div className="min-w-[140px] text-center flex items-center justify-center gap-2">
+          <Calendar className="h-4 w-4 text-gray-500" />
+          <span className="text-sm sm:text-base font-medium">
             {formattedDate}
           </span>
         </div>
         
         <Button
-          variant="outline"
-          size={isMobile ? "icon" : "default"}
+          variant="ghost"
+          size={isMobile ? "icon" : "sm"}
           onClick={handleNextMonth}
-          className="h-10 w-10 sm:h-9 sm:w-9"
+          className="h-8 w-8"
           aria-label="Próximo mês"
         >
           <ChevronRight className="h-4 w-4" />

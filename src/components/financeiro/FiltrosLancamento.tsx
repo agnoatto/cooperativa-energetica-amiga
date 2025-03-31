@@ -16,8 +16,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { StatusLancamento } from "@/types/financeiro";
 import { Search, X, Filter, Calendar, Users, FileText } from "lucide-react";
+import { useState } from "react";
 
 interface FiltrosLancamentoProps {
   status: StatusLancamento | 'todos';
@@ -43,6 +45,7 @@ export function FiltrosLancamento({
   onLimparFiltros,
 }: FiltrosLancamentoProps) {
   const today = new Date().toISOString().split('T')[0];
+  const [showDataPicker, setShowDataPicker] = useState(false);
   
   return (
     <div className="bg-white p-4 rounded-lg border space-y-4">
