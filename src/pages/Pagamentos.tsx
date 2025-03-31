@@ -8,7 +8,7 @@
 import { useState } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { MonthSelector } from "@/components/pagamentos/MonthSelector";
+import { MonthSelector } from "@/components/MonthSelector";
 import { PagamentosHeader } from "@/components/pagamentos/PagamentosHeader";
 import { PagamentosDashboard } from "@/components/pagamentos/PagamentosDashboard";
 import { PagamentosTable } from "@/components/pagamentos/PagamentosTable";
@@ -93,6 +93,7 @@ const Pagamentos = () => {
         currentDate={currentDate}
         onPreviousMonth={handlePreviousMonth}
         onNextMonth={handleNextMonth}
+        className="bg-white rounded-lg shadow-sm border"
       />
 
       <PagamentosTable
