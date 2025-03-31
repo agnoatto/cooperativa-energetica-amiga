@@ -5,7 +5,7 @@
  * Esta página permite visualizar, editar e gerenciar todos os pagamentos
  * relacionados às usinas, incluindo geração de energia, valores e datas.
  */
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MonthSelector } from "@/components/MonthSelector";
@@ -15,7 +15,6 @@ import { PagamentosTable } from "@/components/pagamentos/PagamentosTable";
 import { PagamentoDetailsDialog } from "@/components/pagamentos/PagamentoDetailsDialog";
 import { DeletePagamentoDialog } from "@/components/pagamentos/DeletePagamentoDialog";
 import { PagamentoEditModal } from "@/components/pagamentos/PagamentoEditModal";
-import { RelatorioPagamentosDialog } from "@/components/pagamentos/RelatorioPagamentosDialog";
 import { PagamentoData } from "@/components/pagamentos/types/pagamento";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { useMonthSelection } from "@/hooks/useMonthSelection";
@@ -27,7 +26,6 @@ const Pagamentos = () => {
   const [selectedPagamentoToEdit, setSelectedPagamentoToEdit] = useState<PagamentoData | null>(null);
   const [pagamentoToDelete, setPagamentoToDelete] = useState<PagamentoData | null>(null);
   const [showDetails, setShowDetails] = useState(false);
-  const [showRelatorio, setShowRelatorio] = useState(false);
   
   // Hooks
   const queryClient = useQueryClient();
@@ -79,16 +77,11 @@ const Pagamentos = () => {
     }
   };
 
-  const handleOpenRelatorio = () => {
-    setShowRelatorio(true);
-  };
-
   return (
     <div className="space-y-6">
       <PagamentosHeader 
         onGerarPagamentos={gerarPagamentos}
         isGenerating={isGenerating}
-        onOpenRelatorio={handleOpenRelatorio}
       />
 
       <PagamentosDashboard 
@@ -136,13 +129,6 @@ const Pagamentos = () => {
         isDeleting={deleteMutation.isPending}
         onClose={() => setPagamentoToDelete(null)}
         onDelete={handleConfirmDelete}
-      />
-
-      <RelatorioPagamentosDialog
-        pagamentos={pagamentos || []}
-        isOpen={showRelatorio}
-        onClose={() => setShowRelatorio(false)}
-        currentDate={currentDate}
       />
     </div>
   );

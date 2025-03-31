@@ -1,10 +1,3 @@
-
-/**
- * Componente de Avatar para visualização de fotos de perfil
- * 
- * Este componente implementa o componente de avatar do Radix UI para exibir
- * imagens de perfil de usuários com opção de fallback quando a imagem não existe.
- */
 import * as React from "react"
 import * as AvatarPrimitive from "@radix-ui/react-avatar"
 
