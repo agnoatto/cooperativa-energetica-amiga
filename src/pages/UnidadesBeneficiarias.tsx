@@ -31,7 +31,7 @@ const UnidadesBeneficiarias = () => {
         .from('unidades_beneficiarias')
         .select(`
           *,
-          cooperado:cooperados(nome)
+          cooperado:cooperados(id, nome)
         `);
 
       if (statusFiltro === "ativas") {
@@ -123,6 +123,15 @@ const UnidadesBeneficiarias = () => {
     setShowUnidadeForm(true);
   };
 
+  // Obter o cooperadoId da URL, se disponível
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const cooperadoParam = searchParams.get('cooperado');
+    if (cooperadoParam) {
+      setSelectedCooperadoId(cooperadoParam);
+    }
+  }, []);
+
   return (
     <div className="space-y-6 p-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -141,7 +150,6 @@ const UnidadesBeneficiarias = () => {
         <Button
           onClick={() => {
             setSelectedUnidadeId(null);
-            setSelectedCooperadoId(null);
             setShowUnidadeForm(true);
           }}
           className="w-full sm:w-auto"
@@ -180,6 +188,7 @@ const UnidadesBeneficiarias = () => {
             unidades={unidades}
             onEdit={handleEditUnidade}
             onDelete={handleDeleteUnidade}
+            showCooperadoInfo={true}
           />
         </TabsContent>
 
@@ -191,6 +200,7 @@ const UnidadesBeneficiarias = () => {
                 onEdit={handleEditUnidade}
                 onDelete={async () => {}}
                 onReativar={handleReativarUnidade}
+                showCooperadoInfo={true}
               />
             ) : (
               <div className="text-center p-8 border rounded-lg">
@@ -207,7 +217,6 @@ const UnidadesBeneficiarias = () => {
           setShowUnidadeForm(open);
           if (!open) {
             setSelectedUnidadeId(null);
-            setSelectedCooperadoId(null);
           }
         }}
         cooperadoId={selectedCooperadoId}

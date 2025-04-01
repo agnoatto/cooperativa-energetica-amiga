@@ -23,6 +23,7 @@ export function useUnidadeBeneficiariaForm({
   const [isLoadingCep, setIsLoadingCep] = useState(false);
   const [cooperados, setCooperados] = useState<any[]>([]);
   const [selectedCooperadoId, setSelectedCooperadoId] = useState<string | null>(null);
+  const [originalCooperadoId, setOriginalCooperadoId] = useState<string | null>(null);
 
   const form = useForm<UnidadeBeneficiariaFormValues>({
     resolver: zodResolver(unidadeBeneficiariaFormSchema),
@@ -127,7 +128,10 @@ export function useUnidadeBeneficiariaForm({
         if (error) throw error;
 
         if (data && isMounted) {
+          // Armazenar o cooperado_id original para referência
+          setOriginalCooperadoId(data.cooperado_id);
           setSelectedCooperadoId(data.cooperado_id);
+          
           form.reset({
             numero_uc: data.numero_uc,
             apelido: data.apelido || "",
@@ -192,7 +196,7 @@ export function useUnidadeBeneficiariaForm({
   };
 
   const onSubmit = async (data: UnidadeBeneficiariaFormValues) => {
-    if (!selectedCooperadoId && !cooperadoId) {
+    if (!selectedCooperadoId) {
       toast.error("Selecione um cooperado");
       return;
     }
@@ -201,7 +205,7 @@ export function useUnidadeBeneficiariaForm({
       const endereco = `${data.logradouro}, ${data.numero}${data.complemento ? `, ${data.complemento}` : ''} - ${data.bairro}, ${data.cidade} - ${data.uf}, ${data.cep}`;
       
       const unidadeData = {
-        cooperado_id: selectedCooperadoId || cooperadoId,
+        cooperado_id: selectedCooperadoId,
         numero_uc: data.numero_uc,
         apelido: data.apelido || null,
         endereco: endereco,
@@ -231,13 +235,21 @@ export function useUnidadeBeneficiariaForm({
       console.log("Dados da unidade para salvar:", unidadeData);
 
       if (unidadeId) {
+        // Verificar se houve mudança de cooperado
+        const cooperadoMudou = originalCooperadoId !== selectedCooperadoId;
+        
         const { error } = await supabase
           .from('unidades_beneficiarias')
           .update(unidadeData)
           .eq('id', unidadeId);
 
         if (error) throw error;
-        toast.success("Unidade beneficiária atualizada com sucesso!");
+        
+        if (cooperadoMudou) {
+          toast.success("Unidade beneficiária transferida para outro cooperado com sucesso!");
+        } else {
+          toast.success("Unidade beneficiária atualizada com sucesso!");
+        }
       } else {
         const { error } = await supabase
           .from('unidades_beneficiarias')

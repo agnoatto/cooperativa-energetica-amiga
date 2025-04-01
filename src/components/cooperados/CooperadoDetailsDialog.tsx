@@ -75,6 +75,11 @@ export function CooperadoDetailsDialog({
             data_vencimento,
             status,
             valor_desconto
+          ),
+          cooperado:cooperados(
+            id,
+            nome,
+            documento
           )
         `)
         .eq("cooperado_id", cooperadoId);

@@ -28,6 +28,11 @@ export function UnidadeDetailsDialog({ unidade, isOpen, onClose }: UnidadeDetail
         </DialogHeader>
         
         <div className="space-y-4 py-4">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Cooperado</p>
+            <p className="text-base">{unidade.cooperado?.nome || 'N/A'}</p>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Número UC</p>
