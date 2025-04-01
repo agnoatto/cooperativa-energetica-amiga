@@ -45,7 +45,7 @@ export const cooperadoFormSchema = z.object({
   numero_cadastro: z.string().optional(),
 });
 
-// Correção: Alterando os campos percentual_desconto e consumo_kwh para string
+// Alterando os campos percentual_desconto e consumo_kwh para string
 export const unidadeBeneficiariaFormSchema = z.object({
   numero_uc: z.string().min(1, { message: "Número da UC é obrigatório" }),
   apelido: z.string().optional(),

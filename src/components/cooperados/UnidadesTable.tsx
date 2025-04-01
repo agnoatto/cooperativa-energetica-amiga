@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -31,6 +30,7 @@ interface UnidadesTableProps {
   onEdit: (cooperadoId: string, unidadeId: string) => void;
   onDelete: (unidadeId: string, motivo?: string) => Promise<void>;
   onReativar?: (unidadeId: string) => Promise<void>;
+  showCooperadoInfo?: boolean;
 }
 
 export function UnidadesTable({
@@ -38,6 +38,7 @@ export function UnidadesTable({
   onEdit,
   onDelete,
   onReativar,
+  showCooperadoInfo = false,
 }: UnidadesTableProps) {
   const isMobile = useIsMobile();
   const [selectedUnidade, setSelectedUnidade] = useState<any>(null);

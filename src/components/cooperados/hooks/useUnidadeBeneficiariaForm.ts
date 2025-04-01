@@ -1,11 +1,18 @@
 
+/**
+ * Hook para gerenciar o formulário de unidades beneficiárias
+ * 
+ * Este hook implementa a lógica de carregamento, validação e submissão do formulário
+ * de unidades beneficiárias, permitindo tanto a criação quanto a edição.
+ */
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { UnidadeBeneficiariaFormValues } from "../types";
 import { unidadeBeneficiariaFormSchema } from "../schema";
+import { UnidadeBeneficiariaFormValues } from "../types";
 
 interface UseUnidadeBeneficiariaFormProps {
   cooperadoId?: string;
@@ -37,6 +44,7 @@ export function useUnidadeBeneficiariaForm({
       bairro: "",
       cidade: "",
       uf: undefined,
+      // Campos convertidos para string
       consumo_kwh: "",
       percentual_desconto: "",
       data_entrada: new Date().toISOString().split('T')[0],
@@ -143,10 +151,10 @@ export function useUnidadeBeneficiariaForm({
             cidade: data.cidade || "",
             uf: (data.uf as any) || undefined,
             // Convertendo números para strings
-            percentual_desconto: data.percentual_desconto.toString(),
+            percentual_desconto: data.percentual_desconto !== null ? data.percentual_desconto.toString() : "",
+            consumo_kwh: data.consumo_kwh !== null ? data.consumo_kwh.toString() : "",
             data_entrada: new Date(data.data_entrada).toISOString().split('T')[0],
             data_saida: data.data_saida ? new Date(data.data_saida).toISOString().split('T')[0] : "",
-            consumo_kwh: data.consumo_kwh ? data.consumo_kwh.toString() : "",
             possui_geracao_propria: data.possui_geracao_propria || false,
             potencia_instalada: data.potencia_instalada,
             data_inicio_geracao: data.data_inicio_geracao ? new Date(data.data_inicio_geracao).toISOString().split('T')[0] : null,
@@ -217,7 +225,7 @@ export function useUnidadeBeneficiariaForm({
         uf: data.uf,
         cep: data.cep,
         // Convertendo strings para números no momento de salvar
-        consumo_kwh: parseFloat(data.consumo_kwh),
+        consumo_kwh: data.consumo_kwh ? parseFloat(data.consumo_kwh) : null,
         percentual_desconto: parseFloat(data.percentual_desconto),
         data_entrada: new Date(data.data_entrada).toISOString(),
         data_saida: data.data_saida ? new Date(data.data_saida).toISOString() : null,
