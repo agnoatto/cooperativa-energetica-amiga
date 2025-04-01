@@ -14,7 +14,7 @@ export const cooperadoFormSchema = z.object({
   numero_cadastro: z.string().optional(),
 });
 
-// Template de cálculo de fatura é opcional (pode ser null)
+// Atualizando para usar string nos campos numéricos
 export const unidadeBeneficiariaFormSchema = z.object({
   numero_uc: z.string().min(1, { message: "Número da UC é obrigatório" }),
   apelido: z.string().optional(),
@@ -25,7 +25,7 @@ export const unidadeBeneficiariaFormSchema = z.object({
   bairro: z.string().min(1, { message: "Bairro é obrigatório" }),
   cidade: z.string().min(1, { message: "Cidade é obrigatória" }),
   uf: z.string().min(1, { message: "UF é obrigatória" }),
-  percentual_desconto: z.number().min(0, { message: "Desconto deve ser maior ou igual a 0" }),
+  percentual_desconto: z.string().min(1, { message: "Percentual de desconto é obrigatório" }),
   data_entrada: z.string().min(1, { message: "Data de entrada é obrigatória" }),
   data_saida: z.string().optional(),
   consumo_kwh: z.string().optional(),
