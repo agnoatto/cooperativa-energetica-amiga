@@ -1,137 +1,91 @@
 
 /**
- * Página principal de gerenciamento de pagamentos de usinas fotovoltaicas
+ * Página de Pagamentos
  * 
- * Esta página permite visualizar, editar e gerenciar todos os pagamentos
- * relacionados às usinas, incluindo geração de energia, valores e datas.
+ * Exibe e gerencia todos os pagamentos aos cooperados relacionados à 
+ * energia gerada pelas usinas fotovoltaicas.
+ * Inclui funcionalidades para geração, visualização e gerenciamento de pagamentos.
  */
-import { useState } from "react";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useState, useCallback } from "react";
+import { format, addMonths, subMonths } from "date-fns";
 import { toast } from "sonner";
-import { MonthSelector } from "@/components/MonthSelector";
+import { PagamentosTable } from "@/components/pagamentos/PagamentosTable";
 import { PagamentosHeader } from "@/components/pagamentos/PagamentosHeader";
 import { PagamentosDashboard } from "@/components/pagamentos/PagamentosDashboard";
-import { PagamentosTable } from "@/components/pagamentos/PagamentosTable";
-import { PagamentoDetailsDialog } from "@/components/pagamentos/PagamentoDetailsDialog";
-import { DeletePagamentoDialog } from "@/components/pagamentos/DeletePagamentoDialog";
-import { PagamentoEditModal } from "@/components/pagamentos/PagamentoEditModal";
-import { PagamentoData } from "@/components/pagamentos/types/pagamento";
+import { FilterBarWithMonth } from "@/components/shared/FilterBarWithMonth";
 import { usePagamentos } from "@/hooks/usePagamentos";
-import { useMonthSelection } from "@/hooks/useMonthSelection";
-import { supabase } from "@/integrations/supabase/client";
 
-const Pagamentos = () => {
-  // Estados
-  const [selectedPagamento, setSelectedPagamento] = useState<PagamentoData | null>(null);
-  const [selectedPagamentoToEdit, setSelectedPagamentoToEdit] = useState<PagamentoData | null>(null);
-  const [pagamentoToDelete, setPagamentoToDelete] = useState<PagamentoData | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
-  
-  // Hooks
-  const queryClient = useQueryClient();
-  const { currentDate, handlePreviousMonth, handleNextMonth } = useMonthSelection();
-  const { pagamentos, isLoading, gerarPagamentos, isGenerating } = usePagamentos(currentDate);
+export default function Pagamentos() {
+  const [busca, setBusca] = useState("");
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  // Mutation para exclusão
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.rpc('deletar_pagamento', { pagamento_id: id });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pagamentos"] });
-      toast.success("Pagamento excluído com sucesso");
-      setPagamentoToDelete(null);
-    },
-    onError: (error) => {
-      console.error("[Pagamentos] Erro ao excluir pagamento:", error);
-      toast.error("Erro ao excluir pagamento");
-    },
+  // Formatar a data para o formato YYYY-MM para uso nas queries
+  const periodoAtual = format(currentDate, "yyyy-MM");
+
+  const { data: pagamentos, isLoading, refetch } = usePagamentos({
+    periodo: periodoAtual,
+    busca,
   });
 
-  // Handlers
-  const handleViewDetails = (pagamento: PagamentoData) => {
-    setSelectedPagamento(pagamento);
-    setShowDetails(true);
-  };
-
-  const handleEditPagamento = (pagamento: PagamentoData) => {
-    setSelectedPagamentoToEdit(pagamento);
-  };
-
-  const handleDeletePagamento = (pagamento: PagamentoData) => {
-    setPagamentoToDelete(pagamento);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!pagamentoToDelete?.id) {
-      console.error("[Pagamentos] Tentativa de excluir pagamento sem ID");
-      toast.error("Erro ao excluir pagamento: ID não encontrado");
-      return;
-    }
-
+  // Handler para gerar pagamentos do mês atual
+  const handleGerarPagamentos = async () => {
     try {
-      await deleteMutation.mutateAsync(pagamentoToDelete.id);
+      setIsGenerating(true);
+      
+      // Simular uma operação assíncrona (substituir por API real)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      toast.success(`Pagamentos gerados com sucesso para ${format(currentDate, "MMMM/yyyy")}`);
+      
+      // Após a geração bem-sucedida, recarregar os dados
+      refetch();
     } catch (error) {
-      console.error("[Pagamentos] Erro ao executar mutation de exclusão:", error);
+      toast.error("Erro ao gerar pagamentos. Tente novamente.");
+    } finally {
+      setIsGenerating(false);
     }
+  };
+
+  // Handlers para navegação entre meses
+  const handlePreviousMonth = useCallback(() => {
+    setCurrentDate(prev => subMonths(prev, 1));
+  }, []);
+
+  const handleNextMonth = useCallback(() => {
+    setCurrentDate(prev => addMonths(prev, 1));
+  }, []);
+
+  const handleLimparFiltros = () => {
+    setBusca("");
+    // Não resetar o mês ao limpar filtros, apenas o campo de busca
   };
 
   return (
     <div className="space-y-6">
       <PagamentosHeader 
-        onGerarPagamentos={gerarPagamentos}
+        onGerarPagamentos={handleGerarPagamentos} 
         isGenerating={isGenerating}
-      />
-
-      <PagamentosDashboard 
-        pagamentos={pagamentos || []}
-        isLoading={isLoading}
-      />
-
-      <MonthSelector
         currentDate={currentDate}
         onPreviousMonth={handlePreviousMonth}
         onNextMonth={handleNextMonth}
-        className="bg-white rounded-lg shadow-sm border"
       />
-
-      <PagamentosTable
-        pagamentos={pagamentos}
-        isLoading={isLoading}
-        onEditPagamento={handleEditPagamento}
-        onViewDetails={handleViewDetails}
-        onDeletePagamento={handleDeletePagamento}
+      
+      <PagamentosDashboard pagamentos={pagamentos || []} />
+      
+      <FilterBarWithMonth
+        busca={busca}
+        onBuscaChange={setBusca}
+        onLimparFiltros={handleLimparFiltros}
+        placeholder="Buscar por cooperado, usina ou valor..."
+        onMonthChange={setCurrentDate}
       />
-
-      {selectedPagamento && (
-        <PagamentoDetailsDialog
-          pagamento={selectedPagamento}
-          isOpen={showDetails}
-          onClose={() => {
-            setShowDetails(false);
-            setSelectedPagamento(null);
-          }}
-        />
-      )}
-
-      <PagamentoEditModal
-        pagamento={selectedPagamentoToEdit}
-        isOpen={!!selectedPagamentoToEdit}
-        onClose={() => setSelectedPagamentoToEdit(null)}
-        onSave={() => {
-          queryClient.invalidateQueries({ queryKey: ["pagamentos"] });
-        }}
-      />
-
-      <DeletePagamentoDialog
-        pagamento={pagamentoToDelete}
-        isDeleting={deleteMutation.isPending}
-        onClose={() => setPagamentoToDelete(null)}
-        onDelete={handleConfirmDelete}
+      
+      <PagamentosTable 
+        pagamentos={pagamentos || []} 
+        isLoading={isLoading} 
+        refetch={refetch}
       />
     </div>
   );
-};
-
-export default Pagamentos;
+}

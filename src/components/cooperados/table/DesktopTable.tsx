@@ -16,18 +16,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { BuildingIcon, User2, MoreHorizontal, RefreshCw } from "lucide-react";
+import { BuildingIcon, User2, MoreHorizontal, RefreshCw, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 import { CooperadoTableProps } from "./types";
 import { formatarDocumento } from "@/utils/formatters";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 export function DesktopTable({
   cooperados,
@@ -132,37 +125,54 @@ export function DesktopTable({
                         Reativar
                       </Button>
                     ) : (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                      <Popover>
+                        <PopoverTrigger asChild>
                           <Button variant="ghost" className="h-8 w-8 p-0">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => onViewDetails(cooperado.id)}
-                          >
-                            Ver detalhes
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onEdit(cooperado.id)}>
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => onAddUnidade(cooperado.id)}
-                          >
-                            Adicionar unidade
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={() => onDelete(cooperado.id)}
-                          >
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                        </PopoverTrigger>
+                        <PopoverContent align="end" className="w-56 p-2">
+                          <div className="space-y-1">
+                            <Button 
+                              variant="ghost" 
+                              className="w-full justify-start"
+                              onClick={() => onViewDetails(cooperado.id)}
+                            >
+                              <Eye className="mr-2 h-4 w-4" />
+                              Ver detalhes
+                            </Button>
+
+                            <Button 
+                              variant="ghost" 
+                              className="w-full justify-start"
+                              onClick={() => onEdit(cooperado.id)}
+                            >
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Editar
+                            </Button>
+
+                            <Button 
+                              variant="ghost" 
+                              className="w-full justify-start"
+                              onClick={() => onAddUnidade(cooperado.id)}
+                            >
+                              <Plus className="mr-2 h-4 w-4" />
+                              Adicionar unidade
+                            </Button>
+
+                            <div className="border-t border-gray-200 my-1"></div>
+                            
+                            <Button 
+                              variant="ghost" 
+                              className="w-full justify-start text-red-600 hover:text-red-600 hover:bg-red-50"
+                              onClick={() => onDelete(cooperado.id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Excluir
+                            </Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
                     )}
                   </TableCell>
                 </TableRow>

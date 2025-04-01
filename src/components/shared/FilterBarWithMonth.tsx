@@ -42,7 +42,7 @@ export function FilterBarWithMonth({
   const { 
     selectedDate, 
     handlePreviousMonth, 
-    handleNextMonth 
+    handleNextMonth: nextMonth 
   } = useMonthSelection();
 
   // Propagar a mudança de mês para o componente pai se necessário
@@ -54,7 +54,7 @@ export function FilterBarWithMonth({
   };
 
   const handleNextMonth = () => {
-    handleNextMonth();
+    nextMonth();
     if (onMonthChange) {
       onMonthChange(selectedDate);
     }
