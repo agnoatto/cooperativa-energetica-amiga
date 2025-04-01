@@ -1,14 +1,31 @@
 
+/**
+ * Hook para gerenciar dados de pagamentos
+ * 
+ * Este hook busca e gerencia dados de pagamentos de usinas fotovoltaicas,
+ * fornecendo funções para gerar novos pagamentos e acompanhar o estado da operação.
+ */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { fetchPagamentos } from "./pagamentos/queries";
 import { gerarPagamentos } from "./pagamentos/mutations";
+import { PagamentoData } from "@/components/pagamentos/types/pagamento";
+import { format } from "date-fns";
 
-export const usePagamentos = (currentDate: Date) => {
+interface UsePagamentosProps {
+  periodo: string;
+  busca?: string;
+}
+
+export const usePagamentos = ({ periodo, busca }: UsePagamentosProps) => {
   const queryClient = useQueryClient();
+  
+  // Extrair o ano e mês do período para converter para Date
+  const [ano, mes] = periodo.split('-').map(Number);
+  const currentDate = new Date(ano, mes - 1); // mês em JS é base 0 (0-11)
 
-  const { data: pagamentos, isLoading } = useQuery({
-    queryKey: ["pagamentos", currentDate],
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["pagamentos", periodo, busca],
     queryFn: () => fetchPagamentos(currentDate),
   });
 
@@ -30,8 +47,9 @@ export const usePagamentos = (currentDate: Date) => {
   });
 
   return {
-    pagamentos,
+    pagamentos: data as PagamentoData[] | undefined,
     isLoading,
+    refetch,
     gerarPagamentos: () => gerarPagamentosMutation.mutate(),
     isGenerating: gerarPagamentosMutation.isPending
   };

@@ -1,4 +1,10 @@
 
+/**
+ * Dashboard de métricas de pagamentos
+ * 
+ * Este componente exibe cartes com estatísticas e valores totais relacionados
+ * aos pagamentos das usinas fotovoltaicas, como total de geração kWh e valores financeiros.
+ */
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Zap, DollarSign } from "lucide-react";

@@ -14,38 +14,19 @@ import { PagamentosHeader } from "@/components/pagamentos/PagamentosHeader";
 import { PagamentosDashboard } from "@/components/pagamentos/PagamentosDashboard";
 import { FilterBarWithMonth } from "@/components/shared/FilterBarWithMonth";
 import { usePagamentos } from "@/hooks/usePagamentos";
+import { PagamentoData } from "@/components/pagamentos/types/pagamento";
 
 export default function Pagamentos() {
   const [busca, setBusca] = useState("");
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [isGenerating, setIsGenerating] = useState(false);
-
+  
   // Formatar a data para o formato YYYY-MM para uso nas queries
   const periodoAtual = format(currentDate, "yyyy-MM");
 
-  const { data: pagamentos, isLoading, refetch } = usePagamentos({
+  const { pagamentos, isLoading, refetch, gerarPagamentos, isGenerating } = usePagamentos({
     periodo: periodoAtual,
     busca,
   });
-
-  // Handler para gerar pagamentos do mês atual
-  const handleGerarPagamentos = async () => {
-    try {
-      setIsGenerating(true);
-      
-      // Simular uma operação assíncrona (substituir por API real)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      toast.success(`Pagamentos gerados com sucesso para ${format(currentDate, "MMMM/yyyy")}`);
-      
-      // Após a geração bem-sucedida, recarregar os dados
-      refetch();
-    } catch (error) {
-      toast.error("Erro ao gerar pagamentos. Tente novamente.");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
   // Handlers para navegação entre meses
   const handlePreviousMonth = useCallback(() => {
@@ -64,14 +45,17 @@ export default function Pagamentos() {
   return (
     <div className="space-y-6">
       <PagamentosHeader 
-        onGerarPagamentos={handleGerarPagamentos} 
+        onGerarPagamentos={gerarPagamentos} 
         isGenerating={isGenerating}
         currentDate={currentDate}
         onPreviousMonth={handlePreviousMonth}
         onNextMonth={handleNextMonth}
       />
       
-      <PagamentosDashboard pagamentos={pagamentos || []} />
+      <PagamentosDashboard 
+        pagamentos={pagamentos || []} 
+        isLoading={isLoading} 
+      />
       
       <FilterBarWithMonth
         busca={busca}
@@ -84,7 +68,9 @@ export default function Pagamentos() {
       <PagamentosTable 
         pagamentos={pagamentos || []} 
         isLoading={isLoading} 
-        refetch={refetch}
+        onEditPagamento={(pagamento: PagamentoData) => console.log('Edit', pagamento)}
+        onViewDetails={(pagamento: PagamentoData) => console.log('View', pagamento)}
+        onDeletePagamento={(pagamento: PagamentoData) => console.log('Delete', pagamento)}
       />
     </div>
   );
