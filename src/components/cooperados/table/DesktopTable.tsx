@@ -5,7 +5,7 @@
  * Este componente exibe os cooperados em formato de tabela para desktop,
  * permitindo visualizar informações como nome, documento, contato e ações disponíveis.
  * Também mostra o status do cooperado (ativo ou inativo) e permite reativação 
- * de cooperados inativos.
+ * de cooperados inativos. As linhas são clicáveis para abrir a visualização de detalhes.
  */
 import { Button } from "@/components/ui/button";
 import {
@@ -62,7 +62,11 @@ export function DesktopTable({
               const isInativo = cooperado.data_exclusao !== null;
 
               return (
-                <TableRow key={cooperado.id} className={isInativo ? "bg-gray-50" : ""}>
+                <TableRow 
+                  key={cooperado.id} 
+                  className={`${isInativo ? "bg-gray-50" : ""} hover:bg-gray-100 cursor-pointer`}
+                  onClick={() => onViewDetails(cooperado.id)}
+                >
                   <TableCell className="font-medium">{cooperado.nome}</TableCell>
                   <TableCell>
                     {cooperado.documento
@@ -113,12 +117,15 @@ export function DesktopTable({
                       </Badge>
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     {isInativo ? (
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        onClick={() => onReactivate(cooperado.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onReactivate(cooperado.id);
+                        }}
                         className="text-green-600"
                       >
                         <RefreshCw className="mr-2 h-4 w-4" />
@@ -127,7 +134,11 @@ export function DesktopTable({
                     ) : (
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
+                          <Button 
+                            variant="ghost" 
+                            className="h-8 w-8 p-0"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </PopoverTrigger>

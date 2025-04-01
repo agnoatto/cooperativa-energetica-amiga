@@ -1,4 +1,11 @@
 
+/**
+ * Diálogo de detalhes do cooperado
+ * 
+ * Este componente exibe informações detalhadas sobre um cooperado,
+ * incluindo informações pessoais, responsáveis (para PJ) e unidades beneficiárias.
+ * Permite também acessar funcionalidades para editar cooperado e adicionar unidades.
+ */
 import {
   Dialog,
   DialogContent,
@@ -13,17 +20,23 @@ import { PersonalInfoSection } from "./PersonalInfoSection";
 import { ResponsiblePersonSection } from "./ResponsiblePersonSection";
 import { UnitsTabContent } from "./UnitsTabContent";
 import { InvoicesTabContent } from "./InvoicesTabContent";
+import { Button } from "@/components/ui/button";
+import { Pencil, Plus } from "lucide-react";
 
 interface CooperadoDetailsDialogProps {
   cooperadoId: string | null;
   isOpen: boolean;
   onClose: () => void;
+  onEdit: (cooperadoId: string) => void;
+  onAddUnidade: (cooperadoId: string) => void;
 }
 
 export function CooperadoDetailsDialog({ 
   cooperadoId, 
   isOpen, 
-  onClose 
+  onClose,
+  onEdit,
+  onAddUnidade
 }: CooperadoDetailsDialogProps) {
   const { data: cooperado, isLoading: isLoadingCooperado } = useQuery({
     queryKey: ["cooperado", cooperadoId],
@@ -77,8 +90,32 @@ export function CooperadoDetailsDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+        <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle>Detalhes do Cooperado</DialogTitle>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                onEdit(cooperadoId);
+                onClose();
+              }}
+            >
+              <Pencil className="mr-2 h-4 w-4" />
+              Editar
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => {
+                onAddUnidade(cooperadoId);
+                onClose();
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Adicionar Unidade
+            </Button>
+          </div>
         </DialogHeader>
 
         {isLoadingCooperado ? (
