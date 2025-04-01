@@ -1,5 +1,6 @@
 
 import { z } from "zod";
+import { UseFormReturn } from "react-hook-form";
 
 export const cooperadoFormSchema = z.object({
   nome: z.string().min(3, { message: "Nome deve ter pelo menos 3 caracteres" }),
@@ -39,6 +40,8 @@ export const unidadeBeneficiariaFormSchema = z.object({
   calculo_fatura_template_id: z.string().optional()
 });
 
+export type UnidadeBeneficiariaFormValues = z.infer<typeof unidadeBeneficiariaFormSchema>;
+
 export interface UnidadeBeneficiariaFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -53,4 +56,14 @@ export interface UnidadesTableProps {
   onDelete: (unidadeId: string, motivo?: string) => void;
   onReativar?: (unidadeId: string) => void;
   showCooperadoInfo?: boolean;
+}
+
+export interface AddressFieldsProps {
+  form: UseFormReturn<UnidadeBeneficiariaFormValues>;
+  isLoadingCep: boolean;
+  onFetchCep: (cep: string) => void;
+}
+
+export interface DateFieldsProps {
+  form: UseFormReturn<UnidadeBeneficiariaFormValues>;
 }
