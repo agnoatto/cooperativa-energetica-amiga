@@ -1,14 +1,23 @@
 
+/**
+ * Componente de tabela no estilo Excel para faturas
+ * 
+ * Este componente oferece uma experiência similar ao Excel para visualização
+ * de faturas, com recursos como redimensionamento de colunas, personalização
+ * de colunas visíveis e formatação de dados.
+ */
 import { ExcelTable } from "@/components/ui/excel-table/ExcelTable";
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import { Button } from "@/components/ui/button";
 import { formatDateToPtBR } from "@/utils/dateFormatters";
-import { FileText } from "lucide-react";
 import { FaturaStatusBadge } from "../FaturaStatusBadge";
 import { FaturaActionsMenu } from "../FaturaActionsMenu";
 import { formatarDocumento } from "@/utils/formatters";
 import { useEffect, useState } from "react";
 import { Column } from "@/components/ui/excel-table/types";
+import { ColumnSettings } from "@/components/ui/excel-table/ColumnSettings";
+import { NumeroUC } from "./components/NumeroUC";
+import { ConsumoKwh } from "./components/ConsumoKwh";
+import { DataVencimento } from "./components/DataVencimento";
 
 interface FaturasExcelTableProps {
   faturas: Fatura[];
@@ -115,59 +124,70 @@ export function FaturasExcelTable({
   const filteredColumns = defaultColumns.filter(col => visibleColumns.includes(col.id));
 
   return (
-    <ExcelTable
-      columns={filteredColumns}
-      storageKey="faturas-table-config"
-      stickyHeader
-      visibleColumns={visibleColumns}
-      onColumnVisibilityChange={handleColumnVisibilityChange}
-      onResetColumns={handleResetColumns}
-    >
-      <tbody>
-        {faturas.map((fatura) => (
-          <tr key={fatura.id} className="border-b hover:bg-gray-50 transition-colors text-sm">
-            {filteredColumns.map(column => (
-              <td key={column.id} className="px-2 py-1 whitespace-nowrap">
-                {column.id === 'cooperado' && (
-                  <span className="text-gray-900">
-                    {fatura.unidade_beneficiaria.cooperado.nome}
-                    {fatura.unidade_beneficiaria.apelido && (
-                      <span className="text-gray-400 ml-1">
-                        ({fatura.unidade_beneficiaria.apelido})
-                      </span>
-                    )}
-                  </span>
-                )}
-                {column.id === 'documento' && formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)}
-                {column.id === 'uc' && fatura.unidade_beneficiaria.numero_uc}
-                {column.id === 'vencimento' && formatDateToPtBR(fatura.data_vencimento)}
-                {column.id === 'consumo' && `${fatura.consumo_kwh} kWh`}
-                {column.id === 'valor_original' && formatCurrency(fatura.total_fatura)}
-                {column.id === 'valor_assinatura' && (
-                  <>
-                    {formatCurrency(fatura.valor_assinatura)}
-                    {fatura.valor_adicional > 0 && (
-                      <span className="text-yellow-600 text-xs ml-1">
-                        +{formatCurrency(fatura.valor_adicional)}
-                      </span>
-                    )}
-                  </>
-                )}
-                {column.id === 'status' && <FaturaStatusBadge fatura={fatura} />}
-                {column.id === 'acoes' && (
-                  <FaturaActionsMenu
-                    fatura={fatura}
-                    onViewDetails={onViewDetails}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                    onUpdateStatus={onUpdateStatus}
-                  />
-                )}
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </ExcelTable>
+    <div className="overflow-hidden">
+      <div className="flex justify-end mb-2">
+        <ColumnSettings
+          columns={defaultColumns}
+          visibleColumns={visibleColumns}
+          onColumnVisibilityChange={handleColumnVisibilityChange}
+          onReset={handleResetColumns}
+        />
+      </div>
+      
+      <ExcelTable
+        columns={filteredColumns}
+        storageKey="faturas-table-config"
+        stickyHeader
+        visibleColumns={visibleColumns}
+        onColumnVisibilityChange={handleColumnVisibilityChange}
+        onResetColumns={handleResetColumns}
+      >
+        <tbody>
+          {faturas.map((fatura) => (
+            <tr key={fatura.id} className="border-b hover:bg-gray-50 transition-colors text-sm">
+              {filteredColumns.map(column => (
+                <td key={column.id} className="px-3 py-2 whitespace-nowrap">
+                  {column.id === 'cooperado' && (
+                    <span className="text-gray-900">
+                      {fatura.unidade_beneficiaria.cooperado.nome}
+                      {fatura.unidade_beneficiaria.apelido && (
+                        <span className="text-gray-400 ml-1">
+                          ({fatura.unidade_beneficiaria.apelido})
+                        </span>
+                      )}
+                    </span>
+                  )}
+                  {column.id === 'documento' && formatarDocumento(fatura.unidade_beneficiaria.cooperado.documento)}
+                  {column.id === 'uc' && <NumeroUC numeroUC={fatura.unidade_beneficiaria.numero_uc} />}
+                  {column.id === 'vencimento' && <DataVencimento dataVencimento={fatura.data_vencimento} />}
+                  {column.id === 'consumo' && <ConsumoKwh consumoKwh={fatura.consumo_kwh} />}
+                  {column.id === 'valor_original' && formatCurrency(fatura.total_fatura)}
+                  {column.id === 'valor_assinatura' && (
+                    <>
+                      {formatCurrency(fatura.valor_assinatura)}
+                      {fatura.valor_adicional > 0 && (
+                        <span className="text-yellow-600 text-xs ml-1">
+                          +{formatCurrency(fatura.valor_adicional)}
+                        </span>
+                      )}
+                    </>
+                  )}
+                  {column.id === 'status' && <FaturaStatusBadge fatura={fatura} />}
+                  {column.id === 'acoes' && (
+                    <FaturaActionsMenu
+                      fatura={fatura}
+                      onViewDetails={onViewDetails}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                      onUpdateStatus={onUpdateStatus}
+                    />
+                  )}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </ExcelTable>
+    </div>
   );
 }

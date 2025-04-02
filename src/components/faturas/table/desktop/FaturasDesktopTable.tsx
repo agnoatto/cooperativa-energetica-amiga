@@ -1,69 +1,49 @@
 
 /**
- * Componente de tabela desktop para faturas
+ * Tabela de faturas para desktop
  * 
- * Implementa uma tabela responsiva com scroll horizontal controlado
- * utilizando ScrollArea para garantir uma experiência profissional.
+ * Este componente exibe as faturas em um formato de tabela estilo Excel 
+ * com funcionalidades avançadas como redimensionamento de colunas, 
+ * personalização de colunas visíveis e rolagem horizontal suave.
+ * Substitui a implementação anterior para melhor exibição de dados.
  */
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import { 
-  Table, 
-  TableBody, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
+import { FaturasExcelTable } from "./FaturasExcelTable";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FaturaDesktopRow } from "./FaturaDesktopRow";
-import { useMemo } from "react";
-import { FaturasTableHeader } from "../FaturasTableHeader";
 
 interface FaturasDesktopTableProps {
   faturas: Fatura[];
   onViewDetails: (fatura: Fatura) => void;
-  onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
+  onEdit: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
 }
 
 export function FaturasDesktopTable({
   faturas,
   onViewDetails,
-  onEdit,
   onDelete,
+  onEdit,
   onUpdateStatus
 }: FaturasDesktopTableProps) {
-  const sortedFaturas = useMemo(() => {
-    return [...faturas].sort((a, b) => {
-      // Faturas não pagas primeiro
-      if (a.status !== 'paga' && b.status === 'paga') return -1;
-      if (a.status === 'paga' && b.status !== 'paga') return 1;
-      
-      // Depois por data de vencimento (mais próximas primeiro)
-      return new Date(a.data_vencimento).getTime() - new Date(b.data_vencimento).getTime();
-    });
-  }, [faturas]);
+  
+  const handleViewPdf = () => {
+    console.log("Visualizar PDF");
+    // A implementação real seria feita no componente PdfVisualizationHandler
+  };
 
   return (
-    <div className="border rounded-md shadow-sm overflow-hidden">
-      <ScrollArea className="h-[calc(100vh-360px)] w-full">
-        <div className="relative w-full">
-          <Table className="w-full min-w-[1200px]">
-            <FaturasTableHeader />
-            <TableBody>
-              {sortedFaturas.map((fatura) => (
-                <FaturaDesktopRow
-                  key={fatura.id}
-                  fatura={fatura}
-                  onViewDetails={onViewDetails}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onUpdateStatus={onUpdateStatus}
-                />
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </ScrollArea>
-    </div>
+    <ScrollArea className="w-full rounded-md border">
+      <div className="overflow-hidden">
+        <FaturasExcelTable 
+          faturas={faturas}
+          onViewDetails={onViewDetails}
+          onDelete={onDelete}
+          onEdit={onEdit}
+          onUpdateStatus={onUpdateStatus}
+          onViewPdf={handleViewPdf}
+        />
+      </div>
+    </ScrollArea>
   );
 }

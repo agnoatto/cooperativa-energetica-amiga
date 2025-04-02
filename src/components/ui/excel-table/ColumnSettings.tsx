@@ -1,4 +1,11 @@
 
+/**
+ * Componente para configuração de colunas visíveis
+ * 
+ * Este componente oferece uma interface para o usuário selecionar
+ * quais colunas devem ser exibidas na tabela, melhorando a experiência
+ * ao permitir personalização da visualização dos dados.
+ */
 import { Button } from "@/components/ui/button";
 import {
   Popover,

@@ -1,4 +1,11 @@
 
+/**
+ * Componente de tabela no estilo Excel
+ * 
+ * Esta tabela implementa funcionalidades similares ao Excel como
+ * redimensionamento de colunas, rolagem horizontal, cabeçalhos fixos
+ * e outras funcionalidades avançadas para melhor experiência do usuário.
+ */
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Column, ExcelTableProps, TableSettings } from "./types";
@@ -20,7 +27,15 @@ export function ExcelTable({
   const [settings, setSettings] = useState<TableSettings>(() => {
     const saved = localStorage.getItem(storageKey);
     if (saved) {
-      return JSON.parse(saved);
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Erro ao carregar configurações da tabela:", e);
+        return {
+          columnWidths: {},
+          visibleColumns: columns.map(col => col.id)
+        };
+      }
     }
     return {
       columnWidths: {},
