@@ -15,6 +15,9 @@ import { ClienteInfo } from "./components/ClienteInfo";
 import { ArquivoConcessionaria } from "./components/ArquivoConcessionaria";
 import { ProximaLeitura } from "./components/ProximaLeitura";
 import { ValorFatura } from "./components/ValoresFatura";
+import { NumeroUC } from "./components/NumeroUC";
+import { ConsumoKwh } from "./components/ConsumoKwh";
+import { DataVencimento } from "./components/DataVencimento";
 
 interface FaturaDesktopRowProps {
   fatura: Fatura;
@@ -41,7 +44,7 @@ export function FaturaDesktopRow({
     <TableRow className="hover:bg-gray-50" onClick={handleRowClick}>
       {/* Número da UC */}
       <TableCell className="py-3 px-4 text-sm w-[100px]">
-        {fatura.unidade_beneficiaria.numero_uc}
+        <NumeroUC numeroUC={fatura.unidade_beneficiaria.numero_uc} />
       </TableCell>
       
       {/* Informações do Cooperado */}
@@ -51,7 +54,7 @@ export function FaturaDesktopRow({
       
       {/* Consumo em kWh */}
       <TableCell className="py-3 px-4 text-sm text-right w-[100px]">
-        {fatura.consumo_kwh || 0} kWh
+        <ConsumoKwh consumoKwh={fatura.consumo_kwh || 0} />
       </TableCell>
       
       {/* Valor da Assinatura */}
@@ -61,7 +64,7 @@ export function FaturaDesktopRow({
       
       {/* Data de Vencimento */}
       <TableCell className="py-3 px-4 text-sm text-right w-[120px]">
-        {formatDateToPtBR(fatura.data_vencimento)}
+        <DataVencimento dataVencimento={fatura.data_vencimento} />
       </TableCell>
       
       {/* Status da Fatura */}
