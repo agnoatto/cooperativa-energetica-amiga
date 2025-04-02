@@ -25,6 +25,7 @@ interface FaturaDesktopRowProps {
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
   onShowPaymentConfirmation: (fatura: Fatura) => void;
+  onViewPdf?: () => Promise<void>; // Adicionado esta propriedade opcional
 }
 
 export function FaturaDesktopRow({
@@ -33,7 +34,8 @@ export function FaturaDesktopRow({
   onEdit,
   onDelete,
   onUpdateStatus,
-  onShowPaymentConfirmation
+  onShowPaymentConfirmation,
+  onViewPdf, // Adicionado no destructuring dos props
 }: FaturaDesktopRowProps) {
   return (
     <TableRow className="hover:bg-gray-50">
@@ -69,7 +71,7 @@ export function FaturaDesktopRow({
       
       {/* Arquivo da Concessionária */}
       <TableCell className="py-3 px-4 text-sm text-center w-[150px]">
-        <ArquivoConcessionaria arquivoPath={fatura.arquivo_concessionaria_path} />
+        <ArquivoConcessionaria arquivoPath={fatura.arquivo_concessionaria_path} onViewPdf={onViewPdf} />
       </TableCell>
       
       {/* Próxima Leitura */}
