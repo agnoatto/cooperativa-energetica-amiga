@@ -1,4 +1,11 @@
 
+/**
+ * Componente de tabela de unidades de usina
+ * 
+ * Este componente exibe uma lista de unidades de usina em formato de tabela para desktop
+ * ou cards para dispositivos móveis, com suporte a scroll horizontal para
+ * melhor visualização em telas menores.
+ */
 import { Button } from "@/components/ui/button";
 import {
   Table,
