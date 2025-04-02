@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 import { UseFormReturn } from "react-hook-form";
 
@@ -67,4 +68,4 @@ export interface DateFieldsProps {
   form: UseFormReturn<UnidadeBeneficiariaFormValues>;
 }
 
-export type UnidadeBeneficiariaFormValues = z.infer<typeof unidadeBeneficiariaFormSchema>;
+// Removida a declaração duplicada de UnidadeBeneficiariaFormValues
