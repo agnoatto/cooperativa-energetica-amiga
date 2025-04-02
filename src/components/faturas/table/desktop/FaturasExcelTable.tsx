@@ -19,6 +19,7 @@ import { NumeroUC } from "./components/NumeroUC";
 import { ConsumoKwh } from "./components/ConsumoKwh";
 import { DataVencimento } from "./components/DataVencimento";
 import { ValorFatura } from "./components/ValoresFatura";
+import { cn } from "@/lib/utils";
 
 interface FaturasExcelTableProps {
   faturas: Fatura[];
@@ -166,8 +167,14 @@ export function FaturasExcelTable({
         <tbody>
           {faturas.map((fatura) => (
             <tr key={fatura.id} className="border-b hover:bg-gray-50 transition-colors text-sm">
-              {filteredColumns.map(column => (
-                <td key={column.id} className="px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis">
+              {filteredColumns.map((column, colIndex) => (
+                <td 
+                  key={column.id} 
+                  className={cn(
+                    "px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis",
+                    colIndex === 0 && "sticky left-0 z-10 bg-inherit shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]" // Célula da primeira coluna fixa
+                  )}
+                >
                   {column.id === 'cooperado' && (
                     <span className="text-gray-900">
                       {fatura.unidade_beneficiaria.cooperado.nome}

@@ -60,9 +60,19 @@ export function ResizeHandle({ onResize, minWidth = 50, maxWidth = 1000 }: Resiz
 
   return (
     <div
-      className="absolute right-0 top-0 h-full w-2 cursor-col-resize bg-transparent hover:bg-blue-400 active:bg-blue-600 transition-colors"
+      className="absolute right-0 top-0 h-full w-4 cursor-col-resize group bg-transparent hover:bg-blue-400/20 active:bg-blue-600/30 transition-colors"
       onMouseDown={handleMouseDown}
       style={{ touchAction: 'none' }} // Impede comportamento padrão em dispositivos touch
-    />
+    >
+      {/* Linha de indicação visual */}
+      <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-gray-300 group-hover:bg-blue-500 group-active:bg-blue-600"></div>
+      
+      {/* Indicador visual durante resize */}
+      {isResizing && (
+        <div className="fixed inset-0 z-50 pointer-events-none">
+          <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-500 opacity-50"></div>
+        </div>
+      )}
+    </div>
   );
 }

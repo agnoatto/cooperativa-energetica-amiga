@@ -33,7 +33,7 @@ export function FaturasDesktopTable({
   };
 
   return (
-    <ScrollArea className="w-full rounded-md border h-[calc(100vh-15rem)]">
+    <ScrollArea className="w-full rounded-md border h-[calc(100vh-15rem)] bg-white">
       <div className="h-full overflow-hidden">
         <FaturasExcelTable 
           faturas={faturas}

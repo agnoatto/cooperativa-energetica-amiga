@@ -66,6 +66,7 @@ export function ExcelTable({
           "w-full table-fixed border-collapse bg-white",
           "text-sm [&_th]:bg-[#F8FAFC] [&_th]:font-medium [&_th]:text-gray-700",
           "[&_td]:p-3 [&_td]:text-gray-700 [&_td]:border-0 [&_td]:border-r [&_td]:border-gray-200",
+          "[&_tr:nth-child(even)]:bg-[#F9FAFB]", // Linhas zebradas
           "[&_tr:hover]:bg-[#F1F5F9]",
           "[&_tr]:border-b [&_tr]:border-gray-200 last:[&_tr]:border-0",
           className
@@ -74,14 +75,20 @@ export function ExcelTable({
       >
         <thead className={cn(stickyHeader && "sticky top-0 z-10")}>
           <tr>
-            {columns.map((column) => {
+            {columns.map((column, index) => {
               // Obtém a largura salva ou usa o padrão
               const columnWidth = settings.columnWidths[column.id] || column.width || defaultColumnWidth;
+              
+              // Primeira coluna fixa
+              const isFirstColumn = index === 0;
               
               return (
                 <th
                   key={column.id}
-                  className="px-3 py-3 text-left font-medium border-b border-r border-gray-200 bg-[#F8FAFC] relative select-none"
+                  className={cn(
+                    "px-3 py-3 text-left font-medium border-b border-r border-gray-200 bg-[#F1F5F9] relative select-none",
+                    isFirstColumn && "sticky left-0 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]" // Coluna fixa com sombra
+                  )}
                   style={{
                     width: columnWidth,
                     minWidth: column.minWidth || 50,
