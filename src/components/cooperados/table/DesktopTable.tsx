@@ -7,7 +7,6 @@
  * Também mostra o status do cooperado (ativo ou inativo) e permite reativação 
  * de cooperados inativos. As linhas são clicáveis para abrir a visualização de detalhes.
  */
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -16,11 +15,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { BuildingIcon, User2, MoreHorizontal, RefreshCw, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 import { CooperadoTableProps } from "./types";
-import { formatarDocumento } from "@/utils/formatters";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { formatarContato, formatarDocumentoCooperado, formatarInfoUnidades } from "./utils/formatters";
+import { TipoPessoaBadge } from "./components/TipoPessoaBadge";
+import { CooperadoStatusBadge } from "./components/StatusBadge";
+import { ReativarButton } from "./components/ReativarButton";
+import { AcoesPopover } from "./components/AcoesPopover";
 
 export function DesktopTable({
   cooperados,
@@ -69,121 +69,36 @@ export function DesktopTable({
                 >
                   <TableCell className="font-medium">{cooperado.nome}</TableCell>
                   <TableCell>
-                    {cooperado.documento
-                      ? formatarDocumento(
-                          cooperado.documento,
-                          cooperado.tipo_pessoa
-                        )
-                      : "-"}
+                    {formatarDocumentoCooperado(cooperado.documento, cooperado.tipo_pessoa)}
                   </TableCell>
                   <TableCell>
-                    {cooperado.tipo_pessoa === "PF" ? (
-                      <Badge variant="outline" className="bg-blue-50">
-                        <User2 className="mr-1 h-3 w-3" />
-                        Pessoa Física
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-amber-50">
-                        <BuildingIcon className="mr-1 h-3 w-3" />
-                        Pessoa Jurídica
-                      </Badge>
-                    )}
+                    <TipoPessoaBadge tipoPessoa={cooperado.tipo_pessoa} />
                   </TableCell>
                   <TableCell>
-                    {cooperado.telefone || cooperado.email
-                      ? [
-                          cooperado.telefone &&
-                            `Tel: ${cooperado.telefone}`,
-                          cooperado.email && `Email: ${cooperado.email}`,
-                        ]
-                          .filter(Boolean)
-                          .join(", ")
-                      : "-"}
+                    {formatarContato(cooperado.telefone, cooperado.email)}
                   </TableCell>
                   <TableCell>{cooperado.numero_cadastro || "-"}</TableCell>
                   <TableCell>
-                    {unidadesDoCooperado.length > 0
-                      ? `${unidadesDoCooperado.length} unidade(s)`
-                      : "Nenhuma unidade"}
+                    {formatarInfoUnidades(unidadesDoCooperado.length)}
                   </TableCell>
                   <TableCell>
-                    {isInativo ? (
-                      <Badge variant="outline" className="bg-red-50 text-red-600">
-                        Inativo
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-green-50 text-green-600">
-                        Ativo
-                      </Badge>
-                    )}
+                    <CooperadoStatusBadge isInativo={isInativo} />
                   </TableCell>
                   <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     {isInativo ? (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <ReativarButton 
                         onClick={(e) => {
                           e.stopPropagation();
                           onReactivate(cooperado.id);
                         }}
-                        className="text-green-600"
-                      >
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                        Reativar
-                      </Button>
+                      />
                     ) : (
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            className="h-8 w-8 p-0"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent align="end" className="w-56 p-2">
-                          <div className="space-y-1">
-                            <Button 
-                              variant="ghost" 
-                              className="w-full justify-start"
-                              onClick={() => onViewDetails(cooperado.id)}
-                            >
-                              <Eye className="mr-2 h-4 w-4" />
-                              Ver detalhes
-                            </Button>
-
-                            <Button 
-                              variant="ghost" 
-                              className="w-full justify-start"
-                              onClick={() => onEdit(cooperado.id)}
-                            >
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Editar
-                            </Button>
-
-                            <Button 
-                              variant="ghost" 
-                              className="w-full justify-start"
-                              onClick={() => onAddUnidade(cooperado.id)}
-                            >
-                              <Plus className="mr-2 h-4 w-4" />
-                              Adicionar unidade
-                            </Button>
-
-                            <div className="border-t border-gray-200 my-1"></div>
-                            
-                            <Button 
-                              variant="ghost" 
-                              className="w-full justify-start text-red-600 hover:text-red-600 hover:bg-red-50"
-                              onClick={() => onDelete(cooperado.id)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Excluir
-                            </Button>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
+                      <AcoesPopover 
+                        onViewDetails={() => onViewDetails(cooperado.id)}
+                        onEdit={() => onEdit(cooperado.id)}
+                        onAddUnidade={() => onAddUnidade(cooperado.id)}
+                        onDelete={() => onDelete(cooperado.id)}
+                      />
                     )}
                   </TableCell>
                 </TableRow>
