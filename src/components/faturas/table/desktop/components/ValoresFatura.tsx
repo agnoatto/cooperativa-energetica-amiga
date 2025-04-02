@@ -20,6 +20,8 @@ export function ValorFatura({ valor }: ValoresFaturaProps) {
   };
 
   return (
-    <span>{formatCurrency(valor || 0)}</span>
+    <div className="text-right">
+      <span>{formatCurrency(valor || 0)}</span>
+    </div>
   );
 }

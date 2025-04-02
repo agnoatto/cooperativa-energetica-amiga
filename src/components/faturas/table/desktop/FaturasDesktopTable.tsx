@@ -9,7 +9,6 @@ import { Fatura, FaturaStatus } from "@/types/fatura";
 import { 
   Table, 
   TableBody, 
-  TableHead, 
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
@@ -50,19 +49,8 @@ export function FaturasDesktopTable({
     <div className="border rounded-md shadow-sm overflow-hidden">
       <ScrollArea className="h-[calc(100vh-360px)] w-full">
         <div className="relative w-full">
-          <Table className="w-full min-w-[1200px] table-fixed">
-            <TableHeader className="bg-gray-50 sticky top-0 z-10">
-              <TableRow className="border-b border-gray-200">
-                <TableHead className="w-[120px] py-3 px-4 text-sm font-medium text-gray-700">UC</TableHead>
-                <TableHead className="w-[200px] py-3 px-4 text-sm font-medium text-gray-700">Cooperado</TableHead>
-                <TableHead className="w-[120px] py-3 px-4 text-sm font-medium text-gray-700 text-right">Valor</TableHead>
-                <TableHead className="w-[120px] py-3 px-4 text-sm font-medium text-gray-700 text-right">Vencimento</TableHead>
-                <TableHead className="w-[120px] py-3 px-4 text-sm font-medium text-gray-700 text-right">Status</TableHead>
-                <TableHead className="w-[150px] py-3 px-4 text-sm font-medium text-gray-700 text-center">Fatura Concessionária</TableHead>
-                <TableHead className="w-[150px] py-3 px-4 text-sm font-medium text-gray-700 text-center">Próxima Leitura</TableHead>
-                <TableHead className="w-[120px] py-3 px-4 text-sm font-medium text-gray-700 text-center sticky right-0 bg-gray-50 shadow-[-8px_0_16px_-6px_rgba(0,0,0,0.05)]">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
+          <Table className="w-full min-w-[1200px]">
+            <FaturasTableHeader />
             <TableBody>
               {sortedFaturas.map((fatura) => (
                 <FaturaDesktopRow
