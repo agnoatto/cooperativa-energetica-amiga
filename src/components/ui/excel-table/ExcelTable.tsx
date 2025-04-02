@@ -48,6 +48,7 @@ export function ExcelTable({
   }, [settings, storageKey]);
 
   const handleResize = useCallback((columnId: string, width: number) => {
+    console.log(`Redimensionando coluna ${columnId} para ${width}px`);
     setSettings(prev => ({
       ...prev,
       columnWidths: {
@@ -62,7 +63,7 @@ export function ExcelTable({
     <div className="relative w-full overflow-x-auto shadow-sm border border-gray-200 rounded-lg">
       <table
         className={cn(
-          "w-full border-collapse bg-white",
+          "w-full table-fixed border-collapse bg-white",
           "text-sm [&_th]:bg-[#F8FAFC] [&_th]:font-medium [&_th]:text-gray-700",
           "[&_td]:p-3 [&_td]:text-gray-700 [&_td]:border-0 [&_td]:border-r [&_td]:border-gray-200",
           "[&_tr:hover]:bg-[#F1F5F9]",
@@ -73,26 +74,31 @@ export function ExcelTable({
       >
         <thead className={cn(stickyHeader && "sticky top-0 z-10")}>
           <tr>
-            {columns.map((column) => (
-              <th
-                key={column.id}
-                className="px-3 py-3 text-left font-medium border-b border-r border-gray-200 bg-[#F8FAFC] relative"
-                style={{
-                  width: settings.columnWidths[column.id] || column.width || defaultColumnWidth,
-                  minWidth: column.minWidth,
-                  maxWidth: column.maxWidth
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="truncate">{column.label}</span>
-                </div>
-                <ResizeHandle
-                  onResize={(width) => handleResize(column.id, width)}
-                  minWidth={column.minWidth}
-                  maxWidth={column.maxWidth}
-                />
-              </th>
-            ))}
+            {columns.map((column) => {
+              // Obtém a largura salva ou usa o padrão
+              const columnWidth = settings.columnWidths[column.id] || column.width || defaultColumnWidth;
+              
+              return (
+                <th
+                  key={column.id}
+                  className="px-3 py-3 text-left font-medium border-b border-r border-gray-200 bg-[#F8FAFC] relative select-none"
+                  style={{
+                    width: columnWidth,
+                    minWidth: column.minWidth || 50,
+                    maxWidth: column.maxWidth
+                  }}
+                >
+                  <div className="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
+                    <span className="truncate">{column.label}</span>
+                  </div>
+                  <ResizeHandle
+                    onResize={(width) => handleResize(column.id, width)}
+                    minWidth={column.minWidth}
+                    maxWidth={column.maxWidth}
+                  />
+                </th>
+              );
+            })}
           </tr>
         </thead>
         {children}

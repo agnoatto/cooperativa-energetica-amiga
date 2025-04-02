@@ -15,6 +15,9 @@ export function ResizeHandle({ onResize, minWidth = 50, maxWidth = 1000 }: Resiz
   const handleMouseMove = useCallback((e: globalThis.MouseEvent) => {
     if (!isResizing) return;
 
+    // Prevent default to avoid text selection during resize
+    e.preventDefault();
+    
     const diff = e.pageX - startX;
     const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidth + diff));
     onResize(newWidth);
@@ -22,21 +25,31 @@ export function ResizeHandle({ onResize, minWidth = 50, maxWidth = 1000 }: Resiz
 
   const handleMouseUp = useCallback(() => {
     setIsResizing(false);
+    // Remove cursor style from body when resizing ends
+    document.body.style.cursor = '';
   }, []);
 
   useEffect(() => {
     if (isResizing) {
+      // Set cursor for entire body during resize
+      document.body.style.cursor = 'col-resize';
+      
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
 
       return () => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
+        document.body.style.cursor = '';
       };
     }
   }, [isResizing, handleMouseMove, handleMouseUp]);
 
   const handleMouseDown = (e: MouseEvent) => {
+    // Impedir propagação para evitar seleção da coluna
+    e.stopPropagation();
+    e.preventDefault();
+    
     setIsResizing(true);
     setStartX(e.pageX);
     const cell = (e.target as HTMLElement).closest('th');
@@ -47,8 +60,9 @@ export function ResizeHandle({ onResize, minWidth = 50, maxWidth = 1000 }: Resiz
 
   return (
     <div
-      className="absolute right-0 top-0 h-full w-1 cursor-col-resize bg-transparent hover:bg-blue-400 transition-colors"
+      className="absolute right-0 top-0 h-full w-2 cursor-col-resize bg-transparent hover:bg-blue-400 active:bg-blue-600 transition-colors"
       onMouseDown={handleMouseDown}
+      style={{ touchAction: 'none' }} // Impede comportamento padrão em dispositivos touch
     />
   );
 }

@@ -18,6 +18,7 @@ import { ColumnSettings } from "@/components/ui/excel-table/ColumnSettings";
 import { NumeroUC } from "./components/NumeroUC";
 import { ConsumoKwh } from "./components/ConsumoKwh";
 import { DataVencimento } from "./components/DataVencimento";
+import { ValorFatura } from "./components/ValoresFatura";
 
 interface FaturasExcelTableProps {
   faturas: Fatura[];
@@ -98,9 +99,18 @@ export function FaturasExcelTable({
     return saved ? JSON.parse(saved) : defaultColumns.map(col => col.id);
   });
 
+  const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
+    const saved = localStorage.getItem('faturas-column-widths');
+    return saved ? JSON.parse(saved) : {};
+  });
+
   useEffect(() => {
     localStorage.setItem('faturas-columns-visibility', JSON.stringify(visibleColumns));
   }, [visibleColumns]);
+
+  useEffect(() => {
+    localStorage.setItem('faturas-column-widths', JSON.stringify(columnWidths));
+  }, [columnWidths]);
 
   const handleColumnVisibilityChange = (columnId: string, visible: boolean) => {
     setVisibleColumns(prev =>
@@ -112,6 +122,16 @@ export function FaturasExcelTable({
 
   const handleResetColumns = () => {
     setVisibleColumns(defaultColumns.map(col => col.id));
+    setColumnWidths({});
+    localStorage.removeItem('faturas-column-widths');
+  };
+
+  const handleColumnResize = (columnId: string, width: number) => {
+    console.log(`Coluna ${columnId} redimensionada para ${width}px`);
+    setColumnWidths(prev => ({
+      ...prev,
+      [columnId]: width
+    }));
   };
 
   const formatCurrency = (value: number) => {
@@ -141,12 +161,13 @@ export function FaturasExcelTable({
         visibleColumns={visibleColumns}
         onColumnVisibilityChange={handleColumnVisibilityChange}
         onResetColumns={handleResetColumns}
+        onColumnResize={handleColumnResize}
       >
         <tbody>
           {faturas.map((fatura) => (
             <tr key={fatura.id} className="border-b hover:bg-gray-50 transition-colors text-sm">
               {filteredColumns.map(column => (
-                <td key={column.id} className="px-3 py-2 whitespace-nowrap">
+                <td key={column.id} className="px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis">
                   {column.id === 'cooperado' && (
                     <span className="text-gray-900">
                       {fatura.unidade_beneficiaria.cooperado.nome}
