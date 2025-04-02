@@ -15,8 +15,6 @@ import { ClienteInfo } from "./components/ClienteInfo";
 import { ArquivoConcessionaria } from "./components/ArquivoConcessionaria";
 import { ProximaLeitura } from "./components/ProximaLeitura";
 import { ValorFatura } from "./components/ValoresFatura";
-import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
 
 interface FaturaDesktopRowProps {
   fatura: Fatura;
@@ -37,8 +35,12 @@ export function FaturaDesktopRow({
   onShowPaymentConfirmation,
   onViewPdf, // Adicionado no destructuring dos props
 }: FaturaDesktopRowProps) {
+  const handleRowClick = () => {
+    onViewDetails(fatura);
+  };
+
   return (
-    <TableRow className="hover:bg-gray-50">
+    <TableRow className="hover:bg-gray-50" onClick={handleRowClick}>
       {/* Número da UC */}
       <TableCell className="py-3 px-4 text-sm w-[100px]">
         {fatura.unidade_beneficiaria.numero_uc}
@@ -70,7 +72,7 @@ export function FaturaDesktopRow({
       </TableCell>
       
       {/* Arquivo da Concessionária */}
-      <TableCell className="py-3 px-4 text-sm text-center w-[150px]">
+      <TableCell className="py-3 px-4 text-sm text-center w-[150px]" onClick={(e) => e.stopPropagation()}>
         <ArquivoConcessionaria arquivoPath={fatura.arquivo_concessionaria_path} onViewPdf={onViewPdf} />
       </TableCell>
       
@@ -80,7 +82,7 @@ export function FaturaDesktopRow({
       </TableCell>
       
       {/* Menu de Ações */}
-      <TableCell className="py-3 px-4 text-sm w-[100px] text-center sticky right-0 bg-white shadow-[-8px_0_16px_-6px_rgba(0,0,0,0.05)]">
+      <TableCell className="py-3 px-4 text-sm w-[100px] text-center sticky right-0 bg-white shadow-[-8px_0_16px_-6px_rgba(0,0,0,0.05)]" onClick={(e) => e.stopPropagation()}>
         <FaturaActionsMenu
           fatura={fatura}
           onViewDetails={onViewDetails}

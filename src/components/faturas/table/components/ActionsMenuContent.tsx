@@ -3,6 +3,7 @@
  * Componente para o conteúdo do menu de ações da fatura
  * 
  * Este componente renderiza o conteúdo do menu popup com as ações disponíveis para uma fatura.
+ * Otimizado para funcionar com o componente Popover.
  */
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { ActionMenuItem } from "./ActionMenuItem";
@@ -34,9 +35,9 @@ export function ActionsMenuContent({
   onClose
 }: ActionsMenuContentProps) {
   return (
-    <div className="py-1" role="none">
+    <div className="flex flex-col gap-0.5" onClick={(e) => e.stopPropagation()}>
       <ActionMenuItem
-        icon={<Eye className="mr-2 h-4 w-4" />}
+        icon={<Eye className="h-4 w-4" />}
         label="Visualizar"
         onClick={() => {
           onViewDetails(fatura);
@@ -45,7 +46,7 @@ export function ActionsMenuContent({
       />
       
       <ActionMenuItem
-        icon={<Edit className="mr-2 h-4 w-4" />}
+        icon={<Edit className="h-4 w-4" />}
         label="Editar"
         onClick={() => {
           onEdit(fatura);
@@ -55,7 +56,7 @@ export function ActionsMenuContent({
       
       {fatura.status === 'corrigida' && (
         <ActionMenuItem
-          icon={<RotateCw className="mr-2 h-4 w-4" />}
+          icon={<RotateCw className="h-4 w-4" />}
           label="Reenviar"
           onClick={onReenviarFatura}
         />
@@ -63,7 +64,7 @@ export function ActionsMenuContent({
       
       {['enviada', 'reenviada', 'atrasada'].includes(fatura.status) && (
         <ActionMenuItem
-          icon={<CheckCircle2 className="mr-2 h-4 w-4" />}
+          icon={<CheckCircle2 className="h-4 w-4" />}
           label="Confirmar Pagamento"
           onClick={() => {
             onShowPaymentModal();
@@ -74,8 +75,9 @@ export function ActionsMenuContent({
       
       {fatura.status === 'pendente' && (
         <ActionMenuItem
-          icon={<Trash2 className="mr-2 h-4 w-4" />}
+          icon={<Trash2 className="h-4 w-4" />}
           label="Excluir"
+          variant="ghost"
           onClick={() => {
             onDelete(fatura);
             onClose();
@@ -85,14 +87,14 @@ export function ActionsMenuContent({
       
       {fatura.arquivo_concessionaria_path && (
         <ActionMenuItem
-          icon={<FileText className="mr-2 h-4 w-4" />}
+          icon={<FileText className="h-4 w-4" />}
           label="Ver Fatura Concessionária"
           onClick={onViewConcessionaria}
         />
       )}
       
       <ActionMenuItem
-        icon={<FileText className="mr-2 h-4 w-4" />}
+        icon={<FileText className="h-4 w-4" />}
         label={isGeneratingPdf ? "Gerando relatório..." : "Ver Relatório Mensal"}
         onClick={onViewRelatorio}
         disabled={isGeneratingPdf}
