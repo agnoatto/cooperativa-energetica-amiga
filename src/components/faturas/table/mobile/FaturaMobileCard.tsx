@@ -1,4 +1,3 @@
-
 /**
  * Card de fatura para visualização mobile
  * 
@@ -38,14 +37,6 @@ import {
 } from "@/components/ui/tooltip";
 import { formatDateToPtBR } from "@/utils/dateFormatters";
 import { Separator } from "@/components/ui/separator";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { FaturaActionsMenu } from "../FaturaActionsMenu";
 import { formatarDocumento } from "@/utils/formatters";
 import {
@@ -61,7 +52,6 @@ interface FaturaMobileCardProps {
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
   onViewPdf: (fatura: Fatura) => void;
-  onShowPaymentConfirmation: (fatura: Fatura) => void;
 }
 
 export function FaturaMobileCard({
@@ -70,8 +60,7 @@ export function FaturaMobileCard({
   onEdit,
   onDelete,
   onUpdateStatus,
-  onViewPdf,
-  onShowPaymentConfirmation
+  onViewPdf
 }: FaturaMobileCardProps) {
   const [expandActions, setExpandActions] = useState(false);
   const [expandDetails, setExpandDetails] = useState(false);
@@ -235,7 +224,6 @@ export function FaturaMobileCard({
                   onEdit={onEdit}
                   onDelete={onDelete}
                   onUpdateStatus={onUpdateStatus}
-                  onShowPaymentModal={() => onShowPaymentConfirmation(fatura)}
                 />
               </div>
             </div>

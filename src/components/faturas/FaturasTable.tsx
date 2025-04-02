@@ -17,7 +17,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { FaturasMobileList } from "./table/mobile/FaturasMobileList";
 import { FaturasDesktopTable } from "./table/desktop/FaturasDesktopTable";
 import { EditFaturaModal } from "./EditFaturaModal";
-import { PaymentConfirmationModal } from "./PaymentConfirmationModal";
 import { UpdateFaturaInput } from "@/hooks/faturas/types/updateFatura";
 
 interface FaturasTableProps {
@@ -40,7 +39,6 @@ export function FaturasTable({
   const [selectedFatura, setSelectedFatura] = useState<Fatura | null>(null);
   const [faturaToDelete, setFaturaToDelete] = useState<Fatura | null>(null);
   const [faturaToEdit, setFaturaToEdit] = useState<Fatura | null>(null);
-  const [faturaToConfirmPayment, setFaturaToConfirmPayment] = useState<Fatura | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const isMobile = useIsMobile();
@@ -67,24 +65,6 @@ export function FaturasTable({
       setIsUpdating(false);
     }
   };
-  
-  const handleShowPaymentConfirmation = (fatura: Fatura) => {
-    setFaturaToConfirmPayment(fatura);
-  };
-
-  const handleConfirmPayment = async (data: { 
-    id: string; 
-    data_pagamento: string; 
-    valor_adicional: number; 
-    observacao_pagamento: string | null; 
-  }) => {
-    await onUpdateStatus(
-      faturaToConfirmPayment!,
-      'paga',
-      data.observacao_pagamento || undefined
-    );
-    setFaturaToConfirmPayment(null);
-  };
 
   if (isLoading) {
     return <FaturasLoadingState />;
@@ -104,7 +84,6 @@ export function FaturasTable({
         onEdit={setFaturaToEdit}
         onDelete={setFaturaToDelete}
         onUpdateStatus={onUpdateStatus}
-        onShowPaymentConfirmation={handleShowPaymentConfirmation}
       />
 
       {selectedFatura && (
@@ -135,15 +114,6 @@ export function FaturasTable({
           isProcessing={isUpdating}
           refetchFaturas={refetchFaturas}
           onUpdateStatus={onUpdateStatus}
-        />
-      )}
-      
-      {faturaToConfirmPayment && (
-        <PaymentConfirmationModal
-          fatura={faturaToConfirmPayment}
-          isOpen={!!faturaToConfirmPayment}
-          onConfirm={handleConfirmPayment}
-          onClose={() => setFaturaToConfirmPayment(null)}
         />
       )}
     </>

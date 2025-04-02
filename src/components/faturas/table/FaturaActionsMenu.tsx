@@ -5,6 +5,7 @@
  * Este componente exibe um menu de ações contextuais para uma fatura,
  * permitindo operações como visualizar, editar, excluir e gerar relatórios.
  * Usa Popover em vez de DropdownMenu para melhor desempenho.
+ * Ações de pagamento foram removidas conforme novo fluxo, ficando exclusivamente no módulo Financeiro.
  */
 import React, { useState } from "react";
 import { Fatura, FaturaStatus } from "@/types/fatura";
@@ -24,7 +25,6 @@ interface FaturaActionsMenuProps {
   onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
-  onShowPaymentModal: () => void;
 }
 
 export function FaturaActionsMenu({
@@ -32,8 +32,7 @@ export function FaturaActionsMenu({
   onViewDetails,
   onEdit,
   onDelete,
-  onUpdateStatus,
-  onShowPaymentModal
+  onUpdateStatus
 }: FaturaActionsMenuProps) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [open, setOpen] = useState(false);
@@ -91,7 +90,6 @@ export function FaturaActionsMenu({
             onEdit={onEdit}
             onDelete={onDelete}
             onReenviarFatura={handleReenviarFatura}
-            onShowPaymentModal={onShowPaymentModal}
             onViewConcessionaria={handleViewConcessionaria}
             onViewRelatorio={handleViewRelatorio}
             isGeneratingPdf={isGeneratingPdf}

@@ -97,7 +97,6 @@ function getAvailableTransitions(currentStatus: FaturaStatus) {
       className: 'text-amber-600 hover:bg-amber-50'
     });
   } else if (currentStatus === 'enviada' || currentStatus === 'reenviada' || currentStatus === 'atrasada') {
-    // Removida opção de confirmar pagamento - agora é feito no financeiro
     transitions.push({
       status: 'corrigida',
       label: 'Marcar Correção',
@@ -110,7 +109,6 @@ function getAvailableTransitions(currentStatus: FaturaStatus) {
       className: 'text-purple-600 hover:bg-purple-50'
     });
   }
-  // Removidas transições para status 'paga' e 'finalizada'
 
   return transitions;
 }

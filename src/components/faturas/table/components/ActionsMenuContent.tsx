@@ -4,10 +4,11 @@
  * 
  * Este componente renderiza o conteúdo do menu popup com as ações disponíveis para uma fatura.
  * Otimizado para funcionar com o componente Popover.
+ * Ações de pagamento foram removidas conforme novo fluxo, ficando exclusivamente no módulo Financeiro.
  */
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { ActionMenuItem } from "./ActionMenuItem";
-import { Eye, Edit, FileText, Trash2, CheckCircle2, RotateCw } from "lucide-react";
+import { Eye, Edit, FileText, Trash2, RotateCw } from "lucide-react";
 
 interface ActionsMenuContentProps {
   fatura: Fatura;
@@ -15,7 +16,6 @@ interface ActionsMenuContentProps {
   onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onReenviarFatura: () => Promise<void>;
-  onShowPaymentModal: () => void;
   onViewConcessionaria: () => void;
   onViewRelatorio: () => void;
   isGeneratingPdf: boolean;
@@ -28,7 +28,6 @@ export function ActionsMenuContent({
   onEdit,
   onDelete,
   onReenviarFatura,
-  onShowPaymentModal,
   onViewConcessionaria,
   onViewRelatorio,
   isGeneratingPdf,
@@ -59,17 +58,6 @@ export function ActionsMenuContent({
           icon={<RotateCw className="h-4 w-4" />}
           label="Reenviar"
           onClick={onReenviarFatura}
-        />
-      )}
-      
-      {['enviada', 'reenviada', 'atrasada'].includes(fatura.status) && (
-        <ActionMenuItem
-          icon={<CheckCircle2 className="h-4 w-4" />}
-          label="Confirmar Pagamento"
-          onClick={() => {
-            onShowPaymentModal();
-            onClose();
-          }}
         />
       )}
       
