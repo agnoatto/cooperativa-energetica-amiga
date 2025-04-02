@@ -1,3 +1,12 @@
+
+/**
+ * Componente de tabela de unidades beneficiárias
+ * 
+ * Este componente exibe as unidades beneficiárias em formato de tabela para desktop
+ * ou cards para dispositivos móveis, permitindo visualização, edição,
+ * desativação e reativação de unidades. Suporta ordenação e scroll horizontal
+ * para melhor visualização em telas menores.
+ */
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -14,6 +23,7 @@ import { UnidadeDetailsDialog } from "./UnidadeDetailsDialog";
 import { DesativarUnidadeDialog } from "./dialogs/DesativarUnidadeDialog";
 import { useState, useMemo } from "react";
 import { formatarKwh } from "@/utils/formatters";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
   TooltipContent,
@@ -296,146 +306,148 @@ export function UnidadesTable({
   return (
     <>
       <div className="rounded-md border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead onClick={() => handleSort('numero_uc')}>
-                  <div className={getSortableHeaderStyle('numero_uc')}>
-                    Número UC
-                    <SortIndicator field="numero_uc" />
-                  </div>
-                </TableHead>
-                <TableHead onClick={() => handleSort('apelido')}>
-                  <div className={getSortableHeaderStyle('apelido')}>
-                    Apelido
-                    <SortIndicator field="apelido" />
-                  </div>
-                </TableHead>
-                <TableHead onClick={() => handleSort('endereco')}>
-                  <div className={getSortableHeaderStyle('endereco')}>
-                    Endereço
-                    <SortIndicator field="endereco" />
-                  </div>
-                </TableHead>
-                <TableHead onClick={() => handleSort('percentual_desconto')}>
-                  <div className={getSortableHeaderStyle('percentual_desconto')}>
-                    Desconto
-                    <SortIndicator field="percentual_desconto" />
-                  </div>
-                </TableHead>
-                <TableHead onClick={() => handleSort('consumo_kwh')}>
-                  <div className={getSortableHeaderStyle('consumo_kwh')}>
-                    Consumo
-                    <SortIndicator field="consumo_kwh" />
-                  </div>
-                </TableHead>
-                <TableHead onClick={() => handleSort('data_entrada')}>
-                  <div className={getSortableHeaderStyle('data_entrada')}>
-                    Data Entrada
-                    <SortIndicator field="data_entrada" />
-                  </div>
-                </TableHead>
-                <TableHead onClick={() => handleSort('status')}>
-                  <div className={getSortableHeaderStyle('status')}>
-                    Status
-                    <SortIndicator field="status" />
-                  </div>
-                </TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedUnidades.map((unidade) => (
-                <TableRow 
-                  key={unidade.id}
-                  className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => handleViewDetails(unidade)}
-                >
-                  <TableCell className="whitespace-nowrap">{unidade.numero_uc}</TableCell>
-                  <TableCell className="whitespace-nowrap">{unidade.apelido || '-'}</TableCell>
-                  <TableCell className="whitespace-nowrap">{unidade.endereco}</TableCell>
-                  <TableCell className="whitespace-nowrap">{unidade.percentual_desconto}%</TableCell>
-                  <TableCell className="whitespace-nowrap">{formatarKwh(unidade.consumo_kwh)} kWh</TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    {formatDate(unidade.data_entrada)}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    {getStatusBadge(unidade)}
-                  </TableCell>
-                  <TableCell className="text-right whitespace-nowrap space-x-2">
-                    {!unidade.data_saida ? (
-                      <>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button 
-                                variant="outline" 
-                                size="icon"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onEdit(unidade.cooperado_id, unidade.id);
-                                }}
-                                className="h-8 w-8"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Editar</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button 
-                                variant="outline" 
-                                size="icon"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setUnidadeToDesativar(unidade);
-                                }}
-                                className="h-8 w-8"
-                              >
-                                <Archive className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Desativar</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </>
-                    ) : (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="icon"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onReativar && onReativar(unidade.id);
-                              }}
-                              className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
-                            >
-                              <ArchiveRestore className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Reativar</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
-                  </TableCell>
+        <ScrollArea className="w-full" type="always">
+          <div className="min-w-[1000px]">
+            <Table>
+              <TableHeader className="sticky top-0 bg-white z-10">
+                <TableRow>
+                  <TableHead onClick={() => handleSort('numero_uc')} className="w-[120px]">
+                    <div className={getSortableHeaderStyle('numero_uc')}>
+                      Número UC
+                      <SortIndicator field="numero_uc" />
+                    </div>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort('apelido')} className="w-[150px]">
+                    <div className={getSortableHeaderStyle('apelido')}>
+                      Apelido
+                      <SortIndicator field="apelido" />
+                    </div>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort('endereco')} className="w-[250px]">
+                    <div className={getSortableHeaderStyle('endereco')}>
+                      Endereço
+                      <SortIndicator field="endereco" />
+                    </div>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort('percentual_desconto')} className="w-[100px]">
+                    <div className={getSortableHeaderStyle('percentual_desconto')}>
+                      Desconto
+                      <SortIndicator field="percentual_desconto" />
+                    </div>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort('consumo_kwh')} className="w-[100px]">
+                    <div className={getSortableHeaderStyle('consumo_kwh')}>
+                      Consumo
+                      <SortIndicator field="consumo_kwh" />
+                    </div>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort('data_entrada')} className="w-[120px]">
+                    <div className={getSortableHeaderStyle('data_entrada')}>
+                      Data Entrada
+                      <SortIndicator field="data_entrada" />
+                    </div>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort('status')} className="w-[100px]">
+                    <div className={getSortableHeaderStyle('status')}>
+                      Status
+                      <SortIndicator field="status" />
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-right w-[120px]">Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {sortedUnidades.map((unidade) => (
+                  <TableRow 
+                    key={unidade.id}
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleViewDetails(unidade)}
+                  >
+                    <TableCell>{unidade.numero_uc}</TableCell>
+                    <TableCell>{unidade.apelido || '-'}</TableCell>
+                    <TableCell>{unidade.endereco}</TableCell>
+                    <TableCell>{unidade.percentual_desconto}%</TableCell>
+                    <TableCell>{formatarKwh(unidade.consumo_kwh)} kWh</TableCell>
+                    <TableCell>
+                      {formatDate(unidade.data_entrada)}
+                    </TableCell>
+                    <TableCell>
+                      {getStatusBadge(unidade)}
+                    </TableCell>
+                    <TableCell className="text-right space-x-2">
+                      {!unidade.data_saida ? (
+                        <>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  variant="outline" 
+                                  size="icon"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEdit(unidade.cooperado_id, unidade.id);
+                                  }}
+                                  className="h-8 w-8"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Editar</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  variant="outline" 
+                                  size="icon"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setUnidadeToDesativar(unidade);
+                                  }}
+                                  className="h-8 w-8"
+                                >
+                                  <Archive className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Desativar</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </>
+                      ) : (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="icon"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onReativar && onReativar(unidade.id);
+                                }}
+                                className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
+                              >
+                                <ArchiveRestore className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Reativar</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </ScrollArea>
       </div>
 
       <UnidadeDetailsDialog

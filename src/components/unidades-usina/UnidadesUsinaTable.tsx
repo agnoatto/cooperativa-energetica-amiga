@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Edit, Trash } from "lucide-react";
 import type { UnidadeUsina } from "./types";
 import { formatAddress } from "./utils/formatAddress";
@@ -103,49 +104,53 @@ export function UnidadesUsinaTable({
 
   return (
     <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Número UC</TableHead>
-            <TableHead>Endereço</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead>Titular</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {unidades.map((unidade) => (
-            <TableRow key={unidade.id}>
-              <TableCell>{unidade.numero_uc}</TableCell>
-              <TableCell>{formatAddress(unidade)}</TableCell>
-              <TableCell>
-                {unidade.titular_tipo === "cooperativa"
-                  ? "Cooperativa"
-                  : "Cooperado"}
-              </TableCell>
-              <TableCell>{unidade.titular_nome}</TableCell>
-              <TableCell className="text-right space-x-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => onEdit(unidade.id)}
-                  className="h-8 w-8"
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => onDelete(unidade.id)}
-                  className="h-8 w-8"
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <ScrollArea className="w-full" type="always">
+        <div className="min-w-[800px]">
+          <Table>
+            <TableHeader className="sticky top-0 bg-white z-10">
+              <TableRow>
+                <TableHead className="w-[150px]">Número UC</TableHead>
+                <TableHead className="w-[300px]">Endereço</TableHead>
+                <TableHead className="w-[120px]">Tipo</TableHead>
+                <TableHead className="w-[200px]">Titular</TableHead>
+                <TableHead className="text-right w-[100px]">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {unidades.map((unidade) => (
+                <TableRow key={unidade.id}>
+                  <TableCell>{unidade.numero_uc}</TableCell>
+                  <TableCell>{formatAddress(unidade)}</TableCell>
+                  <TableCell>
+                    {unidade.titular_tipo === "cooperativa"
+                      ? "Cooperativa"
+                      : "Cooperado"}
+                  </TableCell>
+                  <TableCell>{unidade.titular_nome}</TableCell>
+                  <TableCell className="text-right space-x-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => onEdit(unidade.id)}
+                      className="h-8 w-8"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => onDelete(unidade.id)}
+                      className="h-8 w-8"
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </ScrollArea>
     </div>
   );
 }
