@@ -4,7 +4,7 @@
  * 
  * Este componente renderiza botões que permitem a transição entre diferentes status
  * de faturas, seguindo o fluxo definido para cada tipo de transição.
- * Adicionadas opções de personalização para tamanho, direção e classes CSS.
+ * Após o envio, o controle de pagamentos é feito pelo módulo Financeiro.
  */
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -83,22 +83,21 @@ function getAvailableTransitions(currentStatus: FaturaStatus) {
     icon?: React.ReactNode;
   }[] = [];
 
-  // Lógica para determinar transições baseadas no status atual
-  // Aqui você pode adicionar as transições específicas com suas classes e ícones
+  // Lógica para determinar transições baseadas no status atual - atualizada para o novo fluxo
   
-  // Exemplo simples:
   if (currentStatus === 'pendente') {
     transitions.push({
       status: 'enviada',
       label: 'Enviar',
       className: 'text-blue-600 hover:bg-blue-50'
     });
-  } else if (currentStatus === 'enviada' || currentStatus === 'reenviada' || currentStatus === 'atrasada') {
     transitions.push({
-      status: 'paga',
-      label: 'Confirmar Pagamento',
-      className: 'text-green-600 hover:bg-green-50'
+      status: 'corrigida',
+      label: 'Marcar Correção',
+      className: 'text-amber-600 hover:bg-amber-50'
     });
+  } else if (currentStatus === 'enviada' || currentStatus === 'reenviada' || currentStatus === 'atrasada') {
+    // Removida opção de confirmar pagamento - agora é feito no financeiro
     transitions.push({
       status: 'corrigida',
       label: 'Marcar Correção',
@@ -110,13 +109,8 @@ function getAvailableTransitions(currentStatus: FaturaStatus) {
       label: 'Reenviar',
       className: 'text-purple-600 hover:bg-purple-50'
     });
-  } else if (currentStatus === 'paga') {
-    transitions.push({
-      status: 'finalizada',
-      label: 'Finalizar',
-      className: 'text-gray-600 hover:bg-gray-50'
-    });
   }
+  // Removidas transições para status 'paga' e 'finalizada'
 
   return transitions;
 }

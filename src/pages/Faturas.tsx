@@ -10,6 +10,7 @@ import { useMonthSelection } from "@/hooks/useMonthSelection";
 import { FaturasContainer } from "@/components/faturas/FaturasContainer";
 import { FaturasDashboard } from "@/components/faturas/FaturasDashboard";
 import { useFetchFaturas } from "@/hooks/faturas/useFetchFaturas";
+import { FaturaInfoCard } from "@/components/faturas/FaturaInfoCard";
 
 export default function Faturas() {
   // Usa o hook para obter o mês atual selecionado e os manipuladores
@@ -24,6 +25,9 @@ export default function Faturas() {
   
   return (
     <div className="min-h-screen bg-gray-50 p-6 space-y-6">
+      {/* Card Informativo sobre o novo fluxo */}
+      <FaturaInfoCard />
+      
       {/* Dashboard de Faturas */}
       <FaturasDashboard 
         faturas={faturas} 

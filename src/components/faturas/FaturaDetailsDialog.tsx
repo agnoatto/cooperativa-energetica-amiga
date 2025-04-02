@@ -19,7 +19,8 @@ import { formatDateToPtBR } from "@/utils/dateFormatters";
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { getStatusColor, getStatusLabel } from "./table/utils/statusUtils";
 import { StatusTransitionButtons } from "./StatusTransitionButtons";
-import { X } from "lucide-react";
+import { AlertCircle, Info, X } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface FaturaDetailsDialogProps {
   fatura: Fatura;
@@ -42,6 +43,9 @@ export function FaturaDetailsDialog({
     <span className="text-sm font-medium">{value}</span>
   );
 
+  // Verificar se a fatura está em um estado que é gerenciado pelo financeiro
+  const isFinancialStatus = ['paga', 'finalizada'].includes(fatura.status);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[680px] max-h-[90vh] overflow-auto">
@@ -57,8 +61,19 @@ export function FaturaDetailsDialog({
           </Button>
         </DialogHeader>
 
+        {/* Alerta sobre status gerenciados pelo módulo financeiro */}
+        {isFinancialStatus && (
+          <Alert className="bg-blue-50 border-blue-200">
+            <Info className="h-4 w-4 text-blue-500" />
+            <AlertDescription className="text-blue-700">
+              Esta fatura está em status <strong>{getStatusLabel(fatura.status)}</strong>. 
+              As alterações de status após o pagamento são gerenciadas pelo módulo Financeiro.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Botões de Transição de Status */}
-        {onUpdateStatus && (
+        {onUpdateStatus && !isFinancialStatus && (
           <div className="border-b border-gray-200 pb-4 mb-4">
             <div className="flex flex-col space-y-2">
               <h3 className="text-sm font-medium text-gray-500 mb-2">Ações disponíveis:</h3>

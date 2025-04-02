@@ -3,8 +3,10 @@
  * Define as transições de status permitidas para faturas
  * 
  * Este arquivo contém as regras que determinam quais transições de status 
- * são permitidas para cada estado atual de uma fatura, baseado nas regras
- * definidas no banco de dados.
+ * são permitidas para cada estado atual de uma fatura.
+ * 
+ * IMPORTANTE: Após o status "enviada"/"reenviada", o controle de pagamentos
+ * e finalização é feito exclusivamente pelo módulo Financeiro.
  */
 
 import { FaturaStatus } from "@/types/fatura";
@@ -12,11 +14,11 @@ import { FaturaStatus } from "@/types/fatura";
 // Definir quais status podem ser transicionados a partir do status atual
 export const allowedTransitions: Record<FaturaStatus, FaturaStatus[]> = {
   pendente: ['enviada', 'corrigida'], // Transições permitidas a partir de pendente
-  enviada: ['paga', 'corrigida', 'atrasada'],
+  enviada: ['corrigida'], // Removido 'paga' e 'atrasada' - agora controlado pelo financeiro
   corrigida: ['reenviada'],
-  reenviada: ['paga', 'corrigida', 'atrasada'],
-  atrasada: ['paga', 'corrigida'],
-  paga: ['finalizada'],
+  reenviada: ['corrigida'], // Removido 'paga' e 'atrasada' - agora controlado pelo financeiro
+  atrasada: ['corrigida'], // Removido 'paga' - agora controlado pelo financeiro
+  paga: [], // Removido 'finalizada' - agora controlado pelo financeiro
   finalizada: []
 };
 

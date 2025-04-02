@@ -26,7 +26,7 @@ import { convertLocalToUTC } from "@/utils/dateFormatters";
 import { StatusTransitionButtons } from "./StatusTransitionButtons";
 import { FaturaStatus } from "@/types/fatura";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Info } from "lucide-react";
 
 interface EditFaturaModalProps {
   fatura: any;
@@ -80,6 +80,9 @@ export function EditFaturaModal({
   // Verificar se a fatura está em um estado que não permite edição
   const statusBloqueados: FaturaStatus[] = ['enviada', 'reenviada', 'atrasada', 'paga', 'finalizada'];
   const isReadOnly = statusBloqueados.includes(fatura.status as FaturaStatus);
+  
+  // Verificar se a fatura está em um estado gerenciado pelo financeiro
+  const isFinancialStatus = ['paga', 'finalizada'].includes(fatura.status);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -96,7 +99,17 @@ export function EditFaturaModal({
           </Alert>
         )}
 
-        {isReadOnly && onUpdateStatus && (
+        {isFinancialStatus && (
+          <Alert className="mb-4 bg-blue-50 border-blue-200">
+            <Info className="h-4 w-4 text-blue-500" />
+            <AlertDescription className="text-blue-700">
+              Esta fatura está com status <strong>{fatura.status}</strong>. As alterações de status após o pagamento 
+              são gerenciadas pelo módulo Financeiro no menu "Contas a Receber".
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {isReadOnly && onUpdateStatus && !isFinancialStatus && (
           <div className="mb-4">
             <StatusTransitionButtons 
               fatura={fatura}
