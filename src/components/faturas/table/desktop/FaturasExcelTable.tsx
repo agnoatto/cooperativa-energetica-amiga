@@ -16,7 +16,6 @@ interface FaturasExcelTableProps {
   onDelete: (fatura: Fatura) => void;
   onEdit: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
-  onShowPaymentModal: () => void;
   onViewPdf: () => void;
 }
 
@@ -83,7 +82,6 @@ export function FaturasExcelTable({
   onDelete,
   onEdit,
   onUpdateStatus,
-  onShowPaymentModal,
   onViewPdf
 }: FaturasExcelTableProps) {
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
@@ -163,7 +161,6 @@ export function FaturasExcelTable({
                     onEdit={onEdit}
                     onDelete={onDelete}
                     onUpdateStatus={onUpdateStatus}
-                    onShowPaymentModal={onShowPaymentModal}
                   />
                 )}
               </td>

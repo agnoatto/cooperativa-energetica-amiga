@@ -22,8 +22,7 @@ interface FaturaDesktopRowProps {
   onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
-  onShowPaymentConfirmation: (fatura: Fatura) => void;
-  onViewPdf?: () => Promise<void>; // Adicionado esta propriedade opcional
+  onViewPdf?: () => Promise<void>; // Propriedade opcional
 }
 
 export function FaturaDesktopRow({
@@ -32,8 +31,7 @@ export function FaturaDesktopRow({
   onEdit,
   onDelete,
   onUpdateStatus,
-  onShowPaymentConfirmation,
-  onViewPdf, // Adicionado no destructuring dos props
+  onViewPdf,
 }: FaturaDesktopRowProps) {
   const handleRowClick = () => {
     onViewDetails(fatura);
@@ -89,7 +87,6 @@ export function FaturaDesktopRow({
           onEdit={onEdit}
           onDelete={onDelete}
           onUpdateStatus={onUpdateStatus}
-          onShowPaymentModal={() => onShowPaymentConfirmation(fatura)}
         />
       </TableCell>
     </TableRow>

@@ -17,7 +17,6 @@ interface FaturasMobileListProps {
   onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
-  onShowPaymentConfirmation: (fatura: Fatura) => void;
 }
 
 export function FaturasMobileList({
@@ -25,8 +24,7 @@ export function FaturasMobileList({
   onViewDetails,
   onEdit,
   onDelete,
-  onUpdateStatus,
-  onShowPaymentConfirmation
+  onUpdateStatus
 }: FaturasMobileListProps) {
   const [selectedFaturaPdf, setSelectedFaturaPdf] = useState<Fatura | null>(null);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
@@ -49,7 +47,6 @@ export function FaturasMobileList({
           onDelete={onDelete}
           onUpdateStatus={onUpdateStatus}
           onViewPdf={() => handleViewPdf(fatura)}
-          onShowPaymentConfirmation={onShowPaymentConfirmation}
         />
       ))}
 

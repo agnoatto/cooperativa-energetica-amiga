@@ -7,7 +7,6 @@
  */
 import { Fatura, FaturaStatus } from "@/types/fatura";
 import { useState } from "react";
-import { PaymentConfirmationModal } from "../PaymentConfirmationModal";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -20,14 +19,6 @@ interface FaturaTableRowProps {
   onDelete: (fatura: Fatura) => void;
   onEdit: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
-  onShowPaymentConfirmation: (fatura: Fatura) => void;
-}
-
-interface PaymentData {
-  id: string;
-  data_pagamento: string;
-  valor_adicional: number;
-  observacao_pagamento: string | null;
 }
 
 export function FaturaTableRow({
@@ -35,8 +26,7 @@ export function FaturaTableRow({
   onViewDetails,
   onDelete,
   onEdit,
-  onUpdateStatus,
-  onShowPaymentConfirmation
+  onUpdateStatus
 }: FaturaTableRowProps) {
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -69,7 +59,6 @@ export function FaturaTableRow({
           onDelete={onDelete}
           onUpdateStatus={onUpdateStatus}
           onViewPdf={handleViewPdf}
-          onShowPaymentConfirmation={onShowPaymentConfirmation}
         />
 
         <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
@@ -96,7 +85,6 @@ export function FaturaTableRow({
         onEdit={onEdit}
         onUpdateStatus={onUpdateStatus}
         onViewPdf={handleViewPdf}
-        onShowPaymentConfirmation={onShowPaymentConfirmation}
       />
 
       <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>

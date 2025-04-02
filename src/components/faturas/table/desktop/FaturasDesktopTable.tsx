@@ -23,7 +23,6 @@ interface FaturasDesktopTableProps {
   onEdit: (fatura: Fatura) => void;
   onDelete: (fatura: Fatura) => void;
   onUpdateStatus: (fatura: Fatura, newStatus: FaturaStatus, observacao?: string) => Promise<void>;
-  onShowPaymentConfirmation: (fatura: Fatura) => void;
 }
 
 export function FaturasDesktopTable({
@@ -31,8 +30,7 @@ export function FaturasDesktopTable({
   onViewDetails,
   onEdit,
   onDelete,
-  onUpdateStatus,
-  onShowPaymentConfirmation
+  onUpdateStatus
 }: FaturasDesktopTableProps) {
   const sortedFaturas = useMemo(() => {
     return [...faturas].sort((a, b) => {
@@ -60,7 +58,6 @@ export function FaturasDesktopTable({
                   onEdit={onEdit}
                   onDelete={onDelete}
                   onUpdateStatus={onUpdateStatus}
-                  onShowPaymentConfirmation={onShowPaymentConfirmation}
                 />
               ))}
             </TableBody>
