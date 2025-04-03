@@ -22,6 +22,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
+// Interface para definir o formato do resultado da função RPC
 export interface ResultadoSincronizacao {
   total_sincronizado: number;
   data_execucao: string;
@@ -57,11 +58,22 @@ export function useSincronizarLancamentos() {
         return null;
       }
       
-      // Converter resultado para o formato esperado
+      // Garantir que resultadoFuncao seja um objeto com as propriedades esperadas
+      if (!resultadoFuncao) {
+        toast({
+          variant: "destructive",
+          title: "Erro ao sincronizar lançamentos",
+          description: "Nenhum resultado retornado pelo servidor.",
+        });
+        setErro(new Error("Nenhum resultado retornado"));
+        return null;
+      }
+      
+      // Converter resultado para o formato esperado, com verificações de tipo seguras
       const resultado: ResultadoSincronizacao = {
-        total_sincronizado: resultadoFuncao?.total_sincronizado || 0,
-        data_execucao: resultadoFuncao?.data_execucao || new Date().toISOString(),
-        detalhes: resultadoFuncao?.detalhes || []
+        total_sincronizado: typeof resultadoFuncao.total_sincronizado === 'number' ? resultadoFuncao.total_sincronizado : 0,
+        data_execucao: resultadoFuncao.data_execucao || new Date().toISOString(),
+        detalhes: Array.isArray(resultadoFuncao.detalhes) ? resultadoFuncao.detalhes : []
       };
       
       setResultado(resultado);
