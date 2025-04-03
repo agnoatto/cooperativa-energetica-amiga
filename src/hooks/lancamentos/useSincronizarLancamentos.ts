@@ -69,11 +69,14 @@ export function useSincronizarLancamentos() {
         return null;
       }
       
-      // Converter resultado para o formato esperado, com verificações de tipo seguras
+      // Convertendo o resultadoFuncao para um objeto tipado com segurança
+      // Usando type assertion com tratamento de tipo
+      const objResultado = resultadoFuncao as Record<string, any>;
+      
       const resultado: ResultadoSincronizacao = {
-        total_sincronizado: typeof resultadoFuncao.total_sincronizado === 'number' ? resultadoFuncao.total_sincronizado : 0,
-        data_execucao: resultadoFuncao.data_execucao || new Date().toISOString(),
-        detalhes: Array.isArray(resultadoFuncao.detalhes) ? resultadoFuncao.detalhes : []
+        total_sincronizado: typeof objResultado.total_sincronizado === 'number' ? objResultado.total_sincronizado : 0,
+        data_execucao: (typeof objResultado.data_execucao === 'string') ? objResultado.data_execucao : new Date().toISOString(),
+        detalhes: Array.isArray(objResultado.detalhes) ? objResultado.detalhes : []
       };
       
       setResultado(resultado);
