@@ -1,10 +1,10 @@
 
 /**
- * Hook para sincronização de lançamentos financeiros com faturas
+ * Hook para sincronização de lançamentos financeiros com faturas e pagamentos
  * 
  * Este hook permite executar a sincronização de lançamentos financeiros
- * a partir das faturas existentes, identificando faturas sem lançamentos
- * correspondentes e criando novos lançamentos para elas.
+ * a partir das faturas e pagamentos de usinas existentes, identificando itens 
+ * sem lançamentos correspondentes e criando novos lançamentos para eles.
  * 
  * @example
  * const { sincronizar, isSincronizando, resultado } = useSincronizarLancamentos();
@@ -52,7 +52,7 @@ export function useSincronizarLancamentos() {
         toast({
           variant: "destructive",
           title: "Erro ao sincronizar lançamentos",
-          description: erroFuncao.message || "Erro ao sincronizar lançamentos com faturas.",
+          description: erroFuncao.message || "Erro ao sincronizar lançamentos com faturas e pagamentos.",
         });
         setErro(new Error(erroFuncao.message));
         return null;
