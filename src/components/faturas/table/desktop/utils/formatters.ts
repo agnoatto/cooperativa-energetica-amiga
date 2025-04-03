@@ -9,7 +9,9 @@
 /**
  * Formata um valor numérico para moeda brasileira (R$)
  */
-export const formatCurrency = (value: number): string => {
+export const formatCurrency = (value: number | null | undefined): string => {
+  if (value === null || value === undefined) return 'R$ 0,00';
+  
   return value.toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL',
@@ -21,9 +23,23 @@ export const formatCurrency = (value: number): string => {
 /**
  * Formata um valor numérico para representação de kWh
  */
-export const formatKwh = (value: number): string => {
+export const formatKwh = (value: number | null | undefined): string => {
+  if (value === null || value === undefined) return '0 kWh';
+  
   return `${value.toLocaleString('pt-BR', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   })} kWh`;
+};
+
+/**
+ * Formata um número para exibição com casas decimais personalizadas
+ */
+export const formatNumber = (value: number | null | undefined, decimals: number = 2): string => {
+  if (value === null || value === undefined) return '0';
+  
+  return value.toLocaleString('pt-BR', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  });
 };

@@ -6,7 +6,7 @@
  * incluindo descrição, contato, vencimento, valor, status e ações.
  */
 import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
-import { formatarMoeda } from "@/utils/formatters";
+import { formatCurrency } from "@/components/faturas/table/desktop/utils/formatters";
 import { TableCell, TableRow as UITableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -72,7 +72,7 @@ export function TableRow({ lancamento, tipo, onViewDetails }: TableRowProps) {
       <TableCell>
         {format(new Date(lancamento.data_vencimento), 'dd/MM/yyyy')}
       </TableCell>
-      <TableCell>{formatarMoeda(lancamento.valor)}</TableCell>
+      <TableCell>{formatCurrency(lancamento.valor)}</TableCell>
       <TableCell>
         <Badge
           variant="outline"
