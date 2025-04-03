@@ -1820,6 +1820,10 @@ export type Database = {
         }
         Returns: unknown
       }
+      inserir_lancamentos_existentes: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       registrar_pagamento_lancamento: {
         Args: {
           p_lancamento_id: string

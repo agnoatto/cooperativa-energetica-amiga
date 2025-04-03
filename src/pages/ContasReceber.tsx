@@ -7,7 +7,6 @@
  * Os lançamentos são gerados automaticamente a partir das faturas,
  * usando o valor_assinatura como base e apenas mostra faturas que já
  * foram enviadas para os clientes (status enviada, reenviada, atrasada, paga).
- * Inclui também uma funcionalidade para sincronizar lançamentos financeiros com faturas.
  */
 
 import { useLancamentosFinanceiros } from "@/hooks/lancamentos/useLancamentosFinanceiros";
@@ -19,10 +18,9 @@ import { LancamentosDashboard } from "@/components/financeiro/dashboard/Lancamen
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { FiltrosLancamento } from "@/components/financeiro/FiltrosLancamento";
-import { AlertCircle, RefreshCw, Info, RotateCw } from "lucide-react";
+import { AlertCircle, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useSincronizarLancamentos } from "@/hooks/lancamentos/useSincronizarLancamentos";
 
 export default function ContasReceber() {
   const [status, setStatus] = useState<StatusLancamento | 'todos'>('todos');
@@ -39,8 +37,6 @@ export default function ContasReceber() {
     dataInicio,
     dataFim
   });
-
-  const { sincronizar, isSincronizando, resultado } = useSincronizarLancamentos();
 
   useEffect(() => {
     // Exibir notificação informando que só estamos exibindo lançamentos de faturas enviadas
@@ -67,30 +63,6 @@ export default function ContasReceber() {
     }
   }, [lancamentos]);
 
-  // Exibir resultado da sincronização quando disponível
-  useEffect(() => {
-    if (resultado) {
-      if (resultado.total_sincronizado > 0) {
-        toast.success(
-          `${resultado.total_sincronizado} lançamentos sincronizados`, 
-          { 
-            description: "Os lançamentos financeiros foram sincronizados com as faturas."
-          }
-        );
-        
-        // Recarregar dados após sincronização bem-sucedida
-        refetch();
-      } else {
-        toast.info(
-          "Não há faturas para sincronizar", 
-          { 
-            description: "Todas as faturas enviadas já possuem lançamentos correspondentes."
-          }
-        );
-      }
-    }
-  }, [resultado, refetch]);
-
   const handleLimparFiltros = () => {
     setStatus('todos');
     setBusca('');
@@ -104,39 +76,12 @@ export default function ContasReceber() {
     refetch();
   };
 
-  const handleSincronizar = async () => {
-    toast.info("Iniciando sincronização de lançamentos...");
-    await sincronizar();
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className={`text-${isMobile ? '2xl' : '3xl'} font-bold`}>
           Contas a Receber
         </h1>
-        
-        <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleSincronizar}
-            disabled={isSincronizando}
-          >
-            <RotateCw className={`h-4 w-4 mr-2 ${isSincronizando ? 'animate-spin' : ''}`} />
-            Sincronizar
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRetry}
-            disabled={isLoading}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            Atualizar
-          </Button>
-        </div>
       </div>
 
       <Alert className="bg-blue-50 border-blue-200 text-blue-800">
@@ -199,7 +144,6 @@ export default function ContasReceber() {
             className="mt-4 bg-red-100 hover:bg-red-200 text-red-700"
             variant="ghost"
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
             Tentar novamente
           </Button>
         </div>
