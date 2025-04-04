@@ -68,16 +68,41 @@ export function formatarCNPJ(cnpj: string): string {
 /**
  * Formata um documento (CPF ou CNPJ) automaticamente
  */
-export function formatarDocumento(documento: string): string {
+export function formatarDocumento(documento: string, tipoPessoa?: "PF" | "PJ"): string {
   // Remove todos os caracteres não numéricos
   const numeros = documento.replace(/\D/g, '');
   
-  if (numeros.length === 11) {
+  if (tipoPessoa === "PF" || (!tipoPessoa && numeros.length === 11)) {
     return formatarCPF(numeros);
-  } else if (numeros.length === 14) {
+  } else if (tipoPessoa === "PJ" || (!tipoPessoa && numeros.length === 14)) {
     return formatarCNPJ(numeros);
   }
   
   // Retorna o original se não conseguir formatar
   return documento;
+}
+
+/**
+ * Formata um valor numérico para exibição em kWh
+ */
+export function formatarKwh(valor: number | null | undefined): string {
+  if (valor === null || valor === undefined) return '0';
+  
+  return valor.toLocaleString('pt-BR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  });
+}
+
+/**
+ * Formata o tamanho de um arquivo para exibição amigável
+ */
+export function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }

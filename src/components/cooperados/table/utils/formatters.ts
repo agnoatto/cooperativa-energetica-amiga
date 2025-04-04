@@ -33,3 +33,4 @@ export function formatarInfoUnidades(quantidadeUnidades: number): string {
   if (quantidadeUnidades === 0) return "Nenhuma unidade";
   return `${quantidadeUnidades} unidade(s)`;
 }
+
