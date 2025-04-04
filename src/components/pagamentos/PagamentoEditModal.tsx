@@ -27,10 +27,11 @@ interface PagamentoEditModalProps {
   pagamento: PagamentoData | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: () => void;
+  onSave?: () => void;
+  onSuccess?: () => void; // Adicionar propriedade onSuccess como alternativa
 }
 
-export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: PagamentoEditModalProps) {
+export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave, onSuccess }: PagamentoEditModalProps) {
   // Estados locais para os campos do formulário
   const [geracao, setGeracao] = useState<number>(0);
   const [valorKwh, setValorKwh] = useState<number>(0);
@@ -151,7 +152,11 @@ export function PagamentoEditModal({ pagamento, isOpen, onClose, onSave }: Pagam
       
       await salvarPagamento(dadosAtualizados);
       toast.success("Pagamento atualizado com sucesso");
-      onSave();
+      
+      // Chamar callback de sucesso - suporta ambos onSave e onSuccess para compatibilidade
+      if (onSave) onSave();
+      if (onSuccess) onSuccess();
+      
       onClose();
     } catch (error: any) {
       console.error("[PagamentoEditModal] Erro ao salvar pagamento:", error);

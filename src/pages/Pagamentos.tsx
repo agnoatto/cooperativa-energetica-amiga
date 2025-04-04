@@ -138,7 +138,7 @@ export default function Pagamentos() {
           isOpen={showEditModal}
           onClose={() => setShowEditModal(false)}
           pagamento={selectedPagamento}
-          onSuccess={handleEditSuccess}
+          onSave={handleEditSuccess}
         />
       )}
 

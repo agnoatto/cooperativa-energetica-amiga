@@ -5,7 +5,7 @@
  * Este arquivo contém funções auxiliares para formatação de datas
  * em formatos específicos para o sistema de gestão de energia.
  */
-import { format, isValid } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 /**
@@ -68,5 +68,48 @@ export function formatMonthYearToPtBR(dateString: string | Date | null | undefin
   } catch (error) {
     console.error('Erro ao formatar mês e ano:', error);
     return '-';
+  }
+}
+
+/**
+ * Converte uma data local para UTC
+ * 
+ * @param dateString String de data em formato ISO ou objeto Date
+ * @returns String em formato ISO com timezone UTC
+ */
+export function convertLocalToUTC(dateString: string | Date | null | undefined): string | null {
+  if (!dateString) return null;
+
+  try {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    
+    if (!isValid(date)) return null;
+    
+    return date.toISOString();
+  } catch (error) {
+    console.error('Erro ao converter data para UTC:', error);
+    return null;
+  }
+}
+
+/**
+ * Converte uma data UTC para local
+ * 
+ * @param dateString String de data em formato ISO UTC
+ * @returns String no formato YYYY-MM-DD para uso em inputs de formulário
+ */
+export function convertUTCToLocal(dateString: string | Date | null | undefined): string {
+  if (!dateString) return '';
+  
+  try {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    
+    if (!isValid(date)) return '';
+    
+    // Format as YYYY-MM-DD for form inputs
+    return format(date, 'yyyy-MM-dd');
+  } catch (error) {
+    console.error('Erro ao converter data de UTC para local:', error);
+    return '';
   }
 }

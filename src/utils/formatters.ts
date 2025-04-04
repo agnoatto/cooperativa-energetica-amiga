@@ -75,3 +75,103 @@ export function formatarNumero(valor: number | string | null | undefined, casasD
     maximumFractionDigits: casasDecimais
   }).format(valorNumerico);
 }
+
+/**
+ * Formata um documento (CPF ou CNPJ) para exibição com máscara
+ * 
+ * @param documento Número do documento a ser formatado
+ * @param tipo Tipo de pessoa (PF ou PJ) - opcional, identifica automaticamente se não informado
+ * @returns String formatada com a máscara do documento
+ */
+export function formatarDocumento(documento: string | null | undefined, tipo?: 'PF' | 'PJ'): string {
+  if (!documento) return '-';
+  
+  // Remover caracteres não numéricos
+  const numeroLimpo = documento.replace(/\D/g, '');
+  
+  // Identificar o tipo de documento pelo tamanho se não foi especificado
+  const isPJ = tipo ? tipo === 'PJ' : numeroLimpo.length > 11;
+  
+  if (isPJ) {
+    // Formatar como CNPJ: XX.XXX.XXX/XXXX-XX
+    if (numeroLimpo.length !== 14) return documento;
+    return numeroLimpo.replace(
+      /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+      '$1.$2.$3/$4-$5'
+    );
+  } else {
+    // Formatar como CPF: XXX.XXX.XXX-XX
+    if (numeroLimpo.length !== 11) return documento;
+    return numeroLimpo.replace(
+      /^(\d{3})(\d{3})(\d{3})(\d{2})$/,
+      '$1.$2.$3-$4'
+    );
+  }
+}
+
+/**
+ * Formata um número de telefone brasileiro para exibição com máscara
+ * 
+ * @param telefone Número de telefone a ser formatado
+ * @returns String formatada com a máscara do telefone
+ */
+export function formatarTelefone(telefone: string | null | undefined): string {
+  if (!telefone) return '-';
+  
+  // Remover caracteres não numéricos
+  const numeroLimpo = telefone.replace(/\D/g, '');
+  
+  // Verificar se é celular (9 dígitos) ou fixo (8 dígitos)
+  if (numeroLimpo.length === 11) {
+    // Celular: (XX) XXXXX-XXXX
+    return numeroLimpo.replace(
+      /^(\d{2})(\d{5})(\d{4})$/,
+      '($1) $2-$3'
+    );
+  } else if (numeroLimpo.length === 10) {
+    // Fixo: (XX) XXXX-XXXX
+    return numeroLimpo.replace(
+      /^(\d{2})(\d{4})(\d{4})$/,
+      '($1) $2-$3'
+    );
+  }
+  
+  // Se não for um formato reconhecido, retorna o original
+  return telefone;
+}
+
+/**
+ * Formata um valor de consumo de energia em kWh para exibição
+ * 
+ * @param valor Valor em kWh a ser formatado
+ * @param casasDecimais Número de casas decimais a exibir
+ * @returns String formatada com o valor em kWh
+ */
+export function formatarKwh(valor: number | null | undefined, casasDecimais: number = 0): string {
+  if (valor === null || valor === undefined) return '0';
+  
+  // Verificar se é um número válido
+  if (isNaN(valor)) return '0';
+  
+  // Formatar usando a API Intl para garantir a formatação correta
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: casasDecimais,
+    maximumFractionDigits: casasDecimais
+  }).format(valor);
+}
+
+/**
+ * Formata o tamanho de um arquivo para exibição em KB, MB, GB...
+ * 
+ * @param bytes Tamanho em bytes do arquivo
+ * @returns String formatada com o tamanho do arquivo
+ */
+export function formatFileSize(bytes: number | null | undefined): string {
+  if (bytes === null || bytes === undefined || bytes === 0) return '0 Bytes';
+  
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
