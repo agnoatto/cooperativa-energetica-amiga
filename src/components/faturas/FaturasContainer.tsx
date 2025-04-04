@@ -7,7 +7,6 @@
  * Confirmação de pagamentos foi movida para o módulo Financeiro.
  */
 import { useState } from "react";
-import { MonthSelector } from "@/components/MonthSelector";
 import { FaturasTable } from "./FaturasTable";
 import { FaturasHeader } from "./FaturasHeader";
 import { useFaturas } from "@/hooks/useFaturas";
@@ -57,13 +56,9 @@ export function FaturasContainer({
       <FaturasHeader 
         onGerarFaturas={gerarFaturas}
         isGenerating={isGenerating}
-      />
-      
-      <MonthSelector
         currentDate={currentDate}
         onPreviousMonth={onPreviousMonth}
         onNextMonth={onNextMonth}
-        className="bg-white rounded-lg shadow-sm border"
       />
       
       <FaturasTable
