@@ -1,59 +1,72 @@
 
-import { format, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
-
-const TIMEZONE_BR = 'America/Sao_Paulo';
+/**
+ * Utilitários para formatação de datas
+ * 
+ * Este arquivo contém funções auxiliares para formatação de datas
+ * em formatos específicos para o sistema de gestão de energia.
+ */
+import { format, isValid } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 /**
- * Converte uma data ISO para o formato dd/MM/yyyy considerando timezone BR
- * Usada principalmente para exibição de datas na interface
+ * Formata uma data para o formato brasileiro dd/MM/yyyy
+ * 
+ * @param dateString String de data em formato ISO ou objeto Date
+ * @returns String formatada ou traço em caso de data inválida
  */
-export const formatDateToPtBR = (isoDate: string) => {
-  if (!isoDate) return '';
+export function formatDateToPtBR(dateString: string | Date | null | undefined): string {
+  if (!dateString) return '-';
   
   try {
-    // Simplificando para trabalhar com apenas a data, sem hora
-    const dateParts = isoDate.split('T')[0].split('-');
-    const year = parseInt(dateParts[0]);
-    const month = parseInt(dateParts[1]) - 1; // Mês em JS começa em 0
-    const day = parseInt(dateParts[2]);
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
     
-    const date = new Date(year, month, day);
+    if (!isValid(date)) return '-';
+    
     return format(date, 'dd/MM/yyyy', { locale: ptBR });
   } catch (error) {
     console.error('Erro ao formatar data:', error);
-    return '';
+    return '-';
   }
-};
+}
 
 /**
- * Converte uma data do formulário (local) para formato ISO simples (YYYY-MM-DD)
- * Usada ao enviar dados de data para o banco
+ * Formata uma data para o formato brasileiro dd/MM/yyyy HH:mm
+ * 
+ * @param dateString String de data em formato ISO ou objeto Date
+ * @returns String formatada ou traço em caso de data inválida
  */
-export const convertLocalToUTC = (localDate: string) => {
-  if (!localDate) return null;
+export function formatDateTimeToPtBR(dateString: string | Date | null | undefined): string {
+  if (!dateString) return '-';
   
   try {
-    // Retornamos apenas a parte da data no formato YYYY-MM-DD
-    return localDate.split('T')[0];
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    
+    if (!isValid(date)) return '-';
+    
+    return format(date, 'dd/MM/yyyy HH:mm', { locale: ptBR });
   } catch (error) {
-    console.error('Erro ao converter data para ISO:', error);
-    return null;
+    console.error('Erro ao formatar data e hora:', error);
+    return '-';
   }
-};
+}
 
 /**
- * Converte uma data do banco para o formato usado em inputs de formulário (YYYY-MM-DD)
+ * Formata uma data para exibir apenas o mês e ano em formato brasileiro
+ * 
+ * @param dateString String de data em formato ISO ou objeto Date
+ * @returns String formatada no padrão MMM/yyyy (ex: jan/2023)
  */
-export const convertUTCToLocal = (utcDate: string | null) => {
-  if (!utcDate) return '';
+export function formatMonthYearToPtBR(dateString: string | Date | null | undefined): string {
+  if (!dateString) return '-';
   
   try {
-    // Retornamos apenas a parte da data no formato YYYY-MM-DD
-    return utcDate.split('T')[0];
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    
+    if (!isValid(date)) return '-';
+    
+    return format(date, 'MMM/yyyy', { locale: ptBR });
   } catch (error) {
-    console.error('Erro ao converter data para local:', error);
-    return '';
+    console.error('Erro ao formatar mês e ano:', error);
+    return '-';
   }
-};
+}

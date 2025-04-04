@@ -11,10 +11,14 @@ import { usePagamentosHistorico } from "./hooks/usePagamentosHistorico";
 
 interface BoletimMedicaoButtonProps {
   pagamento: PagamentoData;
+  onViewOnly?: boolean;
+  onPreviewClick?: () => void;
 }
 
 export function BoletimMedicaoButton({ 
-  pagamento
+  pagamento,
+  onViewOnly = false,
+  onPreviewClick
 }: BoletimMedicaoButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -52,13 +56,34 @@ export function BoletimMedicaoButton({
     }
   };
 
+  const handlePreviewClick = () => {
+    if (onPreviewClick) {
+      onPreviewClick();
+    } else {
+      setShowPreview(true);
+    }
+  };
+
+  if (onViewOnly) {
+    return (
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={handlePreviewClick}
+        title="Visualizar Boletim de Medição"
+      >
+        <Eye className="h-4 w-4" />
+      </Button>
+    );
+  }
+
   return (
     <>
       <div className="flex gap-2">
         <Button
           variant="outline"
           size="icon"
-          onClick={() => setShowPreview(true)}
+          onClick={handlePreviewClick}
           title="Visualizar Boletim de Medição"
         >
           <Eye className="h-4 w-4" />
@@ -78,11 +103,13 @@ export function BoletimMedicaoButton({
         </Button>
       </div>
 
-      <BoletimPreviewDialog
-        isOpen={showPreview}
-        onClose={() => setShowPreview(false)}
-        pagamento={pagamento}
-      />
+      {!onPreviewClick && (
+        <BoletimPreviewDialog
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          pagamento={pagamento}
+        />
+      )}
     </>
   );
 }

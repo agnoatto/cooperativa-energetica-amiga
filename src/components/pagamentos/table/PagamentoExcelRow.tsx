@@ -10,9 +10,13 @@ import { PagamentoData } from "../types/pagamento";
 import { formatarMoeda } from "@/utils/formatters";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { PagamentoActions } from "./PagamentosActions";
 import { usePagamentoStatus } from "../hooks/usePagamentoStatus";
 import { FileActions } from "../upload/FileActions";
+import { useState } from "react";
+import { PagamentoActionsMenu } from "./PagamentoActionsMenu";
+import { BoletimPreviewDialog } from "../BoletimPreviewDialog";
+import { SendPagamentoDialog } from "../SendPagamentoDialog";
+import { toast } from "sonner";
 
 interface PagamentoExcelRowProps {
   pagamento: PagamentoData;
@@ -30,6 +34,9 @@ export function PagamentoExcelRow({
   onDelete
 }: PagamentoExcelRowProps) {
   const { StatusBadge, handleSendPagamento, isUpdating } = usePagamentoStatus();
+  const [showBoletimPreview, setShowBoletimPreview] = useState(false);
+  const [showSendDialog, setShowSendDialog] = useState(false);
+  const [isLoadingFile, setIsLoadingFile] = useState(false);
   
   // Cálculo dos valores
   const valorBruto = pagamento.geracao_kwh * (pagamento.usina?.valor_kwh || 0);
@@ -43,8 +50,39 @@ export function PagamentoExcelRow({
   const showFileActions = !!pagamento.arquivo_conta_energia_path;
 
   const handleOpenSendDialog = () => {
-    console.log("Abrir diálogo de envio");
-    // Implementação pode ser adicionada conforme necessário
+    if (pagamento.status !== 'pendente') {
+      toast.error('Este pagamento não está com status pendente');
+      return;
+    }
+    
+    if (isUpdating) {
+      toast.info('Aguarde, uma operação de envio já está em andamento');
+      return;
+    }
+    
+    setShowSendDialog(true);
+  };
+
+  const handleSend = async (method: 'email' | 'whatsapp') => {
+    try {
+      console.log('[PagamentoExcelRow] Enviando pagamento:', pagamento.id, 'por', method);
+      await handleSendPagamento(pagamento, method);
+      setShowSendDialog(false);
+    } catch (error) {
+      console.error('[PagamentoExcelRow] Erro ao enviar pagamento:', error);
+      throw error;
+    }
+  };
+
+  // Função para gerar o boletim (já implementada no BoletimMedicaoButton)
+  const handleGerarBoletim = async () => {
+    try {
+      // Todo: implementar a geração do boletim
+      console.log('Gerando boletim...');
+    } catch (error) {
+      console.error("[Boletim] Erro ao gerar boletim:", error);
+      toast.error("Erro ao gerar boletim de medição");
+    }
   };
 
   return (
@@ -122,13 +160,16 @@ export function PagamentoExcelRow({
           case 'acoes':
             return (
               <td key={column.id} className="p-3 text-sm">
-                <PagamentoActions
+                <PagamentoActionsMenu
                   pagamento={pagamento}
                   onViewDetails={onViewDetails}
                   onEdit={onEdit}
                   onDelete={onDelete}
-                  onSendPagamento={pagamento.status === 'pendente' ? handleOpenSendDialog : undefined}
+                  onSendPagamento={handleOpenSendDialog}
+                  onViewBoletim={() => setShowBoletimPreview(true)}
+                  onDownloadBoletim={handleGerarBoletim}
                   isUpdating={isUpdating}
+                  isLoadingFile={isLoadingFile}
                 />
               </td>
             );
@@ -137,6 +178,18 @@ export function PagamentoExcelRow({
             return <td key={column.id} className="p-3 text-sm">-</td>;
         }
       })}
+
+      <BoletimPreviewDialog
+        isOpen={showBoletimPreview}
+        onClose={() => setShowBoletimPreview(false)}
+        pagamento={pagamento}
+      />
+
+      <SendPagamentoDialog
+        isOpen={showSendDialog}
+        onClose={() => setShowSendDialog(false)}
+        onSend={handleSend}
+      />
     </tr>
   );
 }

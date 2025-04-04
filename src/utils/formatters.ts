@@ -1,108 +1,77 @@
 
 /**
- * Utilitários de formatação
+ * Utilitários para formatação de valores
  * 
- * Funções auxiliares para formatação de valores monetários, datas e outros
- * formatos comuns utilizados na aplicação.
+ * Este arquivo contém funções auxiliares para formatação de valores
+ * em formatos específicos para o sistema de gestão de energia.
  */
 
 /**
- * Formata um valor numérico para moeda brasileira (BRL)
+ * Formata um valor numérico para o formato de moeda brasileira (R$)
+ * 
+ * @param valor Valor numérico a ser formatado
+ * @param moeda Símbolo da moeda (padrão: R$)
+ * @returns String formatada com o valor em moeda
  */
-export function formatarMoeda(valor: number): string {
-  return valor.toLocaleString('pt-BR', {
+export function formatarMoeda(valor: number | string | null | undefined, moeda: string = 'R$'): string {
+  if (valor === null || valor === undefined) return `${moeda} 0,00`;
+  
+  // Converter para número se for string
+  const valorNumerico = typeof valor === 'string' ? parseFloat(valor) : valor;
+  
+  // Verificar se é um número válido
+  if (isNaN(valorNumerico)) return `${moeda} 0,00`;
+  
+  // Formatar usando a API Intl para garantir a formatação correta
+  return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
-  });
+    currencyDisplay: 'symbol',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(valorNumerico);
 }
 
 /**
- * Formata um número de telefone para o formato brasileiro (XX) XXXXX-XXXX
+ * Formata um valor percentual para exibição
+ * 
+ * @param valor Valor percentual a ser formatado
+ * @param casasDecimais Número de casas decimais a exibir
+ * @returns String formatada com o valor percentual
  */
-export function formatarTelefone(telefone: string): string {
-  // Remove todos os caracteres não numéricos
-  const numeros = telefone.replace(/\D/g, '');
+export function formatarPercentual(valor: number | null | undefined, casasDecimais: number = 2): string {
+  if (valor === null || valor === undefined) return '0%';
   
-  if (numeros.length === 11) {
-    // Celular: (XX) XXXXX-XXXX
-    return numeros.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-  } else if (numeros.length === 10) {
-    // Fixo: (XX) XXXX-XXXX
-    return numeros.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-  }
+  // Verificar se é um número válido
+  if (isNaN(valor)) return '0%';
   
-  // Retorna o original se não conseguir formatar
-  return telefone;
+  // Formatar usando a API Intl para garantir a formatação correta
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'percent',
+    minimumFractionDigits: casasDecimais,
+    maximumFractionDigits: casasDecimais
+  }).format(valor / 100);
 }
 
 /**
- * Formata um CPF para o formato XXX.XXX.XXX-XX
+ * Formata um número para exibição com separadores de milhar
+ * 
+ * @param valor Valor numérico a ser formatado
+ * @param casasDecimais Número de casas decimais a exibir
+ * @returns String formatada com o número
  */
-export function formatarCPF(cpf: string): string {
-  // Remove todos os caracteres não numéricos
-  const numeros = cpf.replace(/\D/g, '');
-  
-  if (numeros.length === 11) {
-    return numeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-  }
-  
-  // Retorna o original se não conseguir formatar
-  return cpf;
-}
-
-/**
- * Formata um CNPJ para o formato XX.XXX.XXX/XXXX-XX
- */
-export function formatarCNPJ(cnpj: string): string {
-  // Remove todos os caracteres não numéricos
-  const numeros = cnpj.replace(/\D/g, '');
-  
-  if (numeros.length === 14) {
-    return numeros.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-  }
-  
-  // Retorna o original se não conseguir formatar
-  return cnpj;
-}
-
-/**
- * Formata um documento (CPF ou CNPJ) automaticamente
- */
-export function formatarDocumento(documento: string, tipoPessoa?: "PF" | "PJ"): string {
-  // Remove todos os caracteres não numéricos
-  const numeros = documento.replace(/\D/g, '');
-  
-  if (tipoPessoa === "PF" || (!tipoPessoa && numeros.length === 11)) {
-    return formatarCPF(numeros);
-  } else if (tipoPessoa === "PJ" || (!tipoPessoa && numeros.length === 14)) {
-    return formatarCNPJ(numeros);
-  }
-  
-  // Retorna o original se não conseguir formatar
-  return documento;
-}
-
-/**
- * Formata um valor numérico para exibição em kWh
- */
-export function formatarKwh(valor: number | null | undefined): string {
+export function formatarNumero(valor: number | string | null | undefined, casasDecimais: number = 2): string {
   if (valor === null || valor === undefined) return '0';
   
-  return valor.toLocaleString('pt-BR', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  });
-}
-
-/**
- * Formata o tamanho de um arquivo para exibição amigável
- */
-export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
+  // Converter para número se for string
+  const valorNumerico = typeof valor === 'string' ? parseFloat(valor) : valor;
   
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  // Verificar se é um número válido
+  if (isNaN(valorNumerico)) return '0';
   
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  // Formatar usando a API Intl para garantir a formatação correta
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: casasDecimais,
+    maximumFractionDigits: casasDecimais
+  }).format(valorNumerico);
 }

@@ -5,8 +5,6 @@
  * Exibe os dados de um pagamento específico na tabela e fornece
  * botões de ação como visualizar, editar, excluir e enviar.
  */
-import { Send, Eye, Pencil, Trash, FileText } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { PagamentoData } from "../types/pagamento";
 import { formatarMoeda } from "@/utils/formatters";
@@ -18,6 +16,9 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FileActions } from "../upload/FileActions";
 import { toast } from "sonner";
+import { PagamentoActionsMenu } from "./PagamentoActionsMenu";
+import { pdf } from '@react-pdf/renderer';
+import { BoletimPDF } from "../../pdf/BoletimPDF";
 
 interface PagamentoTableRowProps {
   pagamento: PagamentoData;
@@ -36,6 +37,7 @@ export function PagamentoTableRow({
   const [showBoletimPreview, setShowBoletimPreview] = useState(false);
   const [showSendDialog, setShowSendDialog] = useState(false);
   const [isFileDeleted, setIsFileDeleted] = useState(false);
+  const [isLoadingFile, setIsLoadingFile] = useState(false);
   
   const valorBruto = pagamento.geracao_kwh * (pagamento.usina?.valor_kwh || 0);
   const valorEfetivo = valorBruto - pagamento.valor_tusd_fio_b - pagamento.valor_concessionaria;
@@ -68,7 +70,37 @@ export function PagamentoTableRow({
       setShowSendDialog(false);
     } catch (error) {
       console.error('[PagamentoTableRow] Erro ao enviar pagamento:', error);
-      throw error; // Repassar o erro para o componente de diálogo
+      throw error;
+    }
+  };
+
+  const handleGerarBoletim = async () => {
+    try {
+      setIsLoadingFile(true);
+      
+      // Implementação para gerar o boletim PDF
+      const blob = await pdf(
+        <BoletimPDF 
+          pagamento={pagamento}
+          historicoData={[]}
+        />
+      ).toBlob();
+      
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `boletim_pagamento_${pagamento.mes}_${pagamento.ano}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("Boletim de medição gerado com sucesso!");
+    } catch (error) {
+      console.error("[Boletim] Erro ao gerar boletim:", error);
+      toast.error("Erro ao gerar boletim de medição");
+    } finally {
+      setIsLoadingFile(false);
     }
   };
 
@@ -100,60 +132,17 @@ export function PagamentoTableRow({
         </div>
       </TableCell>
       <TableCell className="py-3 px-4 text-sm text-right sticky right-0 bg-white shadow-[-8px_0_16px_-6px_rgba(0,0,0,0.05)]">
-        <div className="flex items-center justify-end space-x-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 hover:bg-gray-100"
-            onClick={() => onViewDetails(pagamento)}
-            title="Visualizar detalhes"
-          >
-            <Eye className="h-4 w-4 text-gray-600" />
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 hover:bg-gray-100"
-            onClick={() => setShowBoletimPreview(true)}
-            title="Visualizar boletim"
-          >
-            <FileText className="h-4 w-4 text-gray-600" />
-          </Button>
-
-          {pagamento.status === 'pendente' && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 hover:bg-gray-100"
-              onClick={handleSendClick}
-              title="Enviar boletim"
-              disabled={isUpdating}
-            >
-              <Send className={`h-4 w-4 ${isUpdating ? 'text-gray-400 animate-pulse' : 'text-gray-600'}`} />
-            </Button>
-          )}
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 hover:bg-gray-100"
-            onClick={() => onEdit(pagamento)}
-            title="Editar"
-          >
-            <Pencil className="h-4 w-4 text-gray-600" />
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 hover:bg-gray-100"
-            onClick={() => onDelete(pagamento)}
-            title="Excluir"
-          >
-            <Trash className="h-4 w-4 text-gray-600" />
-          </Button>
-        </div>
+        <PagamentoActionsMenu
+          pagamento={pagamento}
+          onViewDetails={onViewDetails}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onSendPagamento={handleSendClick}
+          onViewBoletim={() => setShowBoletimPreview(true)}
+          onDownloadBoletim={handleGerarBoletim}
+          isUpdating={isUpdating}
+          isLoadingFile={isLoadingFile}
+        />
       </TableCell>
 
       <BoletimPreviewDialog
