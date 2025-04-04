@@ -9,9 +9,9 @@ import { Column } from "@/components/ui/excel-table/types";
 import { LancamentoFinanceiro } from "@/types/financeiro";
 import { TableRow } from "./components/TableRow";
 import { TableActions } from "./components/TableActions";
-import { formatCurrency } from "@/utils/formatters";
+import { formatarMoeda } from "@/utils/formatters";
 import { StatusBadge } from "./components/StatusBadge";
-import { formatarData } from "@/utils/dateFormatters";
+import { formatDateToPtBR } from "@/utils/dateFormatters";
 
 interface LancamentoExcelRowProps {
   lancamento: LancamentoFinanceiro;
@@ -41,13 +41,14 @@ export function LancamentoExcelRow({
         if (column.id === "descricao") {
           content = lancamento.descricao;
         } else if (column.id === "categoria") {
-          content = lancamento.categoria?.nome || "Sem categoria";
+          // Removendo a referência à propriedade categoria que não existe no tipo
+          content = "N/A";  // Valor padrão até que seja implementada a categoria
         } else if (column.id === "data_vencimento") {
-          content = formatarData(lancamento.data_vencimento);
+          content = formatDateToPtBR(lancamento.data_vencimento);
         } else if (column.id === "data_pagamento") {
-          content = lancamento.data_pagamento ? formatarData(lancamento.data_pagamento) : "-";
+          content = lancamento.data_pagamento ? formatDateToPtBR(lancamento.data_pagamento) : "-";
         } else if (column.id === "valor") {
-          content = formatCurrency(lancamento.valor);
+          content = formatarMoeda(lancamento.valor);
         } else if (column.id === "status") {
           content = <StatusBadge status={lancamento.status} />;
         } else if (column.id === "acoes") {
