@@ -11,7 +11,7 @@
 import { useLancamentosFinanceiros } from "@/hooks/lancamentos/useLancamentosFinanceiros";
 import { StatusLancamento } from "@/types/financeiro";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { LancamentosTable } from "@/components/financeiro/table/LancamentosTable";
+import { LancamentosExcelTable } from "@/components/financeiro/table/LancamentosExcelTable";
 import { LancamentosCards } from "@/components/financeiro/cards/LancamentosCards";
 import { LancamentosDashboard } from "@/components/financeiro/dashboard/LancamentosDashboard";
 import { useState, useEffect } from "react";
@@ -107,7 +107,7 @@ export default function ContasReceber() {
           refetch={refetch}
         />
       ) : (
-        <LancamentosTable
+        <LancamentosExcelTable
           lancamentos={lancamentos}
           isLoading={isLoading}
           tipo="receita"
