@@ -30,10 +30,12 @@ export default function Pagamentos() {
 
   // Handlers para navegação entre meses
   const handlePreviousMonth = useCallback(() => {
+    console.log("Mês anterior selecionado");
     setCurrentDate(prev => subMonths(prev, 1));
   }, []);
 
   const handleNextMonth = useCallback(() => {
+    console.log("Próximo mês selecionado");
     setCurrentDate(prev => addMonths(prev, 1));
   }, []);
 
@@ -62,7 +64,6 @@ export default function Pagamentos() {
         onBuscaChange={setBusca}
         onLimparFiltros={handleLimparFiltros}
         placeholder="Buscar por cooperado, usina ou valor..."
-        onMonthChange={setCurrentDate}
       />
       
       <PagamentosTable 

@@ -1,15 +1,12 @@
-
 /**
  * Componente de barra de filtros com seleção de mês
  * 
  * Este componente estende a funcionalidade da FilterBar padrão
- * adicionando um seletor de mês que permite a navegação entre períodos.
- * Útil para filtragem de dados financeiros e relatórios por período.
+ * com suporte para filtragem por período, mas sem duplicar
+ * o seletor de mês na interface.
  */
 import { FilterBar } from "@/components/shared/FilterBar";
-import { MonthSelector } from "@/components/MonthSelector";
 import { useState } from "react";
-import { useMonthSelection } from "@/hooks/useMonthSelection";
 import { Column } from "@/components/ui/excel-table/types";
 
 interface FilterBarWithMonthProps {
@@ -39,37 +36,10 @@ export function FilterBarWithMonth({
   onResetColumns,
   onMonthChange
 }: FilterBarWithMonthProps) {
-  const { 
-    selectedDate, 
-    handlePreviousMonth, 
-    handleNextMonth: nextMonth 
-  } = useMonthSelection();
-
-  // Propagar a mudança de mês para o componente pai se necessário
-  const handlePrevMonth = () => {
-    handlePreviousMonth();
-    if (onMonthChange) {
-      onMonthChange(selectedDate);
-    }
-  };
-
-  const handleNextMonth = () => {
-    nextMonth();
-    if (onMonthChange) {
-      onMonthChange(selectedDate);
-    }
-  };
-
+  // Mantemos a interface com o componente pai, mas sem exibir o seletor duplicado
+  
   return (
-    <div className="space-y-4">
-      <div className="flex justify-center mb-2">
-        <MonthSelector 
-          currentDate={selectedDate}
-          onPreviousMonth={handlePrevMonth}
-          onNextMonth={handleNextMonth}
-        />
-      </div>
-      
+    <div className="space-y-4">      
       <FilterBar
         busca={busca}
         onBuscaChange={onBuscaChange}

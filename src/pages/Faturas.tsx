@@ -14,7 +14,7 @@ import { useFetchFaturas } from "@/hooks/faturas/useFetchFaturas";
 export default function Faturas() {
   // Usa o hook para obter o mês atual selecionado e os manipuladores
   const { 
-    currentDate, 
+    selectedDate: currentDate, 
     handlePreviousMonth, 
     handleNextMonth 
   } = useMonthSelection();
