@@ -86,6 +86,12 @@ export const routes: RouteSection[] = [
     label: "Financeiro",
     routes: [
       {
+        label: "Dashboard Financeiro",
+        icon: BarChart3,
+        href: "/financeiro",
+        color: "text-blue-600",
+      },
+      {
         label: "Contas a Receber",
         icon: DollarSign,
         href: "/financeiro/contas-receber",

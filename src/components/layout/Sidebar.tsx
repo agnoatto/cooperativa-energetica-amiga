@@ -13,7 +13,8 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   Settings,
-  LogOut
+  LogOut,
+  BarChart3
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { SidebarLink } from './SidebarLink';
@@ -120,8 +121,8 @@ export function Sidebar() {
             </SidebarLink>
 
             <SidebarLink 
-              href="/financeiro/contas-receber" 
-              icon={Wallet}
+              href="/financeiro" 
+              icon={BarChart3}
               isActive={location.pathname.startsWith('/financeiro')}
               isExpanded={isExpanded}
               subItems={[

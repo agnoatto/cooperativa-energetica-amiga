@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
@@ -18,6 +19,7 @@ import Investidores from "./pages/Investidores";
 import Configuracoes from "./pages/Configuracoes";
 import ContasPagar from "./pages/ContasPagar";
 import ContasReceber from "./pages/ContasReceber";
+import Financeiro from "./pages/Financeiro";
 import { useAuth } from "./contexts/AuthContext";
 import { NotificationsProvider } from "./contexts/NotificationsContext";
 
@@ -144,6 +146,14 @@ function AppContent() {
                 element={
                   <ProtectedRoute>
                     <Pagamentos />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/financeiro"
+                element={
+                  <ProtectedRoute>
+                    <Financeiro />
                   </ProtectedRoute>
                 }
               />

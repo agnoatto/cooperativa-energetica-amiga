@@ -1,95 +1,83 @@
 
 /**
- * Funções utilitárias para formatação de dados
+ * Utilitários de formatação
  * 
- * Este módulo contém funções para formatar diferentes tipos de dados,
- * como valores monetários, datas, documentos e tamanhos de arquivo.
+ * Funções auxiliares para formatação de valores monetários, datas e outros
+ * formatos comuns utilizados na aplicação.
  */
 
 /**
- * Formata um número em formato monetário brasileiro (R$)
+ * Formata um valor numérico para moeda brasileira (BRL)
  */
-export function formatMoney(value: number): string {
-  return new Intl.NumberFormat('pt-BR', {
+export function formatarMoeda(valor: number): string {
+  return valor.toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL',
-  }).format(value);
+  });
 }
 
 /**
- * Formata um valor em formato monetário brasileiro (R$) - Alias para compatibilidade
- */
-export function formatarMoeda(value: number): string {
-  return formatMoney(value);
-}
-
-/**
- * Formata o tamanho de um arquivo em KB, MB ou GB
- */
-export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
-  
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-/**
- * Formata um documento (CPF/CNPJ) com a máscara apropriada
- */
-export function formatarDocumento(documento: string, tipo_pessoa?: string): string {
-  // Remover caracteres não numéricos
-  const apenasNumeros = documento.replace(/\D/g, '');
-  
-  // Formatar CPF: 000.000.000-00
-  if (apenasNumeros.length === 11 || tipo_pessoa === 'PF') {
-    return apenasNumeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-  } 
-  // Formatar CNPJ: 00.000.000/0000-00
-  else if (apenasNumeros.length === 14 || tipo_pessoa === 'PJ') {
-    return apenasNumeros.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-  }
-  
-  // Retornar sem formatação caso não seja CPF nem CNPJ
-  return documento;
-}
-
-/**
- * Formata um número de telefone brasileiro com a máscara apropriada
+ * Formata um número de telefone para o formato brasileiro (XX) XXXXX-XXXX
  */
 export function formatarTelefone(telefone: string): string {
-  // Remover caracteres não numéricos
-  const apenasNumeros = telefone.replace(/\D/g, '');
+  // Remove todos os caracteres não numéricos
+  const numeros = telefone.replace(/\D/g, '');
   
-  // Telefone com 11 dígitos (com DDD e 9 na frente): (00) 90000-0000
-  if (apenasNumeros.length === 11) {
-    return apenasNumeros.replace(/(\d{2})(\d{1})(\d{4})(\d{4})/, '($1) $2$3-$4');
-  }
-  // Telefone com 10 dígitos (com DDD): (00) 0000-0000
-  else if (apenasNumeros.length === 10) {
-    return apenasNumeros.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-  }
-  // Telefone com 9 dígitos (sem DDD): 90000-0000
-  else if (apenasNumeros.length === 9) {
-    return apenasNumeros.replace(/(\d{5})(\d{4})/, '$1-$2');
-  }
-  // Telefone com 8 dígitos (sem DDD): 0000-0000
-  else if (apenasNumeros.length === 8) {
-    return apenasNumeros.replace(/(\d{4})(\d{4})/, '$1-$2');
+  if (numeros.length === 11) {
+    // Celular: (XX) XXXXX-XXXX
+    return numeros.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  } else if (numeros.length === 10) {
+    // Fixo: (XX) XXXX-XXXX
+    return numeros.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
   }
   
-  // Retorna sem formatação caso não se encaixe nos padrões acima
+  // Retorna o original se não conseguir formatar
   return telefone;
 }
 
 /**
- * Formata um valor numérico para representação de kWh ou kWp
+ * Formata um CPF para o formato XXX.XXX.XXX-XX
  */
-export function formatarKwh(valor: number): string {
-  return new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2
-  }).format(valor);
+export function formatarCPF(cpf: string): string {
+  // Remove todos os caracteres não numéricos
+  const numeros = cpf.replace(/\D/g, '');
+  
+  if (numeros.length === 11) {
+    return numeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  }
+  
+  // Retorna o original se não conseguir formatar
+  return cpf;
+}
+
+/**
+ * Formata um CNPJ para o formato XX.XXX.XXX/XXXX-XX
+ */
+export function formatarCNPJ(cnpj: string): string {
+  // Remove todos os caracteres não numéricos
+  const numeros = cnpj.replace(/\D/g, '');
+  
+  if (numeros.length === 14) {
+    return numeros.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+  }
+  
+  // Retorna o original se não conseguir formatar
+  return cnpj;
+}
+
+/**
+ * Formata um documento (CPF ou CNPJ) automaticamente
+ */
+export function formatarDocumento(documento: string): string {
+  // Remove todos os caracteres não numéricos
+  const numeros = documento.replace(/\D/g, '');
+  
+  if (numeros.length === 11) {
+    return formatarCPF(numeros);
+  } else if (numeros.length === 14) {
+    return formatarCNPJ(numeros);
+  }
+  
+  // Retorna o original se não conseguir formatar
+  return documento;
 }
