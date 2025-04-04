@@ -9,10 +9,10 @@
 import { useState, useCallback } from "react";
 import { format, addMonths, subMonths } from "date-fns";
 import { toast } from "sonner";
-import { PagamentosTable } from "@/components/pagamentos/PagamentosTable";
+import { PagamentosExcelTable } from "@/components/pagamentos/table/PagamentosExcelTable";
 import { PagamentosHeader } from "@/components/pagamentos/PagamentosHeader";
 import { PagamentosDashboard } from "@/components/pagamentos/PagamentosDashboard";
-import { FilterBarWithMonth } from "@/components/shared/FilterBarWithMonth";
+import { FilterBar } from "@/components/shared/FilterBar";
 import { usePagamentos } from "@/hooks/usePagamentos";
 import { PagamentoData } from "@/components/pagamentos/types/pagamento";
 
@@ -59,14 +59,16 @@ export default function Pagamentos() {
         isLoading={isLoading} 
       />
       
-      <FilterBarWithMonth
-        busca={busca}
-        onBuscaChange={setBusca}
-        onLimparFiltros={handleLimparFiltros}
-        placeholder="Buscar por cooperado, usina ou valor..."
-      />
+      <div className="mb-4">
+        <FilterBar
+          busca={busca}
+          onBuscaChange={setBusca}
+          onLimparFiltros={handleLimparFiltros}
+          placeholder="Buscar por cooperado, usina ou valor..."
+        />
+      </div>
       
-      <PagamentosTable 
+      <PagamentosExcelTable 
         pagamentos={pagamentos || []} 
         isLoading={isLoading} 
         onEditPagamento={(pagamento: PagamentoData) => console.log('Edit', pagamento)}
