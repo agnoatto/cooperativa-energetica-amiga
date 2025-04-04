@@ -4,7 +4,6 @@
  * 
  * Este componente exibe as informações de um único lançamento em formato de cartão,
  * incluindo descrição, status, valores e menu de ações.
- * Utiliza Popover para o menu de ações para melhor performance e estabilidade.
  */
 import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
 import { formatarMoeda } from "@/utils/formatters";
@@ -14,10 +13,13 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { CheckCircle2, Eye, MoreVertical, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { getStatusColor } from "../../utils/status";
-import { useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ActionMenuItem } from "../../table/components/ActionMenuItem";
 
 interface LancamentoCardProps {
   lancamento: LancamentoFinanceiro;
@@ -30,8 +32,6 @@ export function LancamentoCard({
   tipo, 
   onViewDetails 
 }: LancamentoCardProps) {
-  const [open, setOpen] = useState(false);
-  
   // Função para obter o mês de referência formatado
   const getMesReferencia = () => {
     if (lancamento.fatura?.mes && lancamento.fatura?.ano) {
@@ -79,23 +79,6 @@ export function LancamentoCard({
     }
   };
 
-  const handleViewDetails = () => {
-    onViewDetails(lancamento);
-    setOpen(false);
-  };
-
-  const handlePagar = () => {
-    // Implementação futura
-    console.log("Marcar como pago:", lancamento.id);
-    setOpen(false);
-  };
-
-  const handleCancelar = () => {
-    // Implementação futura
-    console.log("Cancelar lançamento:", lancamento.id);
-    setOpen(false);
-  };
-
   return (
     <Card>
       <CardContent className="p-4">
@@ -124,44 +107,32 @@ export function LancamentoCard({
         </div>
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-end">
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="rounded-full"
-              onClick={(e) => e.stopPropagation()}
-            >
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="rounded-full">
               <MoreVertical className="h-5 w-5" />
               <span className="sr-only">Mais opções</span>
             </Button>
-          </PopoverTrigger>
-          <PopoverContent align="end" className="w-52 p-1">
-            <div className="flex flex-col gap-0.5">
-              <ActionMenuItem
-                icon={<Eye className="mr-2 h-4 w-4" />}
-                label="Ver detalhes"
-                onClick={handleViewDetails}
-              />
-              
-              {lancamento.status === 'pendente' && (
-                <ActionMenuItem
-                  icon={<CheckCircle2 className="mr-2 h-4 w-4" />}
-                  label="Marcar como pago"
-                  onClick={handlePagar}
-                />
-              )}
-              
-              {lancamento.status === 'pendente' && (
-                <ActionMenuItem
-                  icon={<XCircle className="mr-2 h-4 w-4" />}
-                  label="Cancelar"
-                  onClick={handleCancelar}
-                />
-              )}
-            </div>
-          </PopoverContent>
-        </Popover>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onViewDetails(lancamento)}>
+              <Eye className="mr-2 h-4 w-4" />
+              Ver detalhes
+            </DropdownMenuItem>
+            {lancamento.status === 'pendente' && (
+              <DropdownMenuItem>
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Marcar como pago
+              </DropdownMenuItem>
+            )}
+            {lancamento.status === 'pendente' && (
+              <DropdownMenuItem>
+                <XCircle className="mr-2 h-4 w-4" />
+                Cancelar
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </CardFooter>
     </Card>
   );

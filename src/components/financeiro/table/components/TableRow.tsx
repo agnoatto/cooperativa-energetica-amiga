@@ -7,6 +7,7 @@
  */
 import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
 import { formatCurrency } from "@/components/faturas/table/desktop/utils/formatters";
+import { TableCell, TableRow as UITableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
@@ -63,33 +64,29 @@ const getNomeContato = (lancamento: LancamentoFinanceiro, tipo: "receita" | "des
 
 export function TableRow({ lancamento, tipo, onViewDetails }: TableRowProps) {
   return (
-    <div className="flex items-center justify-between w-full">
-      <div className="flex-1">
-        <div className="font-medium">
-          {formatarDescricao(lancamento)}
-        </div>
-        <div className="flex gap-3 text-sm text-gray-500 mt-1">
-          <div>{getNomeContato(lancamento, tipo)}</div>
-          <div>•</div>
-          <div>{format(new Date(lancamento.data_vencimento), 'dd/MM/yyyy')}</div>
-          <div>•</div>
-          <div>{formatCurrency(lancamento.valor)}</div>
-          <div>
-            <Badge
-              variant="outline"
-              className={`${getStatusColor(
-                lancamento.status as StatusLancamento
-              )}`}
-            >
-              {lancamento.status.charAt(0).toUpperCase() +
-                lancamento.status.slice(1)}
-            </Badge>
-          </div>
-        </div>
-      </div>
-      <div>
+    <UITableRow>
+      <TableCell className="font-medium">
+        {formatarDescricao(lancamento)}
+      </TableCell>
+      <TableCell>{getNomeContato(lancamento, tipo)}</TableCell>
+      <TableCell>
+        {format(new Date(lancamento.data_vencimento), 'dd/MM/yyyy')}
+      </TableCell>
+      <TableCell>{formatCurrency(lancamento.valor)}</TableCell>
+      <TableCell>
+        <Badge
+          variant="outline"
+          className={`${getStatusColor(
+            lancamento.status as StatusLancamento
+          )}`}
+        >
+          {lancamento.status.charAt(0).toUpperCase() +
+            lancamento.status.slice(1)}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-right">
         <TableActions lancamento={lancamento} onViewDetails={onViewDetails} />
-      </div>
-    </div>
+      </TableCell>
+    </UITableRow>
   );
 }

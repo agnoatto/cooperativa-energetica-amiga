@@ -4,18 +4,16 @@
  * 
  * Renderiza as ações disponíveis para cada lançamento financeiro,
  * como visualizar detalhes, marcar como pago, ou cancelar.
- * Usa Popover em vez de DropdownMenu para melhor performance e estabilidade.
  */
 import { LancamentoFinanceiro } from "@/types/financeiro";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Eye, MoreHorizontal, XCircle } from "lucide-react";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from "@/components/ui/popover";
-import { useState } from "react";
-import { ActionMenuItem } from "./ActionMenuItem";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { CheckCircle2, Eye, MoreHorizontal, XCircle } from "lucide-react";
 
 interface TableActionsProps {
   lancamento: LancamentoFinanceiro;
@@ -23,64 +21,32 @@ interface TableActionsProps {
 }
 
 export function TableActions({ lancamento, onViewDetails }: TableActionsProps) {
-  const [open, setOpen] = useState(false);
-
-  const handleViewDetails = () => {
-    onViewDetails(lancamento);
-    setOpen(false);
-  };
-
-  const handlePagar = () => {
-    // Implementação futura
-    console.log("Marcar como pago:", lancamento.id);
-    setOpen(false);
-  };
-
-  const handleCancelar = () => {
-    // Implementação futura
-    console.log("Cancelar lançamento:", lancamento.id);
-    setOpen(false);
-  };
-
   return (
-    <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            className="h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <span className="sr-only">Abrir menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent align="end" alignOffset={5} className="w-52 p-1">
-          <div className="flex flex-col gap-0.5">
-            <ActionMenuItem
-              icon={<Eye className="h-4 w-4" />}
-              label="Ver detalhes"
-              onClick={handleViewDetails}
-            />
-            
-            {lancamento.status === 'pendente' && (
-              <ActionMenuItem
-                icon={<CheckCircle2 className="h-4 w-4" />}
-                label="Marcar como pago"
-                onClick={handlePagar}
-              />
-            )}
-            
-            {lancamento.status === 'pendente' && (
-              <ActionMenuItem
-                icon={<XCircle className="h-4 w-4" />}
-                label="Cancelar"
-                onClick={handleCancelar}
-              />
-            )}
-          </div>
-        </PopoverContent>
-      </Popover>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <span className="sr-only">Abrir menu</span>
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => onViewDetails(lancamento)}>
+          <Eye className="mr-2 h-4 w-4" />
+          Ver detalhes
+        </DropdownMenuItem>
+        {lancamento.status === 'pendente' && (
+          <DropdownMenuItem>
+            <CheckCircle2 className="mr-2 h-4 w-4" />
+            Marcar como pago
+          </DropdownMenuItem>
+        )}
+        {lancamento.status === 'pendente' && (
+          <DropdownMenuItem>
+            <XCircle className="mr-2 h-4 w-4" />
+            Cancelar
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
