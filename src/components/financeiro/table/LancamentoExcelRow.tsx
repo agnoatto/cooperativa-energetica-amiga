@@ -31,23 +31,27 @@ export function LancamentoExcelRow({
       className="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150"
     >
       {columns.map((column) => {
+        let content = null;
+        
         if (column.id === "descricao") {
-          return (
-            <td
-              key={column.id}
-              className="px-4 py-3 font-medium"
-              style={{ minWidth: column.minWidth, width: column.width }}
-            >
-              {/* Componente original de TableRow irá renderizar apenas o que for necessário */}
-              <TableRow
-                lancamento={lancamento}
-                tipo={tipo}
-                onViewDetails={onViewDetails}
-              />
-            </td>
+          content = (
+            <TableRow
+              lancamento={lancamento}
+              tipo={tipo}
+              onViewDetails={onViewDetails}
+            />
           );
         }
-        return null;
+        
+        return (
+          <td
+            key={column.id}
+            className="px-4 py-3 font-medium"
+            style={{ minWidth: column.minWidth, width: column.width }}
+          >
+            {content}
+          </td>
+        );
       })}
     </tr>
   );
