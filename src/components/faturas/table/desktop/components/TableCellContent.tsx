@@ -44,6 +44,7 @@ export function TableCellContent({
         "px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis",
         colIndex === 0 && "sticky left-0 z-10 bg-inherit shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]" // Célula da primeira coluna fixa
       )}
+      onClick={(e) => columnId === 'acoes' && e.stopPropagation()}
     >
       {columnId === 'cooperado' && (
         <span className="text-gray-900">
@@ -78,6 +79,15 @@ export function TableCellContent({
       )}
       
       {columnId === 'status' && <FaturaStatusBadge fatura={fatura} />}
+      
+      {columnId === 'acoes_rapidas' && (
+        <AcoesRapidas 
+          fatura={fatura}
+          onViewDetails={onViewDetails}
+          onEdit={onEdit}
+          onUpdateStatus={onUpdateStatus}
+        />
+      )}
       
       {columnId === 'acoes' && (
         <FaturaActionsMenu

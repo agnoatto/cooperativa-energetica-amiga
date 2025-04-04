@@ -6,12 +6,11 @@
  * para visualização em dispositivos móveis ou desktop.
  */
 import { Fatura, FaturaStatus } from "@/types/fatura";
-import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FaturaMobileCard } from "./mobile/FaturaMobileCard";
 import { FaturaDesktopRow } from "./desktop/FaturaDesktopRow";
+import { PdfVisualizationHandler } from "./components/PdfVisualizationHandler";
+import { PdfPreview } from "../upload/PdfPreview";
 
 interface FaturaTableRowProps {
   fatura: Fatura;
@@ -28,26 +27,17 @@ export function FaturaTableRow({
   onEdit,
   onUpdateStatus
 }: FaturaTableRowProps) {
-  const [showPdfModal, setShowPdfModal] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const isMobile = useIsMobile();
-
-  const handleViewPdf = async () => {
-    if (!fatura.arquivo_concessionaria_path) return;
-
-    try {
-      const { data, error } = await supabase.storage
-        .from('faturas_concessionaria')
-        .createSignedUrl(fatura.arquivo_concessionaria_path, 60);
-
-      if (error) throw error;
-
-      setPdfUrl(data.signedUrl);
-      setShowPdfModal(true);
-    } catch (error) {
-      console.error('Erro ao obter URL do PDF:', error);
-    }
-  };
+  
+  // Usar o handler para visualização de PDF
+  const {
+    showPdfPreview,
+    pdfBlobUrl,
+    isConcessionariaPreview,
+    handleViewConcessionaria,
+    handleViewRelatorio,
+    handleClosePdfPreview
+  } = PdfVisualizationHandler({ fatura });
 
   if (isMobile) {
     return (
@@ -58,20 +48,19 @@ export function FaturaTableRow({
           onEdit={onEdit}
           onDelete={onDelete}
           onUpdateStatus={onUpdateStatus}
-          onViewPdf={handleViewPdf}
+          onViewPdf={handleViewConcessionaria}
         />
 
-        <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
-          <DialogContent className="max-w-4xl max-h-[90vh]">
-            {pdfUrl && (
-              <iframe
-                src={`${pdfUrl}#toolbar=0`}
-                className="w-full h-[80vh]"
-                title="Conta de Energia"
-              />
-            )}
-          </DialogContent>
-        </Dialog>
+        {/* Visualizador de PDF unificado */}
+        {showPdfPreview && (
+          <PdfPreview
+            isOpen={showPdfPreview}
+            onClose={handleClosePdfPreview}
+            pdfUrl={isConcessionariaPreview ? fatura.arquivo_concessionaria_path : pdfBlobUrl}
+            title={isConcessionariaPreview ? "Fatura da Concessionária" : "Relatório Mensal"}
+            isRelatorio={!isConcessionariaPreview}
+          />
+        )}
       </>
     );
   }
@@ -84,20 +73,19 @@ export function FaturaTableRow({
         onDelete={onDelete}
         onEdit={onEdit}
         onUpdateStatus={onUpdateStatus}
-        onViewPdf={handleViewPdf}
+        onViewPdf={handleViewConcessionaria}
       />
 
-      <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          {pdfUrl && (
-            <iframe
-              src={`${pdfUrl}#toolbar=0`}
-              className="w-full h-[80vh]"
-              title="Conta de Energia"
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Visualizador de PDF unificado */}
+      {showPdfPreview && (
+        <PdfPreview
+          isOpen={showPdfPreview}
+          onClose={handleClosePdfPreview}
+          pdfUrl={isConcessionariaPreview ? fatura.arquivo_concessionaria_path : pdfBlobUrl}
+          title={isConcessionariaPreview ? "Fatura da Concessionária" : "Relatório Mensal"}
+          isRelatorio={!isConcessionariaPreview}
+        />
+      )}
     </>
   );
 }

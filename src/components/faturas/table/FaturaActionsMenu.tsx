@@ -18,6 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger
 } from "@/components/ui/popover";
+import { PdfPreview } from "../upload/PdfPreview";
 
 interface FaturaActionsMenuProps {
   fatura: Fatura;
@@ -34,8 +35,18 @@ export function FaturaActionsMenu({
   onDelete,
   onUpdateStatus
 }: FaturaActionsMenuProps) {
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [open, setOpen] = useState(false);
+  
+  // Usar o handler para gerenciar visualização de PDFs
+  const {
+    showPdfPreview,
+    pdfBlobUrl,
+    isConcessionariaPreview,
+    isGeneratingPdf,
+    handleViewConcessionaria,
+    handleViewRelatorio,
+    handleClosePdfPreview
+  } = PdfVisualizationHandler({ fatura });
   
   const handleReenviarFatura = async () => {
     try {
@@ -44,24 +55,6 @@ export function FaturaActionsMenu({
     } catch (error) {
       console.error('Erro ao reenviar fatura:', error);
     }
-  };
-
-  const handleViewConcessionaria = () => {
-    // Implementado via PdfVisualizationHandler
-    console.log("Solicitação para visualizar fatura da concessionária");
-    setOpen(false);
-  };
-
-  const handleViewRelatorio = () => {
-    // Implementado via PdfVisualizationHandler
-    setIsGeneratingPdf(true);
-    console.log("Solicitação para visualizar relatório mensal");
-    
-    // Simular finalização da geração para atualizar o estado
-    setTimeout(() => {
-      setIsGeneratingPdf(false);
-      setOpen(false);
-    }, 100);
   };
 
   const handleClose = () => {
@@ -98,8 +91,14 @@ export function FaturaActionsMenu({
         </PopoverContent>
       </Popover>
 
-      {/* Manipulador de visualização de PDF */}
-      <PdfVisualizationHandler fatura={fatura} />
+      {/* Visualizador de PDF */}
+      <PdfPreview
+        isOpen={showPdfPreview}
+        onClose={handleClosePdfPreview}
+        pdfUrl={isConcessionariaPreview ? fatura.arquivo_concessionaria_path : pdfBlobUrl}
+        title={isConcessionariaPreview ? "Fatura da Concessionária" : "Relatório Mensal"}
+        isRelatorio={!isConcessionariaPreview}
+      />
     </div>
   );
 }

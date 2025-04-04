@@ -27,7 +27,7 @@ export function AcoesRapidas({
   // Determinar quais ações exibir com base no status da fatura
   const showQuickView = ['enviada', 'reenviada', 'atrasada', 'paga'].includes(fatura.status);
   const showQuickEdit = ['pendente', 'corrigida'].includes(fatura.status);
-  const showStatusActions = ['enviada', 'reenviada', 'atrasada'].includes(fatura.status);
+  const showStatusActions = ['enviada', 'reenviada', 'atrasada', 'pendente', 'corrigida'].includes(fatura.status);
 
   return (
     <div className="flex items-center justify-end gap-2">

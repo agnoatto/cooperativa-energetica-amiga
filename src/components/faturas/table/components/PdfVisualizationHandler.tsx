@@ -5,7 +5,7 @@
  * Este componente gerencia a lógica de visualização de PDFs da fatura,
  * incluindo geração de relatórios e visualização de faturas da concessionária.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { pdf } from "@react-pdf/renderer";
 import { FaturaPDF } from "@/components/faturas/pdf/FaturaPDF";
@@ -23,12 +23,13 @@ export function PdfVisualizationHandler({ fatura }: PdfVisualizationHandlerProps
   const [isConcessionariaPreview, setIsConcessionariaPreview] = useState(false);
 
   // Limpar URL do PDF quando o componente for desmontado
-  const cleanupPdfUrl = () => {
-    if (pdfBlobUrl && pdfBlobUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(pdfBlobUrl);
-      setPdfBlobUrl(null);
-    }
-  };
+  useEffect(() => {
+    return () => {
+      if (pdfBlobUrl && pdfBlobUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(pdfBlobUrl);
+      }
+    };
+  }, [pdfBlobUrl]);
 
   const handleViewConcessionaria = () => {
     if (!fatura.arquivo_concessionaria_path) {
@@ -38,6 +39,7 @@ export function PdfVisualizationHandler({ fatura }: PdfVisualizationHandlerProps
     
     console.log("Visualizando fatura da concessionária:", fatura.arquivo_concessionaria_path);
     setIsConcessionariaPreview(true);
+    setPdfBlobUrl(null); // Limpar qualquer URL de relatório anterior
     setShowPdfPreview(true);
   };
 
@@ -68,18 +70,21 @@ export function PdfVisualizationHandler({ fatura }: PdfVisualizationHandlerProps
   const handleClosePdfPreview = () => {
     console.log("Fechando previsualização PDF");
     setShowPdfPreview(false);
-    cleanupPdfUrl();
+    
+    // Limpar URL do blob se existir ao fechar
+    if (pdfBlobUrl && pdfBlobUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(pdfBlobUrl);
+      setPdfBlobUrl(null);
+    }
   };
 
-  return (
-    <>
-      <PdfPreview
-        isOpen={showPdfPreview}
-        onClose={handleClosePdfPreview}
-        pdfUrl={isConcessionariaPreview ? fatura.arquivo_concessionaria_path : pdfBlobUrl}
-        title={isConcessionariaPreview ? "Fatura da Concessionária" : "Relatório Mensal"}
-        isRelatorio={!isConcessionariaPreview}
-      />
-    </>
-  );
+  return {
+    showPdfPreview,
+    pdfBlobUrl,
+    isConcessionariaPreview,
+    isGeneratingPdf,
+    handleViewConcessionaria,
+    handleViewRelatorio,
+    handleClosePdfPreview
+  };
 }

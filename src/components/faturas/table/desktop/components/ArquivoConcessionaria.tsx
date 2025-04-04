@@ -14,13 +14,13 @@ import { STORAGE_BUCKET } from "@/components/faturas/upload/constants";
 
 interface ArquivoConcessionariaProps {
   arquivoPath: string | null;
-  onViewPdf?: () => Promise<void>; // Adicionada esta propriedade opcional
+  onViewPdf?: () => void; // Simplificado para aceitar uma função sem retorno
 }
 
 export function ArquivoConcessionaria({ arquivoPath, onViewPdf }: ArquivoConcessionariaProps) {
   const [showPdfPreview, setShowPdfPreview] = useState(false);
 
-  const handleViewArquivo = async () => {
+  const handleViewArquivo = () => {
     if (!arquivoPath) {
       toast.error("Nenhum arquivo de fatura disponível");
       return;
@@ -28,13 +28,12 @@ export function ArquivoConcessionaria({ arquivoPath, onViewPdf }: ArquivoConcess
     
     // Se onViewPdf for fornecido, use-o
     if (onViewPdf) {
-      await onViewPdf();
+      onViewPdf();
       return;
     }
     
     // Caso contrário, use o comportamento padrão
     console.log("[ArquivoConcessionaria] Abrindo visualização da fatura:", arquivoPath);
-    console.log("[ArquivoConcessionaria] Bucket utilizado:", STORAGE_BUCKET);
     setShowPdfPreview(true);
   };
 
