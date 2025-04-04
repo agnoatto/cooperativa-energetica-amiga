@@ -1699,6 +1699,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      enriquecerdadosfatura: {
+        Args: {
+          lancamento_id: string
+          fatura_id: string
+        }
+        Returns: boolean
+      }
       executar_sincronizacao_lancamentos: {
         Args: Record<PropertyKey, never>
         Returns: Json

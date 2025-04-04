@@ -46,11 +46,6 @@ export async function processarLancamento({
       // Enriquecer com dados da fatura (se houver)
       if (item.fatura_id) {
         lancamento = await enriquecerDadosFatura({ lancamento, item });
-        
-        // Se retornou null, significa que a fatura não está no status correto para ser exibida
-        if (lancamento === null) {
-          return null;
-        }
       }
     }
     

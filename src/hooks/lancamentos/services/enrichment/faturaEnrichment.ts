@@ -40,14 +40,6 @@ export async function enriquecerDadosFatura({
       .maybeSingle();
       
     if (faturaData) {
-      // Verificar se a fatura já foi enviada para o cliente
-      // Se o tipo for receita, exibir apenas faturas que já foram enviadas
-      if (item.tipo === 'receita' && 
-          !['enviada', 'reenviada', 'atrasada', 'paga', 'finalizada'].includes(faturaData.status)) {
-        // Pular este lançamento, pois a fatura ainda não foi enviada
-        return null;
-      }
-      
       // Agora buscar a unidade beneficiária separadamente
       const { data: unidadeData } = await supabase
         .from('unidades_beneficiarias')
