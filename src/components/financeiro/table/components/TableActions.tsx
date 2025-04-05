@@ -3,12 +3,12 @@
  * Componente de ações da tabela de lançamentos
  * 
  * Renderiza as ações disponíveis para cada lançamento financeiro,
- * como visualizar detalhes, marcar como pago, ou cancelar.
+ * como visualizar detalhes, registrar pagamento, ou cancelar.
  * Usa Popover em vez de DropdownMenu para melhor performance e estabilidade.
  */
 import { LancamentoFinanceiro } from "@/types/financeiro";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Eye, MoreHorizontal, XCircle } from "lucide-react";
+import { DollarSign, Eye, MoreHorizontal, XCircle } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -20,9 +20,14 @@ import { ActionMenuItem } from "./ActionMenuItem";
 interface TableActionsProps {
   lancamento: LancamentoFinanceiro;
   onViewDetails: (lancamento: LancamentoFinanceiro) => void;
+  onRegistrarPagamento?: (lancamento: LancamentoFinanceiro) => void;
 }
 
-export function TableActions({ lancamento, onViewDetails }: TableActionsProps) {
+export function TableActions({ 
+  lancamento, 
+  onViewDetails,
+  onRegistrarPagamento 
+}: TableActionsProps) {
   const [open, setOpen] = useState(false);
 
   const handleViewDetails = () => {
@@ -30,9 +35,13 @@ export function TableActions({ lancamento, onViewDetails }: TableActionsProps) {
     setOpen(false);
   };
 
-  const handlePagar = () => {
-    // Implementação futura
-    console.log("Marcar como pago:", lancamento.id);
+  const handleRegistrarPagamento = () => {
+    if (onRegistrarPagamento) {
+      onRegistrarPagamento(lancamento);
+    } else {
+      // Fallback para caso de implementação futura
+      onViewDetails(lancamento);
+    }
     setOpen(false);
   };
 
@@ -65,9 +74,9 @@ export function TableActions({ lancamento, onViewDetails }: TableActionsProps) {
             
             {lancamento.status === 'pendente' && (
               <ActionMenuItem
-                icon={<CheckCircle2 className="h-4 w-4" />}
-                label="Marcar como pago"
-                onClick={handlePagar}
+                icon={<DollarSign className="h-4 w-4" />}
+                label="Registrar pagamento"
+                onClick={handleRegistrarPagamento}
               />
             )}
             

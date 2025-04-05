@@ -24,6 +24,7 @@ interface LancamentoDetailsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onAfterStatusChange?: () => void;
+  onOpenRegistrarPagamento?: () => void;
 }
 
 export function LancamentoDetailsDialog({
@@ -31,6 +32,7 @@ export function LancamentoDetailsDialog({
   isOpen,
   onClose,
   onAfterStatusChange,
+  onOpenRegistrarPagamento,
 }: LancamentoDetailsDialogProps) {
   const [showRegistrarPagamento, setShowRegistrarPagamento] = useState(false);
   const { updateLancamentoStatus, registrarPagamento } = useUpdateLancamentoStatus();
@@ -76,6 +78,14 @@ export function LancamentoDetailsDialog({
     }
   };
 
+  const handleOpenRegistrarPagamento = () => {
+    if (onOpenRegistrarPagamento) {
+      onOpenRegistrarPagamento();
+    } else {
+      setShowRegistrarPagamento(true);
+    }
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -103,18 +113,20 @@ export function LancamentoDetailsDialog({
             <LancamentoStatusActions 
               lancamento={lancamento} 
               onUpdateStatus={handleUpdateStatus}
-              onOpenRegistrarPagamento={() => setShowRegistrarPagamento(true)}
+              onOpenRegistrarPagamento={handleOpenRegistrarPagamento}
             />
           </div>
         </DialogContent>
       </Dialog>
 
-      <RegistrarPagamentoDialog
-        lancamento={lancamento}
-        isOpen={showRegistrarPagamento}
-        onClose={() => setShowRegistrarPagamento(false)}
-        onSuccess={handlePagamentoSuccess}
-      />
+      {!onOpenRegistrarPagamento && (
+        <RegistrarPagamentoDialog
+          lancamento={lancamento}
+          isOpen={showRegistrarPagamento}
+          onClose={() => setShowRegistrarPagamento(false)}
+          onSuccess={handlePagamentoSuccess}
+        />
+      )}
     </>
   );
 }

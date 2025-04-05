@@ -7,7 +7,7 @@
  * e seletor de mês para filtragem por período.
  */
 import { useLancamentosFinanceiros } from "@/hooks/lancamentos/useLancamentosFinanceiros";
-import { StatusLancamento } from "@/types/financeiro";
+import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { LancamentosCards } from "@/components/financeiro/cards/LancamentosCards";
 import { LancamentosDashboard } from "@/components/financeiro/dashboard/LancamentosDashboard";
@@ -16,12 +16,15 @@ import { FiltrosLancamento } from "@/components/financeiro/FiltrosLancamento";
 import { MonthSelector } from "@/components/MonthSelector";
 import { useMonthSelection } from "@/hooks/useMonthSelection";
 import { LancamentosExcelTable } from "@/components/financeiro/table/LancamentosExcelTable";
+import { RegistrarPagamentoDialog } from "@/components/financeiro/modals/RegistrarPagamentoDialog";
 
 export default function ContasPagar() {
   const [status, setStatus] = useState<StatusLancamento | 'todos'>('todos');
   const [busca, setBusca] = useState('');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
+  const [selectedLancamento, setSelectedLancamento] = useState<LancamentoFinanceiro | null>(null);
+  const [showRegistrarPagamento, setShowRegistrarPagamento] = useState(false);
   const isMobile = useIsMobile();
 
   // Usar o hook de seleção de mês para gerenciar a navegação entre meses
@@ -44,6 +47,16 @@ export default function ContasPagar() {
     setBusca('');
     setDataInicio('');
     setDataFim('');
+  };
+
+  const handleRegistrarPagamento = (lancamento: LancamentoFinanceiro) => {
+    setSelectedLancamento(lancamento);
+    setShowRegistrarPagamento(true);
+  };
+
+  const handlePagamentoSuccess = () => {
+    setShowRegistrarPagamento(false);
+    refetch();
   };
 
   return (
@@ -89,6 +102,15 @@ export default function ContasPagar() {
           isLoading={isLoading}
           tipo="despesa"
           refetch={refetch}
+        />
+      )}
+
+      {selectedLancamento && (
+        <RegistrarPagamentoDialog
+          lancamento={selectedLancamento}
+          isOpen={showRegistrarPagamento}
+          onClose={() => setShowRegistrarPagamento(false)}
+          onSuccess={handlePagamentoSuccess}
         />
       )}
     </div>

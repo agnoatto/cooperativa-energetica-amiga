@@ -18,6 +18,7 @@ interface LancamentoExcelRowProps {
   columns: Column[];
   tipo: "receita" | "despesa";
   onViewDetails: (lancamento: LancamentoFinanceiro) => void;
+  onRegistrarPagamento?: (lancamento: LancamentoFinanceiro) => void;
 }
 
 export function LancamentoExcelRow({
@@ -25,6 +26,7 @@ export function LancamentoExcelRow({
   columns,
   tipo,
   onViewDetails,
+  onRegistrarPagamento,
 }: LancamentoExcelRowProps) {
   // Para mapear o comportamento de TableRow para a ExcelTable
   // implementamos a renderização de cada coluna individualmente
@@ -54,7 +56,13 @@ export function LancamentoExcelRow({
         } else if (column.id === "status") {
           content = <StatusBadge status={lancamento.status} />;
         } else if (column.id === "acoes") {
-          content = <TableActions lancamento={lancamento} onViewDetails={onViewDetails} />;
+          content = (
+            <TableActions 
+              lancamento={lancamento} 
+              onViewDetails={onViewDetails}
+              onRegistrarPagamento={onRegistrarPagamento}
+            />
+          );
         } else {
           content = "-";
         }

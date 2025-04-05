@@ -1,21 +1,17 @@
 
 /**
- * Tabela de lançamentos financeiros estilo Excel
+ * Tabela Excel para lançamentos financeiros
  * 
- * Esta tabela implementa a visualização de lançamentos financeiros
- * com recursos avançados como redimensionamento de colunas, cabeçalhos fixos
- * e outras funcionalidades inspiradas no Excel para melhor experiência do usuário.
+ * Este componente renderiza uma tabela estilo Excel para exibir lançamentos financeiros,
+ * com suporte a resizing de colunas e melhor desempenho para grandes conjuntos de dados.
  */
-import { useState } from "react";
-import { ExcelTable } from "@/components/ui/excel-table/ExcelTable";
-import { ColumnSettings } from "@/components/ui/excel-table/ColumnSettings";
-import { useTableColumns } from "./hooks/useTableColumns";
 import { LancamentoFinanceiro } from "@/types/financeiro";
-import { defaultColumns } from "./config/defaultColumns";
+import { ExcelTable } from "@/components/ui/excel-table/ExcelTable";
+import { useMemo, useState } from "react";
 import { LancamentoExcelRow } from "./LancamentoExcelRow";
-import { EmptyTableState } from "./components/EmptyTableState";
-import { LoadingTableState } from "./components/LoadingTableState";
+import { useTableColumns } from "./hooks/useTableColumns";
 import { LancamentoDetailsDialog } from "../modals/LancamentoDetailsDialog";
+import { RegistrarPagamentoDialog } from "../modals/RegistrarPagamentoDialog";
 
 interface LancamentosExcelTableProps {
   lancamentos: LancamentoFinanceiro[] | undefined;
@@ -30,78 +26,88 @@ export function LancamentosExcelTable({
   tipo,
   refetch,
 }: LancamentosExcelTableProps) {
+  const columns = useTableColumns(tipo);
   const [selectedLancamento, setSelectedLancamento] = useState<LancamentoFinanceiro | null>(null);
   const [showDetails, setShowDetails] = useState(false);
-  
-  const {
-    visibleColumns,
-    filteredColumns,
-    handleColumnVisibilityChange,
-    handleResetColumns,
-    handleColumnResize
-  } = useTableColumns({
-    storageKeyPrefix: 'lancamentos',
-    tipoLancamento: tipo
-  });
+  const [showRegistrarPagamento, setShowRegistrarPagamento] = useState(false);
 
   const handleViewDetails = (lancamento: LancamentoFinanceiro) => {
     setSelectedLancamento(lancamento);
     setShowDetails(true);
   };
 
+  const handleRegistrarPagamento = (lancamento: LancamentoFinanceiro) => {
+    setSelectedLancamento(lancamento);
+    setShowRegistrarPagamento(true);
+  };
+
   const handleCloseDetails = () => {
     setShowDetails(false);
     setSelectedLancamento(null);
   };
+  
+  const handleCloseRegistrarPagamento = () => {
+    setShowRegistrarPagamento(false);
+  };
 
-  if (isLoading) {
-    return <LoadingTableState />;
-  }
+  const handlePagamentoSuccess = () => {
+    setShowRegistrarPagamento(false);
+    if (refetch) {
+      refetch();
+    }
+  };
 
-  if (!lancamentos || lancamentos.length === 0) {
-    return <EmptyTableState />;
-  }
+  const rows = useMemo(() => {
+    if (!lancamentos) return [];
+    
+    return lancamentos.map((lancamento) => (
+      <LancamentoExcelRow
+        key={lancamento.id}
+        lancamento={lancamento}
+        columns={columns}
+        tipo={tipo}
+        onViewDetails={handleViewDetails}
+      />
+    ));
+  }, [lancamentos, columns, tipo]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <ColumnSettings
-          columns={defaultColumns}
-          visibleColumns={visibleColumns}
-          onColumnVisibilityChange={handleColumnVisibilityChange}
-          onReset={handleResetColumns}
-        />
-      </div>
-      
-      <div className="border border-gray-200 rounded-md shadow-sm bg-white">
-        <div className="h-[calc(100vh-360px)] w-full overflow-auto">
-          <ExcelTable
-            columns={filteredColumns}
-            storageKey={`lancamentos-${tipo}-table-settings`}
-            onColumnResize={handleColumnResize}
-            stickyHeader
-          >
-            <tbody>
-              {lancamentos.map((lancamento) => (
-                <LancamentoExcelRow 
-                  key={lancamento.id}
-                  lancamento={lancamento}
-                  columns={filteredColumns}
-                  tipo={tipo}
-                  onViewDetails={handleViewDetails}
-                />
-              ))}
-            </tbody>
-          </ExcelTable>
-        </div>
-      </div>
+    <>
+      <ExcelTable
+        columns={columns}
+        rows={rows}
+        isLoading={isLoading}
+        emptyState={
+          <div className="py-6 text-center">
+            <p className="text-gray-500">Nenhum lançamento encontrado</p>
+          </div>
+        }
+        loadingState={
+          <div className="py-6 text-center">
+            <p className="text-gray-500">Carregando lançamentos...</p>
+          </div>
+        }
+      />
 
       <LancamentoDetailsDialog
         lancamento={selectedLancamento}
         isOpen={showDetails}
         onClose={handleCloseDetails}
         onAfterStatusChange={refetch}
+        onOpenRegistrarPagamento={() => {
+          setShowDetails(false);
+          setShowRegistrarPagamento(true);
+        }}
       />
-    </div>
+
+      {selectedLancamento && (
+        <RegistrarPagamentoDialog
+          lancamento={selectedLancamento}
+          isOpen={showRegistrarPagamento}
+          onClose={handleCloseRegistrarPagamento}
+          onSuccess={handlePagamentoSuccess}
+        />
+      )}
+    </>
   );
 }

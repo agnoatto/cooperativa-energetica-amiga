@@ -4,15 +4,12 @@
  * 
  * Este componente renderiza os botões de ação para alteração de status
  * de lançamentos financeiros (contas a pagar/receber) baseado no status atual.
- * Inclui botão para registrar pagamento com valores específicos.
  * O status "atrasado" é determinado automaticamente com base na data de vencimento.
  */
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
-import { RegistrarPagamentoModal } from "./RegistrarPagamentoModal";
 import { ModalStatusConfirmationDialog } from "./confirmation/ModalStatusConfirmationDialog";
-import { RegistrarPagamentoButton } from "./buttons/RegistrarPagamentoButton";
 import { getAvailableStatusTransitions } from "../utils/statusTransition";
 
 interface StatusTransitionButtonsProps {
@@ -27,7 +24,7 @@ interface StatusTransitionButtonsProps {
       observacao?: string;
     }
   ) => Promise<void>;
-  onRegistrarPagamento?: () => void; // Para permitir controle externo do modal
+  onRegistrarPagamento: () => void; // Para controle externo do modal
 }
 
 export function StatusTransitionButtons({
@@ -38,10 +35,11 @@ export function StatusTransitionButtons({
   const [isUpdating, setIsUpdating] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [statusToChange, setStatusToChange] = useState<StatusLancamento | null>(null);
-  const [showPagamentoModal, setShowPagamentoModal] = useState(false);
 
   // Obter os próximos status possíveis com base no status atual
-  const availableStatusTransitions = getAvailableStatusTransitions(lancamento.status);
+  // Excluindo 'pago' pois agora temos o botão dedicado de registrar pagamento
+  const availableStatusTransitions = getAvailableStatusTransitions(lancamento.status)
+    .filter(status => status.value !== 'pago');
 
   const handleStatusChange = async () => {
     if (!statusToChange) return;
@@ -57,53 +55,27 @@ export function StatusTransitionButtons({
 
   const handleStatusClick = (status: StatusLancamento) => {
     setStatusToChange(status);
-    
-    // Se o status for "pago", mostrar modal de pagamento
-    if (status === 'pago') {
-      // Se houver um handler externo para abrir o modal de pagamento, use-o
-      if (onRegistrarPagamento) {
-        onRegistrarPagamento();
-      } else {
-        setShowPagamentoModal(true);
-      }
-    } else {
-      setShowConfirmation(true);
-    }
+    setShowConfirmation(true);
   };
 
-  const handleRegistrarPagamento = async (
-    valorPago: number,
-    valorJuros: number,
-    valorDesconto: number,
-    dataPagamento: string,
-    observacao: string
-  ) => {
-    setIsUpdating(true);
-    try {
-      await onUpdateStatus(lancamento, 'pago', {
-        valorPago,
-        valorJuros,
-        valorDesconto,
-        observacao
-      });
-    } finally {
-      setIsUpdating(false);
-      setShowPagamentoModal(false);
-    }
-  };
-
-  if (availableStatusTransitions.length === 0) {
+  if (availableStatusTransitions.length === 0 && lancamento.status !== 'pendente' && lancamento.status !== 'atrasado') {
     return <p className="text-sm text-gray-500">Nenhuma alteração de status disponível.</p>;
   }
 
   return (
     <>
       <div className="flex flex-wrap gap-2">
-        {lancamento.status !== 'pago' && (
-          <RegistrarPagamentoButton 
-            onClick={() => handleStatusClick('pago')}
+        {(lancamento.status === 'pendente' || lancamento.status === 'atrasado') && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRegistrarPagamento}
+            className="text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-200"
             disabled={isUpdating}
-          />
+          >
+            <DollarIcon className="h-4 w-4 mr-1" />
+            Registrar Pagamento
+          </Button>
         )}
         
         {availableStatusTransitions.map((status) => (
@@ -129,16 +101,25 @@ export function StatusTransitionButtons({
         onConfirm={handleStatusChange}
         isProcessing={isUpdating}
       />
-
-      {/* Renderizar modal de registro de pagamento apenas se não estiver sendo controlado externamente */}
-      {!onRegistrarPagamento && (
-        <RegistrarPagamentoModal
-          lancamento={lancamento}
-          isOpen={showPagamentoModal}
-          onClose={() => setShowPagamentoModal(false)}
-          onConfirm={handleRegistrarPagamento}
-        />
-      )}
     </>
+  );
+}
+
+// Ícone do DollarSign para evitar importação adicional
+function DollarIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <line x1="12" y1="1" x2="12" y2="23"></line>
+      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+    </svg>
   );
 }
