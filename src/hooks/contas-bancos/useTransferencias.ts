@@ -2,161 +2,23 @@
 /**
  * Hook para gerenciar transferências bancárias
  * 
- * Este hook fornece funcionalidades para listar, filtrar e gerenciar
+ * Este hook fornece funcionalidades para listar, criar e gerenciar
  * transferências entre contas bancárias.
  */
 import { useState, useEffect } from "react";
-import { 
-  TransferenciaBancaria, 
-  TipoTransferencia, 
-  StatusTransferencia 
-} from "@/types/contas-bancos";
+import { TransferenciaBancaria, StatusTransferencia, TipoTransferencia } from "@/types/contas-bancos";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 interface UseTransferenciasParams {
   busca?: string;
   tipo?: TipoTransferencia;
-  status?: StatusTransferencia;
+  status?: StatusTransferencia | 'todos';
   dataInicio?: string;
   dataFim?: string;
   contaOrigemId?: string;
   contaDestinoId?: string;
 }
-
-// Mock temporário até implementarmos a integração completa com o Supabase
-const transferenciaMock: TransferenciaBancaria[] = [
-  {
-    id: "1",
-    conta_origem_id: "1",
-    conta_destino_id: "2",
-    valor: 1000,
-    data_transferencia: "2024-04-01T10:30:00Z",
-    data_conciliacao: "2024-04-01T10:35:00Z",
-    status: "concluida",
-    descricao: "Transferência para poupança",
-    empresa_id: "1",
-    created_at: "2024-04-01T10:30:00Z",
-    updated_at: "2024-04-01T10:35:00Z",
-    conta_origem: {
-      id: "1",
-      nome: "Conta Principal",
-      tipo: "corrente",
-      status: "ativa",
-      banco: "Banco do Brasil",
-      agencia: "1234",
-      conta: "56789",
-      digito: "0",
-      saldo_atual: 15420.50,
-      saldo_inicial: 10000.00,
-      data_saldo_inicial: "2024-01-01",
-      cor: "#3b82f6",
-      empresa_id: "1",
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-04-01T00:00:00Z",
-    },
-    conta_destino: {
-      id: "2",
-      nome: "Poupança",
-      tipo: "poupanca",
-      status: "ativa",
-      banco: "Caixa Econômica",
-      agencia: "4321",
-      conta: "98765",
-      digito: "1",
-      saldo_atual: 25000.00,
-      saldo_inicial: 20000.00,
-      data_saldo_inicial: "2024-01-01",
-      cor: "#10b981",
-      empresa_id: "1",
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-04-01T00:00:00Z",
-    }
-  },
-  {
-    id: "2",
-    conta_origem_id: "3",
-    conta_destino_id: undefined,
-    valor: 500.00,
-    data_transferencia: "2024-04-02T14:20:00Z",
-    status: "concluida",
-    descricao: "Saque para pagamento de fornecedor",
-    empresa_id: "1",
-    created_at: "2024-04-02T14:20:00Z",
-    updated_at: "2024-04-02T14:20:00Z",
-    conta_origem: {
-      id: "3",
-      nome: "Caixa Interno",
-      tipo: "caixa",
-      status: "ativa",
-      saldo_atual: 2500.00,
-      saldo_inicial: 1000.00,
-      data_saldo_inicial: "2024-01-01",
-      cor: "#f59e0b",
-      empresa_id: "1",
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-04-01T00:00:00Z",
-    }
-  },
-  {
-    id: "3",
-    conta_origem_id: "1",
-    conta_destino_id: undefined,
-    valor: 2000.00,
-    data_transferencia: "2024-04-03T09:15:00Z",
-    status: "pendente",
-    descricao: "Transferência bancária para fornecedor",
-    empresa_id: "1",
-    created_at: "2024-04-03T09:15:00Z",
-    updated_at: "2024-04-03T09:15:00Z",
-    conta_origem: {
-      id: "1",
-      nome: "Conta Principal",
-      tipo: "corrente",
-      status: "ativa",
-      banco: "Banco do Brasil",
-      agencia: "1234",
-      conta: "56789",
-      digito: "0",
-      saldo_atual: 15420.50,
-      saldo_inicial: 10000.00,
-      data_saldo_inicial: "2024-01-01",
-      cor: "#3b82f6",
-      empresa_id: "1",
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-04-01T00:00:00Z",
-    }
-  },
-  {
-    id: "4",
-    conta_origem_id: undefined,
-    conta_destino_id: "1",
-    valor: 5000.00,
-    data_transferencia: "2024-04-04T11:45:00Z",
-    status: "concluida",
-    descricao: "Depósito de cliente",
-    empresa_id: "1",
-    created_at: "2024-04-04T11:45:00Z",
-    updated_at: "2024-04-04T11:50:00Z",
-    conta_destino: {
-      id: "1",
-      nome: "Conta Principal",
-      tipo: "corrente",
-      status: "ativa",
-      banco: "Banco do Brasil",
-      agencia: "1234",
-      conta: "56789",
-      digito: "0",
-      saldo_atual: 15420.50,
-      saldo_inicial: 10000.00,
-      data_saldo_inicial: "2024-01-01",
-      cor: "#3b82f6",
-      empresa_id: "1",
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-04-01T00:00:00Z",
-    }
-  },
-];
 
 export function useTransferencias(params: UseTransferenciasParams = {}) {
   const { 
@@ -178,69 +40,253 @@ export function useTransferencias(params: UseTransferenciasParams = {}) {
     setError(null);
 
     try {
-      // Simulação de busca com filtros
-      // Aqui você implementaria a lógica real com Supabase quando estiver pronto
-      setTimeout(() => {
-        let transferencias = [...transferenciaMock];
-        
-        // Aplicar filtros
-        if (busca) {
-          const termoBusca = busca.toLowerCase();
-          transferencias = transferencias.filter(t => 
-            t.descricao?.toLowerCase().includes(termoBusca) || 
-            t.conta_origem?.nome.toLowerCase().includes(termoBusca) ||
-            t.conta_destino?.nome.toLowerCase().includes(termoBusca)
-          );
-        }
-        
-        if (tipo) {
-          transferencias = transferencias.filter(t => {
-            if (tipo === 'interna') {
-              return t.conta_origem_id && t.conta_destino_id;
-            } else if (tipo === 'externa') {
-              return t.conta_origem_id && !t.conta_destino_id;
-            } else if (tipo === 'entrada') {
-              return !t.conta_origem_id && t.conta_destino_id;
-            } else if (tipo === 'saida') {
-              return t.conta_origem_id && !t.conta_destino_id;
-            }
-            return true;
-          });
-        }
-        
-        if (status) {
-          transferencias = transferencias.filter(t => t.status === status);
-        }
-        
-        if (dataInicio) {
-          transferencias = transferencias.filter(t => 
-            new Date(t.data_transferencia) >= new Date(dataInicio)
-          );
-        }
-        
-        if (dataFim) {
-          transferencias = transferencias.filter(t => 
-            new Date(t.data_transferencia) <= new Date(dataFim)
-          );
-        }
-        
-        if (contaOrigemId) {
-          transferencias = transferencias.filter(t => t.conta_origem_id === contaOrigemId);
-        }
-        
-        if (contaDestinoId) {
-          transferencias = transferencias.filter(t => t.conta_destino_id === contaDestinoId);
-        }
-        
-        setData(transferencias);
-        setIsLoading(false);
-      }, 1000);
+      let query = supabase
+        .from('transferencias_bancarias')
+        .select(`
+          *,
+          conta_origem:contas_bancarias!conta_origem_id(*),
+          conta_destino:contas_bancarias!conta_destino_id(*)
+        `)
+        .is('deleted_at', null);
+      
+      // Aplicar filtros
+      if (busca) {
+        query = query.or(`descricao.ilike.%${busca}%,observacao.ilike.%${busca}%`);
+      }
+      
+      if (status && status !== 'todos') {
+        query = query.eq('status', status);
+      }
 
+      if (contaOrigemId) {
+        query = query.eq('conta_origem_id', contaOrigemId);
+      }
+
+      if (contaDestinoId) {
+        query = query.eq('conta_destino_id', contaDestinoId);
+      }
+      
+      // Determinar tipo de transferência
+      if (tipo) {
+        if (tipo === 'interna') {
+          query = query.not('conta_origem_id', 'is', null)
+                      .not('conta_destino_id', 'is', null);
+        } else if (tipo === 'entrada') {
+          query = query.is('conta_origem_id', null)
+                      .not('conta_destino_id', 'is', null);
+        } else if (tipo === 'saida') {
+          query = query.not('conta_origem_id', 'is', null)
+                      .is('conta_destino_id', null);
+        }
+      }
+
+      // Filtros de data
+      if (dataInicio) {
+        query = query.gte('data_transferencia', dataInicio);
+      }
+      
+      if (dataFim) {
+        query = query.lte('data_transferencia', dataFim);
+      }
+      
+      const { data: transferencias, error } = await query.order('data_transferencia', { ascending: false });
+      
+      if (error) throw error;
+      
+      setData(transferencias as TransferenciaBancaria[]);
     } catch (err) {
       console.error("Erro ao buscar transferências:", err);
       setError(err instanceof Error ? err : new Error("Erro desconhecido ao buscar transferências"));
+      toast.error("Erro ao buscar transferências bancárias");
+    } finally {
       setIsLoading(false);
-      toast.error("Erro ao buscar transferências");
+    }
+  };
+
+  const realizarTransferencia = async (transferencia: Partial<TransferenciaBancaria>) => {
+    try {
+      setIsLoading(true);
+      
+      // Validações básicas
+      if (!transferencia.conta_origem_id && !transferencia.conta_destino_id) {
+        throw new Error("É necessário informar pelo menos uma conta de origem ou destino");
+      }
+      
+      if (!transferencia.valor || transferencia.valor <= 0) {
+        throw new Error("É necessário informar um valor válido para a transferência");
+      }
+
+      // Determinar tipo de transferência para descrição padrão se não informada
+      let descricaoPadrao = "Transferência";
+      if (transferencia.conta_origem_id && transferencia.conta_destino_id) {
+        descricaoPadrao = "Transferência entre contas";
+      } else if (transferencia.conta_destino_id) {
+        descricaoPadrao = "Depósito/Entrada";
+      } else if (transferencia.conta_origem_id) {
+        descricaoPadrao = "Saque/Saída";
+      }
+
+      const novaTransferencia = {
+        ...transferencia,
+        descricao: transferencia.descricao || descricaoPadrao,
+        data_transferencia: transferencia.data_transferencia || new Date().toISOString(),
+        status: transferencia.status || 'pendente'
+      };
+      
+      const { data: resultado, error } = await supabase
+        .from('transferencias_bancarias')
+        .insert([novaTransferencia])
+        .select();
+      
+      if (error) throw error;
+
+      // Se for transferência confirmada, atualizar os saldos das contas
+      if (novaTransferencia.status === 'concluida') {
+        await atualizarSaldosContas(
+          novaTransferencia.conta_origem_id, 
+          novaTransferencia.conta_destino_id, 
+          novaTransferencia.valor
+        );
+      }
+      
+      toast.success("Transferência registrada com sucesso!");
+      return resultado ? resultado[0] : null;
+      
+    } catch (err) {
+      console.error("Erro ao realizar transferência:", err);
+      toast.error(err instanceof Error ? err.message : "Erro ao realizar transferência");
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const atualizarStatusTransferencia = async (
+    transferenciaId: string, 
+    novoStatus: StatusTransferencia,
+    observacao?: string
+  ) => {
+    try {
+      setIsLoading(true);
+      
+      // Buscar a transferência atual
+      const { data: transferencia, error: fetchError } = await supabase
+        .from('transferencias_bancarias')
+        .select('*')
+        .eq('id', transferenciaId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      if (!transferencia) throw new Error("Transferência não encontrada");
+      
+      // Preparar histórico de status
+      const historicoAtual = transferencia.historico_status || [];
+      const novoHistorico = [
+        ...historicoAtual,
+        {
+          data: new Date().toISOString(),
+          status_anterior: transferencia.status,
+          novo_status: novoStatus,
+          observacao: observacao || `Status alterado de ${transferencia.status} para ${novoStatus}`
+        }
+      ];
+      
+      // Atualizar status da transferência
+      const { error: updateError } = await supabase
+        .from('transferencias_bancarias')
+        .update({ 
+          status: novoStatus,
+          historico_status: novoHistorico,
+          observacao: observacao ? `${transferencia.observacao || ''}\n${observacao}` : transferencia.observacao,
+          data_conciliacao: novoStatus === 'concluida' ? new Date().toISOString() : transferencia.data_conciliacao
+        })
+        .eq('id', transferenciaId);
+      
+      if (updateError) throw updateError;
+      
+      // Se o novo status for concluído, atualizar saldos das contas
+      if (novoStatus === 'concluida' && transferencia.status !== 'concluida') {
+        await atualizarSaldosContas(
+          transferencia.conta_origem_id, 
+          transferencia.conta_destino_id, 
+          transferencia.valor
+        );
+      }
+      
+      // Se estava concluída e agora foi cancelada, reverter saldos
+      if (transferencia.status === 'concluida' && novoStatus !== 'concluida') {
+        await atualizarSaldosContas(
+          transferencia.conta_destino_id, // invertemos origem e destino
+          transferencia.conta_origem_id, 
+          transferencia.valor
+        );
+      }
+      
+      toast.success(`Status da transferência atualizado para ${novoStatus}`);
+      return true;
+      
+    } catch (err) {
+      console.error("Erro ao atualizar status da transferência:", err);
+      toast.error("Erro ao atualizar status da transferência");
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Função para atualizar saldos das contas
+  const atualizarSaldosContas = async (
+    contaOrigemId?: string | null, 
+    contaDestinoId?: string | null, 
+    valor?: number
+  ) => {
+    if (!valor || valor <= 0) return;
+    
+    try {
+      // Se tiver conta de origem, diminuir o saldo
+      if (contaOrigemId) {
+        const { data: contaOrigem, error: fetchOrigemError } = await supabase
+          .from('contas_bancarias')
+          .select('saldo_atual')
+          .eq('id', contaOrigemId)
+          .single();
+        
+        if (fetchOrigemError) throw fetchOrigemError;
+        
+        const { error: updateOrigemError } = await supabase
+          .from('contas_bancarias')
+          .update({ 
+            saldo_atual: (contaOrigem.saldo_atual || 0) - valor,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', contaOrigemId);
+        
+        if (updateOrigemError) throw updateOrigemError;
+      }
+      
+      // Se tiver conta de destino, aumentar o saldo
+      if (contaDestinoId) {
+        const { data: contaDestino, error: fetchDestinoError } = await supabase
+          .from('contas_bancarias')
+          .select('saldo_atual')
+          .eq('id', contaDestinoId)
+          .single();
+        
+        if (fetchDestinoError) throw fetchDestinoError;
+        
+        const { error: updateDestinoError } = await supabase
+          .from('contas_bancarias')
+          .update({ 
+            saldo_atual: (contaDestino.saldo_atual || 0) + valor,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', contaDestinoId);
+        
+        if (updateDestinoError) throw updateDestinoError;
+      }
+    } catch (err) {
+      console.error("Erro ao atualizar saldos das contas:", err);
+      toast.error("Erro ao atualizar saldos das contas");
     }
   };
 
@@ -253,5 +299,7 @@ export function useTransferencias(params: UseTransferenciasParams = {}) {
     isLoading,
     error,
     refetch: fetchTransferencias,
+    realizarTransferencia,
+    atualizarStatusTransferencia
   };
 }

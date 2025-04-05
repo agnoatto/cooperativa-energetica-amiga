@@ -14,6 +14,7 @@ interface UpdateLancamentoOptions {
   valorPago?: number;
   valorJuros?: number; 
   valorDesconto?: number;
+  contaBancariaId?: string;
   observacao?: string;
 }
 
@@ -29,7 +30,7 @@ export function useUpdateLancamentoStatus() {
     try {
       setIsUpdating(true);
 
-      const { valorPago, valorJuros = 0, valorDesconto = 0, observacao } = options || {};
+      const { valorPago, valorJuros = 0, valorDesconto = 0, contaBancariaId, observacao } = options || {};
 
       // Preparar o histórico de status para a atualização
       const novoHistorico = {
@@ -83,6 +84,10 @@ export function useUpdateLancamentoStatus() {
         if (valorDesconto !== undefined) {
           updateData.valor_desconto = valorDesconto;
         }
+
+        if (contaBancariaId) {
+          updateData.conta_bancaria_id = contaBancariaId;
+        }
       }
 
       // Só atualizar a observação principal se uma nova foi explicitamente fornecida
@@ -103,6 +108,17 @@ export function useUpdateLancamentoStatus() {
         return false;
       }
 
+      // Se o pagamento foi registrado e temos uma conta bancária selecionada, atualizar saldo
+      if (newStatus === 'pago' && contaBancariaId) {
+        // Se for uma despesa, diminuir o saldo da conta
+        // Se for uma receita, aumentar o saldo da conta
+        const valorMovimentacao = lancamento.tipo === 'despesa' ? 
+          -(valorPago || lancamento.valor) : 
+          (valorPago || lancamento.valor);
+          
+        await atualizarSaldoConta(contaBancariaId, valorMovimentacao);
+      }
+
       toast.success(`Status atualizado com sucesso para ${newStatus}`);
       return true;
     } catch (error) {
@@ -121,7 +137,8 @@ export function useUpdateLancamentoStatus() {
     valorJuros: number = 0,
     valorDesconto: number = 0,
     dataPagamento: string = new Date().toISOString(),
-    observacao?: string
+    observacao?: string,
+    contaBancariaId?: string
   ) => {
     try {
       setIsUpdating(true);
@@ -132,6 +149,7 @@ export function useUpdateLancamentoStatus() {
         valor_juros: valorJuros,
         valor_desconto: valorDesconto,
         data_pagamento: dataPagamento,
+        conta_bancaria_id: contaBancariaId,
         observacao
       });
 
@@ -142,6 +160,7 @@ export function useUpdateLancamentoStatus() {
         p_valor_juros: valorJuros,
         p_valor_desconto: valorDesconto,
         p_data_pagamento: dataPagamento,
+        p_conta_bancaria_id: contaBancariaId,
         p_observacao: observacao
       });
 
@@ -149,6 +168,14 @@ export function useUpdateLancamentoStatus() {
         console.error("Erro ao registrar pagamento:", error);
         toast.error(`Erro ao registrar pagamento: ${error.message}`);
         return false;
+      }
+
+      // Se o pagamento foi registrado e temos uma conta bancária selecionada, atualizar saldo
+      if (contaBancariaId) {
+        // Se for uma despesa, diminuir o saldo da conta
+        // Se for uma receita, aumentar o saldo da conta
+        const valorMovimentacao = lancamento.tipo === 'despesa' ? -valorPago : valorPago;
+        await atualizarSaldoConta(contaBancariaId, valorMovimentacao);
       }
 
       const valorLiquido = valorPago - valorJuros + valorDesconto;
@@ -161,6 +188,45 @@ export function useUpdateLancamentoStatus() {
       return false;
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  // Função para atualizar o saldo da conta bancária
+  const atualizarSaldoConta = async (contaBancariaId: string, valorMovimentacao: number) => {
+    try {
+      // Buscar saldo atual da conta
+      const { data: conta, error: fetchError } = await supabase
+        .from('contas_bancarias')
+        .select('saldo_atual')
+        .eq('id', contaBancariaId)
+        .single();
+      
+      if (fetchError) {
+        console.error("Erro ao buscar saldo da conta:", fetchError);
+        return false;
+      }
+      
+      // Calcular novo saldo
+      const novoSaldo = (conta.saldo_atual || 0) + valorMovimentacao;
+      
+      // Atualizar saldo da conta
+      const { error: updateError } = await supabase
+        .from('contas_bancarias')
+        .update({ 
+          saldo_atual: novoSaldo,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', contaBancariaId);
+      
+      if (updateError) {
+        console.error("Erro ao atualizar saldo da conta:", updateError);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Erro ao atualizar saldo da conta:", error);
+      return false;
     }
   };
 

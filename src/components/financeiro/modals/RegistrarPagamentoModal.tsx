@@ -1,3 +1,4 @@
+
 /**
  * Modal para registrar pagamentos de lançamentos financeiros
  * 
@@ -19,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, DollarSign, TrendingUp, TrendingDown, Calculator } from "lucide-react";
 import { LancamentoFinanceiro } from "@/types/financeiro";
 import { formatarMoeda } from "@/utils/formatters";
+import { ContaBancariaSelect } from "@/components/contas-bancos/ContaBancariaSelect";
 
 interface RegistrarPagamentoModalProps {
   lancamento: LancamentoFinanceiro | null;
@@ -29,7 +31,8 @@ interface RegistrarPagamentoModalProps {
     valorJuros: number,
     valorDesconto: number,
     dataPagamento: string,
-    observacao: string
+    observacao: string,
+    contaBancariaId?: string
   ) => Promise<void>;
   onSuccess?: () => void; // Adicionando onSuccess como prop opcional
 }
@@ -47,6 +50,7 @@ export function RegistrarPagamentoModal({
   const [valorDesconto, setValorDesconto] = useState("");
   const [dataPagamento, setDataPagamento] = useState(new Date().toISOString().split('T')[0]);
   const [observacao, setObservacao] = useState("");
+  const [contaBancariaId, setContaBancariaId] = useState("");
 
   useEffect(() => {
     if (lancamento && isOpen) {
@@ -55,6 +59,10 @@ export function RegistrarPagamentoModal({
       setValorDesconto("0");
       setDataPagamento(new Date().toISOString().split('T')[0]);
       setObservacao("");
+      // Manter a conta bancária se já estiver selecionada
+      if (lancamento.conta_bancaria_id) {
+        setContaBancariaId(lancamento.conta_bancaria_id);
+      }
     }
   }, [lancamento, isOpen]);
 
@@ -70,7 +78,8 @@ export function RegistrarPagamentoModal({
         parseFloat(valorJuros) || 0,
         parseFloat(valorDesconto) || 0,
         dataPagamento,
-        observacao
+        observacao,
+        contaBancariaId || undefined
       );
       
       if (onSuccess) {
@@ -177,6 +186,15 @@ export function RegistrarPagamentoModal({
                 value={dataPagamento}
                 onChange={(e) => setDataPagamento(e.target.value)}
                 required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="contaBancaria">Conta Bancária</Label>
+              <ContaBancariaSelect
+                value={contaBancariaId}
+                onChange={setContaBancariaId}
+                placeholder="Selecione a conta"
               />
             </div>
 

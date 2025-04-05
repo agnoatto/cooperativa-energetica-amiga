@@ -10,17 +10,32 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatarMoeda } from "@/utils/formatters";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { 
+  CreditCard, 
+  Wallet, 
+  ArrowRight, 
+  CheckCircle2, 
+  XCircle, 
+  AlertCircle 
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowDownLeft, ArrowUpRight, ArrowLeftRight } from "lucide-react";
 
 interface TransferenciasCardsProps {
   transferencias: TransferenciaBancaria[];
   isLoading: boolean;
+  onAprovar?: (transferencia: TransferenciaBancaria) => void;
+  onCancelar?: (transferencia: TransferenciaBancaria) => void;
 }
 
-export function TransferenciasCards({ transferencias, isLoading }: TransferenciasCardsProps) {
+export function TransferenciasCards({ 
+  transferencias, 
+  isLoading,
+  onAprovar,
+  onCancelar
+}: TransferenciasCardsProps) {
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -28,11 +43,8 @@ export function TransferenciasCards({ transferencias, isLoading }: Transferencia
           <Card key={i} className="overflow-hidden">
             <CardContent className="p-4">
               <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <Skeleton className="h-5 w-1/3" />
-                  <Skeleton className="h-6 w-1/4" />
-                </div>
-                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-8 w-3/4" />
                 <div className="flex items-center justify-between mt-2">
                   <Skeleton className="h-4 w-1/4" />
                   <Skeleton className="h-6 w-1/3" />
@@ -66,63 +78,102 @@ export function TransferenciasCards({ transferencias, isLoading }: Transferencia
         }
         
         return (
-          <Card key={transferencia.id} className="overflow-hidden">
+          <Card 
+            key={transferencia.id} 
+            className={cn(
+              "overflow-hidden border-l-4",
+              tipoTransferencia === "interna" && "border-l-blue-500",
+              tipoTransferencia === "entrada" && "border-l-green-500",
+              tipoTransferencia === "saida" && "border-l-amber-500",
+            )}
+          >
             <CardContent className="p-4">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <div className="text-xs text-gray-500">
-                    {format(new Date(transferencia.data_transferencia), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                  </div>
-                  <Badge className={cn(
+              <div className="flex justify-between items-start mb-2">
+                <Badge 
+                  variant="outline" 
+                  className={cn(
+                    tipoTransferencia === "interna" && "bg-blue-50 text-blue-700 border-blue-200",
+                    tipoTransferencia === "entrada" && "bg-green-50 text-green-700 border-green-200",
+                    tipoTransferencia === "saida" && "bg-amber-50 text-amber-700 border-amber-200",
+                  )}
+                >
+                  {tipoTransferencia === "interna" && "Transferência Interna"}
+                  {tipoTransferencia === "entrada" && "Entrada/Depósito"}
+                  {tipoTransferencia === "saida" && "Saída/Saque"}
+                </Badge>
+                
+                <Badge 
+                  className={cn(
                     transferencia.status === "pendente" && "bg-yellow-100 text-yellow-800",
                     transferencia.status === "concluida" && "bg-green-100 text-green-800",
                     transferencia.status === "cancelada" && "bg-gray-100 text-gray-800",
                     transferencia.status === "falha" && "bg-red-100 text-red-800",
-                  )}>
-                    {transferencia.status === "pendente" && "Pendente"}
-                    {transferencia.status === "concluida" && "Concluída"}
-                    {transferencia.status === "cancelada" && "Cancelada"}
-                    {transferencia.status === "falha" && "Falha"}
-                  </Badge>
-                </div>
+                  )}
+                >
+                  {transferencia.status === "pendente" && "Pendente"}
+                  {transferencia.status === "concluida" && "Concluída"}
+                  {transferencia.status === "cancelada" && "Cancelada"}
+                  {transferencia.status === "falha" && "Falha"}
+                </Badge>
+              </div>
+              
+              <h3 className="font-medium">{transferencia.descricao}</h3>
+              
+              <div className="text-sm text-gray-500 mt-1">
+                {format(new Date(transferencia.data_transferencia), "dd/MM/yyyy", { locale: ptBR })}
+              </div>
+              
+              {/* Contas de origem e destino */}
+              <div className="mt-3">
+                {transferencia.conta_origem && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <CreditCard className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-600">Origem:</span>
+                    <span>{transferencia.conta_origem.nome}</span>
+                  </div>
+                )}
                 
-                <div className="flex items-center space-x-2">
-                  {tipoTransferencia === "interna" && (
-                    <ArrowLeftRight className="h-4 w-4 text-blue-500" />
-                  )}
-                  {tipoTransferencia === "entrada" && (
-                    <ArrowDownLeft className="h-4 w-4 text-green-500" />
-                  )}
-                  {tipoTransferencia === "saida" && (
-                    <ArrowUpRight className="h-4 w-4 text-amber-500" />
-                  )}
-                  <div className="font-medium">{transferencia.descricao}</div>
-                </div>
+                {transferencia.conta_origem && transferencia.conta_destino && (
+                  <ArrowRight className="h-4 w-4 text-gray-400 my-1 ml-4" />
+                )}
                 
-                <div className="flex justify-between items-center mt-2">
-                  <div className="text-sm">
-                    {tipoTransferencia === "interna" && (
-                      <div className="flex flex-col">
-                        <span className="text-gray-500">De: {transferencia.conta_origem?.nome}</span>
-                        <span className="text-gray-500">Para: {transferencia.conta_destino?.nome}</span>
-                      </div>
+                {transferencia.conta_destino && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Wallet className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-600">Destino:</span>
+                    <span>{transferencia.conta_destino.nome}</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="mt-3 pt-2 border-t flex justify-between items-center">
+                <div className="text-lg font-bold">{formatarMoeda(transferencia.valor)}</div>
+                
+                {transferencia.status === 'pendente' && (onAprovar || onCancelar) && (
+                  <div className="flex gap-1">
+                    {onAprovar && (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="text-green-600 border-green-200 hover:bg-green-50"
+                        onClick={() => onAprovar(transferencia)}
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-1" /> Aprovar
+                      </Button>
                     )}
-                    {tipoTransferencia === "entrada" && (
-                      <div className="text-gray-500">Para: {transferencia.conta_destino?.nome}</div>
-                    )}
-                    {tipoTransferencia === "saida" && (
-                      <div className="text-gray-500">De: {transferencia.conta_origem?.nome}</div>
+                    
+                    {onCancelar && (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="text-red-600 border-red-200 hover:bg-red-50"
+                        onClick={() => onCancelar(transferencia)}
+                      >
+                        <XCircle className="h-4 w-4 mr-1" /> Cancelar
+                      </Button>
                     )}
                   </div>
-                  <div className={cn(
-                    "text-lg font-bold",
-                    tipoTransferencia === "entrada" && "text-green-600",
-                    tipoTransferencia === "saida" && "text-red-600",
-                    tipoTransferencia === "interna" && "text-blue-600"
-                  )}>
-                    {formatarMoeda(transferencia.valor)}
-                  </div>
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>

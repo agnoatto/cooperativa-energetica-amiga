@@ -10,57 +10,6 @@ import { ContaBancaria } from "@/types/contas-bancos";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-// Mock temporário até implementarmos a integração completa com o Supabase
-const contasMock: ContaBancaria[] = [
-  {
-    id: "1",
-    nome: "Conta Principal",
-    tipo: "corrente",
-    status: "ativa",
-    banco: "Banco do Brasil",
-    agencia: "1234",
-    conta: "56789",
-    digito: "0",
-    saldo_atual: 15420.50,
-    saldo_inicial: 10000.00,
-    data_saldo_inicial: "2024-01-01",
-    cor: "#3b82f6",
-    empresa_id: "1",
-    created_at: "2024-01-01T00:00:00Z",
-    updated_at: "2024-04-01T00:00:00Z",
-  },
-  {
-    id: "2",
-    nome: "Poupança",
-    tipo: "poupanca",
-    status: "ativa",
-    banco: "Caixa Econômica",
-    agencia: "4321",
-    conta: "98765",
-    digito: "1",
-    saldo_atual: 25000.00,
-    saldo_inicial: 20000.00,
-    data_saldo_inicial: "2024-01-01",
-    cor: "#10b981",
-    empresa_id: "1",
-    created_at: "2024-01-01T00:00:00Z",
-    updated_at: "2024-04-01T00:00:00Z",
-  },
-  {
-    id: "3",
-    nome: "Caixa Interno",
-    tipo: "caixa",
-    status: "ativa",
-    saldo_atual: 2500.00,
-    saldo_inicial: 1000.00,
-    data_saldo_inicial: "2024-01-01",
-    cor: "#f59e0b",
-    empresa_id: "1",
-    created_at: "2024-01-01T00:00:00Z",
-    updated_at: "2024-04-01T00:00:00Z",
-  },
-];
-
 export function useContaBancaria(id?: string) {
   const [data, setData] = useState<ContaBancaria | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -73,45 +22,61 @@ export function useContaBancaria(id?: string) {
     setError(null);
 
     try {
-      // Simulação de busca por ID
-      // Aqui você implementaria a lógica real com Supabase quando estiver pronto
-      setTimeout(() => {
-        const conta = contasMock.find(c => c.id === id) || null;
-        setData(conta);
-        setIsLoading(false);
-      }, 1000);
+      const { data: conta, error } = await supabase
+        .from('contas_bancarias')
+        .select('*')
+        .eq('id', id)
+        .is('deleted_at', null)
+        .single();
 
+      if (error) throw error;
+      
+      setData(conta as ContaBancaria);
     } catch (err) {
       console.error("Erro ao buscar conta bancária:", err);
       setError(err instanceof Error ? err : new Error("Erro desconhecido ao buscar conta"));
-      setIsLoading(false);
       toast.error("Erro ao buscar conta bancária");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const salvarContaBancaria = async (contaData: any) => {
+  const salvarContaBancaria = async (contaData: Partial<ContaBancaria>) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // Simulação de salvamento
-      // Aqui você implementaria a lógica real com Supabase quando estiver pronto
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       // Se for uma atualização
       if (id) {
-        console.log("Dados para atualizar:", { id, ...contaData });
+        const { error } = await supabase
+          .from('contas_bancarias')
+          .update({
+            ...contaData,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id);
+
+        if (error) throw error;
+        
+        toast.success("Conta bancária atualizada com sucesso!");
         return true;
       }
       
       // Se for uma nova conta
-      console.log("Dados para criar:", contaData);
+      const { error } = await supabase
+        .from('contas_bancarias')
+        .insert([contaData]);
+
+      if (error) throw error;
+      
+      toast.success("Conta bancária criada com sucesso!");
       return true;
 
     } catch (err) {
       console.error("Erro ao salvar conta bancária:", err);
       setError(err instanceof Error ? err : new Error("Erro desconhecido ao salvar conta"));
-      throw err;
+      toast.error("Erro ao salvar conta bancária");
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -122,17 +87,25 @@ export function useContaBancaria(id?: string) {
     setError(null);
 
     try {
-      // Simulação de exclusão
-      // Aqui você implementaria a lógica real com Supabase quando estiver pronto
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Soft delete
+      const { error } = await supabase
+        .from('contas_bancarias')
+        .update({ 
+          deleted_at: new Date().toISOString(),
+          status: 'inativa'
+        })
+        .eq('id', contaId);
+
+      if (error) throw error;
       
-      console.log("Excluindo conta:", contaId);
+      toast.success("Conta bancária excluída com sucesso!");
       return true;
 
     } catch (err) {
       console.error("Erro ao excluir conta bancária:", err);
       setError(err instanceof Error ? err : new Error("Erro desconhecido ao excluir conta"));
-      throw err;
+      toast.error("Erro ao excluir conta bancária");
+      return false;
     } finally {
       setIsLoading(false);
     }
