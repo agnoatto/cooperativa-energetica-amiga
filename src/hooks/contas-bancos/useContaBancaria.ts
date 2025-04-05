@@ -70,6 +70,7 @@ export function useContaBancaria(id?: string) {
         data_saldo_inicial: contaData.data_saldo_inicial || new Date().toISOString(),
         saldo_inicial: contaData.saldo_inicial || 0,
         saldo_atual: contaData.saldo_inicial || 0,
+        // O próprio Supabase preencherá o empresa_id através do trigger propagar_empresa_id_contas
         ...contaData
       };
 

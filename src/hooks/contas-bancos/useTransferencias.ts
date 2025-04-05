@@ -133,6 +133,7 @@ export function useTransferencias(params: UseTransferenciasParams = {}) {
         data_transferencia: transferencia.data_transferencia || new Date().toISOString(),
         status: transferencia.status || 'pendente',
         valor: transferencia.valor || 0, // Garantir que valor seja fornecido
+        // O próprio Supabase preencherá o empresa_id através do trigger propagar_empresa_id_contas
       };
       
       const { data: resultado, error } = await supabase

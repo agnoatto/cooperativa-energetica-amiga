@@ -7,7 +7,7 @@
  */
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { LancamentoFinanceiro, StatusLancamento, HistoricoStatus } from "@/types/financeiro";
+import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
 import { toast } from "sonner";
 
 interface UpdateLancamentoOptions {
@@ -32,7 +32,7 @@ export function useUpdateLancamentoStatus() {
 
       const { valorPago, valorJuros = 0, valorDesconto = 0, contaBancariaId, observacao } = options || {};
 
-      // Preparar o histórico de status para a atualização
+      // Preparar o histórico de status para a atualização - convertendo para objeto simples para ser compatível com Json
       const novoHistorico = {
         data: new Date().toISOString(),
         status_anterior: lancamento.status,
@@ -56,7 +56,7 @@ export function useUpdateLancamentoStatus() {
         dataPagamento = null;
       }
 
-      // Criar o histórico atualizado
+      // Criar o histórico atualizado como um array de objetos simples
       const historicoAtualizado = [
         ...(lancamento.historico_status || []),
         novoHistorico
@@ -153,7 +153,7 @@ export function useUpdateLancamentoStatus() {
         observacao
       });
 
-      // Criar diretamente o objeto de histórico para evitar problemas de tipagem com JSON
+      // Criar diretamente o objeto de histórico como objeto simples
       const novoHistoricoItem = {
         data: new Date().toISOString(),
         status_anterior: lancamento.status,
@@ -163,7 +163,7 @@ export function useUpdateLancamentoStatus() {
         valor_desconto: valorDesconto
       };
 
-      // Criar o histórico atualizado manualmente
+      // Criar o histórico atualizado manualmente como array de objetos simples
       const historicoAtualizado = [...(lancamento.historico_status || []), novoHistoricoItem];
 
       // Atualizar o lançamento manualmente
