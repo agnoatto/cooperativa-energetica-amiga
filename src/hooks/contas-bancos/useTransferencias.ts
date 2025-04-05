@@ -1,3 +1,4 @@
+
 /**
  * Hook para gerenciar transferências bancárias
  * 

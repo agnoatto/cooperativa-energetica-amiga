@@ -186,6 +186,66 @@ export type Database = {
         }
         Relationships: []
       }
+      contas_bancarias: {
+        Row: {
+          agencia: string | null
+          banco: string | null
+          conta: string | null
+          cor: string | null
+          created_at: string
+          data_saldo_inicial: string
+          deleted_at: string | null
+          descricao: string | null
+          digito: string | null
+          empresa_id: string
+          id: string
+          nome: string
+          saldo_atual: number
+          saldo_inicial: number
+          status: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          agencia?: string | null
+          banco?: string | null
+          conta?: string | null
+          cor?: string | null
+          created_at?: string
+          data_saldo_inicial: string
+          deleted_at?: string | null
+          descricao?: string | null
+          digito?: string | null
+          empresa_id: string
+          id?: string
+          nome: string
+          saldo_atual?: number
+          saldo_inicial?: number
+          status?: string
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          agencia?: string | null
+          banco?: string | null
+          conta?: string | null
+          cor?: string | null
+          created_at?: string
+          data_saldo_inicial?: string
+          deleted_at?: string | null
+          descricao?: string | null
+          digito?: string | null
+          empresa_id?: string
+          id?: string
+          nome?: string
+          saldo_atual?: number
+          saldo_inicial?: number
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cooperados: {
         Row: {
           created_at: string
@@ -680,6 +740,7 @@ export type Database = {
           comprovante_nome: string | null
           comprovante_path: string | null
           comprovante_tipo: string | null
+          conta_bancaria_id: string | null
           cooperado_id: string | null
           created_at: string
           data_pagamento: string | null
@@ -706,6 +767,7 @@ export type Database = {
           comprovante_nome?: string | null
           comprovante_path?: string | null
           comprovante_tipo?: string | null
+          conta_bancaria_id?: string | null
           cooperado_id?: string | null
           created_at?: string
           data_pagamento?: string | null
@@ -732,6 +794,7 @@ export type Database = {
           comprovante_nome?: string | null
           comprovante_path?: string | null
           comprovante_tipo?: string | null
+          conta_bancaria_id?: string | null
           cooperado_id?: string | null
           created_at?: string
           data_pagamento?: string | null
@@ -788,6 +851,13 @@ export type Database = {
             columns: ["pagamento_usina_id"]
             isOneToOne: false
             referencedRelation: "pagamentos_usina"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_financeiros_conta_bancaria_id_fkey"
+            columns: ["conta_bancaria_id"]
+            isOneToOne: false
+            referencedRelation: "contas_bancarias"
             referencedColumns: ["id"]
           },
           {
@@ -1123,6 +1193,131 @@ export type Database = {
             columns: ["usina_id"]
             isOneToOne: false
             referencedRelation: "usinas_ativas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saldos_diarios: {
+        Row: {
+          conta_bancaria_id: string
+          created_at: string
+          data: string
+          empresa_id: string
+          entradas: number
+          id: string
+          saidas: number
+          saldo_final: number
+          saldo_inicial: number
+          updated_at: string
+        }
+        Insert: {
+          conta_bancaria_id: string
+          created_at?: string
+          data: string
+          empresa_id: string
+          entradas?: number
+          id?: string
+          saidas?: number
+          saldo_final: number
+          saldo_inicial: number
+          updated_at?: string
+        }
+        Update: {
+          conta_bancaria_id?: string
+          created_at?: string
+          data?: string
+          empresa_id?: string
+          entradas?: number
+          id?: string
+          saidas?: number
+          saldo_final?: number
+          saldo_inicial?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saldos_diarios_conta_bancaria_id_fkey"
+            columns: ["conta_bancaria_id"]
+            isOneToOne: false
+            referencedRelation: "contas_bancarias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transferencias_bancarias: {
+        Row: {
+          comprovante_nome: string | null
+          comprovante_path: string | null
+          comprovante_tamanho: number | null
+          comprovante_tipo: string | null
+          conta_destino_id: string | null
+          conta_origem_id: string | null
+          created_at: string
+          data_conciliacao: string | null
+          data_transferencia: string
+          deleted_at: string | null
+          descricao: string | null
+          empresa_id: string
+          historico_status: Json | null
+          id: string
+          observacao: string | null
+          status: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          comprovante_nome?: string | null
+          comprovante_path?: string | null
+          comprovante_tamanho?: number | null
+          comprovante_tipo?: string | null
+          conta_destino_id?: string | null
+          conta_origem_id?: string | null
+          created_at?: string
+          data_conciliacao?: string | null
+          data_transferencia?: string
+          deleted_at?: string | null
+          descricao?: string | null
+          empresa_id: string
+          historico_status?: Json | null
+          id?: string
+          observacao?: string | null
+          status?: string
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          comprovante_nome?: string | null
+          comprovante_path?: string | null
+          comprovante_tamanho?: number | null
+          comprovante_tipo?: string | null
+          conta_destino_id?: string | null
+          conta_origem_id?: string | null
+          created_at?: string
+          data_conciliacao?: string | null
+          data_transferencia?: string
+          deleted_at?: string | null
+          descricao?: string | null
+          empresa_id?: string
+          historico_status?: Json | null
+          id?: string
+          observacao?: string | null
+          status?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transferencias_bancarias_conta_destino_id_fkey"
+            columns: ["conta_destino_id"]
+            isOneToOne: false
+            referencedRelation: "contas_bancarias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transferencias_bancarias_conta_origem_id_fkey"
+            columns: ["conta_origem_id"]
+            isOneToOne: false
+            referencedRelation: "contas_bancarias"
             referencedColumns: ["id"]
           },
         ]
@@ -1710,6 +1905,13 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      gerar_saldo_diario_conta: {
+        Args: {
+          p_conta_id: string
+          p_data: string
+        }
+        Returns: string
+      }
       get_all_calculo_fatura_templates: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1759,6 +1961,7 @@ export type Database = {
           comprovante_nome: string | null
           comprovante_path: string | null
           comprovante_tipo: string | null
+          conta_bancaria_id: string | null
           cooperado_id: string | null
           created_at: string
           data_pagamento: string | null
