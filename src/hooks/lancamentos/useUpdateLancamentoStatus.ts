@@ -18,6 +18,17 @@ interface UpdateLancamentoOptions {
   observacao?: string;
 }
 
+// Definir o tipo do histórico de status como um objeto simples
+interface HistoricoStatusEntry {
+  data: string;
+  status_anterior: StatusLancamento;
+  novo_status: StatusLancamento | string;
+  valor_pago?: number;
+  valor_juros?: number;
+  valor_desconto?: number;
+  observacao?: string;
+}
+
 export function useUpdateLancamentoStatus() {
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -32,8 +43,8 @@ export function useUpdateLancamentoStatus() {
 
       const { valorPago, valorJuros = 0, valorDesconto = 0, contaBancariaId, observacao } = options || {};
 
-      // Preparar o histórico de status para a atualização - convertendo para objeto simples para ser compatível com Json
-      const novoHistorico = {
+      // Preparar o histórico de status para a atualização - como um objeto simples
+      const novoHistorico: HistoricoStatusEntry = {
         data: new Date().toISOString(),
         status_anterior: lancamento.status,
         novo_status: newStatus,
@@ -56,7 +67,7 @@ export function useUpdateLancamentoStatus() {
         dataPagamento = null;
       }
 
-      // Criar o histórico atualizado como um array de objetos simples
+      // Criar o histórico atualizado adicionando o novo item ao array existente
       const historicoAtualizado = [
         ...(lancamento.historico_status || []),
         novoHistorico
@@ -153,8 +164,8 @@ export function useUpdateLancamentoStatus() {
         observacao
       });
 
-      // Criar diretamente o objeto de histórico como objeto simples
-      const novoHistoricoItem = {
+      // Criar o novo item de histórico como um objeto simples
+      const novoHistoricoItem: HistoricoStatusEntry = {
         data: new Date().toISOString(),
         status_anterior: lancamento.status,
         novo_status: 'pago',
@@ -163,10 +174,10 @@ export function useUpdateLancamentoStatus() {
         valor_desconto: valorDesconto
       };
 
-      // Criar o histórico atualizado manualmente como array de objetos simples
+      // Criar o histórico atualizado como array de objetos simples
       const historicoAtualizado = [...(lancamento.historico_status || []), novoHistoricoItem];
 
-      // Atualizar o lançamento manualmente
+      // Atualizar o lançamento
       const { error: updateError } = await supabase
         .from('lancamentos_financeiros')
         .update({

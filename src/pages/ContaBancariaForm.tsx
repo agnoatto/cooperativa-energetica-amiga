@@ -1,4 +1,3 @@
-
 /**
  * Página de Formulário de Conta Bancária
  * 
@@ -20,7 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Save, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
-export default function ContaBancariaForm() {
+const ContaBancariaForm = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: contaExistente, isLoading, salvarContaBancaria } = useContaBancaria(id);
@@ -54,7 +53,7 @@ export default function ContaBancariaForm() {
     }
   }, [contaExistente]);
   
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
     // Validação básica
@@ -64,7 +63,7 @@ export default function ContaBancariaForm() {
     }
     
     // Construir objeto com dados da conta
-    const contaData: Partial<ContaBancaria> = {
+    const formData = {
       nome,
       tipo,
       status,
@@ -72,22 +71,21 @@ export default function ContaBancariaForm() {
       agencia,
       conta,
       digito,
-      // Convertendo a data para o formato esperado pelo backend
       data_saldo_inicial: dataSaldoInicial.toISOString(),
       saldo_inicial: saldoInicial,
       descricao,
       cor
     };
     
-    const sucesso = await salvarContaBancaria(contaData);
+    const success = await salvarContaBancaria(formData);
     
-    if (sucesso) {
+    if (success) {
       navigate('/financeiro/contas-bancos');
     }
   };
   
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto p-4">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => navigate('/financeiro/contas-bancos')}>
@@ -199,8 +197,9 @@ export default function ContaBancariaForm() {
               <div className="space-y-2">
                 <Label htmlFor="data_saldo_inicial">Data do Saldo Inicial *</Label>
                 <DatePicker
-                  value={dataSaldoInicial}
-                  onChange={setDataSaldoInicial}
+                  selected={dataSaldoInicial}
+                  onSelect={setDataSaldoInicial}
+                  className="border rounded p-2 w-full"
                 />
               </div>
               
@@ -283,4 +282,6 @@ export default function ContaBancariaForm() {
       </Card>
     </div>
   );
-}
+};
+
+export default ContaBancariaForm;
