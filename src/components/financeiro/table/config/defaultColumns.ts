@@ -16,7 +16,7 @@ export const defaultColumns: Column[] = [
   },
   {
     id: 'contato',
-    label: 'Cooperado',
+    label: 'Contato',
     width: 200,
     minWidth: 160
   },

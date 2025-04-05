@@ -40,10 +40,12 @@ export function LancamentoExcelRow({
         
         if (column.id === "descricao") {
           content = lancamento.descricao;
-        } else if (column.id === "categoria") {
-          // Removendo a referência à propriedade categoria que não existe no tipo
-          content = "N/A";  // Valor padrão até que seja implementada a categoria
-        } else if (column.id === "data_vencimento") {
+        } else if (column.id === "contato") {
+          // Exibir o nome do contato baseado no tipo de lançamento
+          content = tipo === 'receita' 
+            ? lancamento.cooperado?.nome || '-'
+            : lancamento.investidor?.nome_investidor || '-';
+        } else if (column.id === "data_vencimento" || column.id === "vencimento") {
           content = formatDateToPtBR(lancamento.data_vencimento);
         } else if (column.id === "data_pagamento") {
           content = lancamento.data_pagamento ? formatDateToPtBR(lancamento.data_pagamento) : "-";
