@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -37,6 +36,7 @@ import { cn } from "@/lib/utils";
 import { useUpdateLancamentoStatus } from "@/hooks/lancamentos/useUpdateLancamentoStatus";
 import { formatarMoeda } from "@/utils/formatters";
 import { toast } from "sonner";
+import { LancamentoDetailsHeader } from "./components/LancamentoDetailsHeader";
 
 // Schema para validação do formulário
 const registrarPagamentoSchema = z.object({
@@ -113,10 +113,13 @@ export function RegistrarPagamentoDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Registrar Pagamento</DialogTitle>
         </DialogHeader>
+
+        {/* Incluímos o novo cabeçalho com detalhes do lançamento */}
+        <LancamentoDetailsHeader lancamento={lancamento} />
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
