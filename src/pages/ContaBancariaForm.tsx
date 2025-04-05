@@ -33,7 +33,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { CreditCard, ArrowLeft, Trash2, Bank, Save } from "lucide-react";
+import { CreditCard, ArrowLeft, Trash2, Landmark, Save } from "lucide-react";
 import { useContaBancaria } from "@/hooks/contas-bancos/useContaBancaria";
 import { TipoContaBancaria, StatusContaBancaria } from "@/types/contas-bancos";
 
@@ -150,7 +150,7 @@ export default function ContaBancariaForm() {
               </>
             ) : (
               <>
-                <Bank className="h-6 w-6 text-blue-600" />
+                <Landmark className="h-6 w-6 text-blue-600" />
                 Nova Conta Bancária
               </>
             )}

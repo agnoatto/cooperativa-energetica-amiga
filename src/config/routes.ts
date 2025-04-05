@@ -1,4 +1,3 @@
-
 import {
   BarChart3,
   Building2,
@@ -10,7 +9,7 @@ import {
   Settings,
   DollarSign,
   LucideIcon,
-  Bank,
+  Landmark,
   CreditCard,
   ArrowLeftRight,
 } from "lucide-react";
@@ -108,7 +107,7 @@ export const routes: RouteSection[] = [
       },
       {
         label: "Contas e Bancos",
-        icon: Bank,
+        icon: Landmark,
         href: "/financeiro/contas-bancos",
         color: "text-blue-800",
         subItems: [

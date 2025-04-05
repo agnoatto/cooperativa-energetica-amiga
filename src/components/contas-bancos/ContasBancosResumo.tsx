@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Eye, ArrowLeftRight, CreditCard, Wallet } from "lucide-react";
+import { Eye, ArrowLeftRight, CreditCard, Wallet, BarChart3 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";

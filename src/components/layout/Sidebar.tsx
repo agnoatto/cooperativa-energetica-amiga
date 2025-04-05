@@ -15,7 +15,7 @@ import {
   Settings,
   LogOut,
   BarChart3,
-  Bank,
+  Landmark,
   CreditCard,
   ArrowLeftRight
 } from 'lucide-react';
@@ -141,7 +141,7 @@ export function Sidebar() {
                 },
                 {
                   href: "/financeiro/contas-bancos",
-                  icon: Bank,
+                  icon: Landmark,
                   label: "Contas e Bancos"
                 },
                 {

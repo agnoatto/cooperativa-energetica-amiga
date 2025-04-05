@@ -1,4 +1,3 @@
-
 /**
  * Página de Contas Bancárias
  * 
@@ -8,7 +7,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
-  Bank, 
+  Landmark, 
   Plus, 
   Search, 
   CreditCard, 
@@ -36,7 +35,6 @@ export default function ContasBancarias() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   
-  // Hook para buscar contas bancárias (será implementado depois)
   const { data: contas, isLoading, refetch } = useContasBancarias({
     busca,
     tipo: tipoFiltro !== "todos" ? tipoFiltro : undefined
@@ -65,7 +63,6 @@ export default function ContasBancarias() {
         </div>
       </div>
       
-      {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
@@ -98,7 +95,6 @@ export default function ContasBancarias() {
         </Button>
       </div>
       
-      {/* Conteúdo principal - adaptado para mobile ou desktop */}
       {isMobile ? (
         <ContasBancariasCards 
           contas={contas || []}

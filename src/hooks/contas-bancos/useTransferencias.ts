@@ -1,4 +1,3 @@
-
 /**
  * Hook para gerenciar transferências bancárias
  * 
@@ -76,6 +75,7 @@ const transferenciaMock: TransferenciaBancaria[] = [
   {
     id: "2",
     conta_origem_id: "3",
+    conta_destino_id: undefined,
     valor: 500.00,
     data_transferencia: "2024-04-02T14:20:00Z",
     status: "concluida",
@@ -100,6 +100,7 @@ const transferenciaMock: TransferenciaBancaria[] = [
   {
     id: "3",
     conta_origem_id: "1",
+    conta_destino_id: undefined,
     valor: 2000.00,
     data_transferencia: "2024-04-03T09:15:00Z",
     status: "pendente",
@@ -127,6 +128,7 @@ const transferenciaMock: TransferenciaBancaria[] = [
   },
   {
     id: "4",
+    conta_origem_id: undefined,
     conta_destino_id: "1",
     valor: 5000.00,
     data_transferencia: "2024-04-04T11:45:00Z",

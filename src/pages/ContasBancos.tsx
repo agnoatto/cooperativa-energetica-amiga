@@ -1,4 +1,3 @@
-
 /**
  * Página Principal de Contas e Bancos
  * 
@@ -12,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useMonthSelection } from "@/hooks/useMonthSelection";
 import { MonthSelector } from "@/components/MonthSelector";
-import { Bank, ArrowLeftRight, Plus, CreditCard, RefreshCw, BarChart3 } from "lucide-react";
+import { Landmark, ArrowLeftRight, Plus, CreditCard, RefreshCw, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ContasBancosDashboard } from "@/components/contas-bancos/ContasBancosDashboard";
 import { ContasBancosResumo } from "@/components/contas-bancos/ContasBancosResumo";
@@ -34,7 +33,7 @@ export default function ContasBancos() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
         <div className="flex items-center gap-2">
-          <Bank className="h-8 w-8 text-blue-600" />
+          <Landmark className="h-8 w-8 text-blue-600" />
           <h1 className="text-3xl font-bold text-gray-900">Contas e Bancos</h1>
         </div>
         
