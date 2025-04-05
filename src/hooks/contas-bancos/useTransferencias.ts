@@ -1,3 +1,4 @@
+
 /**
  * Hook para gerenciar transferências bancárias
  * 
@@ -26,7 +27,8 @@ export function useTransferencias() {
 
       if (error) throw error;
       
-      setTransferencias(data as TransferenciaBancaria[]);
+      // Convertemos para o tipo TransferenciaBancaria
+      setTransferencias(data as unknown as TransferenciaBancaria[]);
     } catch (err) {
       console.error("Erro ao buscar transferências bancárias:", err);
       setError(err instanceof Error ? err : new Error("Erro desconhecido ao buscar transferências"));

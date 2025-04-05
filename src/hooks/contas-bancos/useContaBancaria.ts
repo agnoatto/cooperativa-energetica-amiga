@@ -71,14 +71,13 @@ export function useContaBancaria(id?: string) {
         saldo_inicial: contaData.saldo_inicial || 0,
         saldo_atual: contaData.saldo_inicial || 0,
         // O próprio Supabase preencherá o empresa_id através do trigger propagar_empresa_id_contas
+        empresa_id: '00000000-0000-0000-0000-000000000000' // Valor provisório, será substituído pelo trigger
       };
 
       // Adiciona campos obrigatórios que o Supabase espera
       const contaParaSalvar = {
         ...novaConta,
         ...contaData,
-        // Campos que o Supabase vai preencher automaticamente via trigger
-        empresa_id: '00000000-0000-0000-0000-000000000000' // Valor provisório, será substituído pelo trigger
       };
 
       const { error } = await supabase

@@ -1,258 +1,139 @@
 
 /**
- * Hook para atualização de status de lançamentos financeiros
- * 
- * Gerencia a atualização de status de contas a pagar e receber,
- * mantendo o histórico de mudanças e permitindo registrar valores de pagamento.
+ * Hook para atualizar status de lançamentos financeiros
  */
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
 import { toast } from "sonner";
 
-interface UpdateLancamentoOptions {
-  valorPago?: number;
-  valorJuros?: number; 
-  valorDesconto?: number;
-  contaBancariaId?: string;
-  observacao?: string;
-}
+// Tipos necessários
+export type StatusLancamento = 'pendente' | 'pago' | 'cancelado' | 'atrasado';
 
-// Definir o tipo do histórico de status como um objeto simples
-interface HistoricoStatusEntry {
+export interface HistoricoStatusEntry {
   data: string;
   status_anterior: StatusLancamento;
-  novo_status: StatusLancamento | string;
+  novo_status: StatusLancamento;
   valor_pago?: number;
   valor_juros?: number;
   valor_desconto?: number;
-  observacao?: string;
+}
+
+export interface Lancamento {
+  id: string;
+  status: StatusLancamento;
+  valor: number;
+  data_vencimento: string;
+  historico_status: HistoricoStatusEntry[];
+  [key: string]: any;
 }
 
 export function useUpdateLancamentoStatus() {
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Função para atualizar o status de um lançamento
-  const updateLancamentoStatus = async (
-    lancamento: LancamentoFinanceiro,
-    newStatus: StatusLancamento,
-    options?: UpdateLancamentoOptions
+  const atualizarStatus = async (
+    lancamento: Lancamento, 
+    novoStatus: StatusLancamento,
+    observacao?: string
   ) => {
+    setIsUpdating(true);
+
     try {
-      setIsUpdating(true);
-
-      const { valorPago, valorJuros = 0, valorDesconto = 0, contaBancariaId, observacao } = options || {};
-
-      // Preparar o histórico de status para a atualização - como um objeto simples
-      const novoHistorico: HistoricoStatusEntry = {
+      // Cria um novo item no histórico de status
+      const statusAnterior = lancamento.status;
+      const novaEntradaHistorico: HistoricoStatusEntry = {
         data: new Date().toISOString(),
-        status_anterior: lancamento.status,
-        novo_status: newStatus,
-        ...(valorPago !== undefined && { valor_pago: valorPago }),
-        ...(valorJuros > 0 && { valor_juros: valorJuros }),
-        ...(valorDesconto > 0 && { valor_desconto: valorDesconto }),
-        // Adicionamos comentário no histórico, não na observação principal
-        observacao: `Status alterado de ${lancamento.status} para ${newStatus}`
-      };
-      
-      // Configurar a data de pagamento
-      let dataPagamento: string | null = lancamento.data_pagamento;
-      
-      // Se o novo status é pago, definir a data de pagamento como hoje
-      if (newStatus === 'pago') {
-        dataPagamento = new Date().toISOString();
-      } 
-      // Se o status anterior era pago mas o novo não é, remover a data de pagamento
-      else if (lancamento.status === 'pago') {
-        dataPagamento = null;
-      }
-
-      // Criar o histórico atualizado adicionando o novo item ao array existente
-      const historicoAtualizado = [
-        ...(lancamento.historico_status || []),
-        novoHistorico
-      ];
-
-      // Atualizar o lançamento no banco
-      const updateData: any = {
-        status: newStatus,
-        data_pagamento: dataPagamento,
-        historico_status: historicoAtualizado
+        status_anterior: statusAnterior,
+        novo_status: novoStatus,
       };
 
-      // Adicionar campos opcionais se fornecidos
-      if (newStatus === 'pago') {
-        if (valorPago !== undefined) {
-          updateData.valor_pago = valorPago;
-        } else {
-          updateData.valor_pago = lancamento.valor;
-        }
+      // Adiciona à lista de histórico existente
+      const historico = [...(lancamento.historico_status || []), novaEntradaHistorico];
 
-        if (valorJuros !== undefined) {
-          updateData.valor_juros = valorJuros;
-        }
+      // Converte para um formato que o Supabase aceita (JSON)
+      const historicoJSON = JSON.stringify(historico);
 
-        if (valorDesconto !== undefined) {
-          updateData.valor_desconto = valorDesconto;
-        }
-
-        if (contaBancariaId) {
-          updateData.conta_bancaria_id = contaBancariaId;
-        }
-      }
-
-      // Só atualizar a observação principal se uma nova foi explicitamente fornecida
-      if (observacao) {
-        updateData.observacao = observacao;
-      }
-      // Não modificar a observação existente se nenhuma nova for fornecida
-
-      // Atualizar o lançamento no banco
+      // Atualiza o lançamento no banco de dados
       const { error } = await supabase
-        .from('lancamentos_financeiros')
-        .update(updateData)
+        .from('lancamentos')
+        .update({
+          status: novoStatus,
+          updated_at: new Date().toISOString(),
+          observacao: observacao || lancamento.observacao,
+          historico_status: historicoJSON,
+        })
         .eq('id', lancamento.id);
 
-      if (error) {
-        console.error("Erro ao atualizar status:", error);
-        toast.error(`Erro ao atualizar status: ${error.message}`);
-        return false;
-      }
+      if (error) throw error;
 
-      // Se o pagamento foi registrado e temos uma conta bancária selecionada, atualizar saldo
-      if (newStatus === 'pago' && contaBancariaId) {
-        // Se for uma despesa, diminuir o saldo da conta
-        // Se for uma receita, aumentar o saldo da conta
-        const valorMovimentacao = lancamento.tipo === 'despesa' ? 
-          -(valorPago || lancamento.valor) : 
-          (valorPago || lancamento.valor);
-          
-        await atualizarSaldoConta(contaBancariaId, valorMovimentacao);
-      }
-
-      toast.success(`Status atualizado com sucesso para ${newStatus}`);
+      toast.success(`Status atualizado para ${novoStatus}`);
       return true;
     } catch (error) {
       console.error("Erro ao atualizar status:", error);
-      toast.error("Erro ao atualizar status");
+      toast.error("Falha ao atualizar status");
       return false;
     } finally {
       setIsUpdating(false);
     }
   };
 
-  // Função mais completa para registrar pagamentos com valores personalizados
   const registrarPagamento = async (
-    lancamento: LancamentoFinanceiro,
+    lancamento: Lancamento,
     valorPago: number,
-    valorJuros: number = 0,
-    valorDesconto: number = 0,
-    dataPagamento: string = new Date().toISOString(),
-    observacao?: string,
-    contaBancariaId?: string
+    dataRecebimento: string,
+    valorJuros = 0,
+    valorDesconto = 0,
+    observacao?: string
   ) => {
+    setIsUpdating(true);
+
     try {
-      setIsUpdating(true);
-
-      console.log("Registrando pagamento:", {
-        lancamento_id: lancamento.id,
-        valor_pago: valorPago,
-        valor_juros: valorJuros,
-        valor_desconto: valorDesconto,
-        data_pagamento: dataPagamento,
-        conta_bancaria_id: contaBancariaId,
-        observacao
-      });
-
-      // Criar o novo item de histórico como um objeto simples
-      const novoHistoricoItem: HistoricoStatusEntry = {
-        data: new Date().toISOString(),
+      // Cria um novo item no histórico de status
+      const novaEntradaHistorico = {
+        data: dataRecebimento,
         status_anterior: lancamento.status,
-        novo_status: 'pago',
+        novo_status: "pago" as StatusLancamento,
         valor_pago: valorPago,
         valor_juros: valorJuros,
         valor_desconto: valorDesconto
       };
 
-      // Criar o histórico atualizado como array de objetos simples
-      const historicoAtualizado = [...(lancamento.historico_status || []), novoHistoricoItem];
+      // Adiciona à lista de histórico existente
+      const historicoAtual: HistoricoStatusEntry[] = lancamento.historico_status || [];
+      const historico = [...historicoAtual, novaEntradaHistorico];
+      
+      // Converte para JSON para salvar no Supabase
+      const historicoJSON = JSON.stringify(historico);
 
-      // Atualizar o lançamento
-      const { error: updateError } = await supabase
-        .from('lancamentos_financeiros')
+      // Atualiza o lançamento
+      const { error } = await supabase
+        .from('lancamentos')
         .update({
-          status: 'pago',
+          status: "pago",
+          data_recebimento: dataRecebimento,
           valor_pago: valorPago,
           valor_juros: valorJuros,
           valor_desconto: valorDesconto,
-          data_pagamento: dataPagamento,
-          observacao: observacao || lancamento.observacao,
-          conta_bancaria_id: contaBancariaId,
-          historico_status: historicoAtualizado
+          observacao_pagamento: observacao,
+          historico_status: historicoJSON,
+          updated_at: new Date().toISOString()
         })
         .eq('id', lancamento.id);
 
-      if (updateError) throw updateError;
+      if (error) throw error;
 
-      // Se o pagamento foi registrado e temos uma conta bancária selecionada, atualizar saldo
-      if (contaBancariaId) {
-        const valorMovimentacao = lancamento.tipo === 'despesa' ? -valorPago : valorPago;
-        await atualizarSaldoConta(contaBancariaId, valorMovimentacao);
-      }
-
-      const valorLiquido = valorPago - valorJuros + valorDesconto;
-      toast.success(`Pagamento registrado com sucesso: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valorLiquido)}`);
+      toast.success("Pagamento registrado com sucesso");
       return true;
     } catch (error) {
       console.error("Erro ao registrar pagamento:", error);
-      toast.error("Erro ao registrar pagamento");
+      toast.error("Falha ao registrar pagamento");
       return false;
     } finally {
       setIsUpdating(false);
     }
   };
 
-  // Função para atualizar o saldo da conta bancária
-  const atualizarSaldoConta = async (contaBancariaId: string, valorMovimentacao: number) => {
-    try {
-      // Buscar saldo atual da conta
-      const { data: conta, error: fetchError } = await supabase
-        .from('contas_bancarias')
-        .select('saldo_atual')
-        .eq('id', contaBancariaId)
-        .single();
-      
-      if (fetchError) {
-        console.error("Erro ao buscar saldo da conta:", fetchError);
-        return false;
-      }
-      
-      // Calcular novo saldo
-      const novoSaldo = (conta.saldo_atual || 0) + valorMovimentacao;
-      
-      // Atualizar saldo da conta
-      const { error: updateError } = await supabase
-        .from('contas_bancarias')
-        .update({ 
-          saldo_atual: novoSaldo,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', contaBancariaId);
-      
-      if (updateError) {
-        console.error("Erro ao atualizar saldo da conta:", updateError);
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error("Erro ao atualizar saldo da conta:", error);
-      return false;
-    }
-  };
-
   return {
-    updateLancamentoStatus,
+    atualizarStatus,
     registrarPagamento,
     isUpdating
   };

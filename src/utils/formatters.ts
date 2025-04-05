@@ -8,9 +8,21 @@
 
 /**
  * Formata um valor numérico para moeda BRL (R$)
+ * 
+ * @param valor Valor a ser formatado
+ * @param format Formato de exibição (default ou compact)
  */
-export function formatarMoeda(valor?: number): string {
+export function formatarMoeda(valor?: number, format: 'default' | 'compact' = 'default'): string {
   if (valor === undefined || valor === null) return "R$ 0,00";
+  
+  if (format === 'compact') {
+    // Formatação compacta para valores grandes (ex: 1.2M, 350K)
+    if (valor >= 1000000) {
+      return `R$ ${(valor / 1000000).toFixed(1)}M`;
+    } else if (valor >= 1000) {
+      return `R$ ${(valor / 1000).toFixed(1)}K`;
+    }
+  }
   
   return new Intl.NumberFormat('pt-BR', { 
     style: 'currency', 

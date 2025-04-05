@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BatteryCharging, Factory, Zap } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { formatarKwh } from "@/utils/formatters";
+import { formatarKWh } from "@/utils/formatters";
 import { usinaKeys } from "../hooks/useUsinas";
 
 interface DashboardData {
@@ -108,7 +108,7 @@ export function UsinasDashboard() {
                 Geração Média
               </p>
               <h2 className="text-2xl font-bold">
-                {formatarKwh(data?.geracao_media ?? 0)} kWh
+                {formatarKWh(data?.geracao_media ?? 0)} kWh
               </h2>
             </div>
             <div className="p-4 bg-green-100 rounded-full">
@@ -126,7 +126,7 @@ export function UsinasDashboard() {
                 Potência Instalada
               </p>
               <h2 className="text-2xl font-bold">
-                {formatarKwh(data?.potencia_total ?? 0)} kWp
+                {formatarKWh(data?.potencia_total ?? 0)} kWp
               </h2>
             </div>
             <div className="p-4 bg-yellow-100 rounded-full">

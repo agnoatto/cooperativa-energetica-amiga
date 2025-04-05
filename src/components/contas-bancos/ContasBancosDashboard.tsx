@@ -117,7 +117,7 @@ export function ContasBancosDashboard({ periodo, selectedDate }: ContasBancosDas
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="data" />
           <YAxis
-            tickFormatter={(value) => formatarMoeda(value, "compact")}
+            tickFormatter={(value) => formatarMoeda(value, 'compact')}
           />
           <Tooltip 
             formatter={(value: number) => formatarMoeda(value)}
