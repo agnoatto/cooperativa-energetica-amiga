@@ -17,6 +17,7 @@ export interface TableSettings {
 
 export interface ExcelTableProps extends TableHTMLAttributes<HTMLTableElement> {
   columns: Column[];
+  rows: React.ReactNode[];
   defaultColumnWidth?: number;
   onColumnResize?: (columnId: string, newWidth: number) => void;
   stickyHeader?: boolean;
@@ -24,4 +25,7 @@ export interface ExcelTableProps extends TableHTMLAttributes<HTMLTableElement> {
   visibleColumns?: string[];
   onColumnVisibilityChange?: (columnId: string, visible: boolean) => void;
   onResetColumns?: () => void;
+  isLoading?: boolean;
+  emptyState?: React.ReactNode;
+  loadingState?: React.ReactNode;
 }

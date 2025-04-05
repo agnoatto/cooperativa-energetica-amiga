@@ -26,7 +26,15 @@ export function LancamentosExcelTable({
   tipo,
   refetch,
 }: LancamentosExcelTableProps) {
-  const columns = useTableColumns(tipo);
+  const { 
+    columns, 
+    visibleColumns, 
+    columnWidths, 
+    handleColumnVisibilityChange, 
+    handleResetColumns, 
+    handleColumnResize 
+  } = useTableColumns({ tipoLancamento: tipo });
+  
   const [selectedLancamento, setSelectedLancamento] = useState<LancamentoFinanceiro | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showRegistrarPagamento, setShowRegistrarPagamento] = useState(false);
@@ -67,6 +75,7 @@ export function LancamentosExcelTable({
         columns={columns}
         tipo={tipo}
         onViewDetails={handleViewDetails}
+        onRegistrarPagamento={handleRegistrarPagamento}
       />
     ));
   }, [lancamentos, columns, tipo]);
@@ -87,6 +96,11 @@ export function LancamentosExcelTable({
             <p className="text-gray-500">Carregando lançamentos...</p>
           </div>
         }
+        storageKey={`lancamentos-${tipo}-excel-table`}
+        visibleColumns={visibleColumns}
+        onColumnVisibilityChange={handleColumnVisibilityChange}
+        onResetColumns={handleResetColumns}
+        onColumnResize={handleColumnResize}
       />
 
       <LancamentoDetailsDialog

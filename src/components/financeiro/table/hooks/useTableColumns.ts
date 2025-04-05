@@ -10,7 +10,7 @@ import { useState, useEffect } from "react";
 import { Column } from "@/components/ui/excel-table/types";
 import { defaultColumns } from "../config/defaultColumns";
 
-interface UseTableColumnsProps {
+export interface UseTableColumnsProps {
   storageKeyPrefix?: string;
   tipoLancamento?: 'receita' | 'despesa';
 }
@@ -71,7 +71,7 @@ export function useTableColumns({
   );
 
   // Ajustar rótulo da coluna de contato conforme o tipo de lançamento
-  const updatedColumns = filteredColumns.map(col => {
+  const columns = filteredColumns.map(col => {
     if (col.id === 'contato') {
       return {
         ...col,
@@ -84,7 +84,7 @@ export function useTableColumns({
   return {
     visibleColumns,
     columnWidths,
-    filteredColumns: updatedColumns,
+    columns,
     handleColumnVisibilityChange,
     handleResetColumns,
     handleColumnResize
