@@ -10,6 +10,9 @@ import {
   Settings,
   DollarSign,
   LucideIcon,
+  Bank,
+  CreditCard,
+  ArrowLeftRight,
 } from "lucide-react";
 
 type RouteSection = {
@@ -102,6 +105,26 @@ export const routes: RouteSection[] = [
         icon: Wallet,
         href: "/financeiro/contas-pagar",
         color: "text-red-600",
+      },
+      {
+        label: "Contas e Bancos",
+        icon: Bank,
+        href: "/financeiro/contas-bancos",
+        color: "text-blue-800",
+        subItems: [
+          {
+            label: "Contas Bancárias",
+            icon: CreditCard,
+            href: "/financeiro/contas-bancos/contas",
+            color: "text-blue-800",
+          },
+          {
+            label: "Transferências",
+            icon: ArrowLeftRight,
+            href: "/financeiro/contas-bancos/transferencias",
+            color: "text-blue-800",
+          },
+        ],
       },
       {
         label: "Faturas",
