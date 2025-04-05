@@ -14,6 +14,7 @@ import { ResizeHandle } from "./ResizeHandle";
 export function ExcelTable({
   columns,
   children,
+  rows,
   className,
   defaultColumnWidth = 150,
   stickyHeader = true,
@@ -22,6 +23,9 @@ export function ExcelTable({
   visibleColumns,
   onColumnVisibilityChange,
   onResetColumns,
+  isLoading,
+  emptyState,
+  loadingState,
   ...props
 }: ExcelTableProps) {
   const [settings, setSettings] = useState<TableSettings>(() => {
@@ -58,6 +62,16 @@ export function ExcelTable({
     }));
     onColumnResize?.(columnId, width);
   }, [onColumnResize]);
+
+  // Renderizar estado de carregamento se fornecido e isLoading for true
+  if (isLoading && loadingState) {
+    return loadingState;
+  }
+
+  // Renderizar estado vazio se fornecido e não houver rows nem children
+  if (emptyState && !rows?.length && !children) {
+    return emptyState;
+  }
 
   return (
     <div className="relative w-full overflow-x-auto shadow-sm border border-gray-200 rounded-lg">
@@ -109,6 +123,11 @@ export function ExcelTable({
           </tr>
         </thead>
         {children}
+        {rows && !children && (
+          <tbody>
+            {rows}
+          </tbody>
+        )}
       </table>
     </div>
   );

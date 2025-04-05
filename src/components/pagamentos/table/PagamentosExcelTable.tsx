@@ -6,7 +6,7 @@
  * redimensionamento de colunas, cabeçalhos fixos e gerenciamento de visibilidade
  * de colunas para a listagem de pagamentos.
  */
-import { useState } from "react";
+import { useMemo } from "react";
 import { ExcelTable } from "@/components/ui/excel-table/ExcelTable";
 import { ColumnSettings } from "@/components/ui/excel-table/ColumnSettings";
 import { useTableColumns } from "./hooks/useTableColumns";
@@ -39,6 +39,20 @@ export function PagamentosExcelTable({
     handleColumnResize
   } = useTableColumns();
 
+  // Preparar as linhas da tabela
+  const tableRows = useMemo(() => {
+    return pagamentos.map((pagamento) => (
+      <PagamentoExcelRow 
+        key={pagamento.id}
+        pagamento={pagamento}
+        columns={filteredColumns}
+        onViewDetails={onViewDetails}
+        onEdit={onEditPagamento}
+        onDelete={onDeletePagamento}
+      />
+    ));
+  }, [pagamentos, filteredColumns, onViewDetails, onEditPagamento, onDeletePagamento]);
+
   if (isLoading) {
     return <PagamentosLoadingState />;
   }
@@ -62,23 +76,11 @@ export function PagamentosExcelTable({
         <div className="h-[calc(100vh-360px)] w-full overflow-auto">
           <ExcelTable
             columns={filteredColumns}
+            rows={tableRows}
             storageKey="pagamentos-table-settings"
             onColumnResize={handleColumnResize}
             stickyHeader
-          >
-            <tbody>
-              {pagamentos.map((pagamento) => (
-                <PagamentoExcelRow 
-                  key={pagamento.id}
-                  pagamento={pagamento}
-                  columns={filteredColumns}
-                  onViewDetails={onViewDetails}
-                  onEdit={onEditPagamento}
-                  onDelete={onDeletePagamento}
-                />
-              ))}
-            </tbody>
-          </ExcelTable>
+          />
         </div>
       </div>
     </div>

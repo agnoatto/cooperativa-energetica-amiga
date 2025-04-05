@@ -12,6 +12,7 @@ import { ColumnSettings } from "@/components/ui/excel-table/ColumnSettings";
 import { useTableColumns } from "./hooks/useTableColumns";
 import { defaultColumns } from "./config/defaultColumns";
 import { FaturaTableRow } from "./components/FaturaTableRow";
+import { useMemo } from "react";
 
 interface FaturasExcelTableProps {
   faturas: Fatura[];
@@ -42,6 +43,22 @@ export function FaturasExcelTable({
     storageKeyPrefix: 'faturas'
   });
 
+  // Preparar as linhas da tabela como um array de ReactNodes
+  const tableRows = useMemo(() => {
+    return faturas.map((fatura) => (
+      <FaturaTableRow
+        key={fatura.id}
+        fatura={fatura}
+        filteredColumns={filteredColumns}
+        onViewDetails={onViewDetails}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onUpdateStatus={onUpdateStatus}
+        onViewPdf={onViewPdf}
+      />
+    ));
+  }, [faturas, filteredColumns, onViewDetails, onEdit, onDelete, onUpdateStatus, onViewPdf]);
+
   return (
     <div className="overflow-hidden">
       <div className="flex justify-end mb-2">
@@ -55,28 +72,14 @@ export function FaturasExcelTable({
       
       <ExcelTable
         columns={filteredColumns}
+        rows={tableRows}
         storageKey="faturas-table-config"
         stickyHeader
         visibleColumns={visibleColumns}
         onColumnVisibilityChange={handleColumnVisibilityChange}
         onResetColumns={handleResetColumns}
         onColumnResize={handleColumnResize}
-      >
-        <tbody>
-          {faturas.map((fatura) => (
-            <FaturaTableRow
-              key={fatura.id}
-              fatura={fatura}
-              filteredColumns={filteredColumns}
-              onViewDetails={onViewDetails}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onUpdateStatus={onUpdateStatus}
-              onViewPdf={onViewPdf}
-            />
-          ))}
-        </tbody>
-      </ExcelTable>
+      />
     </div>
   );
 }
