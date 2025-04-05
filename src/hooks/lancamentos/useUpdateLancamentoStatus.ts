@@ -7,7 +7,7 @@
  */
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { LancamentoFinanceiro, StatusLancamento } from "@/types/financeiro";
+import { LancamentoFinanceiro, StatusLancamento, HistoricoStatus } from "@/types/financeiro";
 import { toast } from "sonner";
 
 interface UpdateLancamentoOptions {
@@ -153,70 +153,40 @@ export function useUpdateLancamentoStatus() {
         observacao
       });
 
-      // Verificar se temos a função RPC registrar_pagamento_lancamento_com_conta
-      // Se não, usamos a função padrão e atualizamos a conta bancária separadamente
-      try {
-        // Tentar usar a função RPC atualizada com suporte a conta bancária
-        const { data, error } = await supabase.rpc('registrar_pagamento_lancamento', {
-          p_lancamento_id: lancamento.id,
-          p_valor_pago: valorPago,
-          p_valor_juros: valorJuros,
-          p_valor_desconto: valorDesconto,
-          p_data_pagamento: dataPagamento,
-          p_observacao: observacao
-        });
+      // Criar diretamente o objeto de histórico para evitar problemas de tipagem com JSON
+      const novoHistoricoItem = {
+        data: new Date().toISOString(),
+        status_anterior: lancamento.status,
+        novo_status: 'pago',
+        valor_pago: valorPago,
+        valor_juros: valorJuros,
+        valor_desconto: valorDesconto
+      };
 
-        if (error) throw error;
+      // Criar o histórico atualizado manualmente
+      const historicoAtualizado = [...(lancamento.historico_status || []), novoHistoricoItem];
 
-        // Atualizar a conta bancária separadamente se a conta bancária foi fornecida
-        if (contaBancariaId) {
-          const { error: updateError } = await supabase
-            .from('lancamentos_financeiros')
-            .update({ conta_bancaria_id: contaBancariaId })
-            .eq('id', lancamento.id);
+      // Atualizar o lançamento manualmente
+      const { error: updateError } = await supabase
+        .from('lancamentos_financeiros')
+        .update({
+          status: 'pago',
+          valor_pago: valorPago,
+          valor_juros: valorJuros,
+          valor_desconto: valorDesconto,
+          data_pagamento: dataPagamento,
+          observacao: observacao || lancamento.observacao,
+          conta_bancaria_id: contaBancariaId,
+          historico_status: historicoAtualizado
+        })
+        .eq('id', lancamento.id);
 
-          if (updateError) {
-            console.error("Erro ao atualizar a conta bancária:", updateError);
-          }
-          
-          // Atualizar o saldo da conta
-          const valorMovimentacao = lancamento.tipo === 'despesa' ? -valorPago : valorPago;
-          await atualizarSaldoConta(contaBancariaId, valorMovimentacao);
-        }
-      } catch (error) {
-        console.error("Erro ao usar RPC registrar_pagamento_lancamento:", error);
-        // Fallback para atualização manual
-        const { error: updateError } = await supabase
-          .from('lancamentos_financeiros')
-          .update({
-            status: 'pago',
-            valor_pago: valorPago,
-            valor_juros: valorJuros,
-            valor_desconto: valorDesconto,
-            data_pagamento: dataPagamento,
-            observacao: observacao || lancamento.observacao,
-            conta_bancaria_id: contaBancariaId,
-            historico_status: [
-              ...(lancamento.historico_status || []),
-              {
-                data: new Date().toISOString(),
-                status_anterior: lancamento.status,
-                novo_status: 'pago',
-                valor_pago: valorPago,
-                valor_juros: valorJuros,
-                valor_desconto: valorDesconto
-              }
-            ]
-          })
-          .eq('id', lancamento.id);
+      if (updateError) throw updateError;
 
-        if (updateError) throw updateError;
-
-        // Se o pagamento foi registrado e temos uma conta bancária selecionada, atualizar saldo
-        if (contaBancariaId) {
-          const valorMovimentacao = lancamento.tipo === 'despesa' ? -valorPago : valorPago;
-          await atualizarSaldoConta(contaBancariaId, valorMovimentacao);
-        }
+      // Se o pagamento foi registrado e temos uma conta bancária selecionada, atualizar saldo
+      if (contaBancariaId) {
+        const valorMovimentacao = lancamento.tipo === 'despesa' ? -valorPago : valorPago;
+        await atualizarSaldoConta(contaBancariaId, valorMovimentacao);
       }
 
       const valorLiquido = valorPago - valorJuros + valorDesconto;

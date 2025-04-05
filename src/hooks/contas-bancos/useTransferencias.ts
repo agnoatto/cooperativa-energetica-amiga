@@ -113,7 +113,7 @@ export function useTransferencias(params: UseTransferenciasParams = {}) {
         throw new Error("É necessário informar pelo menos uma conta de origem ou destino");
       }
       
-      if (!transferencia.valor || transferencia.valor <= 0) {
+      if (!transferencia.valor || transferencia.valor <=.0) {
         throw new Error("É necessário informar um valor válido para a transferência");
       }
 
@@ -137,7 +137,7 @@ export function useTransferencias(params: UseTransferenciasParams = {}) {
       
       const { data: resultado, error } = await supabase
         .from('transferencias_bancarias')
-        .insert([novaTransferencia])
+        .insert(novaTransferencia)
         .select();
       
       if (error) throw error;

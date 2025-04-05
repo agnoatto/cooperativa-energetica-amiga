@@ -75,7 +75,7 @@ export function useContaBancaria(id?: string) {
 
       const { error } = await supabase
         .from('contas_bancarias')
-        .insert([novaConta]);
+        .insert(novaConta);
 
       if (error) throw error;
       

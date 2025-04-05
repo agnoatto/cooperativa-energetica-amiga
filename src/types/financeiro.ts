@@ -9,6 +9,7 @@ export interface HistoricoStatus {
   valor_pago?: number;
   valor_juros?: number;
   valor_desconto?: number;
+  observacao?: string;
 }
 
 export interface LancamentoFinanceiro {
@@ -28,7 +29,7 @@ export interface LancamentoFinanceiro {
   investidor_id?: string;
   fatura_id?: string;
   pagamento_usina_id?: string;
-  conta_bancaria_id?: string; // Adicionando o campo conta_bancaria_id
+  conta_bancaria_id?: string;
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;

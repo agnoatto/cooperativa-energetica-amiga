@@ -1,3 +1,4 @@
+
 /**
  * Página de Formulário de Conta Bancária
  * 
@@ -63,7 +64,7 @@ export default function ContaBancariaForm() {
     }
     
     // Construir objeto com dados da conta
-    const contaData = {
+    const contaData: Partial<ContaBancaria> = {
       nome,
       tipo,
       status,
@@ -198,9 +199,8 @@ export default function ContaBancariaForm() {
               <div className="space-y-2">
                 <Label htmlFor="data_saldo_inicial">Data do Saldo Inicial *</Label>
                 <DatePicker
-                  id="data_saldo_inicial"
-                  selected={dataSaldoInicial}
-                  onSelect={setDataSaldoInicial}
+                  value={dataSaldoInicial}
+                  onChange={setDataSaldoInicial}
                 />
               </div>
               
