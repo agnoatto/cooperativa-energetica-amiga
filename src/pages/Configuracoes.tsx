@@ -8,6 +8,8 @@ import { UsersList } from "@/components/configuracoes/UsersList";
 import { CooperativaInfo } from "@/components/configuracoes/CooperativaInfo";
 import { useAuth } from "@/contexts/AuthContext";
 import { CalculoFaturaTemplates } from "@/components/configuracoes/CalculoFaturaTemplates";
+import { ContasBancariasForm } from "@/components/configuracoes/ContasBancariasForm";
+import { Landmark } from "lucide-react";
 
 export default function Configuracoes() {
   const { profile } = useAuth();
@@ -29,6 +31,10 @@ export default function Configuracoes() {
         <TabsList>
           <TabsTrigger value="profile">Perfil</TabsTrigger>
           <TabsTrigger value="empresa">Empresa</TabsTrigger>
+          <TabsTrigger value="contas">
+            <Landmark className="h-4 w-4 mr-2" />
+            Contas Bancárias
+          </TabsTrigger>
           <TabsTrigger value="system">Sistema</TabsTrigger>
           <TabsTrigger value="integracao">Integração</TabsTrigger>
           <TabsTrigger value="templates">Templates de Cálculo</TabsTrigger>
@@ -38,6 +44,9 @@ export default function Configuracoes() {
         </TabsContent>
         <TabsContent value="empresa">
           <EmpresaForm />
+        </TabsContent>
+        <TabsContent value="contas">
+          <ContasBancariasForm />
         </TabsContent>
         <TabsContent value="system">
           <SystemSettingsForm />

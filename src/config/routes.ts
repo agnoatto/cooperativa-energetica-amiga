@@ -1,3 +1,4 @@
+
 import {
   BarChart3,
   Building2,
@@ -108,22 +109,8 @@ export const routes: RouteSection[] = [
       {
         label: "Contas e Bancos",
         icon: Landmark,
-        href: "/financeiro/contas-bancos",
+        href: "/configuracoes?tab=contas",
         color: "text-blue-800",
-        subItems: [
-          {
-            label: "Contas Bancárias",
-            icon: CreditCard,
-            href: "/financeiro/contas-bancos/contas",
-            color: "text-blue-800",
-          },
-          {
-            label: "Transferências",
-            icon: ArrowLeftRight,
-            href: "/financeiro/contas-bancos/transferencias",
-            color: "text-blue-800",
-          },
-        ],
       },
       {
         label: "Faturas",

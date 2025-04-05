@@ -16,8 +16,6 @@ import {
   LogOut,
   BarChart3,
   Landmark,
-  CreditCard,
-  ArrowLeftRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { SidebarLink } from './SidebarLink';
@@ -140,19 +138,9 @@ export function Sidebar() {
                   label: "Contas a Receber"
                 },
                 {
-                  href: "/financeiro/contas-bancos",
+                  href: "/configuracoes?tab=contas",
                   icon: Landmark,
-                  label: "Contas e Bancos"
-                },
-                {
-                  href: "/financeiro/contas-bancos/contas",
-                  icon: CreditCard,
                   label: "Contas Bancárias"
-                },
-                {
-                  href: "/financeiro/contas-bancos/transferencias",
-                  icon: ArrowLeftRight,
-                  label: "Transferências"
                 }
               ]}
             >
