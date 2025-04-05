@@ -10,7 +10,6 @@ import {
   Settings,
   DollarSign,
   LucideIcon,
-  Landmark,
   CreditCard,
   ArrowLeftRight,
 } from "lucide-react";
@@ -105,12 +104,6 @@ export const routes: RouteSection[] = [
         icon: Wallet,
         href: "/financeiro/contas-pagar",
         color: "text-red-600",
-      },
-      {
-        label: "Contas e Bancos",
-        icon: Landmark,
-        href: "/configuracoes?tab=contas",
-        color: "text-blue-800",
       },
       {
         label: "Faturas",
