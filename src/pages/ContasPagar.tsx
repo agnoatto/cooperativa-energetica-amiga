@@ -9,13 +9,13 @@
 import { useLancamentosFinanceiros } from "@/hooks/lancamentos/useLancamentosFinanceiros";
 import { StatusLancamento } from "@/types/financeiro";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { LancamentosTable } from "@/components/financeiro/table/LancamentosTable";
 import { LancamentosCards } from "@/components/financeiro/cards/LancamentosCards";
 import { LancamentosDashboard } from "@/components/financeiro/dashboard/LancamentosDashboard";
 import { useState } from "react";
 import { FiltrosLancamento } from "@/components/financeiro/FiltrosLancamento";
 import { MonthSelector } from "@/components/MonthSelector";
 import { useMonthSelection } from "@/hooks/useMonthSelection";
+import { LancamentosExcelTable } from "@/components/financeiro/table/LancamentosExcelTable";
 
 export default function ContasPagar() {
   const [status, setStatus] = useState<StatusLancamento | 'todos'>('todos');
@@ -84,7 +84,7 @@ export default function ContasPagar() {
           refetch={refetch}
         />
       ) : (
-        <LancamentosTable
+        <LancamentosExcelTable
           lancamentos={lancamentos}
           isLoading={isLoading}
           tipo="despesa"
