@@ -30,8 +30,8 @@ import { ContaBancariaSelect } from "@/components/contas-bancos/ContaBancariaSel
 import { ArrowLeftRight, ArrowLeft, Save, Upload } from "lucide-react";
 import { useTransferencias } from "@/hooks/contas-bancos/useTransferencias";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ContaBancaria } from "@/types/contas-bancos";
-import { format } from "date-fns";
+import { ContaBancaria, StatusTransferencia } from "@/types/contas-bancos";
+import { formatarMoeda } from "@/utils/formatters";
 
 // Esquema de validação do formulário
 const transferenciaSchema = z.object({
@@ -94,7 +94,7 @@ export default function TransferenciaForm() {
         data_transferencia: values.data_transferencia.toISOString(),
         descricao: values.descricao,
         observacao: values.observacao,
-        status: 'pendente'
+        status: 'pendente' as StatusTransferencia
       };
       
       const resultado = await realizarTransferencia(transferencia);
@@ -187,7 +187,9 @@ export default function TransferenciaForm() {
                           />
                         </FormControl>
                         <FormDescription>
-                          {contaOrigem ? `Saldo disponível: ${format(contaOrigem.saldo_atual, 'currency', { currency: 'BRL' })}` : 'Conta de onde sairá o dinheiro'}
+                          {contaOrigem ? 
+                            `Saldo disponível: ${formatarMoeda(contaOrigem.saldo_atual)}` 
+                            : 'Conta de onde sairá o dinheiro'}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

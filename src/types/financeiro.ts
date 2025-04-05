@@ -28,6 +28,7 @@ export interface LancamentoFinanceiro {
   investidor_id?: string;
   fatura_id?: string;
   pagamento_usina_id?: string;
+  conta_bancaria_id?: string; // Adicionando o campo conta_bancaria_id
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
@@ -53,7 +54,7 @@ export interface LancamentoFinanceiro {
     numero_fatura: string;
     mes?: number;
     ano?: number;
-    data_vencimento: string; // Adicionando data_vencimento ao tipo fatura
+    data_vencimento: string;
     unidade_beneficiaria: {
       numero_uc: string;
       apelido?: string | null;

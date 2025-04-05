@@ -62,6 +62,8 @@ export function RegistrarPagamentoModal({
       // Manter a conta bancária se já estiver selecionada
       if (lancamento.conta_bancaria_id) {
         setContaBancariaId(lancamento.conta_bancaria_id);
+      } else {
+        setContaBancariaId("");
       }
     }
   }, [lancamento, isOpen]);

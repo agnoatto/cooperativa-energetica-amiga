@@ -62,10 +62,20 @@ export function useContaBancaria(id?: string) {
         return true;
       }
       
-      // Se for uma nova conta
+      // Se for uma nova conta - assegurando campos obrigatórios
+      const novaConta = {
+        nome: contaData.nome || "",
+        tipo: contaData.tipo || "corrente",
+        status: contaData.status || "ativa",
+        data_saldo_inicial: contaData.data_saldo_inicial || new Date().toISOString(),
+        saldo_inicial: contaData.saldo_inicial || 0,
+        saldo_atual: contaData.saldo_inicial || 0,
+        ...contaData
+      };
+
       const { error } = await supabase
         .from('contas_bancarias')
-        .insert([contaData]);
+        .insert([novaConta]);
 
       if (error) throw error;
       

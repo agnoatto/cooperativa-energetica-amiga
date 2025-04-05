@@ -153,34 +153,74 @@ export function useUpdateLancamentoStatus() {
         observacao
       });
 
-      // Usar a função RPC criada no banco de dados
-      const { data, error } = await supabase.rpc('registrar_pagamento_lancamento', {
-        p_lancamento_id: lancamento.id,
-        p_valor_pago: valorPago,
-        p_valor_juros: valorJuros,
-        p_valor_desconto: valorDesconto,
-        p_data_pagamento: dataPagamento,
-        p_conta_bancaria_id: contaBancariaId,
-        p_observacao: observacao
-      });
+      // Verificar se temos a função RPC registrar_pagamento_lancamento_com_conta
+      // Se não, usamos a função padrão e atualizamos a conta bancária separadamente
+      try {
+        // Tentar usar a função RPC atualizada com suporte a conta bancária
+        const { data, error } = await supabase.rpc('registrar_pagamento_lancamento', {
+          p_lancamento_id: lancamento.id,
+          p_valor_pago: valorPago,
+          p_valor_juros: valorJuros,
+          p_valor_desconto: valorDesconto,
+          p_data_pagamento: dataPagamento,
+          p_observacao: observacao
+        });
 
-      if (error) {
-        console.error("Erro ao registrar pagamento:", error);
-        toast.error(`Erro ao registrar pagamento: ${error.message}`);
-        return false;
-      }
+        if (error) throw error;
 
-      // Se o pagamento foi registrado e temos uma conta bancária selecionada, atualizar saldo
-      if (contaBancariaId) {
-        // Se for uma despesa, diminuir o saldo da conta
-        // Se for uma receita, aumentar o saldo da conta
-        const valorMovimentacao = lancamento.tipo === 'despesa' ? -valorPago : valorPago;
-        await atualizarSaldoConta(contaBancariaId, valorMovimentacao);
+        // Atualizar a conta bancária separadamente se a conta bancária foi fornecida
+        if (contaBancariaId) {
+          const { error: updateError } = await supabase
+            .from('lancamentos_financeiros')
+            .update({ conta_bancaria_id: contaBancariaId })
+            .eq('id', lancamento.id);
+
+          if (updateError) {
+            console.error("Erro ao atualizar a conta bancária:", updateError);
+          }
+          
+          // Atualizar o saldo da conta
+          const valorMovimentacao = lancamento.tipo === 'despesa' ? -valorPago : valorPago;
+          await atualizarSaldoConta(contaBancariaId, valorMovimentacao);
+        }
+      } catch (error) {
+        console.error("Erro ao usar RPC registrar_pagamento_lancamento:", error);
+        // Fallback para atualização manual
+        const { error: updateError } = await supabase
+          .from('lancamentos_financeiros')
+          .update({
+            status: 'pago',
+            valor_pago: valorPago,
+            valor_juros: valorJuros,
+            valor_desconto: valorDesconto,
+            data_pagamento: dataPagamento,
+            observacao: observacao || lancamento.observacao,
+            conta_bancaria_id: contaBancariaId,
+            historico_status: [
+              ...(lancamento.historico_status || []),
+              {
+                data: new Date().toISOString(),
+                status_anterior: lancamento.status,
+                novo_status: 'pago',
+                valor_pago: valorPago,
+                valor_juros: valorJuros,
+                valor_desconto: valorDesconto
+              }
+            ]
+          })
+          .eq('id', lancamento.id);
+
+        if (updateError) throw updateError;
+
+        // Se o pagamento foi registrado e temos uma conta bancária selecionada, atualizar saldo
+        if (contaBancariaId) {
+          const valorMovimentacao = lancamento.tipo === 'despesa' ? -valorPago : valorPago;
+          await atualizarSaldoConta(contaBancariaId, valorMovimentacao);
+        }
       }
 
       const valorLiquido = valorPago - valorJuros + valorDesconto;
       toast.success(`Pagamento registrado com sucesso: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valorLiquido)}`);
-      console.log("Resultado do pagamento:", data);
       return true;
     } catch (error) {
       console.error("Erro ao registrar pagamento:", error);

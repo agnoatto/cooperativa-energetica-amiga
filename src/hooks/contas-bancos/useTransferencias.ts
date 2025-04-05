@@ -93,7 +93,8 @@ export function useTransferencias(params: UseTransferenciasParams = {}) {
       
       if (error) throw error;
       
-      setData(transferencias as TransferenciaBancaria[]);
+      // Converter o resultado para o tipo TransferenciaBancaria[]
+      setData(transferencias as unknown as TransferenciaBancaria[]);
     } catch (err) {
       console.error("Erro ao buscar transferências:", err);
       setError(err instanceof Error ? err : new Error("Erro desconhecido ao buscar transferências"));
@@ -130,7 +131,8 @@ export function useTransferencias(params: UseTransferenciasParams = {}) {
         ...transferencia,
         descricao: transferencia.descricao || descricaoPadrao,
         data_transferencia: transferencia.data_transferencia || new Date().toISOString(),
-        status: transferencia.status || 'pendente'
+        status: transferencia.status || 'pendente',
+        valor: transferencia.valor || 0, // Garantir que valor seja fornecido
       };
       
       const { data: resultado, error } = await supabase
@@ -181,8 +183,11 @@ export function useTransferencias(params: UseTransferenciasParams = {}) {
       
       // Preparar histórico de status
       const historicoAtual = transferencia.historico_status || [];
+      // Verificar se historico_status é iterável e converter caso necessário
+      const historicoArray = Array.isArray(historicoAtual) ? historicoAtual : [];
+      
       const novoHistorico = [
-        ...historicoAtual,
+        ...historicoArray,
         {
           data: new Date().toISOString(),
           status_anterior: transferencia.status,
